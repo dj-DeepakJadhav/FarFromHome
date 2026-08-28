@@ -167,9 +167,10 @@ window.FFH.UI = class {
   showBootScreen() {
     this.clear();
 
-    // Set background color to turquoise sea (matching reference: #5DB7AD)
+    // Let the 3D scene render in the background — do NOT set a solid color
+    // The city will be visible behind the menu panel
     if (this.game && this.game.scene) {
-      this.game.scene.background = new THREE.Color(0x5DB7AD);
+      this.game.scene.background = new THREE.Color(0x87CEEB); // soft sky fallback if no renderer yet
     }
 
     const bootDiv = document.createElement('div');
@@ -182,68 +183,126 @@ window.FFH.UI = class {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       pointer-events: none;
       padding: 25px 20px 35px 20px;
       box-sizing: border-box;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.7) 100%);
     `;
 
     bootDiv.innerHTML = `
-      <!-- Center Main Menu Options -->
-      <div style="pointer-events: auto; z-index: 10; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: auto; margin-bottom: auto; gap: 15px;">
-        <h1 style="color: #FFF; font-size: 32px; font-weight: 900; margin-bottom: 20px; text-shadow: 0 4px 0 #222;">KRUMA EXPRESS</h1>
-        
+      <!-- Title Block at top -->
+      <div style="pointer-events: none; text-align: center; margin-bottom: 40px; flex-shrink: 0;">
+        <div style="
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 5px;
+          color: rgba(255,255,255,0.7);
+          text-transform: uppercase;
+          margin-bottom: 8px;
+          font-family: monospace;
+        ">A STUDENT SURVIVAL STORY</div>
+        <h1 style="
+          color: #FFF;
+          font-size: 42px;
+          font-weight: 900;
+          margin: 0;
+          letter-spacing: 3px;
+          text-transform: uppercase;
+          font-family: monospace, monospace;
+          text-shadow: 0 3px 0 rgba(0,0,0,0.6), 0 6px 20px rgba(0,0,0,0.5);
+          line-height: 1.1;
+        ">FAR FROM<br>HOME</h1>
+        <div style="
+          font-size: 12px;
+          color: rgba(255,255,255,0.6);
+          margin-top: 10px;
+          font-style: italic;
+          letter-spacing: 1px;
+        ">Lübeck, Germany · Learn German · Pay Your Tuition</div>
+      </div>
+
+      <!-- Frosted glass panel with buttons -->
+      <div style="
+        pointer-events: auto;
+        z-index: 10;
+        width: 290px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 20px;
+        padding: 28px 24px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      ">
         <button id="btn-continue" style="
           display: none;
           background: #3A86FF;
           color: #FFF;
-          border: 3px solid #222;
-          padding: 12px 40px;
-          font-size: 20px;
+          border: none;
+          padding: 14px 40px;
+          font-size: 18px;
           font-weight: 900;
           letter-spacing: 2px;
-          border-radius: 6px;
+          border-radius: 10px;
           cursor: pointer;
-          box-shadow: 0 6px 0 #1A56C0, 0 8px 10px rgba(0,0,0,0.25);
+          box-shadow: 0 5px 0 #1A56C0, 0 8px 20px rgba(58,134,255,0.4);
           transition: all 0.08s ease-in-out;
           font-family: monospace, monospace;
           text-transform: uppercase;
-          width: 250px;
-        ">CONTINUE</button>
+          width: 100%;
+        ">▶ CONTINUE</button>
 
         <button id="btn-new-game" style="
           background: #ECC238;
           color: #222;
-          border: 3px solid #222;
-          padding: 12px 40px;
-          font-size: 20px;
+          border: none;
+          padding: 14px 40px;
+          font-size: 18px;
           font-weight: 900;
           letter-spacing: 2px;
-          border-radius: 6px;
+          border-radius: 10px;
           cursor: pointer;
-          box-shadow: 0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25);
+          box-shadow: 0 5px 0 #9E7D1A, 0 8px 20px rgba(236,194,56,0.4);
           transition: all 0.08s ease-in-out;
           font-family: monospace, monospace;
           text-transform: uppercase;
-          width: 250px;
-        ">NEW GAME</button>
+          width: 100%;
+        ">✦ NEW GAME</button>
         
+        <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.2); margin: 4px 0;"></div>
+
         <button id="btn-sound" style="
-          background: #F8F9FA;
-          color: #222;
-          border: 3px solid #222;
-          padding: 8px 20px;
-          font-size: 14px;
+          background: rgba(255,255,255,0.15);
+          color: #FFF;
+          border: 1px solid rgba(255,255,255,0.3);
+          padding: 9px 20px;
+          font-size: 13px;
           font-weight: bold;
-          border-radius: 6px;
+          border-radius: 8px;
           cursor: pointer;
-          box-shadow: 0 4px 0 #AAA, 0 6px 8px rgba(0,0,0,0.2);
           transition: all 0.08s ease-in-out;
           font-family: monospace, monospace;
-          width: 250px;
-        ">SOUND: ON</button>
+          width: 100%;
+          letter-spacing: 1px;
+        ">🔊 SOUND: ON</button>
       </div>
+
+      <!-- Bottom tagline -->
+      <div style="
+        pointer-events: none;
+        margin-top: 30px;
+        font-size: 10px;
+        color: rgba(255,255,255,0.35);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-family: monospace;
+      ">META HORIZON CREATOR COMPETITION 2026</div>
     `;
 
     this.container.appendChild(bootDiv);

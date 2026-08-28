@@ -124,6 +124,31 @@ class GameEngine {
 
   setupTitleDiorama() {
     this.clearTitleDiorama();
+
+    // Build the full city world as a background for the main menu
+    // This way the player sees the actual game world behind the frosted glass panel
+    try {
+      const { worldGroup, waterMat } = window.FFH.buildLubeckCityWorld();
+      this.titleDiorama = worldGroup;
+      this.titleWaterMat = waterMat;
+      this.scene.add(this.titleDiorama);
+
+      // Add atmospheric lighting for the title screen
+      const titleAmbient = new THREE.AmbientLight(0xC8E6FF, 0.9);
+      const titleSun = new THREE.DirectionalLight(0xFFD080, 1.4);
+      titleSun.position.set(30, 50, 20);
+      titleSun.castShadow = false; // no shadows needed on boot screen
+      this.titleDiorama.add(titleAmbient, titleSun);
+
+      // Position the title camera at a cinematic wide angle of the city
+      const cam = this.cameras.titleCamera;
+      if (cam) {
+        cam.position.set(22, 18, 38);
+        cam.lookAt(20, 0, 14);
+      }
+    } catch(e) {
+      console.warn('Title diorama build failed:', e);
+    }
   }
 
   clearTitleDiorama() {
@@ -246,8 +271,23 @@ class GameEngine {
       this.titleRoom.userData.updateIdle(this.clock.getElapsedTime());
     }
 
-    // Render loop - the title diorama is a static flat map now (no auto-spin,
-    // zoom only; see initZoomControls) so there's nothing to animate here.
+    // Render loop - gently pan the title camera around the city on the boot screen
+    if (this.titleDiorama && !this.currentPhase) {
+      const t = this.clock.getElapsedTime();
+      const radius = 28;
+      const cam = this.cameras.titleCamera;
+      if (cam) {
+        cam.position.x = 20 + Math.sin(t * 0.04) * radius;
+        cam.position.z = 26 + Math.cos(t * 0.04) * radius;
+        cam.position.y = 16 + Math.sin(t * 0.025) * 3;
+        cam.lookAt(20, 1, 14);
+      }
+      // Animate water on title screen too
+      if (this.titleWaterMat && this.titleWaterMat.uniforms && this.titleWaterMat.uniforms.time) {
+        this.titleWaterMat.uniforms.time.value = t;
+      }
+    }
+
     if (this.renderer && this.scene && this.currentCamera) {
       if (this.inkRenderer) {
         this.inkRenderer.setCamera(this.currentCamera);
