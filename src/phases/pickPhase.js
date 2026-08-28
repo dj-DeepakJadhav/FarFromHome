@@ -63,6 +63,17 @@ window.FFH.PickPhase = class {
 
     this.game.ui.showWarehouseManifest();
     window.addEventListener('pointerdown', this.onTap);
+
+    if (state.currentShift === 1) {
+      setTimeout(() => {
+        this.game.ui.showTutorialBanner("Listen closely! Pick items by their gender color: Der = Blue, Die = Pink, Das = Purple", 8000);
+      }, 1000);
+    } else if (state.currentShift === 2 && !state.hasSeenShift2Tutorial) {
+      state.hasSeenShift2Tutorial = true;
+      setTimeout(() => {
+        this.game.ui.showTutorialBanner("The item icon is hidden for 1.5s. Guess early based on the audio for a 2.0x early pick bonus!", 8000);
+      }, 1000);
+    }
   }
 
   update(delta) {
@@ -451,9 +462,9 @@ window.FFH.PickPhase = class {
 
     // Day 1 FTUE: First-Shift Tutorial
     if (this.game.state.currentShift === 1 && this.game.ui && this.game.ui.showTutorialBanner) {
-      if (gender === 'der') this.game.ui.showTutorialBanner('Der (Masculine) ➔ Tap the Blue Shelf', '#457B9D');
-      if (gender === 'die') this.game.ui.showTutorialBanner('Die (Feminine) ➔ Tap the Pink Shelf', '#E63946');
-      if (gender === 'das') this.game.ui.showTutorialBanner('Das (Neuter) ➔ Tap the Purple Shelf', '#7B2CBF');
+      if (gender === 'der') this.game.ui.showTutorialBanner('Der (Masculine) ➔ Look for Blue', 4000);
+      if (gender === 'die') this.game.ui.showTutorialBanner('Die (Feminine) ➔ Look for Pink', 4000);
+      if (gender === 'das') this.game.ui.showTutorialBanner('Das (Neuter) ➔ Look for Purple', 4000);
     }
 
     if (rail) {

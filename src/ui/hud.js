@@ -94,7 +94,7 @@ window.FFH.UI = class {
     }
   }
 
-  showTutorialBanner(text, color) {
+  showTutorialBanner(text, color = '#FFEB3B', duration = 4000) {
     const el = document.createElement('div');
     el.innerHTML = text;
     el.style.cssText = `
@@ -125,12 +125,12 @@ window.FFH.UI = class {
       el.style.transform = 'translate(-50%, -50%) scale(1)';
     });
 
-    // Fade out after 2.5s
+    // Fade out after duration
     setTimeout(() => {
       el.style.opacity = '0';
       el.style.transform = 'translate(-50%, -50%) scale(0.8)';
       setTimeout(() => el.remove(), 300);
-    }, 2500);
+    }, duration);
   }
 
   spawnFloatingText(text, clientX, clientY, color = '#2A9D8F') {
@@ -430,13 +430,20 @@ window.FFH.UI = class {
     const itemCounts = {};
     state.activeOrder.forEach(it => {
       if (!itemCounts[it.id]) {
-        itemCounts[it.id] = { ...it, total: 0, packedCount: 0 };
+        itemCounts[it.id] = { ...it, total: 0, packedCount: 0, revealed: false };
       }
       itemCounts[it.id].total++;
       if (it.packed) itemCounts[it.id].packedCount++;
+      if (it.revealed || it.packed) itemCounts[it.id].revealed = true;
     });
 
-    const uniqueItems = Object.values(itemCounts);
+    const uniqueItems = Object.values(itemCounts).filter(it => it.promptStarted || it.revealed || it.packedCount > 0);
+    
+    const currentPrompt = state.activeOrder.find(i => !i.packed);
+    if (currentPrompt && !itemCounts[currentPrompt.id].revealed) {
+      itemCounts[currentPrompt.id].isObfuscated = true;
+    }
+
     const totalOrdered = state.activeOrder.length;
     const totalPacked = state.activeOrder.filter(i => i.packed).length;
 
@@ -457,6 +464,7 @@ window.FFH.UI = class {
     let checklistLines = '';
     uniqueItems.forEach((item, index) => {
       const isDone = item.packedCount >= item.total;
+      const displayName = item.isObfuscated ? '???' : `${item.nameDe} (${item.nameEn})`;
       checklistLines += `
         <div style="
           font-size: 15px;
@@ -469,7 +477,7 @@ window.FFH.UI = class {
           align-items: center;
           justify-content: space-between;
         ">
-          <span>${index + 1}. ${item.nameDe} (${item.nameEn})</span>
+          <span>${index + 1}. ${displayName}</span>
           <span style="font-family: monospace; font-size: 13px; font-weight: 900; background: ${isDone ? '#E2F0D9' : '#F0F0F0'}; border: 1.5px solid #333; padding: 1px 6px; border-radius: 4px;">
             ${item.packedCount}/${item.total}
           </span>
@@ -481,6 +489,7 @@ window.FFH.UI = class {
     let bottomIcons = '';
     uniqueItems.forEach(item => {
       const isDone = item.packedCount >= item.total;
+      const displayIcon = item.isObfuscated ? '❔' : item.icon;
       bottomIcons += `
         <div style="
           background: ${isDone ? '#C5E1A5' : '#FFFFFF'};
@@ -495,7 +504,7 @@ window.FFH.UI = class {
           min-width: 44px;
           position: relative;
         ">
-          <span style="font-size: 22px;">${item.icon}</span>
+          <span style="font-size: 22px;">${displayIcon}</span>
           <span style="font-size: 11px; font-weight: 900; font-family: monospace; color: #111;">
             ${item.packedCount}/${item.total}
           </span>

@@ -179,6 +179,18 @@ window.FFH.CityExplorationPhase = class {
     
     // Initialize Minimap Data
     this.setupMinimap();
+
+    if (this.game.state.currentShift === 1) {
+      if (this.game.state.activeDelivery) {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Follow the pulsing marker on the minimap to deliver the groceries! Tap anywhere to move.", 6000);
+        }, 1000);
+      } else if (this.game.state.questStep === 0) {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Tap the yellow marker to visit Kruma Express and start your shift!", 6000);
+        }, 1000);
+      }
+    }
   }
 
   setupMinimap() {
