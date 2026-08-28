@@ -237,8 +237,8 @@ window.FFH.NPC_DATABASE = {
           options.push({
             label: `💬 Request: "${generatedRequest}"`,
             action: (game) => {
-              if (game.speech) {
-                game.speech.speak(generatedRequest);
+              if (game.speech && neededItem.id) {
+                game.speech.speakKey(neededItem.id.toLowerCase());
               }
               window.FFH.NPC_DATABASE['NPC_MATHIAS'].currentResponse = {
                 text: 'We are running out in the kitchen! If you go to the store, fetch this for me quickly!',
@@ -378,8 +378,8 @@ window.FFH.NPC_DATABASE = {
           options.push({
             label: `💬 Request: "${generatedRequest}"`,
             action: (game) => {
-              if (game.speech) {
-                game.speech.speak(generatedRequest);
+              if (game.speech && neededItem.id) {
+                game.speech.speakKey(neededItem.id.toLowerCase());
               }
               window.FFH.NPC_DATABASE['NPC_MARTHA'].currentResponse = {
                 text: 'Could you please bring me some from the Kruma Express? I will pay you handsomely when you deliver it!',

@@ -2,24 +2,52 @@
 window.FFH = window.FFH || {};
 
 const _foodModelCache = new Map();
-let _foodLoader = null;
+let _mtlLoader = null;
+let _objLoader = null;
 
 function loadFoodModel(key) {
   if (_foodModelCache.has(key)) return _foodModelCache.get(key);
-  if (!_foodLoader) _foodLoader = window.FFH.getSafeGLTFLoader();
-  const dataUri = window.FFH.kenneyAssets ? window.FFH.kenneyAssets[key] : null;
-  if (!dataUri) return null;
+  if (!_mtlLoader) _mtlLoader = new THREE.MTLLoader();
+  if (!_objLoader) _objLoader = new THREE.OBJLoader();
+  
+  const objKey = key.replace('.obj', '_obj');
+  const mtlKey = key.replace('.obj', '_mtl');
+  
+  const objText = window.FFH.objAssets ? window.FFH.objAssets[objKey] : null;
+  const mtlText = window.FFH.objAssets ? window.FFH.objAssets[mtlKey] : null;
+  
+  if (!objText) return null;
   
   const promise = new Promise((resolve, reject) => {
-    _foodLoader.load(dataUri, (gltf) => {
-      gltf.scene.traverse((child) => {
+    try {
+      if (mtlText) {
+        const materials = _mtlLoader.parse(mtlText);
+        materials.preload();
+        _objLoader.setMaterials(materials);
+      } else {
+        _objLoader.setMaterials(null);
+      }
+      const object = _objLoader.parse(objText);
+      object.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
+          if (child.material) {
+            // Apply Cel Shading to the loaded material but keep its color/map
+            if (Array.isArray(child.material)) {
+               child.material.forEach(m => {
+                 m.type = 'MeshLambertMaterial';
+               });
+            } else {
+               child.material.type = 'MeshLambertMaterial';
+            }
+          }
         }
       });
-      resolve(gltf.scene);
-    }, undefined, reject);
+      resolve(object);
+    } catch(e) {
+      reject(e);
+    }
   });
   _foodModelCache.set(key, promise);
   return promise;
@@ -118,18 +146,18 @@ window.FFH.createItemMesh = function(itemType, genderColorHex) {
 
   // Load and attach authentic Kenney 3D Food Kit model if available
   const modelMap = {
-    carton: { key: 'food_carton', scale: 1.2, y: -0.2 },
-    sphere: { key: 'food_apple', scale: 1.3, y: -0.2 },
-    box: { key: 'food_bread', scale: 1.2, y: -0.1 },
-    cylinder: { key: 'food_water', scale: 1.2, y: -0.2 },
-    curve: { key: 'food_banana', scale: 1.3, y: -0.2 },
-    wedge: { key: 'food_cheese', scale: 1.3, y: -0.2 },
-    egg: { key: 'food_egg', scale: 1.4, y: -0.2 },
-    cone: { key: 'food_carrot', scale: 1.3, y: -0.2 }
+    carton: { key: 'carton.obj', scale: 2.2, y: -0.2 },
+    sphere: { key: 'apple.obj', scale: 2.3, y: -0.2 },
+    box: { key: 'bread.obj', scale: 2.2, y: -0.1 },
+    cylinder: { key: 'soda-bottle.obj', scale: 2.2, y: -0.2 },
+    curve: { key: 'banana.obj', scale: 2.3, y: -0.2 },
+    wedge: { key: 'cheese.obj', scale: 2.3, y: -0.2 },
+    egg: { key: 'egg.obj', scale: 2.4, y: -0.2 },
+    cone: { key: 'carrot.obj', scale: 2.3, y: -0.2 }
   };
 
   const modelInfo = modelMap[itemType];
-  if (modelInfo && window.FFH.kenneyAssets && window.FFH.kenneyAssets[modelInfo.key]) {
+  if (modelInfo) {
     const promise = loadFoodModel(modelInfo.key);
     if (promise) {
       promise.then((scene) => {

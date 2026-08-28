@@ -162,7 +162,7 @@ class GameEngine {
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DIALOGUE') {
         this.currentPhase = this.phases.DIALOGUE;
-        // Keep the camera exactly where it was (likely cityCamera)
+        this.currentCamera = this.cameras.titleCamera; // Switch to fixed room diorama camera
         this.currentPhase.enter(params);
       } else if (phaseKey === 'PICK') {
         this.currentPhase = this.phases.PICK;

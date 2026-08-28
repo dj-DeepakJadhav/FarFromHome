@@ -48,7 +48,9 @@ function assemble() {
   const vendorFiles = [
     'vendor/three.min.js',
     'vendor/three-mesh-bvh.umd.js',
-    'vendor/GLTFLoader.js'
+    'vendor/GLTFLoader.js',
+    'vendor/MTLLoader.js',
+    'vendor/OBJLoader.js'
   ];
   const srcFiles = [
     'src/core/economy.js',
@@ -60,7 +62,7 @@ function assemble() {
     'src/data/shifts.js',
     'src/data/streets.js',
     'src/data/townLayout.js',
-    'src/data/kenneyAssets.js',
+    'src/data/objAssets.js',
     'src/data/dialogue.js',
     'src/data/audioTriggers.js',
     'src/data/voiceSprites.js',

@@ -12,16 +12,45 @@ window.FFH.DialoguePhase = class {
   }
 
   enter(params = {}) {
+    // Clear previous scene objects (like city) so we only see the room diorama
+    while (this.game.scene.children.length > 0) {
+      const obj = this.game.scene.children[this.game.scene.children.length - 1];
+      this.game.scene.remove(obj);
+    }
+    
+    // Add ambient lighting for the room since we cleared the scene
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+    dirLight.position.set(5, 8, 3);
+    dirLight.castShadow = true;
+    this.game.scene.add(ambLight, dirLight);
+
     this.targetNpcKey = params.isDelivery ? 'NPC_DELIVERY_CUSTOMER' : (params.npcKey || 'NPC_RITA');
     const npcEntry = window.FFH.NPC_DATABASE ? window.FFH.NPC_DATABASE[this.targetNpcKey] : null;
 
-    // 1. We NO LONGER clear the scene. We overlay the dialogue UI on top of whatever (e.g. City View).
-    // The instructions say: "Create sliding bottom dialogue card directly inside the city view (no cutaway void boxes)."
-    // So we just leave the camera and scene exactly as they are from the previous phase (likely cityExplorationPhase).
+    // Restore room diorama rendering for dialogue scenes
+    if (npcEntry && npcEntry.roomLevel !== undefined) {
+      this.roomGroup = window.FFH[`createLevel${npcEntry.roomLevel}Room`]();
+    } else {
+      // Default mappings
+      if (this.targetNpcKey === 'NPC_RITA') this.roomGroup = window.FFH.createLevel1Room();
+      else if (this.targetNpcKey === 'NPC_MATHIAS') this.roomGroup = window.FFH.createLevel2Room();
+      else if (this.targetNpcKey === 'NPC_MARTHA') this.roomGroup = window.FFH.createLevel3Room();
+      else if (this.targetNpcKey === 'NPC_NINA') this.roomGroup = window.FFH.createLevel4Room();
+      else if (this.targetNpcKey === 'NPC_LOKKER') this.roomGroup = window.FFH.createLevel0Room();
+      else if (this.targetNpcKey === 'NPC_DELIVERY_CUSTOMER') this.roomGroup = window.FFH.createLevel3Room();
+      else this.roomGroup = window.FFH.createLevel4Room();
+    }
 
-    // 2. We DO NOT spawn the roomGroup anymore to avoid cutting away to a void box.
-    // If the game needs a character mesh, we could spawn it in front of the camera, but for the milestone, 
-    // simply putting the dialogue card directly in the city view is what's required.
+    this.game.scene.add(this.roomGroup);
+
+    // Also try to add the NPC mesh if possible
+    if (window.FFH.createNPCMesh) {
+       this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
+       this.npcGroup.position.set(0.5, 0.05, 0); // Position inside the diorama
+       this.npcGroup.rotation.y = -Math.PI / 4;
+       this.roomGroup.add(this.npcGroup);
+    }
 
     // 3. Trigger Character Greeting Voice
     if (this.game.speech && npcEntry?.greetingAudio) {

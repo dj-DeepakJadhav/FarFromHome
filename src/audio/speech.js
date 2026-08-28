@@ -45,14 +45,8 @@ window.FFH.SpeechEngine = class {
   }
 
   async speak(text) {
-    // If we have dynamic text that isn't mapped to a key, fallback to TTS if available
-    // But for the game, we want to route through speakKey
-    console.warn("Dynamic speak() called, but we are using pre-baked sprites now. Text:", text);
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'de-DE';
-    u.rate = 0.92;
-    window.speechSynthesis.speak(u);
+    // TTS is disabled due to being too robotic.
+    // We only rely on pre-baked voice sprites via speakKey() for authentic German pronunciation.
+    console.log("Speech text omitted (TTS disabled):", text);
   }
 };

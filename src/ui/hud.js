@@ -626,8 +626,8 @@ window.FFH.UI = class {
         btnReplay.style.cursor = 'not-allowed';
         
         const currentPrompt = this.game.state.activeOrder ? this.game.state.activeOrder.find(it => !it.packed) : null;
-        if (currentPrompt && this.game.speech) {
-          this.game.speech.speak(currentPrompt.gender + " " + currentPrompt.nameDe);
+        if (currentPrompt && currentPrompt.id) {
+          this.game.speech.speakKey(currentPrompt.id.toLowerCase());
         }
       });
     }
@@ -1345,8 +1345,20 @@ window.FFH.UI = class {
         color: #fff;
         pointer-events: auto;
       ">
-        <div style="display:flex; align-items:center; gap: 6px;">
-          <span style="font-size: 14px;">📍</span>
+        <div style="display:flex; align-items:center; gap: 8px;">
+          <button id="btn-settings-menu" style="
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #FFF;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+          ">⚙️</button>
           <div>
             <div style="font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Lübeck Altstadt</div>
             <div style="font-size: 10px; color: #76C8B8; font-weight: 700;">Shift #${s.currentShift} Ready</div>
@@ -1393,6 +1405,17 @@ window.FFH.UI = class {
     document.getElementById('btn-close-poi').addEventListener('click', () => {
       document.getElementById('city-poi-card').style.display = 'none';
     });
+
+    // Wire settings menu button
+    const btnSettings = document.getElementById('btn-settings-menu');
+    if (btnSettings) {
+      btnSettings.addEventListener('click', () => {
+        if (window.FFH.saveGame) {
+          window.FFH.saveGame(this.game);
+        }
+        this.game.transitionTo('BOOT');
+      });
+    }
   }
 
   showPOICard(poiData) {

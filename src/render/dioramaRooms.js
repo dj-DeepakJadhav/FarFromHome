@@ -295,25 +295,34 @@ window.FFH.createLevel1Room = function() {
 
   // Apples in crate
   for (let i = -0.15; i <= 0.15; i += 0.15) {
-    const apple = new THREE.Mesh(new THREE.DodecahedronGeometry(0.08, 0), redAppleMat);
+    const apple = window.FFH.createItemMesh('sphere', 0xE63946);
+    apple.scale.set(0.2, 0.2, 0.2);
     apple.position.set(-0.8 + i, 0.4, 0.2);
     room.add(apple);
   }
 
-  // Milk cartons on shelf
-  for (let x = -0.7; x <= 0.7; x += 0.35) {
-    const milk = new THREE.Mesh(boxGeo, milkMat);
-    milk.scale.set(0.14, 0.28, 0.14);
-    milk.position.set(x, 0.56, -1.18);
-    room.add(milk);
+  // Milk cartons
+  for (let i = -0.3; i <= 0.3; i += 0.3) {
+    const carton = window.FFH.createItemMesh('carton', 0x457B9D);
+    carton.scale.set(0.15, 0.15, 0.15);
+    carton.position.set(i, 0.55, -1.2);
+    room.add(carton);
   }
 
-  // Bread loaves on upper shelf
-  for (let x = -0.6; x <= 0.6; x += 0.4) {
-    const bread = new THREE.Mesh(boxGeo, breadMat);
-    bread.scale.set(0.25, 0.16, 0.18);
-    bread.position.set(x, 1.05, -1.18);
+  // Loaves of bread
+  for (let i = -0.3; i <= 0.3; i += 0.3) {
+    const bread = window.FFH.createItemMesh('box', 0xE9C46A);
+    bread.scale.set(0.15, 0.15, 0.15);
+    bread.position.set(i, 1.05, -1.2);
     room.add(bread);
+  }
+
+  // Bananas in second crate
+  for (let i = -0.15; i <= 0.15; i += 0.15) {
+    const banana = window.FFH.createItemMesh('curve', 0xFFD60A);
+    banana.scale.set(0.2, 0.2, 0.2);
+    banana.position.set(-0.8 + i, 0.4, 0.8);
+    room.add(banana);
   }
 
   // 4. Shopping Basket / Cart

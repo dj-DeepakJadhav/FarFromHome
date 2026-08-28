@@ -53,8 +53,9 @@ window.FFH.PickPhase = class {
     if (firstUnpacked) {
       firstUnpacked.promptStarted = true;
       firstUnpacked.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
-      if (this.game.speech) {
-        this.game.speech.speak(firstUnpacked.gender + " " + firstUnpacked.nameDe);
+      // Play pre-recorded voice sprite for the specific item
+      if (firstUnpacked.id) {
+        this.game.speech.speakKey(firstUnpacked.id.toLowerCase());
       }
       setTimeout(() => {
         this.pulseRailForGender(firstUnpacked.gender);
@@ -96,8 +97,8 @@ window.FFH.PickPhase = class {
         if (!currentPrompt.promptStarted) {
           currentPrompt.promptStarted = true;
           currentPrompt.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
-          if (this.game.speech) {
-            this.game.speech.speak(currentPrompt.gender + " " + currentPrompt.nameDe);
+          if (currentPrompt.id) {
+            this.game.speech.speakKey(currentPrompt.id.toLowerCase());
           }
           this.pulseRailForGender(currentPrompt.gender);
           this.game.ui.showWarehouseManifest();

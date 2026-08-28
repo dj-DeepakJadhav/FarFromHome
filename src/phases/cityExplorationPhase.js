@@ -498,14 +498,7 @@ window.FFH.CityExplorationPhase = class {
     this.courier.position.copy(this.playerPos);
     this.game.scene.add(this.courier);
 
-    // Nav Arrow (over player, points to destination)
-    const arrowGeo = new THREE.ConeGeometry(0.3, 1.0, 16);
-    arrowGeo.rotateX(Math.PI / 2); // point along Z
-    const arrowMat = new THREE.MeshLambertMaterial({ color: 0x2EC4B6, emissive: 0x1A6A63 });
-    this.navArrow = new THREE.Mesh(arrowGeo, arrowMat);
-    this.navArrow.visible = false;
-    this.game.scene.add(this.navArrow);
-
+    // Nav Arrow removed per user feedback
     // Nav Line (Google Maps style trail on ground)
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x2EC4B6,
@@ -564,12 +557,17 @@ window.FFH.CityExplorationPhase = class {
     if (!this.isPointerDown) return;
     const dragDist = Math.hypot(e.clientX - this.pointerDownX, e.clientY - this.pointerDownY);
     
-    // Drag camera is disabled to strictly enforce Isometric/Orthographic Viewport constraint.
     if (dragDist > 8) {
       this.isDraggingCamera = true;
-      // No playerHeading rotation here
+      const deltaX = e.clientX - this.lastPointerX;
+      
+      // Orbit Camera Around Player
+      this.playerHeading += deltaX * 0.005;
+      
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
+      
+      this.updateCamera();
     }
   }
 
@@ -906,16 +904,10 @@ window.FFH.CityExplorationPhase = class {
         this.questHintCircle.scale.set(circleScale, circleScale, circleScale);
       }
 
-      // Day 1 FTUE: Navigation Arrow & Path
-      if (this.navArrow && this.navLine) {
-        if (this.game.state.activeDelivery) {
-          this.navArrow.visible = true;
+      // Day 1 FTUE: Navigation Path
+      if (this.navLine) {
+        if (this.game.state.deliveryTarget) {
           this.navLine.visible = true;
-
-          // Position arrow over player and point to target
-          this.navArrow.position.copy(this.playerPos);
-          this.navArrow.position.y += 2.5 + Math.sin(timeSec * 6) * 0.2;
-          this.navArrow.lookAt(targetMesh.position.x, this.navArrow.position.y, targetMesh.position.z);
 
           // Calculate simple Manhattan path on the grid
           const points = [];
@@ -934,14 +926,14 @@ window.FFH.CityExplorationPhase = class {
           this.navLine.computeLineDistances(); // required for LineDashedMaterial
           this.navLine.material.dashOffset -= delta * 2; // Animate dashes
         } else {
-          this.navArrow.visible = false;
+
           this.navLine.visible = false;
         }
       }
 
     } else {
       if (this.questHintMarker) this.questHintMarker.visible = false;
-      if (this.navArrow) this.navArrow.visible = false;
+
       if (this.navLine) this.navLine.visible = false;
     }
 
