@@ -23744,14 +23744,6 @@ class GameEngine {
 
   setupTitleDiorama() {
     this.clearTitleDiorama();
-    this.titleDiorama = new THREE.Group();
-
-    // Add Level 0 Student Sublet Room as the hero 3D diorama
-    const level0Room = window.FFH.createLevel0Room(this.state);
-    this.titleRoom = level0Room;
-    this.titleDiorama.add(level0Room);
-
-    this.scene.add(this.titleDiorama);
   }
 
   clearTitleDiorama() {
