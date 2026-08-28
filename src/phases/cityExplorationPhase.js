@@ -86,6 +86,28 @@ window.FFH.CityExplorationPhase = class {
     this.birds = birds || [];
     this.game.scene.add(this.worldGroup);
 
+    // 3.2 Compute static geometry bounds tree for sliding collision
+    if (window.MeshBVH && window.MeshBVH.StaticGeometryGenerator) {
+      // Temporarily hide dynamic objects from worldGroup so they aren't merged
+      const hidden = [];
+      this.worldGroup.traverse((c) => {
+        if (c.userData.speed !== undefined || c.userData.baseX !== undefined || c.userData.centerX !== undefined) {
+          if (c.visible) {
+            c.visible = false;
+            hidden.push(c);
+          }
+        }
+      });
+      const generator = new window.MeshBVH.StaticGeometryGenerator(this.worldGroup);
+      generator.attributes = ['position'];
+      const mergedGeometry = generator.generate().geometry;
+      mergedGeometry.computeBoundsTree();
+      this.colliderMesh = new THREE.Mesh(mergedGeometry);
+      
+      // Restore dynamic objects
+      hidden.forEach(c => c.visible = true);
+    }
+
     // Spawn 10 Roaming Citizens using the Behavior Tree
     this.roamingCitizens = [];
     this.citizenBehaviorTree = window.FFH.createCitizenBehaviorTree();
@@ -743,23 +765,65 @@ window.FFH.CityExplorationPhase = class {
         let nextX = this.playerPos.x;
         let nextZ = this.playerPos.z;
 
-        // Sliding collision test on X & Z
-        const gridX = Math.round(targetX / S);
-        const curGridZ = Math.round(this.playerPos.z / S);
-        const tileX = window.FFH.LUBECK_CITY_GRID[curGridZ] ? window.FFH.LUBECK_CITY_GRID[curGridZ][gridX] : 'W';
-        if (tileX !== 'W' && !this.checkBuildingCollision(targetX, this.playerPos.z)) {
-          nextX = targetX;
+        if (this.colliderMesh) {
+          const radius = this.playerRadius || 0.4;
+          const playerHeight = radius + 0.1; // Float slightly above floor to ignore flat ground collisions
+          
+          const targetPos = new THREE.Vector3(targetX, playerHeight, targetZ);
+          const tempBox = new THREE.Box3();
+          const tempMat = new THREE.Matrix4();
+          const tempVec = new THREE.Vector3();
+
+          tempMat.copy(this.colliderMesh.matrixWorld).invert();
+          tempVec.copy(targetPos).applyMatrix4(tempMat);
+
+          this.colliderMesh.geometry.boundsTree.shapecast({
+            intersectsBounds: box => {
+              tempBox.copy(box).expandByScalar(radius);
+              return tempBox.containsPoint(tempVec);
+            },
+            intersectsTriangle: tri => {
+              const closestPoint = new THREE.Vector3();
+              tri.closestPointToPoint(tempVec, closestPoint);
+              const dist = closestPoint.distanceTo(tempVec);
+              if (dist < radius) {
+                const dir = new THREE.Vector3().subVectors(tempVec, closestPoint).normalize();
+                // We only want to push horizontally to avoid climbing walls
+                dir.y = 0;
+                if (dir.lengthSq() > 0.0001) {
+                  dir.normalize();
+                  const diff = radius - dist;
+                  tempVec.addScaledVector(dir, diff);
+                }
+              }
+            }
+          });
+
+          targetPos.copy(tempVec).applyMatrix4(this.colliderMesh.matrixWorld);
+          
+          // Only update if we didn't get pushed all the way back
+          nextX = targetPos.x;
+          nextZ = targetPos.z;
+        } else {
+          // Fallback to old AABB collision
+          const gridX = Math.round(targetX / S);
+          const curGridZ = Math.round(this.playerPos.z / S);
+          const tileX = window.FFH.LUBECK_CITY_GRID[curGridZ] ? window.FFH.LUBECK_CITY_GRID[curGridZ][gridX] : 'W';
+          if (tileX !== 'W' && !this.checkBuildingCollision(targetX, this.playerPos.z)) {
+            nextX = targetX;
+          }
+
+          const curGridX = Math.round(nextX / S);
+          const gridZ = Math.round(targetZ / S);
+          const tileZ = window.FFH.LUBECK_CITY_GRID[gridZ] ? window.FFH.LUBECK_CITY_GRID[gridZ][curGridX] : 'W';
+          if (tileZ !== 'W' && !this.checkBuildingCollision(nextX, targetZ)) {
+            nextZ = targetZ;
+          }
         }
 
-        const curGridX = Math.round(nextX / S);
-        const gridZ = Math.round(targetZ / S);
-        const tileZ = window.FFH.LUBECK_CITY_GRID[gridZ] ? window.FFH.LUBECK_CITY_GRID[gridZ][curGridX] : 'W';
-        if (tileZ !== 'W' && !this.checkBuildingCollision(nextX, targetZ)) {
-          nextZ = targetZ;
-        }
-
-        // If stopped by an obstacle, clear movement target
-        if (nextX === this.playerPos.x && nextZ === this.playerPos.z) {
+        // Check if movement is negligible after collision resolution
+        const distMoved = Math.hypot(nextX - this.playerPos.x, nextZ - this.playerPos.z);
+        if (distMoved < 0.001) {
           this.targetMovePos = null;
           if (this.targetMarker) this.targetMarker.visible = false;
         } else {
