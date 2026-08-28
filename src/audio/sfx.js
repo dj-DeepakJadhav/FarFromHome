@@ -68,4 +68,40 @@ window.FFH.AudioEngine = class {
       osc.stop(now + 0.04);
     }
   }
+
+  startMotor() {
+    this.init();
+    if (!this.ctx || this.motorOsc) return;
+    this.motorOsc = this.ctx.createOscillator();
+    this.motorGain = this.ctx.createGain();
+    this.motorOsc.type = 'sine';
+    this.motorOsc.frequency.value = 80;
+    this.motorGain.gain.value = 0;
+    this.motorOsc.connect(this.motorGain);
+    this.motorGain.connect(this.ctx.destination);
+    this.motorOsc.start();
+  }
+
+  setMotorIntensity(intensity) {
+    if (!this.motorOsc) this.startMotor();
+    if (this.motorOsc && this.motorGain) {
+      const now = this.ctx.currentTime;
+      this.motorOsc.frequency.setTargetAtTime(80 + intensity * 60, now, 0.1);
+      this.motorGain.gain.setTargetAtTime(intensity * 0.15, now, 0.1);
+    }
+  }
+
+  stopMotor() {
+    if (this.motorOsc && this.motorGain) {
+      const now = this.ctx.currentTime;
+      this.motorGain.gain.setTargetAtTime(0, now, 0.1);
+      setTimeout(() => {
+        if (this.motorOsc) {
+          this.motorOsc.stop();
+          this.motorOsc.disconnect();
+          this.motorOsc = null;
+        }
+      }, 200);
+    }
+  }
 };

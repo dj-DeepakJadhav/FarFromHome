@@ -170,7 +170,7 @@ class GameEngine {
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DIALOGUE') {
         this.currentPhase = this.phases.DIALOGUE;
-        this.currentCamera = this.cameras.titleCamera;
+        // Keep the camera exactly where it was (likely cityCamera)
         this.currentPhase.enter(params);
       } else if (phaseKey === 'PICK') {
         this.currentPhase = this.phases.PICK;

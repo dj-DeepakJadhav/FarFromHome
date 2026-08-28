@@ -20199,6 +20199,42 @@ window.FFH.AudioEngine = class {
       osc.stop(now + 0.04);
     }
   }
+
+  startMotor() {
+    this.init();
+    if (!this.ctx || this.motorOsc) return;
+    this.motorOsc = this.ctx.createOscillator();
+    this.motorGain = this.ctx.createGain();
+    this.motorOsc.type = 'sine';
+    this.motorOsc.frequency.value = 80;
+    this.motorGain.gain.value = 0;
+    this.motorOsc.connect(this.motorGain);
+    this.motorGain.connect(this.ctx.destination);
+    this.motorOsc.start();
+  }
+
+  setMotorIntensity(intensity) {
+    if (!this.motorOsc) this.startMotor();
+    if (this.motorOsc && this.motorGain) {
+      const now = this.ctx.currentTime;
+      this.motorOsc.frequency.setTargetAtTime(80 + intensity * 60, now, 0.1);
+      this.motorGain.gain.setTargetAtTime(intensity * 0.15, now, 0.1);
+    }
+  }
+
+  stopMotor() {
+    if (this.motorOsc && this.motorGain) {
+      const now = this.ctx.currentTime;
+      this.motorGain.gain.setTargetAtTime(0, now, 0.1);
+      setTimeout(() => {
+        if (this.motorOsc) {
+          this.motorOsc.stop();
+          this.motorOsc.disconnect();
+          this.motorOsc = null;
+        }
+      }, 200);
+    }
+  }
 };
 
 
@@ -20279,10 +20315,88 @@ window.FFH.UI = class {
     const hud = document.getElementById('persistent-hud');
     if (hud) {
       hud.innerHTML = ''; // Clear and disable overlapping persistent HUD
+      
+      if (state.upgrades?.vocabNotebook) {
+        // Add Vocab Notebook button to persistent UI layer
+        hud.innerHTML = `
+          <div style="width: 100%; display: flex; justify-content: flex-end; padding: 10px;">
+            <button id="btn-vocab-notebook" style="
+              pointer-events: auto;
+              background: #FFD166;
+              border: 3px solid #222;
+              border-radius: 8px;
+              width: 50px;
+              height: 50px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              box-shadow: 0 4px 0 #222;
+              font-size: 24px;
+            ">📔</button>
+          </div>
+          <div id="vocab-modal" style="
+            display: none;
+            position: absolute;
+            top: 70px; right: 10px; width: 300px;
+            background: #FFF; border: 3px solid #222; border-radius: 8px;
+            padding: 15px; box-shadow: 4px 6px 0 rgba(0,0,0,0.3);
+            pointer-events: auto; z-index: 2000;
+            max-height: 400px; overflow-y: auto; font-family: sans-serif;
+          ">
+            <h2 style="margin:0 0 10px 0; border-bottom: 2px solid #EEE; padding-bottom: 5px;">Vocab Notebook</h2>
+            <div id="vocab-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <button id="btn-close-vocab" style="margin-top:10px; width:100%; padding:8px; background:#222; color:#FFF; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE</button>
+          </div>
+        `;
+
+        const btn = document.getElementById('btn-vocab-notebook');
+        const modal = document.getElementById('vocab-modal');
+        const list = document.getElementById('vocab-list');
+        const closeBtn = document.getElementById('btn-close-vocab');
+
+        if (btn) {
+          btn.addEventListener('click', () => {
+            if (modal.style.display === 'none') {
+              this.game.sfx.playSfx('click');
+              modal.style.display = 'block';
+              list.innerHTML = '';
+              // Populate known items
+              const items = window.FFH.GROCERY_ITEMS || [];
+              items.forEach(item => {
+                const el = document.createElement('div');
+                el.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#F8F9FA; padding:6px 10px; border-radius:4px; border:1px solid #DDD;';
+                
+                // Audio button
+                const btnAudio = document.createElement('button');
+                btnAudio.innerText = '🔊';
+                btnAudio.style.cssText = 'background:none; border:none; cursor:pointer; font-size:16px; margin-right:8px;';
+                btnAudio.onclick = () => {
+                  window.FFH.playGermanAudio(item.gender, item.name);
+                };
+
+                const textSpan = document.createElement('span');
+                textSpan.innerHTML = `<strong>${item.gender}</strong> ${item.name} <span style="color:#666; font-size:12px;">(${item.en})</span>`;
+                
+                el.appendChild(btnAudio);
+                el.appendChild(textSpan);
+                list.appendChild(el);
+              });
+            } else {
+              modal.style.display = 'none';
+            }
+          });
+        }
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+          });
+        }
+      }
     }
   }
 
-  showTutorialBanner(text, color) {
+  showTutorialBanner(text, color = '#FFEB3B', duration = 4000) {
     const el = document.createElement('div');
     el.innerHTML = text;
     el.style.cssText = `
@@ -20313,12 +20427,12 @@ window.FFH.UI = class {
       el.style.transform = 'translate(-50%, -50%) scale(1)';
     });
 
-    // Fade out after 2.5s
+    // Fade out after duration
     setTimeout(() => {
       el.style.opacity = '0';
       el.style.transform = 'translate(-50%, -50%) scale(0.8)';
       setTimeout(() => el.remove(), 300);
-    }, 2500);
+    }, duration);
   }
 
   spawnFloatingText(text, clientX, clientY, color = '#2A9D8F') {
@@ -20377,63 +20491,119 @@ window.FFH.UI = class {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
 
-    // Check wallet to show progress
-    const walletText = this.game.state.wallet > 0 ? `
-      <div style="background: rgba(255,255,255,0.9); border: 2px solid #222; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
-        Tuition Fund: <span style="color: #FF006E;">${this.game.state.wallet}€</span> / 250€
-      </div>
-    ` : '';
-
     bootDiv.innerHTML = `
-      <!-- Top Bar: Shader Switcher & Wallet -->
-      <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; z-index: 10;">
-        <div style="background: rgba(255,255,255,0.95); border: 2px solid #222; border-radius: 20px; padding: 4px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
-          <span style="font-size: 11px; font-weight: bold; color: #333;">🎨 Shader:</span>
-          <select id="shader-select" style="background: transparent; border: none; font-size: 12px; font-weight: bold; color: #111; cursor: pointer; outline: none;">
-            <option value="MESSENGER_COZY" ${window.FFH.activeShaderStyle === 'MESSENGER_COZY' ? 'selected' : ''}>Messenger Cozy</option>
-            <option value="CEL_3BAND" ${window.FFH.activeShaderStyle === 'CEL_3BAND' ? 'selected' : ''}>Berlin Cel (3-Band)</option>
-            <option value="INK_OUTLINE" ${window.FFH.activeShaderStyle === 'INK_OUTLINE' ? 'selected' : ''}>Ink & Outline</option>
-            <option value="RETRO_POSTER" ${window.FFH.activeShaderStyle === 'RETRO_POSTER' ? 'selected' : ''}>Retro Poster</option>
-          </select>
-        </div>
-        ${walletText}
-      </div>
+      <!-- Center Main Menu Options -->
+      <div style="pointer-events: auto; z-index: 10; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: auto; margin-bottom: auto; gap: 15px;">
+        <h1 style="color: #FFF; font-size: 32px; font-weight: 900; margin-bottom: 20px; text-shadow: 0 4px 0 #222;">KRUMA EXPRESS</h1>
+        
+        <button id="btn-continue" style="
+          display: none;
+          background: #3A86FF;
+          color: #FFF;
+          border: 3px solid #222;
+          padding: 12px 40px;
+          font-size: 20px;
+          font-weight: 900;
+          letter-spacing: 2px;
+          border-radius: 6px;
+          cursor: pointer;
+          box-shadow: 0 6px 0 #1A56C0, 0 8px 10px rgba(0,0,0,0.25);
+          transition: all 0.08s ease-in-out;
+          font-family: monospace, monospace;
+          text-transform: uppercase;
+          width: 250px;
+        ">CONTINUE</button>
 
-      <!-- Golden Yellow Isometric BEGIN Button matching Reference -->
-      <div style="pointer-events: auto; z-index: 10; width: 100%; display: flex; justify-content: center; margin-top: auto; margin-bottom: 20px;">
-        <button id="btn-start" style="
+        <button id="btn-new-game" style="
           background: #ECC238;
           color: #222;
           border: 3px solid #222;
-          padding: 12px 55px;
-          font-size: 24px;
+          padding: 12px 40px;
+          font-size: 20px;
           font-weight: 900;
-          letter-spacing: 3px;
+          letter-spacing: 2px;
           border-radius: 6px;
           cursor: pointer;
           box-shadow: 0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25);
           transition: all 0.08s ease-in-out;
           font-family: monospace, monospace;
           text-transform: uppercase;
-        ">BEGIN</button>
+          width: 250px;
+        ">NEW GAME</button>
+        
+        <button id="btn-sound" style="
+          background: #F8F9FA;
+          color: #222;
+          border: 3px solid #222;
+          padding: 8px 20px;
+          font-size: 14px;
+          font-weight: bold;
+          border-radius: 6px;
+          cursor: pointer;
+          box-shadow: 0 4px 0 #AAA, 0 6px 8px rgba(0,0,0,0.2);
+          transition: all 0.08s ease-in-out;
+          font-family: monospace, monospace;
+          width: 250px;
+        ">SOUND: ON</button>
       </div>
     `;
 
     this.container.appendChild(bootDiv);
 
-    const btnStart = document.getElementById('btn-start');
-    if (btnStart) {
-      btnStart.addEventListener('mousedown', () => {
-        btnStart.style.transform = 'translateY(4px)';
-        btnStart.style.boxShadow = '0 2px 0 #9E7D1A, 0 4px 6px rgba(0,0,0,0.2)';
+    const btnContinue = document.getElementById('btn-continue');
+    const btnNewGame = document.getElementById('btn-new-game');
+    const btnSound = document.getElementById('btn-sound');
+    
+    // Check if save exists
+    if (localStorage.getItem('FFH_SAVE_GAME')) {
+      btnContinue.style.display = 'block';
+    }
+
+    if (btnNewGame) {
+      btnNewGame.addEventListener('mousedown', () => {
+        btnNewGame.style.transform = 'translateY(4px)';
+        btnNewGame.style.boxShadow = '0 2px 0 #9E7D1A, 0 4px 6px rgba(0,0,0,0.2)';
       });
-      btnStart.addEventListener('mouseup', () => {
-        btnStart.style.transform = 'none';
-        btnStart.style.boxShadow = '0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25)';
+      btnNewGame.addEventListener('mouseup', () => {
+        btnNewGame.style.transform = 'none';
+        btnNewGame.style.boxShadow = '0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25)';
       });
-      btnStart.addEventListener('click', () => {
+      btnNewGame.addEventListener('click', () => {
         this.game.sfx.playSfx('success');
-        this.game.transitionTo('ROOM_HUB');
+        this.game.state = window.FFH.createRunState();
+        window.FFH.state = this.game.state;
+        this.game.transitionTo('CITY_EXPLORATION');
+      });
+    }
+
+    if (btnContinue) {
+      btnContinue.addEventListener('mousedown', () => {
+        btnContinue.style.transform = 'translateY(4px)';
+        btnContinue.style.boxShadow = '0 2px 0 #1A56C0, 0 4px 6px rgba(0,0,0,0.2)';
+      });
+      btnContinue.addEventListener('mouseup', () => {
+        btnContinue.style.transform = 'none';
+        btnContinue.style.boxShadow = '0 6px 0 #1A56C0, 0 8px 10px rgba(0,0,0,0.25)';
+      });
+      btnContinue.addEventListener('click', () => {
+        this.game.sfx.playSfx('success');
+        const nextPhase = window.FFH.loadGame(this.game);
+        if (nextPhase) {
+          this.game.transitionTo(nextPhase);
+        } else {
+          this.game.transitionTo('CITY_EXPLORATION');
+        }
+      });
+    }
+    
+    if (btnSound) {
+      let soundEnabled = true;
+      btnSound.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        btnSound.innerText = soundEnabled ? 'SOUND: ON' : 'SOUND: OFF';
+        // Note: Full audio muting would require plumbing through AudioEngine
+        if (this.game.sfx) this.game.sfx.muted = !soundEnabled;
+        if (this.game.speech) this.game.speech.muted = !soundEnabled;
       });
     }
 
@@ -20446,13 +20616,57 @@ window.FFH.UI = class {
   }
 
   showWinScreen() {
-    this.endScreen({
-      background: '#3A86FF',
-      accent: '#3A86FF',
-      badge: '\u{1F393}',
-      title: 'TUITION PAID',
-      subtitle: 'You made the semester fee.',
-      buttonLabel: 'PLAY AGAIN'
+    this.clear();
+    const s = this.game.state;
+    const div = document.createElement('div');
+    div.style.cssText = `
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; text-align: center; background: #5DB7AD; color: #222; font-family: sans-serif;
+      padding: 30px; box-sizing: border-box; pointer-events: auto;
+    `;
+
+    div.innerHTML = `
+      <h1 style="font-size: 32px; font-weight: 900; margin: 0 0 10px 0; color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">MATRICULATION COMPLETE!</h1>
+      <p style="font-size: 16px; color: #FFF; margin: 0 0 20px 0; font-weight: bold;">Tuition of €250 has been fully paid.</p>
+
+      <div style="background: #FFF; border: 3px solid #222; border-radius: 12px; width: 300px; padding: 20px; box-shadow: 4px 6px 0 rgba(0,0,0,0.25); text-align: left; position: relative;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #EEE; padding-bottom: 10px; margin-bottom: 15px;">
+          <div style="font-weight: 900; font-size: 14px; color: #3A86FF;">UNIVERSITÄT ZU LÜBECK</div>
+          <div style="font-size: 20px;">🎓</div>
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+          <div style="width: 70px; height: 90px; background: #CCC; border: 2px solid #222; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 30px;">
+            👤
+          </div>
+          <div style="font-size: 12px; line-height: 1.6;">
+            <div style="color: #666;">STUDENT ID / AUSWEIS</div>
+            <div style="font-weight: 900; font-size: 16px; margin-bottom: 5px;">#108422</div>
+            <div style="color: #666;">FACULTY</div>
+            <div style="font-weight: bold;">Logistics & Linguistics</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 2px dashed #EEE; font-size: 12px; display: flex; justify-content: space-between;">
+          <span>Shifts: ${s.stats.shiftsWorked}</span>
+          <span>Vocab: ${s.stats.wordsLearned || 0}</span>
+        </div>
+        
+        <div style="position: absolute; bottom: -15px; right: 10px; font-size: 40px; transform: rotate(-15deg); opacity: 0.8;">
+          ✅
+        </div>
+      </div>
+
+      <button id="btn-restart" style="
+        margin-top: 30px; background: #FFD166; color: #222; border: 3px solid #222; border-radius: 8px;
+        padding: 12px 30px; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #222;
+      ">PLAY AGAIN</button>
+    `;
+
+    this.container.appendChild(div);
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      window.location.reload();
     });
   }
 
@@ -20574,13 +20788,20 @@ window.FFH.UI = class {
     const itemCounts = {};
     state.activeOrder.forEach(it => {
       if (!itemCounts[it.id]) {
-        itemCounts[it.id] = { ...it, total: 0, packedCount: 0 };
+        itemCounts[it.id] = { ...it, total: 0, packedCount: 0, revealed: false };
       }
       itemCounts[it.id].total++;
       if (it.packed) itemCounts[it.id].packedCount++;
+      if (it.revealed || it.packed) itemCounts[it.id].revealed = true;
     });
 
-    const uniqueItems = Object.values(itemCounts);
+    const uniqueItems = Object.values(itemCounts).filter(it => it.promptStarted || it.revealed || it.packedCount > 0);
+    
+    const currentPrompt = state.activeOrder.find(i => !i.packed);
+    if (currentPrompt && !itemCounts[currentPrompt.id].revealed) {
+      itemCounts[currentPrompt.id].isObfuscated = true;
+    }
+
     const totalOrdered = state.activeOrder.length;
     const totalPacked = state.activeOrder.filter(i => i.packed).length;
 
@@ -20601,6 +20822,7 @@ window.FFH.UI = class {
     let checklistLines = '';
     uniqueItems.forEach((item, index) => {
       const isDone = item.packedCount >= item.total;
+      const displayName = item.isObfuscated ? '???' : `${item.nameDe} (${item.nameEn})`;
       checklistLines += `
         <div style="
           font-size: 15px;
@@ -20613,7 +20835,7 @@ window.FFH.UI = class {
           align-items: center;
           justify-content: space-between;
         ">
-          <span>${index + 1}. ${item.nameDe} (${item.nameEn})</span>
+          <span>${index + 1}. ${displayName}</span>
           <span style="font-family: monospace; font-size: 13px; font-weight: 900; background: ${isDone ? '#E2F0D9' : '#F0F0F0'}; border: 1.5px solid #333; padding: 1px 6px; border-radius: 4px;">
             ${item.packedCount}/${item.total}
           </span>
@@ -20625,6 +20847,7 @@ window.FFH.UI = class {
     let bottomIcons = '';
     uniqueItems.forEach(item => {
       const isDone = item.packedCount >= item.total;
+      const displayIcon = item.isObfuscated ? '❔' : item.icon;
       bottomIcons += `
         <div style="
           background: ${isDone ? '#C5E1A5' : '#FFFFFF'};
@@ -20639,7 +20862,7 @@ window.FFH.UI = class {
           min-width: 44px;
           position: relative;
         ">
-          <span style="font-size: 22px;">${item.icon}</span>
+          <span style="font-size: 22px;">${displayIcon}</span>
           <span style="font-size: 11px; font-weight: 900; font-family: monospace; color: #111;">
             ${item.packedCount}/${item.total}
           </span>
@@ -20656,9 +20879,10 @@ window.FFH.UI = class {
           <span style="color: #666; font-size: 11px; margin-left: 4px;">(${totalPacked}/${totalOrdered})</span>
         </div>
         
-        <!-- Toggle Notepad Button -->
-        <button id="btn-toggle-checklist" style="
-          background: #FFFFFF;
+        <!-- Replay Audio Button (Pocket Notepad) -->
+        ${this.game.state.upgrades?.pocketNotepad ? `
+        <button id="btn-replay-audio" style="
+          background: ${this.game.state.notepadUsedThisShift ? '#DDD' : '#FFF'};
           border: 2.5px solid #222;
           border-radius: 8px;
           width: 40px;
@@ -20666,67 +20890,46 @@ window.FFH.UI = class {
           display: flex;
           align-items: center;
           justify-content: center;
-          cursor: pointer;
+          cursor: ${this.game.state.notepadUsedThisShift ? 'not-allowed' : 'pointer'};
           box-shadow: 0 3px 0 #222;
           font-size: 20px;
-        ">📋</button>
+        ">📋</button>` : ''}
       </div>
 
-      <!-- Main Hand-Drawn Whiteboard/Notepad Checklist matching reference art -->
-      <div id="checklist-card" style="
-        display: none;
-        background: #FFFFFF;
-        border: 3.5px solid #2B3A42;
-        border-radius: 8px;
-        box-shadow: 4px 6px 0 rgba(0,0,0,0.25);
-        padding: 16px 20px;
-        margin: 10px auto;
-        width: 88%;
-        max-width: 320px;
-        pointer-events: auto;
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
-      ">
-        <div style="
-          font-size: 18px;
-          font-weight: 900;
-          letter-spacing: 1px;
-          color: #1A1A1A;
-          margin-bottom: 12px;
-          border-bottom: 2px solid #EEE;
-          padding-bottom: 4px;
-        ">
-          CHECKLIST:
+      <!-- Center Warning Area (Empty by default) -->
+      <div id="pick-warning-center" style="display: none; align-self: center; font-size: 24px; font-weight: 900; color: #FFF; background: #FF006E; padding: 10px 20px; border-radius: 8px; border: 3px solid #222; margin-top: auto; margin-bottom: 20px; text-transform: uppercase;">
+        HURRY!
+      </div>
+
+      <!-- Freshness / Decay Bar -->
+      <div style="background: rgba(255,255,255,0.9); border: 2.5px solid #222; border-radius: 8px; padding: 8px; box-shadow: 0 3px 0 #222; pointer-events: auto; margin-bottom: 10px;">
+        <div style="font-weight: 900; font-size: 11px; margin-bottom: 4px; display: flex; justify-content: space-between;">
+          <span>📦 WAREN-CHECKLISTE</span>
         </div>
-        <div style="display: flex; flex-direction: column;">
+        
+        <div style="margin-bottom: 10px; max-height: 40vh; overflow-y: auto;">
           ${checklistLines}
         </div>
       </div>
-
-      <!-- Bottom Quick-Dock Bar with Item Icons & Counts -->
-      <div style="
-        pointer-events: auto;
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 6px;
-        z-index: 10;
-      ">
+      
+      <div style="display: flex; gap: 8px; justify-content: center; overflow-x: auto; padding: 4px;">
         ${bottomIcons}
       </div>
     `;
 
     this.container.appendChild(hud);
 
-    // Toggle checklist visibility button
-    const toggleBtn = document.getElementById('btn-toggle-checklist');
-    const card = document.getElementById('checklist-card');
-    if (toggleBtn && card) {
-      toggleBtn.addEventListener('click', () => {
-        if (card.style.display === 'none') {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
+    // Audio Replay logic (one per shift)
+    const btnReplay = document.getElementById('btn-replay-audio');
+    if (btnReplay && !this.game.state.notepadUsedThisShift) {
+      btnReplay.addEventListener('click', () => {
+        this.game.state.notepadUsedThisShift = true;
+        btnReplay.style.background = '#DDD';
+        btnReplay.style.cursor = 'not-allowed';
+        
+        const currentPrompt = this.game.state.activeOrder ? this.game.state.activeOrder.find(it => !it.packed) : null;
+        if (currentPrompt && this.game.speech) {
+          this.game.speech.speak(currentPrompt.gender + " " + currentPrompt.nameDe);
         }
       });
     }
@@ -21539,6 +21742,8 @@ window.FFH.UI = class {
       flex-direction: column;
       gap: 12px;
       z-index: 200;
+      max-height: 85vh;
+      overflow-y: auto;
     `;
 
     // English subtitle fallback
@@ -21723,6 +21928,17 @@ window.FFH.PickPhase = class {
 
     this.game.ui.showWarehouseManifest();
     window.addEventListener('pointerdown', this.onTap);
+
+    if (state.currentShift === 1) {
+      setTimeout(() => {
+        this.game.ui.showTutorialBanner("Listen closely! Pick items by their gender color: Der = Blue, Die = Pink, Das = Purple", 8000);
+      }, 1000);
+    } else if (state.currentShift === 2 && !state.hasSeenShift2Tutorial) {
+      state.hasSeenShift2Tutorial = true;
+      setTimeout(() => {
+        this.game.ui.showTutorialBanner("The item icon is hidden for 1.5s. Guess early based on the audio for a 2.0x early pick bonus!", 8000);
+      }, 1000);
+    }
   }
 
   update(delta) {
@@ -21887,6 +22103,7 @@ window.FFH.PickPhase = class {
       
       this.shelfGroup.add(plank, tagRail);
       this.tagRails.push(tagRail);
+
     }
 
     this.game.scene.add(this.shelfGroup);
@@ -21895,12 +22112,32 @@ window.FFH.PickPhase = class {
     const spread = 1.2;
     const buckets = [derBucket, dieBucket, dasBucket];
 
+    const symbols = ['▲', '●', '■'];
+    
     buckets.forEach((bucket, row) => {
       bucket.forEach((itemDef, col) => {
         const x = -spread + (col / 3) * spread * 2;
         const itemMesh = window.FFH.createItemMesh(itemDef.type, itemDef.hex);
         itemMesh.position.set(x, shelfHeights[row] + 0.4, 0);
         itemMesh.userData = { id: itemDef.id, def: itemDef };
+
+        if (this.game.state.upgrades?.shelfLabels) {
+          const canvas = document.createElement('canvas');
+          canvas.width = 64; canvas.height = 64;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#' + railColors[row].toString(16).padStart(6, '0');
+          ctx.font = 'bold 48px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(symbols[row], 32, 36);
+
+          const tex = new THREE.CanvasTexture(canvas);
+          const spriteMat = new THREE.SpriteMaterial({ map: tex, depthTest: false });
+          const sprite = new THREE.Sprite(spriteMat);
+          sprite.scale.set(0.4, 0.4, 1);
+          sprite.position.set(0, 0.4, 0); // float above item
+          itemMesh.add(sprite);
+        }
 
         this.game.scene.add(itemMesh);
         this.shelvedMeshes.push(itemMesh);
@@ -22090,9 +22327,9 @@ window.FFH.PickPhase = class {
 
     // Day 1 FTUE: First-Shift Tutorial
     if (this.game.state.currentShift === 1 && this.game.ui && this.game.ui.showTutorialBanner) {
-      if (gender === 'der') this.game.ui.showTutorialBanner('Der (Masculine) ➔ Tap the Blue Shelf', '#457B9D');
-      if (gender === 'die') this.game.ui.showTutorialBanner('Die (Feminine) ➔ Tap the Pink Shelf', '#E63946');
-      if (gender === 'das') this.game.ui.showTutorialBanner('Das (Neuter) ➔ Tap the Purple Shelf', '#7B2CBF');
+      if (gender === 'der') this.game.ui.showTutorialBanner('Der (Masculine) ➔ Look for Blue', 4000);
+      if (gender === 'die') this.game.ui.showTutorialBanner('Die (Feminine) ➔ Look for Pink', 4000);
+      if (gender === 'das') this.game.ui.showTutorialBanner('Das (Neuter) ➔ Look for Purple', 4000);
     }
 
     if (rail) {
@@ -22270,7 +22507,7 @@ window.FFH.CityExplorationPhase = class {
     // Dedicated Road Spawn: Main central boulevard intersection
     this.playerPos = new THREE.Vector3(20.8, 0.05, 13.0);
     this.targetMovePos = null;
-    this.moveSpeed = 6.0;
+    this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
     this.playerRadius = 0.4;      // Collision cylinder radius
     
@@ -22425,6 +22662,18 @@ window.FFH.CityExplorationPhase = class {
     
     // Initialize Minimap Data
     this.setupMinimap();
+
+    if (this.game.state.currentShift === 1) {
+      if (this.game.state.activeDelivery) {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Follow the pulsing marker on the minimap to deliver the groceries! Tap anywhere to move.", 6000);
+        }, 1000);
+      } else if (this.game.state.questStep === 0) {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Tap the yellow marker to visit Kruma Express and start your shift!", 6000);
+        }, 1000);
+      }
+    }
   }
 
   setupMinimap() {
@@ -22703,40 +22952,32 @@ window.FFH.CityExplorationPhase = class {
       this.game.ambienceNode.stop();
       this.game.ambienceNode = null;
     }
+    
+    // Stop E-bike motor if playing
+    if (this.game.sfx.stopMotor) {
+      this.game.sfx.stopMotor();
+    }
   }
 
   setupCourier() {
     this.courier = window.FFH.createCourierCharacter();
     this.courier.scale.set(0.9, 0.9, 0.9);
     
-    // Equip bicycle model
-    const bikeMat = window.FFH.createCelMaterial(this.game.state.upgrades?.ebike ? 0xFF6B35 : 0x777777);
-    const bikeFrame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 1.4), bikeMat);
-    bikeFrame.position.set(0, 0.2, 0); // slightly offset
-    const wheelMat = window.FFH.createCelMaterial(0x222222);
-    const wheelF = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.1, 12), wheelMat);
-    wheelF.rotation.z = Math.PI / 2;
-    wheelF.position.set(0, 0.1, 0.6);
-    const wheelB = wheelF.clone();
-    wheelB.position.set(0, 0.1, -0.6);
-    
     // Equip packed grocery bag (thermal or paper)
     const hasThermal = this.game.state.upgrades?.thermalBag;
-    const bagMat = window.FFH.createCelMaterial(hasThermal ? 0x2A9D8F : 0xD4A373);
+    // Thermal bag is glowing orange (0xFF8C00 with emissive)
+    const bagMat = hasThermal 
+      ? new THREE.MeshLambertMaterial({ color: 0xFF8C00, emissive: 0xFF5500, emissiveIntensity: 0.4 }) 
+      : window.FFH.createCelMaterial(0xD4A373);
     const bagMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.4), bagMat);
-    // Situate it on the back of the bike
-    bagMesh.position.set(0, 0.55, -0.6);
-    
-    const bikeGroup = new THREE.Group();
-    bikeGroup.add(bikeFrame, wheelF, wheelB);
+    // Situate it on the back of the courier
+    bagMesh.position.set(0, 1.11, -0.4);
     
     // Only show bag if active delivery
     if (this.game.state.activeDelivery) {
-      bikeGroup.add(bagMesh);
+      this.courier.add(bagMesh);
     }
     
-    this.courier.add(bikeGroup);
-    // raise courier up slightly to sit on bike
     this.courier.position.copy(this.playerPos);
     this.game.scene.add(this.courier);
 
@@ -23072,6 +23313,7 @@ window.FFH.CityExplorationPhase = class {
         if (distMoved < 0.001) {
           this.targetMovePos = null;
           if (this.targetMarker) this.targetMarker.visible = false;
+          if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
         } else {
           this.playerPos.x = nextX;
           this.playerPos.z = nextZ;
@@ -23086,6 +23328,7 @@ window.FFH.CityExplorationPhase = class {
           if (window.FFH.updateCourierWalk && this.courier) {
             window.FFH.updateCourierWalk(this.courier, delta, 1.0);
           }
+          if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(1.0);
         }
       } else {
         // Arrived at destination
@@ -23094,11 +23337,13 @@ window.FFH.CityExplorationPhase = class {
         if (window.FFH.updateCourierWalk && this.courier) {
           window.FFH.updateCourierWalk(this.courier, delta, 0);
         }
+        if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
       }
     } else {
       if (window.FFH.updateCourierWalk && this.courier) {
         window.FFH.updateCourierWalk(this.courier, delta, 0);
       }
+      if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
     }
 
     // Pulse target marker ring
@@ -23109,7 +23354,12 @@ window.FFH.CityExplorationPhase = class {
     
     // Quest/Delivery Hint Marker Update
     let targetMesh = null;
-    if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
+    const TUITION_GOAL = window.FFH.ECONOMY?.TUITION_GOAL || 250;
+
+    if (this.game.state.wallet >= TUITION_GOAL) {
+      // 4.5 Win Condition: Highlight University Registry when wallet hits €250
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
+    } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
       const tgt = this.game.state.deliveryTarget;
       targetMesh = this.interactiveMeshes.find(m => m.userData.gridX === tgt.gridX && m.userData.gridZ === tgt.gridZ);
     } else if (this.game.state.questStep < 4 && this.game.state.currentShift === 1) {
@@ -23540,7 +23790,7 @@ class GameEngine {
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DIALOGUE') {
         this.currentPhase = this.phases.DIALOGUE;
-        this.currentCamera = this.cameras.titleCamera;
+        // Keep the camera exactly where it was (likely cityCamera)
         this.currentPhase.enter(params);
       } else if (phaseKey === 'PICK') {
         this.currentPhase = this.phases.PICK;

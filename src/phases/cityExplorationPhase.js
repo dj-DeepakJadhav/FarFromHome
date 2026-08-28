@@ -480,40 +480,6 @@ window.FFH.CityExplorationPhase = class {
     this.courier = window.FFH.createCourierCharacter();
     this.courier.scale.set(0.9, 0.9, 0.9);
     
-    // Equip bicycle model
-    const hasEbike = this.game.state.upgrades?.ebike;
-    const bikeMat = window.FFH.createCelMaterial(hasEbike ? 0xFF6B35 : 0x777777);
-    const bikeFrame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 1.4), bikeMat);
-    bikeFrame.position.set(0, 0.2, 0); // slightly offset
-    const wheelMat = window.FFH.createCelMaterial(0x222222);
-    const wheelF = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.1, 12), wheelMat);
-    wheelF.rotation.z = Math.PI / 2;
-    wheelF.position.set(0, 0.1, 0.6);
-    const wheelB = wheelF.clone();
-    wheelB.position.set(0, 0.1, -0.6);
-    
-    bikeFrame.add(wheelF);
-    bikeFrame.add(wheelB);
-
-    if (hasEbike) {
-      // Add visual battery pack
-      const batteryMat = window.FFH.createCelMaterial(0x111111);
-      const battery = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 0.4), batteryMat);
-      battery.position.set(0, 0.2, -0.2);
-      bikeFrame.add(battery);
-
-      // Add illuminated headlight
-      const headLightMat = new THREE.MeshBasicMaterial({ color: 0xFFFFAA });
-      const headlight = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), headLightMat);
-      headlight.position.set(0, 0.4, 0.75);
-      
-      const pointLight = new THREE.PointLight(0xFFFFAA, 1.5, 5);
-      pointLight.position.set(0, 0, 0.1);
-      headlight.add(pointLight);
-      
-      bikeFrame.add(headlight);
-    }
-    
     // Equip packed grocery bag (thermal or paper)
     const hasThermal = this.game.state.upgrades?.thermalBag;
     // Thermal bag is glowing orange (0xFF8C00 with emissive)
@@ -521,19 +487,14 @@ window.FFH.CityExplorationPhase = class {
       ? new THREE.MeshLambertMaterial({ color: 0xFF8C00, emissive: 0xFF5500, emissiveIntensity: 0.4 }) 
       : window.FFH.createCelMaterial(0xD4A373);
     const bagMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.4), bagMat);
-    // Situate it on the back of the bike
-    bagMesh.position.set(0, 0.55, -0.6);
-    
-    const bikeGroup = new THREE.Group();
-    bikeGroup.add(bikeFrame, wheelF, wheelB);
+    // Situate it on the back of the courier
+    bagMesh.position.set(0, 1.11, -0.4);
     
     // Only show bag if active delivery
     if (this.game.state.activeDelivery) {
-      bikeGroup.add(bagMesh);
+      this.courier.add(bagMesh);
     }
     
-    this.courier.add(bikeGroup);
-    // raise courier up slightly to sit on bike
     this.courier.position.copy(this.playerPos);
     this.game.scene.add(this.courier);
 

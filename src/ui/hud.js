@@ -189,63 +189,119 @@ window.FFH.UI = class {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
 
-    // Check wallet to show progress
-    const walletText = this.game.state.wallet > 0 ? `
-      <div style="background: rgba(255,255,255,0.9); border: 2px solid #222; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
-        Tuition Fund: <span style="color: #FF006E;">${this.game.state.wallet}€</span> / 250€
-      </div>
-    ` : '';
-
     bootDiv.innerHTML = `
-      <!-- Top Bar: Shader Switcher & Wallet -->
-      <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; z-index: 10;">
-        <div style="background: rgba(255,255,255,0.95); border: 2px solid #222; border-radius: 20px; padding: 4px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
-          <span style="font-size: 11px; font-weight: bold; color: #333;">🎨 Shader:</span>
-          <select id="shader-select" style="background: transparent; border: none; font-size: 12px; font-weight: bold; color: #111; cursor: pointer; outline: none;">
-            <option value="MESSENGER_COZY" ${window.FFH.activeShaderStyle === 'MESSENGER_COZY' ? 'selected' : ''}>Messenger Cozy</option>
-            <option value="CEL_3BAND" ${window.FFH.activeShaderStyle === 'CEL_3BAND' ? 'selected' : ''}>Berlin Cel (3-Band)</option>
-            <option value="INK_OUTLINE" ${window.FFH.activeShaderStyle === 'INK_OUTLINE' ? 'selected' : ''}>Ink & Outline</option>
-            <option value="RETRO_POSTER" ${window.FFH.activeShaderStyle === 'RETRO_POSTER' ? 'selected' : ''}>Retro Poster</option>
-          </select>
-        </div>
-        ${walletText}
-      </div>
+      <!-- Center Main Menu Options -->
+      <div style="pointer-events: auto; z-index: 10; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: auto; margin-bottom: auto; gap: 15px;">
+        <h1 style="color: #FFF; font-size: 32px; font-weight: 900; margin-bottom: 20px; text-shadow: 0 4px 0 #222;">KRUMA EXPRESS</h1>
+        
+        <button id="btn-continue" style="
+          display: none;
+          background: #3A86FF;
+          color: #FFF;
+          border: 3px solid #222;
+          padding: 12px 40px;
+          font-size: 20px;
+          font-weight: 900;
+          letter-spacing: 2px;
+          border-radius: 6px;
+          cursor: pointer;
+          box-shadow: 0 6px 0 #1A56C0, 0 8px 10px rgba(0,0,0,0.25);
+          transition: all 0.08s ease-in-out;
+          font-family: monospace, monospace;
+          text-transform: uppercase;
+          width: 250px;
+        ">CONTINUE</button>
 
-      <!-- Golden Yellow Isometric BEGIN Button matching Reference -->
-      <div style="pointer-events: auto; z-index: 10; width: 100%; display: flex; justify-content: center; margin-top: auto; margin-bottom: 20px;">
-        <button id="btn-start" style="
+        <button id="btn-new-game" style="
           background: #ECC238;
           color: #222;
           border: 3px solid #222;
-          padding: 12px 55px;
-          font-size: 24px;
+          padding: 12px 40px;
+          font-size: 20px;
           font-weight: 900;
-          letter-spacing: 3px;
+          letter-spacing: 2px;
           border-radius: 6px;
           cursor: pointer;
           box-shadow: 0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25);
           transition: all 0.08s ease-in-out;
           font-family: monospace, monospace;
           text-transform: uppercase;
-        ">BEGIN</button>
+          width: 250px;
+        ">NEW GAME</button>
+        
+        <button id="btn-sound" style="
+          background: #F8F9FA;
+          color: #222;
+          border: 3px solid #222;
+          padding: 8px 20px;
+          font-size: 14px;
+          font-weight: bold;
+          border-radius: 6px;
+          cursor: pointer;
+          box-shadow: 0 4px 0 #AAA, 0 6px 8px rgba(0,0,0,0.2);
+          transition: all 0.08s ease-in-out;
+          font-family: monospace, monospace;
+          width: 250px;
+        ">SOUND: ON</button>
       </div>
     `;
 
     this.container.appendChild(bootDiv);
 
-    const btnStart = document.getElementById('btn-start');
-    if (btnStart) {
-      btnStart.addEventListener('mousedown', () => {
-        btnStart.style.transform = 'translateY(4px)';
-        btnStart.style.boxShadow = '0 2px 0 #9E7D1A, 0 4px 6px rgba(0,0,0,0.2)';
+    const btnContinue = document.getElementById('btn-continue');
+    const btnNewGame = document.getElementById('btn-new-game');
+    const btnSound = document.getElementById('btn-sound');
+    
+    // Check if save exists
+    if (localStorage.getItem('FFH_SAVE_GAME')) {
+      btnContinue.style.display = 'block';
+    }
+
+    if (btnNewGame) {
+      btnNewGame.addEventListener('mousedown', () => {
+        btnNewGame.style.transform = 'translateY(4px)';
+        btnNewGame.style.boxShadow = '0 2px 0 #9E7D1A, 0 4px 6px rgba(0,0,0,0.2)';
       });
-      btnStart.addEventListener('mouseup', () => {
-        btnStart.style.transform = 'none';
-        btnStart.style.boxShadow = '0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25)';
+      btnNewGame.addEventListener('mouseup', () => {
+        btnNewGame.style.transform = 'none';
+        btnNewGame.style.boxShadow = '0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25)';
       });
-      btnStart.addEventListener('click', () => {
+      btnNewGame.addEventListener('click', () => {
         this.game.sfx.playSfx('success');
-        this.game.transitionTo('ROOM_HUB');
+        this.game.state = window.FFH.createRunState();
+        window.FFH.state = this.game.state;
+        this.game.transitionTo('CITY_EXPLORATION');
+      });
+    }
+
+    if (btnContinue) {
+      btnContinue.addEventListener('mousedown', () => {
+        btnContinue.style.transform = 'translateY(4px)';
+        btnContinue.style.boxShadow = '0 2px 0 #1A56C0, 0 4px 6px rgba(0,0,0,0.2)';
+      });
+      btnContinue.addEventListener('mouseup', () => {
+        btnContinue.style.transform = 'none';
+        btnContinue.style.boxShadow = '0 6px 0 #1A56C0, 0 8px 10px rgba(0,0,0,0.25)';
+      });
+      btnContinue.addEventListener('click', () => {
+        this.game.sfx.playSfx('success');
+        const nextPhase = window.FFH.loadGame(this.game);
+        if (nextPhase) {
+          this.game.transitionTo(nextPhase);
+        } else {
+          this.game.transitionTo('CITY_EXPLORATION');
+        }
+      });
+    }
+    
+    if (btnSound) {
+      let soundEnabled = true;
+      btnSound.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        btnSound.innerText = soundEnabled ? 'SOUND: ON' : 'SOUND: OFF';
+        // Note: Full audio muting would require plumbing through AudioEngine
+        if (this.game.sfx) this.game.sfx.muted = !soundEnabled;
+        if (this.game.speech) this.game.speech.muted = !soundEnabled;
       });
     }
 
@@ -1384,6 +1440,8 @@ window.FFH.UI = class {
       flex-direction: column;
       gap: 12px;
       z-index: 200;
+      max-height: 85vh;
+      overflow-y: auto;
     `;
 
     // English subtitle fallback
