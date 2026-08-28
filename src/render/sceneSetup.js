@@ -38,12 +38,16 @@ window.FFH.setupScene = function(canvasContainerId) {
   // rather than 0.1 .. 5000 — the ink outline pass Sobel-tests the depth
   // buffer, and a 50000:1 depth range leaves too little precision at street
   // scale for depth edges to register at all.
-  const streetCamera = new THREE.PerspectiveCamera(55, aspect, 0.3, 1600);
-  streetCamera.position.set(0, 2.5, -4);
-  streetCamera.lookAt(0, 1.3, 2);
+  const streetCamera = new THREE.PerspectiveCamera(55, aspect, 0.5, 400);
+  streetCamera.position.set(0, 2.5, 4);
+  streetCamera.lookAt(0, 1.3, -2);
 
   // 3. Title Screen Camera (Isometric view matching diorama rooms)
   const titleCamera = warehouseCamera;
+
+  // 4. City Exploration Camera (Isometric Orthographic View)
+  const cityD = 12.0; // View volume size
+  const cityCamera = new THREE.OrthographicCamera(-cityD * aspect, cityD * aspect, cityD, -cityD, 1, 1000);
   
   // Expose
   return {
@@ -52,6 +56,22 @@ window.FFH.setupScene = function(canvasContainerId) {
     warehouseCamera,
     streetCamera,
     titleCamera,
+    cityCamera,
     currentCamera: titleCamera
   };
+};
+
+window.FFH.getSafeGLTFLoader = function() {
+  if (!window.FFH._safeGLTFLoader) {
+    const manager = new THREE.LoadingManager();
+    manager.setURLModifier((url) => {
+      if (url.includes('colormap.png') || url.includes('colormap.PNG')) {
+        // Return the actual colormap embedded by the build script
+        return window.FFH.CHARACTER_TEXTURE_BASE64 || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+      }
+      return url;
+    });
+    window.FFH._safeGLTFLoader = new THREE.GLTFLoader(manager);
+  }
+  return window.FFH._safeGLTFLoader;
 };

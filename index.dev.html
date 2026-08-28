@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Far From Home: Kruma Express (Dev)</title>
+  <link rel="icon" href="data:,">
   <style>
     body {
       margin: 0;
@@ -19,17 +20,15 @@
       position: relative;
       width: 390px;
       height: 844px;
-      background: #5DB7AD; /* Matches Three.js background color seamlessly */
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      border-radius: 16px;
+      background: #5DB7AD;
       overflow: hidden;
     }
     #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
     }
     #ui-container {
       position: absolute;
@@ -49,11 +48,14 @@
 
   <div id="game-container">
     <div id="canvas-container"></div>
+    <!-- Persistent HUD overlay for Tuition and Strikes -->
+    <div id="persistent-hud" style="position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 1000; padding: 10px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: flex-start;"></div>
     <div id="ui-container"></div>
   </div>
 
   <!-- Vendor Dependencies -->
   <script src="vendor/three.min.js"></script>
+  <script src="vendor/three-mesh-bvh.umd.js"></script>
   <script src="vendor/GLTFLoader.js"></script>
   <script src="vendor/Pass.js"></script>
   <script src="vendor/CopyShader.js"></script>
@@ -64,24 +66,26 @@
 
   <!-- Game Source Code -->
   <script src="src/core/economy.js"></script>
-  <script src="src/core/scrollDriver.js"></script>
+  <script src="src/core/npcBehaviorTree.js"></script>
+  <script src="src/data/prologueQuests.js"></script>
+  <script src="src/data/characterModels.js"></script>
+  <script src="src/data/npcDialogue.js"></script>
   <script src="src/data/items.js"></script>
   <script src="src/data/shifts.js"></script>
   <script src="src/data/streets.js"></script>
   <script src="src/data/townLayout.js"></script>
-  <script src="src/data/townModels.js"></script>
-  <script src="src/data/intercom.js"></script>
+  <script src="src/data/kenneyAssets.js"></script>
   <script src="src/data/dialogue.js"></script>
   <script src="src/data/audioTriggers.js"></script>
-  <script src="src/data/voiceSprites.js"></script>
+  <script src="src/core/grammarEngine.js"></script>
   <script src="src/data/shop.js"></script>
   <script src="src/render/celShaderMaterial.js"></script>
   <script src="src/render/inkOutline.js"></script>
   <script src="src/render/dioramaRooms.js"></script>
-  <script src="src/render/carouselHub.js"></script>
   <script src="src/render/character.js"></script>
-  <script src="src/render/townFactory.js"></script>
+  <script src="src/render/npcFactory.js"></script>
   <script src="src/render/titleMesh.js"></script>
+  <script src="src/render/cityMap.js"></script>
   <script src="src/render/geometryFactory.js"></script>
   <script src="src/render/sceneSetup.js"></script>
   <script src="src/render/particles.js"></script>
@@ -89,9 +93,10 @@
   <script src="src/audio/speech.js"></script>
   <script src="src/ui/hud.js"></script>
   <script src="src/phases/pickPhase.js"></script>
-  <script src="src/phases/ridePhase.js"></script>
-  <script src="src/phases/intercomPhase.js"></script>
+
   <script src="src/phases/shopPhase.js"></script>
+  <script src="src/phases/cityExplorationPhase.js"></script>
+  <script src="src/phases/dialoguePhase.js"></script>
   <script src="src/main.js"></script>
 </body>
 </html>

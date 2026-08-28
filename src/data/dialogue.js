@@ -8,6 +8,7 @@ window.FFH.dialogue = [
       {
         textDe: 'Hallo! Hier ist deine Kruma Lieferung.',
         textEn: 'Hello! Here is your Kruma delivery. (Informal "Du")',
+        audioKey: 'doorbell_wrong',
         correct: false,
         feedbackDe: 'Zu informell für eine Standard-Wohnung. Tipp gemindert (-2€).',
         feedbackEn: 'A bit too informal for standard residents. Tip reduced (-2€).',
@@ -16,6 +17,7 @@ window.FFH.dialogue = [
       {
         textDe: 'Guten Tag, Herr Müller. Ihre Lieferung von Kruma.',
         textEn: 'Good day, Mr. Müller. Your delivery from Kruma. (Formal "Sie")',
+        audioKey: 'guten_tag',
         correct: true,
         feedbackDe: 'Perfekte Etikette! Volles Trinkgeld gewährt.',
         feedbackEn: 'Perfect etiquette! Full tip granted.',
@@ -31,6 +33,7 @@ window.FFH.dialogue = [
       {
         textDe: 'Entschuldigen Sie bitte die Verspätung. Guten Appetit!',
         textEn: 'Please excuse the delay. Enjoy your meal! (Formal)',
+        audioKey: 'danke_schoen',
         correct: true,
         feedbackDe: 'Höflichkeit zahlt sich aus. Volles Trinkgeld!',
         feedbackEn: 'Politeness pays off. Full tip!',
@@ -39,6 +42,7 @@ window.FFH.dialogue = [
       {
         textDe: 'Hier ist das Essen. Sorry für die Verspätung.',
         textEn: 'Here is the food. Sorry for the delay. (Casual)',
+        audioKey: 'doorbell_wrong',
         correct: false,
         feedbackDe: 'Kunde wünscht formellere Entschuldigung (-5€).',
         feedbackEn: 'Resident wanted a more formal apology (-5€).',
@@ -54,6 +58,7 @@ window.FFH.dialogue = [
       {
         textDe: 'Hallo, hier Kruma. Wer kriegt das Essen?',
         textEn: 'Hi, Kruma here. Who gets the food? (Informal)',
+        audioKey: 'doorbell_wrong',
         correct: false,
         feedbackDe: 'Krankenpfleger reagieren genervt (-8€).',
         feedbackEn: 'Hospital staff react annoyed (-8€).',
@@ -62,6 +67,7 @@ window.FFH.dialogue = [
       {
         textDe: 'Guten Abend. Ich bringe die bestellte Lieferung für Station 3.',
         textEn: 'Good evening. I bring the ordered delivery for Ward 3. (Formal)',
+        audioKey: 'guten_tag',
         correct: true,
         feedbackDe: 'Großartig! Der Nachtzuschlag wird erhöht (+20€).',
         feedbackEn: 'Great! Night premium tip granted (+20€).',

@@ -9,6 +9,52 @@ window.FFH.UI = class {
     this.container.innerHTML = '';
   }
 
+  updatePersistentHUD(state) {
+    const hud = document.getElementById('persistent-hud');
+    if (hud) {
+      hud.innerHTML = ''; // Clear and disable overlapping persistent HUD
+    }
+  }
+
+  showTutorialBanner(text, color) {
+    const el = document.createElement('div');
+    el.innerHTML = text;
+    el.style.cssText = `
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(17, 17, 17, 0.95);
+      border: 3px solid ${color};
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-family: -apple-system, sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.5), 0 0 20px ${color}40;
+      pointer-events: none;
+      z-index: 10000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    `;
+    document.body.appendChild(el);
+
+    // Fade in
+    requestAnimationFrame(() => {
+      el.style.opacity = '1';
+      el.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+
+    // Fade out after 2.5s
+    setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transform = 'translate(-50%, -50%) scale(0.8)';
+      setTimeout(() => el.remove(), 300);
+    }, 2500);
+  }
+
   spawnFloatingText(text, clientX, clientY, color = '#2A9D8F') {
     const el = document.createElement('div');
     el.innerText = text;
@@ -362,6 +408,7 @@ window.FFH.UI = class {
 
       <!-- Main Hand-Drawn Whiteboard/Notepad Checklist matching reference art -->
       <div id="checklist-card" style="
+        display: none;
         background: #FFFFFF;
         border: 3.5px solid #2B3A42;
         border-radius: 8px;
@@ -429,7 +476,7 @@ window.FFH.UI = class {
     }
   }
 
-  showRouteSelection(onSelect) {
+  showRideInstructions(onStart) {
     this.clear();
     const hud = document.createElement('div');
     hud.style.cssText = `
@@ -450,72 +497,140 @@ window.FFH.UI = class {
       <!-- Center Decision Card -->
       <div style="
         width: 100%;
-        background: rgba(255, 255, 255, 0.96);
-        border: 3px solid #222;
+        background: rgba(255, 255, 255, 0.98);
+        border: 4px solid #222;
         border-radius: 14px;
-        padding: 16px;
-        box-shadow: 0 5px 0 #222;
+        padding: 20px;
+        box-shadow: 0 8px 0 #222, 0 15px 20px rgba(0,0,0,0.3);
         box-sizing: border-box;
         margin: auto 0;
         pointer-events: auto;
+        transform: translateY(-20px);
       ">
-        <div style="font-size: 11px; font-weight: 900; color: #E76F51; text-transform: uppercase; letter-spacing: 0.5px;">
-          🚴 ROUTE SELECTION
+        <div style="font-size: 13px; font-weight: 900; color: #E76F51; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
+          🚴 DELIVERY TRANSIT
         </div>
-        <div style="font-size: 15px; font-weight: 900; color: #222; margin-top: 4px;">
-          Choose your path to the customer:
+        <div style="font-size: 16px; font-weight: 900; color: #222; margin-top: 8px; text-align: center; line-height: 1.3;">
+          Deliver the groceries safely! Tap left/right or use arrows to steer.
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
-          <!-- Route A: Kurzer Weg -->
-          <button id="btn-route-short" style="
-            background: #FFF;
-            border: 2.5px solid #222;
-            border-radius: 10px;
-            padding: 12px;
-            text-align: left;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #222;
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+          
+          <!-- Lane A: Kurzer Weg -->
+          <div style="
+            background: #F8F9FA;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
           ">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 13px; font-weight: 900; color: #E63946;">⚡ Kurzer Weg (Cobblestone)</span>
-              <span style="font-size: 11px; font-weight: 800; background: #FFD166; padding: 2px 6px; border-radius: 4px;">FAST</span>
+            <div style="font-size: 24px;">🧱</div>
+            <div>
+              <div style="font-size: 13px; font-weight: 900; color: #E63946;">Cobblestone Road (Left/Center)</div>
+              <div style="font-size: 11px; color: #555; margin-top: 2px;">
+                Bumpy ride! Damages freshness (-%), but fewer pedestrians. Watch for construction!
+              </div>
             </div>
-            <div style="font-size: 11px; color: #666; margin-top: 4px;">
-              Saves delivery freshness, but bumpy stones risk -15% bag integrity.
-            </div>
-          </button>
+          </div>
 
-          <!-- Route B: Fahrradweg -->
-          <button id="btn-route-bike" style="
-            background: #FFF;
-            border: 2.5px solid #222;
-            border-radius: 10px;
-            padding: 12px;
-            text-align: left;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #222;
+          <!-- Lane B: Fahrradweg -->
+          <div style="
+            background: #F0FAF8;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
           ">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 13px; font-weight: 900; color: #2A9D8F;">🚲 Fahrradweg (Bike Lane)</span>
-              <span style="font-size: 11px; font-weight: 800; background: #E0E0E0; padding: 2px 6px; border-radius: 4px;">SAFE</span>
+            <div style="font-size: 24px;">🚲</div>
+            <div>
+              <div style="font-size: 13px; font-weight: 900; color: #2A9D8F;">Bike Lane (Right)</div>
+              <div style="font-size: 11px; color: #555; margin-top: 2px;">
+                Smooth and fast! Preserves freshness, but watch out for pedestrians blocking the way!
+              </div>
             </div>
-            <div style="font-size: 11px; color: #666; margin-top: 4px;">
-              Smooth paved path. Bag stays 100% intact, but takes more travel time.
-            </div>
-          </button>
+          </div>
+
         </div>
+
+        <button id="btn-start-ride" style="
+          margin-top: 24px;
+          background: #ECC238;
+          color: #222;
+          border: 3px solid #222;
+          width: 100%;
+          padding: 14px;
+          font-weight: 900;
+          font-size: 18px;
+          letter-spacing: 2px;
+          border-radius: 8px;
+          cursor: pointer;
+          box-shadow: 0 5px 0 #9E7D1A;
+          text-transform: uppercase;
+        ">START RIDING</button>
       </div>
     `;
 
     this.container.appendChild(hud);
 
-    document.getElementById('btn-route-short')?.addEventListener('click', () => {
-      onSelect('kurzer_weg');
+    const btn = document.getElementById('btn-start-ride');
+    btn.addEventListener('mousedown', () => {
+      btn.style.transform = 'translateY(4px)';
+      btn.style.boxShadow = '0 1px 0 #9E7D1A';
     });
-    document.getElementById('btn-route-bike')?.addEventListener('click', () => {
-      onSelect('fahrradweg');
+    btn.addEventListener('click', () => {
+      this.clear();
+      onStart();
     });
+  }
+
+  showRideHUD() {
+    this.clear();
+    const hud = document.createElement('div');
+    hud.id = 'ride-hud';
+    hud.style.cssText = `
+      position: absolute;
+      top: 15px; left: 15px; right: 15px;
+      pointer-events: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+    
+    hud.innerHTML = `
+      ${this.runStatusBar()}
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <div style="background: rgba(255,255,255,0.9); border: 2.5px solid #222; border-radius: 8px; padding: 6px 10px; font-weight: bold; flex: 1;">
+          <div style="font-size: 11px; color: #666;">BAG INTEGRITY</div>
+          <div style="height: 12px; background: #eee; border: 1.5px solid #222; border-radius: 6px; margin-top: 4px; overflow: hidden;">
+            <div id="hud-integrity-bar" style="width: 100%; height: 100%; background: #2A9D8F; transition: width 0.2s, background 0.2s;"></div>
+          </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.9); border: 2.5px solid #222; border-radius: 8px; padding: 6px 10px; font-weight: bold; flex: 1;">
+          <div style="font-size: 11px; color: #666;">FRESHNESS</div>
+          <div style="height: 12px; background: #eee; border: 1.5px solid #222; border-radius: 6px; margin-top: 4px; overflow: hidden;">
+            <div id="hud-freshness-bar" style="width: 100%; height: 100%; background: #3A86FF; transition: width 0.2s, background 0.2s;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    this.container.appendChild(hud);
+  }
+
+  updateRideHUD(integrity, freshness) {
+    const iBar = document.getElementById('hud-integrity-bar');
+    const fBar = document.getElementById('hud-freshness-bar');
+    if (iBar) {
+      iBar.style.width = Math.max(0, Math.min(100, integrity)) + '%';
+      if (integrity < 30) iBar.style.background = '#E63946';
+      else if (integrity < 60) iBar.style.background = '#F4A261';
+    }
+    if (fBar) {
+      fBar.style.width = Math.max(0, Math.min(100, freshness)) + '%';
+      if (freshness < 30) fBar.style.background = '#E63946';
+      else if (freshness < 60) fBar.style.background = '#F4A261';
+    }
   }
 
   showIntercomUI() {
@@ -649,8 +764,7 @@ window.FFH.UI = class {
 
   showShiftSummaryUI() {
     this.clear();
-    const phase = this.game.currentPhase;
-    const payout = phase.payout;
+    const payout = this.game.lastPayout;
 
     const hud = document.createElement('div');
     hud.style.cssText = `
@@ -694,7 +808,17 @@ window.FFH.UI = class {
         
         <div style="border-top: 2px solid #222; padding-top: 10px; margin-top: 5px; display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; font-family: sans-serif;">
           <span>NET PAYOUT</span>
-          <span style="color: #FF006E;">+${payout.netPayout.toFixed(2)}\u20AC</span>
+          <span style="color: #FF006E;">+${payout.netPayout.toFixed(2)}€</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #555; margin-bottom: 4px; font-weight: bold;">
+          <span>TUITION PROGRESS</span>
+          <span id="tuition-text">${this.game.state.wallet.toFixed(2)}€ / ${window.FFH.ECONOMY.TUITION_GOAL}€</span>
+        </div>
+        <div style="width: 100%; height: 14px; background: #ddd; border: 2px solid #222; border-radius: 7px; overflow: hidden; position: relative;">
+          <div id="tuition-bar" style="width: ${Math.min(100, (this.game.state.wallet / window.FFH.ECONOMY.TUITION_GOAL) * 100)}%; height: 100%; background: #F6BD60; transition: width 1s ease-out;"></div>
         </div>
       </div>
 
@@ -716,6 +840,14 @@ window.FFH.UI = class {
 
     this.container.appendChild(hud);
     
+    // Animate tuition bar and play SFX
+    setTimeout(() => {
+      const newWallet = this.game.state.wallet + payout.netPayout;
+      document.getElementById('tuition-bar').style.width = Math.min(100, (newWallet / window.FFH.ECONOMY.TUITION_GOAL) * 100) + '%';
+      document.getElementById('tuition-text').textContent = newWallet.toFixed(2) + '€ / ' + window.FFH.ECONOMY.TUITION_GOAL + '€';
+      this.game.sfx.playSfx('early_success'); // Coin chime sound
+    }, 500);
+
     const btn = document.getElementById('btn-finish-shift');
     btn.addEventListener('mousedown', () => {
       btn.style.transform = 'translateY(2px)';
@@ -728,7 +860,7 @@ window.FFH.UI = class {
     btn.addEventListener('click', () => {
       // Tactile cash register sound logic
       this.game.sfx.playSfx('success'); // or 'kaching' if we add one
-      phase.finishShift();
+      window.FFH.finishShift(this.game);
     });
   }
 
@@ -871,7 +1003,7 @@ window.FFH.UI = class {
       flex-direction: column;
       justify-content: space-between;
       pointer-events: none;
-      padding: 25px 20px 35px 20px;
+      padding: 14px 0 10px 0;
       box-sizing: border-box;
       font-family: sans-serif;
     `;
@@ -887,69 +1019,373 @@ window.FFH.UI = class {
 
     hubDiv.innerHTML = `
       <!-- Top Bar: Progress & Strikes -->
-      <div style="width: 100%; display: flex; flex-direction: column; background: rgba(255,255,255,0.95); border: 3px solid #333; border-radius: 12px; padding: 10px 12px; pointer-events: auto; box-shadow: 0 4px rgba(0,0,0,0.15);">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:bold;">
-          <span style="color:#333;">STUDENT SUBLET STATUS</span>
+      <div style="
+        box-sizing: border-box;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #FFFFFF;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: 4px solid #222;
+        padding: 12px 16px 14px 16px;
+        pointer-events: auto;
+      ">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:900; letter-spacing: 0.5px;">
+          <span style="color:#222;">STUDENT SUBLET STATUS</span>
           <span>${strikeDots.join(' ')}</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
           <span style="font-size:22px; font-weight:900; color:#FF006E;">${window.FFH.round2(s.wallet)}€</span>
-          <span style="font-size:12px; color:#666;">of ${goal}€ tuition goal</span>
+          <span style="font-size:11px; color:#666; font-weight: bold;">of ${goal}€ tuition goal</span>
         </div>
-        <div style="height:8px; background:#eee; border:1.5px solid #333; border-radius:4px; margin-top:5px; overflow:hidden;">
+        <div style="height:8px; background:#eee; border:2px solid #222; border-radius:5px; margin-top:7px; overflow:hidden;">
           <div style="height:100%; width:${pct}%; background:#3A86FF;"></div>
         </div>
       </div>
 
       <!-- Bottom Card: Next Shift details & Start button -->
-      <div style="width: 100%; pointer-events: auto; background: rgba(255,255,255,0.96); border: 3px solid #333; border-radius: 12px; padding: 15px; box-shadow: 0 5px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 8px;">
-        <div style="font-size: 11px; font-weight: 900; color: #FF6600; text-transform: uppercase;">Next Assignment</div>
-        <div style="font-size: 20px; font-weight: 900; color: #222;">${shift.name}</div>
+      <div style="
+        box-sizing: border-box;
+        width: 100%;
+        pointer-events: auto;
+        background: #FFFFFF;
+        border-top: 4px solid #222;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      ">
+        <div style="font-size: 11px; font-weight: 900; color: #E76F51; text-transform: uppercase; letter-spacing: 1px;">Next Assignment</div>
+        <div style="font-size: 20px; font-weight: 900; color: #222; line-height: 1.1;">${shift.name}</div>
         
-        <div style="font-size: 13px; color: #444; line-height: 1.4; border-top: 1.5px dashed #ccc; padding-top: 8px; margin-top: 2px;">
-          • Orders size: <strong>${shift.itemsCount} items</strong><br>
-          • Target Quota: <strong>${shift.quota}€</strong><br>
-          • Shift Base Wage: <strong>${shift.baseWage}€</strong>
+        <div style="font-size: 13px; color: #444; line-height: 1.4; border-top: 2px dashed #ccc; padding-top: 8px; font-weight: bold;">
+          • Orders size: <span style="color: #222;">${shift.itemsCount} items</span><br>
+          • Target Quota: <span style="color: #222;">${shift.quota}€</span><br>
+          • Shift Base Wage: <span style="color: #222;">${shift.baseWage}€</span>
         </div>
 
-        <button id="btn-start-shift" style="
-          background: #ECC238;
-          color: #222;
-          border: 3px solid #222;
-          padding: 12px;
-          font-size: 18px;
-          font-weight: 900;
-          letter-spacing: 1.5px;
-          border-radius: 6px;
-          cursor: pointer;
-          box-shadow: 0 4px 0 #9E7D1A;
-          margin-top: 6px;
-          transition: all 0.08s ease-in-out;
-          font-family: monospace, monospace;
-          text-transform: uppercase;
-        ">START SHIFT</button>
+        <div style="background: #FFF9C4; border: 2px solid #FBC02D; border-radius: 6px; padding: 8px 10px; font-size: 10px; color: #9A6700; font-weight: bold;">
+          ${shift.anticipateHint || 'ANTICIPATE STAGE: Focus: Keep up! Audio is spoken 1.5s before visual icons are revealed.'}
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 2px;">
+          <button id="btn-roam-city" style="
+            flex: 1;
+            background: #2EC4B6;
+            color: #FFF;
+            border: 3px solid #222;
+            border-bottom: 5px solid #1A7A73;
+            padding: 10px 8px;
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: monospace, sans-serif;
+            text-transform: uppercase;
+          ">🚲 ROAM CITY</button>
+
+          <button id="btn-start-shift" style="
+            flex: 1.4;
+            background: #ECC238;
+            color: #222;
+            border: 3px solid #222;
+            border-bottom: 5px solid #9E7D1A;
+            padding: 10px 8px;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: monospace, sans-serif;
+            text-transform: uppercase;
+          ">START SHIFT</button>
+        </div>
       </div>
     `;
 
     this.container.appendChild(hubDiv);
 
     const btnStart = document.getElementById('btn-start-shift');
-    btnStart.addEventListener('mousedown', () => {
-      btnStart.style.transform = 'translateY(2px)';
-      btnStart.style.boxShadow = '0 2px 0 #9E7D1A';
+    if (btnStart) {
+      btnStart.addEventListener('mousedown', () => {
+        btnStart.style.transform = 'translateY(4px)';
+        btnStart.style.boxShadow = '0 0 0 #222';
+      });
+      btnStart.addEventListener('mouseup', () => {
+        btnStart.style.transform = 'none';
+        btnStart.style.boxShadow = '0 4px 0 #222';
+      });
+      btnStart.addEventListener('click', () => {
+        this.game.sfx.playSfx('success');
+        this.game.transitionTo('PICK');
+      });
+    }
+
+    const btnRoam = document.getElementById('btn-roam-city');
+    if (btnRoam) {
+      btnRoam.addEventListener('mousedown', () => {
+        btnRoam.style.transform = 'translateY(4px)';
+        btnRoam.style.boxShadow = '0 0 0 #222';
+      });
+      btnRoam.addEventListener('mouseup', () => {
+        btnRoam.style.transform = 'none';
+        btnRoam.style.boxShadow = '0 4px 0 #222';
+      });
+      btnRoam.addEventListener('click', () => {
+        this.game.sfx.playSfx('click');
+        this.game.transitionTo('CITY_EXPLORATION');
+      });
+    }
+  }
+
+  showCityExplorerHUD(onActionCallback) {
+    this.clear();
+    const s = this.game.state;
+    const goal = window.FFH.ECONOMY.TUITION_GOAL;
+    this.poiCallback = onActionCallback;
+
+    const explorerDiv = document.createElement('div');
+    explorerDiv.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+
+    explorerDiv.innerHTML = `
+      <!-- Top Title Bar -->
+      <div style="
+        box-sizing: border-box;
+        width: 100%;
+        background: rgba(38, 70, 83, 0.94);
+        backdrop-filter: blur(6px);
+        border-bottom: 3px solid rgba(255,255,255,0.15);
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #fff;
+        pointer-events: auto;
+      ">
+        <div style="display:flex; align-items:center; gap: 6px;">
+          <span style="font-size: 14px;">📍</span>
+          <div>
+            <div style="font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Lübeck Altstadt</div>
+            <div style="font-size: 10px; color: #76C8B8; font-weight: 700;">Shift #${s.currentShift} Ready</div>
+          </div>
+        </div>
+
+        <div style="text-align: right; display: flex; flex-direction: column; gap: 4px;">
+          <div>
+            <div style="font-size: 9px; color: #ccc; font-weight: 600;">Tuition Fund</div>
+            <div style="font-size: 12px; font-weight: 900; color: #F6BD60;">${window.FFH.round2(s.wallet)}€ / ${goal}€</div>
+          </div>
+          <div id="delivery-distance-indicator" style="display: none; align-items: center; justify-content: flex-end; gap: 4px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2);">
+            <span style="font-size: 10px; color: #2A9D8F; font-weight: 800; text-transform: uppercase;">Delivery:</span>
+            <span id="delivery-distance-val" style="font-size: 12px; color: #fff; font-weight: 900;">-- m</span>
+            <span id="delivery-distance-arrow" style="font-size: 14px; font-weight: 900; transform-origin: center; display: inline-block;">⬆</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide-over POI Card (Hidden initially) -->
+      <div id="city-poi-card" style="
+        display: none;
+        box-sizing: border-box;
+        width: 100%;
+        background: #ffffff;
+        border-top: 3px solid #E76F51;
+        border-bottom: 3px solid #222;
+        padding: 14px 16px;
+        pointer-events: auto;
+        animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+      ">
+        <button id="btn-close-poi" style="position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #999; pointer-events: auto;">✕</button>
+        <span id="poi-card-tag" style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; background: #FFE8D6; color: #E76F51;">Location</span>
+        <h2 id="poi-card-title" style="font-size: 16px; color: #264653; margin: 0 0 4px 0; font-weight: 900;">Building Name</h2>
+        <p id="poi-card-desc" style="font-size: 11px; color: #555; line-height: 1.4; margin: 0 0 10px 0;">Description of this point of interest.</p>
+        <button id="btn-poi-action" style="width: 100%; padding: 9px; border: none; border-radius: 6px; background: #E76F51; color: white; font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: auto;">Enter Location</button>
+      </div>
+    `;
+
+    this.container.appendChild(explorerDiv);
+
+    // Wire close POI card
+    document.getElementById('btn-close-poi').addEventListener('click', () => {
+      document.getElementById('city-poi-card').style.display = 'none';
     });
-    btnStart.addEventListener('mouseup', () => {
-      btnStart.style.transform = 'none';
-      btnStart.style.boxShadow = '0 4px 0 #9E7D1A';
+  }
+
+  showPOICard(poiData) {
+    const card = document.getElementById('city-poi-card');
+    if (!card || !poiData) return;
+
+    this.currentActivePOI = poiData;
+    document.getElementById('poi-card-title').textContent = poiData.name;
+    document.getElementById('poi-card-tag').textContent = poiData.tag || 'District POI';
+    document.getElementById('poi-card-desc').textContent = poiData.desc;
+    
+    const actionBtn = document.getElementById('btn-poi-action');
+    actionBtn.textContent = poiData.action || 'Enter Location';
+    
+    actionBtn.onclick = () => {
+      if (this.poiCallback) {
+        this.poiCallback(poiData.action, poiData);
+      }
+    };
+
+    card.style.display = 'block';
+  }
+
+  showDialogueBox(npcEntry, dialogueData, onOptionChosen) {
+    // DO NOT this.clear() if we want it overlaying the city view, but we must remove existing dialogue boxes.
+    const existing = document.getElementById('dialogue-overlay-box');
+    if (existing) existing.remove();
+
+    const box = document.createElement('div');
+    box.id = 'dialogue-overlay-box';
+    box.style.cssText = `
+      position: absolute;
+      bottom: 20px;
+      left: 16px;
+      right: 16px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 3px solid #222;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      pointer-events: auto;
+      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 200;
+    `;
+
+    // English subtitle fallback
+    const subtitle = dialogueData.en ? `<div style="font-size: 13px; font-style: italic; color: #666; margin-top: 4px;">${dialogueData.en}</div>` : '';
+
+    const optionsHtml = (dialogueData.options || []).map((opt, idx) => `
+      <div style="display: flex; gap: 8px;">
+        <button class="dialogue-audio-btn" data-audio="${opt.audioKey || ''}" style="
+          background: #ECC238;
+          color: #222;
+          border: 2px solid #222;
+          border-radius: 8px;
+          padding: 10px;
+          cursor: pointer;
+          font-size: 16px;
+          box-shadow: 0 3px 0 #9E7D1A;
+          ${opt.audioKey ? '' : 'display:none;'}
+        ">🔊</button>
+        <button class="dialogue-opt-btn" data-idx="${idx}" style="
+          flex: 1;
+          background: #2EC4B6;
+          color: #ffffff;
+          border: 2px solid #222;
+          border-radius: 8px;
+          padding: 12px 14px;
+          font-weight: 800;
+          font-size: 16px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 0 #1B8C81;
+          transition: transform 0.1s ease;
+        ">
+          ${opt.label || opt.de}
+          ${opt.en ? `<div style="font-size: 11px; color: rgba(255,255,255,0.8); font-weight: normal; margin-top: 2px;">${opt.en}</div>` : ''}
+        </button>
+      </div>
+    `).join('');
+
+    box.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 8px;">
+        <div>
+          <div style="font-size: 16px; font-weight: 900; color: #264653;">${dialogueData.speaker || npcEntry.name}</div>
+          <div style="font-size: 11px; font-weight: 800; color: ${npcEntry.avatarColor || '#E76F51'}; text-transform: uppercase;">${npcEntry.title || 'Town Citizen'}</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 18px; line-height: 1.4; color: #111; font-weight: 900;">
+          ${dialogueData.hintDe || dialogueData.de || dialogueData.text}
+        </div>
+        ${subtitle}
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+        ${optionsHtml}
+      </div>
+    `;
+
+    this.container.appendChild(box);
+
+    const audioBtns = box.querySelectorAll('.dialogue-audio-btn');
+    audioBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-audio');
+        if (key && window.FFH.game.speech) {
+          window.FFH.game.speech.speakKey(key);
+        }
+      });
     });
-    btnStart.addEventListener('click', () => {
-      this.game.sfx.playSfx('success');
-      this.game.transitionTo('PICK');
+
+    const buttons = box.querySelectorAll('.dialogue-opt-btn');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        const chosen = dialogueData.options[idx];
+        if (onOptionChosen) {
+          onOptionChosen(chosen);
+        }
+      });
     });
   }
 
   showRideMockScreen() {
     // Redundant now that phase is fully implemented. Leave empty.
+  }
+
+  updateQuestTracker() {
+    // Refresh city explorer HUD if active to show updated quest status
+    if (this.game.currentPhase === this.game.phases.CITY_EXPLORATION) {
+      const activeCard = document.getElementById('city-poi-card');
+      const isCardVisible = activeCard && activeCard.style.display === 'block';
+      const lastPoi = this.currentActivePOI;
+
+      this.showCityExplorerHUD(this.poiCallback);
+
+      if (isCardVisible && lastPoi) {
+        this.showPOICard(lastPoi);
+      }
+    }
+  }
+
+  updateCityExplorerHUD(distance, angleRad, isActive) {
+    const indicator = document.getElementById('delivery-distance-indicator');
+    if (!indicator) return;
+    if (!isActive) {
+      indicator.style.display = 'none';
+      return;
+    }
+    indicator.style.display = 'flex';
+    document.getElementById('delivery-distance-val').textContent = Math.max(0, Math.round(distance)) + 'm';
+    
+    // Convert radians to degrees for CSS rotation
+    // Note: In 3D space, rotation might need offset depending on camera forward.
+    const deg = (angleRad * 180 / Math.PI);
+    document.getElementById('delivery-distance-arrow').style.transform = `rotate(${deg}deg)`;
   }
 };
 

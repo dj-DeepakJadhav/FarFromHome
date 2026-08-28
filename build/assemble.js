@@ -24,6 +24,13 @@ function assemble() {
   }
   const gltfLoaderContent = fs.readFileSync(gltfLoaderPath, 'utf-8');
 
+  const bvhPath = path.join(root, 'vendor', 'three-mesh-bvh.umd.js');
+  if (!fs.existsSync(bvhPath)) {
+    console.error('CRITICAL: vendor/three-mesh-bvh.umd.js not found!');
+    process.exit(1);
+  }
+  const bvhContent = fs.readFileSync(bvhPath, 'utf-8');
+
   // Post-processing chain (ink outline pass). Order matters: Pass defines the
   // base class + FullScreenQuad, EffectComposer depends on all the others.
   const postFiles = ['Pass.js', 'CopyShader.js', 'ShaderPass.js', 'RenderPass.js', 'MaskPass.js', 'EffectComposer.js'];
@@ -38,24 +45,34 @@ function assemble() {
   }
 
   // Script file sequence matching dependency structure
+  const vendorFiles = [
+    'vendor/three.min.js',
+    'vendor/three-mesh-bvh.umd.js',
+    'vendor/GLTFLoader.js'
+  ];
   const srcFiles = [
     'src/core/economy.js',
+    'src/core/npcBehaviorTree.js',
+    'src/data/prologueQuests.js',
+    'src/data/characterModels.js',
+    'src/data/npcDialogue.js',
     'src/data/items.js',
     'src/data/shifts.js',
     'src/data/streets.js',
     'src/data/townLayout.js',
-    'src/data/townModels.js',
-    'src/data/intercom.js',
+    'src/data/kenneyAssets.js',
     'src/data/dialogue.js',
     'src/data/audioTriggers.js',
     'src/data/voiceSprites.js',
+    'src/core/grammarEngine.js',
     'src/data/shop.js',
     'src/render/celShaderMaterial.js',
     'src/render/inkOutline.js',
     'src/render/dioramaRooms.js',
     'src/render/character.js',
-    'src/render/townFactory.js',
+    'src/render/npcFactory.js',
     'src/render/titleMesh.js',
+    'src/render/cityMap.js',
     'src/render/geometryFactory.js',
     'src/render/sceneSetup.js',
     'src/render/particles.js',
@@ -63,9 +80,9 @@ function assemble() {
     'src/audio/speech.js',
     'src/ui/hud.js',
     'src/phases/pickPhase.js',
-    'src/phases/ridePhase.js',
-    'src/phases/intercomPhase.js',
     'src/phases/shopPhase.js',
+    'src/phases/cityExplorationPhase.js',
+    'src/phases/dialoguePhase.js',
     'src/main.js'
   ];
   
@@ -89,6 +106,9 @@ function assemble() {
 
   const gltfLoaderTagPattern = /<script src="vendor\/GLTFLoader\.js"><\/script>/;
   outputHtml = outputHtml.replace(gltfLoaderTagPattern, `<script>\n${gltfLoaderContent}\n</script>`);
+
+  const bvhTagPattern = /<script src="vendor\/three-mesh-bvh\.umd\.js"><\/script>/;
+  outputHtml = outputHtml.replace(bvhTagPattern, `<script>\n${bvhContent}\n</script>`);
 
   for (const pf of postFiles) {
     const tagPattern = new RegExp('<script src="vendor/' + pf.replace('.', '\\.') + '"></script>');

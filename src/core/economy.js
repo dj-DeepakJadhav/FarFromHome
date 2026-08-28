@@ -4,7 +4,7 @@
 
 window.FFH = {
   // Every tunable that affects whether a run is winnable lives here, not
-  // scattered across phases. Design authority: Docs/09_Canonical_Tables.md §2.
+  // scattered across phases. Design authority: Docs/README_HACKATHON.md §5.
   ECONOMY: {
     STARTING_WALLET: 20,
     TUITION_GOAL: 250,
@@ -15,7 +15,93 @@ window.FFH = {
     STREAK_MAX: 2.5,               // cap, so a hot streak can at most double pay
 
     MISPICK_INTEGRITY_COST: 8,     // bag damage for tapping the wrong item
-    POTHOLE_INTEGRITY_COST: 15     // bag damage per hazard hit on the ride
+    POTHOLE_INTEGRITY_COST: 15,    // bag damage per hazard hit on the ride
+    EARLY_PICK_MULTIPLIER: 2.0     // Accuracy bonus multiplier for pre-icon picks
+  }
+};
+
+window.FFH.calculatePayout = function(state) {
+  const E = window.FFH.ECONOMY;
+  const shift = window.FFH.getShift(state.currentShift);
+
+  const packedCount = state.activeOrder ? state.activeOrder.filter(it => it.packed).length : 0;
+  
+  // Calculate accuracyPay = sum over packed items
+  let accuracyPay = 0;
+  if (state.activeOrder) {
+    state.activeOrder.forEach(it => {
+      if (it.packed) {
+        let itemPay = E.ACCURACY_BONUS_PER_ITEM;
+        if (it.pickedEarly) {
+          itemPay *= E.EARLY_PICK_MULTIPLIER;
+          if (state.upgrades.vocabCards) {
+            itemPay *= 1.25;
+          }
+        }
+        accuracyPay += itemPay;
+      }
+    });
+  }
+
+  const streakMult = window.FFH.streakMultiplier(state.shiftBestStreak);
+  const streakBonus = accuracyPay * (streakMult - 1);
+  
+  // Calculate tip (simulating etiquette and freshness)
+  // tips = (roll(0 .. tipMax) * streakMult * freshnessFactor) + etiquetteTipDelta
+  const freshnessFactor = state.freshness / 100;
+  const rawTip = Math.random() * shift.tipMax;
+  const etiquetteTip = Math.max(0, rawTip * streakMult * freshnessFactor + (state.lastEtiquetteTipDelta || 0));
+
+  // Damage deductions (from bag integrity drop)
+  // damage = (100 − bagIntegrity) / 100 * baseWage * 0.5
+  const lostIntegrity = 100 - state.bagIntegrity;
+  const damageDeductions = (lostIntegrity / 100) * shift.baseWage * 0.5;
+
+  const netPayout = shift.baseWage + accuracyPay + streakBonus + etiquetteTip - damageDeductions;
+
+  return {
+    shift: shift,
+    packedCount: packedCount,
+    streakMult: streakMult,
+    grossBaseWage: window.FFH.round2(shift.baseWage),
+    accuracyBonus: window.FFH.round2(accuracyPay),
+    streakBonus: window.FFH.round2(streakBonus),
+    etiquetteTip: window.FFH.round2(etiquetteTip),
+    damageDeductions: window.FFH.round2(damageDeductions),
+    netPayout: window.FFH.round2(netPayout),
+    metQuota: netPayout >= shift.quota
+  };
+};
+
+window.FFH.finishShift = function(game) {
+  const state = game.state;
+  const payout = game.lastPayout || window.FFH.calculatePayout(state);
+
+  state.wallet = window.FFH.round2(state.wallet + payout.netPayout);
+  state.shiftEarnings = payout.netPayout;
+  state.stats.shiftsWorked++;
+
+  // Clear delivery state so the marker resets for the next city exploration
+  state.activeDelivery = false;
+  state.deliveryTarget = null;
+
+  // Missing the quota, or trashing the bag, costs a strike
+  if (!payout.metQuota || state.bagIntegrity <= 0) {
+    state.strikes++;
+  }
+
+  if (state.strikes >= window.FFH.ECONOMY.MAX_STRIKES) {
+    game.transitionTo('LOSE');
+  } else if (state.wallet >= window.FFH.ECONOMY.TUITION_GOAL) {
+    game.transitionTo('WIN');
+  } else {
+    // Advance to the next shift immediately so the Shop/Hub sees the correct shift
+    state.currentShift++;
+    game.transitionTo('SHOP');
+  }
+  
+  if (game.ui && game.ui.updatePersistentHUD) {
+    game.ui.updatePersistentHUD(state);
   }
 };
 
@@ -26,6 +112,21 @@ window.FFH.createRunState = function () {
     wallet: window.FFH.ECONOMY.STARTING_WALLET,
     currentShift: 1,
     strikes: 0,
+    questStep: 0,
+    npcRelationships: {
+      NPC_RITA: 50,
+      NPC_MATHIAS: 50,
+      NPC_MARTHA: 50,
+      NPC_NINA: 50,
+      NPC_LOKKER: 50
+    },
+    npcMemory: {
+      NPC_RITA: [],
+      NPC_MATHIAS: [],
+      NPC_MARTHA: [],
+      NPC_NINA: [],
+      NPC_LOKKER: []
+    },
 
     // Per-shift, reset by resetShiftState() at the top of every PICK phase
     bagIntegrity: 100,
@@ -35,11 +136,15 @@ window.FFH.createRunState = function () {
     shiftBestStreak: 0,
     mispicks: 0,
     shiftEarnings: 0,
+    lastEtiquetteTipDelta: 0,
+    notepadUsedThisShift: false,
 
     upgrades: {
       ebike: false,
-      insulatedBag: false,
-      scanner: false
+      thermalBag: false,
+      shelfLabels: false,
+      pocketNotepad: false,
+      vocabCards: false
     },
 
     // Surfaced on the win/lose screen
@@ -62,6 +167,8 @@ window.FFH.resetShiftState = function (state) {
   state.shiftBestStreak = 0;
   state.mispicks = 0;
   state.shiftEarnings = 0;
+  state.lastEtiquetteTipDelta = 0;
+  state.notepadUsedThisShift = false;
 };
 
 // Streak multiplier applied to accuracy and tip income.
@@ -76,3 +183,42 @@ window.FFH.round2 = function (n) {
 };
 
 window.FFH.state = window.FFH.createRunState();
+
+window.FFH.saveGame = function(game) {
+  try {
+    const saveData = {
+      state: game.state,
+      phaseKey: game.currentPhase ? game.currentPhase.constructor.name : 'ROOM_HUB'
+    };
+    if (saveData.phaseKey === 'DialoguePhase') {
+      saveData.phaseKey = 'CITY_EXPLORATION';
+    } else if (saveData.phaseKey === 'CityExplorationPhase') {
+      saveData.phaseKey = 'CITY_EXPLORATION';
+    } else if (saveData.phaseKey === 'PickPhase') {
+      saveData.phaseKey = 'PICK';
+    } else if (saveData.phaseKey === 'RidePhase') {
+      saveData.phaseKey = 'RIDE';
+    } else if (saveData.phaseKey === 'ShopPhase') {
+      saveData.phaseKey = 'SHOP';
+    }
+    localStorage.setItem('FFH_SAVE_GAME', JSON.stringify(saveData));
+  } catch(e) {
+    console.error("Failed to save game:", e);
+  }
+};
+
+window.FFH.loadGame = function(game) {
+  try {
+    const raw = localStorage.getItem('FFH_SAVE_GAME');
+    if (!raw) return false;
+    const saveData = JSON.parse(raw);
+    if (!saveData || !saveData.state) return false;
+    
+    game.state = Object.assign(window.FFH.createRunState(), saveData.state);
+    window.FFH.state = game.state;
+    return saveData.phaseKey || 'CITY_EXPLORATION';
+  } catch(e) {
+    console.error("Failed to load game:", e);
+    return false;
+  }
+};

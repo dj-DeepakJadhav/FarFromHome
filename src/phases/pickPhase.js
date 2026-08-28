@@ -7,6 +7,7 @@ window.FFH.PickPhase = class {
     this.game = game;
     this.shelfGroup = null;
     this.shelvedMeshes = [];
+    this.tagRails = [];
     this.bagMesh = null;
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
@@ -25,6 +26,7 @@ window.FFH.PickPhase = class {
     window.FFH.resetShiftState(state);
 
     this.shelvedMeshes = [];
+    this.tagRails = [];
     this.activePicksCount = 0;
     this.shift = window.FFH.getShift(state.currentShift);
     this.timeRemaining = this.shift.pickTimeLimit || 25;
@@ -46,10 +48,17 @@ window.FFH.PickPhase = class {
     this.bagMesh.position.set(0, 0.1, 2.0);
     this.game.scene.add(this.bagMesh);
 
-    // Audio-Leads-Manifest: Speak first item ~1.5s before visual manifest resolves
+    // Audio-Leads-Manifest: Setup reveal timing and speak first item
     const firstUnpacked = state.activeOrder[0];
-    if (firstUnpacked && this.game.speech) {
-      this.game.speech.speakKey(firstUnpacked.id);
+    if (firstUnpacked) {
+      firstUnpacked.promptStarted = true;
+      firstUnpacked.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
+      if (this.game.speech) {
+        this.game.speech.speak(firstUnpacked.gender + " " + firstUnpacked.nameDe);
+      }
+      setTimeout(() => {
+        this.pulseRailForGender(firstUnpacked.gender);
+      }, 200);
     }
 
     this.game.ui.showWarehouseManifest();
@@ -70,10 +79,54 @@ window.FFH.PickPhase = class {
         this.game.ui.updatePickHUD(this.timeRemaining, this.pickDuration, state.freshness);
       }
 
+      // Check current active prompt and manage state
+      const currentPrompt = state.activeOrder ? state.activeOrder.find(it => !it.packed) : null;
+      if (currentPrompt) {
+        if (!currentPrompt.promptStarted) {
+          currentPrompt.promptStarted = true;
+          currentPrompt.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
+          if (this.game.speech) {
+            this.game.speech.speak(currentPrompt.gender + " " + currentPrompt.nameDe);
+          }
+          this.pulseRailForGender(currentPrompt.gender);
+          this.game.ui.showWarehouseManifest();
+        } else if (!currentPrompt.revealed && Date.now() >= currentPrompt.revealAt) {
+          currentPrompt.revealed = true;
+          this.game.ui.showWarehouseManifest();
+        }
+      }
+
       // Time expired: end shift with whatever was packed
       if (this.timeRemaining <= 0) {
         this.exit();
-        this.game.transitionTo('RIDE');
+        // Pre-compute last payout in case time runs out
+        this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
+        
+        // Select random Altbau townhouse as delivery destination
+        const pool = [];
+        const grid = window.FFH.LUBECK_CITY_GRID;
+        for (let z = 0; z < grid.length; z++) {
+          for (let x = 0; x < grid[z].length; x++) {
+            const type = grid[z][x];
+            if (type.startsWith('A') || type.startsWith('B_')) {
+              // Exclude Dark Store (starting point)
+              if (type !== 'B_DARKSTORE') {
+                const poi = window.FFH.POI_METADATA[type];
+                pool.push({ x, z, name: poi ? poi.name : `Altbau Townhouse #${x}-${z}` });
+              }
+            }
+          }
+        }
+        const target = pool[Math.floor(Math.random() * pool.length)] || { x: 9, z: 3, name: 'Altbau Townhouse #9-3' };
+        this.game.state.activeDelivery = true;
+        this.game.state.deliveryTarget = {
+          gridX: target.x,
+          gridZ: target.z,
+          name: target.name
+        };
+        
+        // Ride Phase is removed to keep continuous isometric city delivery.
+        this.game.transitionTo('CITY_EXPLORATION');
       }
     }
   }
@@ -98,28 +151,53 @@ window.FFH.PickPhase = class {
   // independently of the order - so an ordered item could simply not be on the
   // shelf and the phase could never complete. That was a hard soft-lock.
   buildShelf(shift, order) {
-    const slotCount = Math.max(shift.shelfSlots, order.length);
-    const deck = [];
+    const derBucket = [];
+    const dieBucket = [];
+    const dasBucket = [];
 
-    // 1. One mesh per ordered line, so duplicates get duplicate meshes
+    // 1. Sort ordered items into gender buckets
     for (const line of order) {
-      deck.push(window.FFH.items.find(it => it.id === line.id));
+      const itemDef = window.FFH.items.find(it => it.id === line.id);
+      if (itemDef.gender === 'der') derBucket.push(itemDef);
+      else if (itemDef.gender === 'die') dieBucket.push(itemDef);
+      else if (itemDef.gender === 'das') dasBucket.push(itemDef);
     }
 
-    // 2. Pad the rest with decoys drawn from this shift pool
+    // 2. Pad each bucket to 4 items with decoys of the same gender
     const pool = window.FFH.getShiftItemPool(shift.index);
-    while (deck.length < slotCount) {
-      const itemId = pool[Math.floor(Math.random() * pool.length)];
-      deck.push(window.FFH.items.find(it => it.id === itemId));
+    const poolItems = pool.map(id => window.FFH.items.find(it => it.id === id));
+    
+    const derPool = poolItems.filter(it => it.gender === 'der');
+    const diePool = poolItems.filter(it => it.gender === 'die');
+    const dasPool = poolItems.filter(it => it.gender === 'das');
+
+    // Fallbacks in case the shift pool lacks items of a specific gender
+    const derAll = window.FFH.items.filter(it => it.gender === 'der');
+    const dieAll = window.FFH.items.filter(it => it.gender === 'die');
+    const dasAll = window.FFH.items.filter(it => it.gender === 'das');
+
+    while (derBucket.length < 4) {
+      const src = derPool.length ? derPool : derAll;
+      derBucket.push(src[Math.floor(Math.random() * src.length)]);
+    }
+    while (dieBucket.length < 4) {
+      const src = diePool.length ? diePool : dieAll;
+      dieBucket.push(src[Math.floor(Math.random() * src.length)]);
+    }
+    while (dasBucket.length < 4) {
+      const src = dasPool.length ? dasPool : dasAll;
+      dasBucket.push(src[Math.floor(Math.random() * src.length)]);
     }
 
-    this.shuffle(deck);
+    // 3. Shuffle each bucket independently
+    this.shuffle(derBucket);
+    this.shuffle(dieBucket);
+    this.shuffle(dasBucket);
 
     this.shelfGroup = new THREE.Group();
 
     const steelMat = window.FFH.createCelMaterial(0x2B2D42);
     const shelfBoardMat = window.FFH.createCelMaterial(0x8D99AE);
-    const priceTagMat = window.FFH.createCelMaterial(0xEF233C);
 
     // 4 Corner Steel Uprights
     const postGeo = new THREE.BoxGeometry(0.1, 3.4, 0.1);
@@ -133,35 +211,40 @@ window.FFH.PickPhase = class {
     const shelfGeo = new THREE.BoxGeometry(3.7, 0.08, 0.75);
     const tagGeo = new THREE.BoxGeometry(3.7, 0.05, 0.02);
     const tiers = 3;
+
+    // Row 0 (bottom) = der (0x3A86FF), Row 1 (middle) = die (0xFF006E), Row 2 (top) = das (0x8338EC)
+    const railColors = [0x3A86FF, 0xFF006E, 0x8338EC];
+
     for (let y = 0; y < tiers; y++) {
       const plank = new THREE.Mesh(shelfGeo, shelfBoardMat);
       plank.position.set(0, y * 0.95 + 0.1, 0);
       plank.receiveShadow = true;
       
       // Price tag rail
-      const tagRail = new THREE.Mesh(tagGeo, priceTagMat);
+      const tagRailMat = window.FFH.createCelMaterial(railColors[y]);
+      const tagRail = new THREE.Mesh(tagGeo, tagRailMat);
       tagRail.position.set(0, y * 0.95 + 0.1, 0.38);
       
       this.shelfGroup.add(plank, tagRail);
+      this.tagRails.push(tagRail);
     }
 
     this.game.scene.add(this.shelfGroup);
 
-    const cols = Math.ceil(deck.length / tiers);
     const shelfHeights = [0.05, 1.05, 2.05];
-    const spread = 2.4;
+    const spread = 1.2;
+    const buckets = [derBucket, dieBucket, dasBucket];
 
-    deck.forEach((itemDef, i) => {
-      const row = Math.floor(i / cols);
-      const col = i % cols;
-      const x = cols === 1 ? 0 : -spread + (col / (cols - 1)) * spread * 2;
+    buckets.forEach((bucket, row) => {
+      bucket.forEach((itemDef, col) => {
+        const x = -spread + (col / 3) * spread * 2;
+        const itemMesh = window.FFH.createItemMesh(itemDef.type, itemDef.hex);
+        itemMesh.position.set(x, shelfHeights[row] + 0.4, 0);
+        itemMesh.userData = { id: itemDef.id, def: itemDef };
 
-      const itemMesh = window.FFH.createItemMesh(itemDef.type, itemDef.hex);
-      itemMesh.position.set(x, shelfHeights[Math.min(row, tiers - 1)] + 0.4, 0);
-      itemMesh.userData = { id: itemDef.id, def: itemDef };
-
-      this.game.scene.add(itemMesh);
-      this.shelvedMeshes.push(itemMesh);
+        this.game.scene.add(itemMesh);
+        this.shelvedMeshes.push(itemMesh);
+      });
     });
   }
 
@@ -202,24 +285,39 @@ window.FFH.PickPhase = class {
     }
   }
 
-  onCorrectPick(orderLine, itemDef, mesh) {
+  onCorrectPick(orderLine, itemDef, mesh, eClientX, eClientY) {
     const state = this.game.state;
+    const now = Date.now();
 
+    const isEarly = now < orderLine.revealAt;
     orderLine.packed = true;
+    orderLine.pickedEarly = isEarly;
+    
     this.activePicksCount++;
 
-    state.streak++;
+    if (isEarly) {
+      state.streak += 2; // Extra streak step
+      state.stats.wordsLearned = (state.stats.wordsLearned || 0) + 1;
+    } else {
+      state.streak++;
+    }
+    
     state.stats.itemsPacked++;
     state.shiftBestStreak = Math.max(state.shiftBestStreak, state.streak);
     state.stats.bestStreak = Math.max(state.stats.bestStreak, state.streak);
 
-    this.game.sfx.playSfx('success');
-    this.game.particles.spawnBurst(mesh.position.x, mesh.position.y, mesh.position.z, itemDef.hex);
+    this.game.sfx.playSfx(isEarly ? 'early_success' : 'success');
+    
+    // Gold particles for early pick, normal item color for late pick
+    const particleColor = isEarly ? '#FFD700' : itemDef.hex;
+    this.game.particles.spawnBurst(mesh.position.x, mesh.position.y, mesh.position.z, particleColor);
     this.game.particles.spawnStarSparkles(mesh.position.x, mesh.position.y, mesh.position.z);
     
     // Spawn floating score / combo text
-    const streakLabel = state.streak > 1 ? ` (x${(1 + state.streak * 0.1).toFixed(1)})` : '';
-    this.game.ui.spawnFloatingText(`+${itemDef.nameDe}!${streakLabel}`, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, '#2A9D8F');
+    const streakLabel = state.streak > 1 ? ` (x${window.FFH.streakMultiplier(state.streak).toFixed(1)})` : '';
+    const labelText = isEarly ? `gehört! +${itemDef.nameDe}!${streakLabel}` : `+${itemDef.nameDe}!${streakLabel}`;
+    const labelColor = isEarly ? '#FFD700' : '#2A9D8F';
+    this.game.ui.spawnFloatingText(labelText, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, labelColor);
 
     this.animateBagDrop(mesh);
     this.game.ui.showWarehouseManifest();
@@ -227,7 +325,33 @@ window.FFH.PickPhase = class {
     if (this.activePicksCount >= state.activeOrder.length) {
       setTimeout(() => {
         this.exit();
-        this.game.transitionTo('RIDE');
+        // Pre-compute last payout
+        this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
+        
+        const pool = [];
+        const grid = window.FFH.LUBECK_CITY_GRID;
+        for (let z = 0; z < grid.length; z++) {
+          for (let x = 0; x < grid[z].length; x++) {
+            const type = grid[z][x];
+            if (type.startsWith('A') || type.startsWith('B_')) {
+              // Exclude Dark Store (starting point)
+              if (type !== 'B_DARKSTORE') {
+                const poi = window.FFH.POI_METADATA[type];
+                pool.push({ x, z, name: poi ? poi.name : `Altbau Townhouse #${x}-${z}` });
+              }
+            }
+          }
+        }
+        const target = pool[Math.floor(Math.random() * pool.length)] || { x: 9, z: 3, name: 'Altbau Townhouse #9-3' };
+        this.game.state.activeDelivery = true;
+        this.game.state.deliveryTarget = {
+          gridX: target.x,
+          gridZ: target.z,
+          name: target.name
+        };
+        
+        // Ride Phase is removed to keep continuous isometric city delivery.
+        this.game.transitionTo('CITY_EXPLORATION');
       }, 700);
     }
   }
@@ -242,7 +366,7 @@ window.FFH.PickPhase = class {
 
     this.game.sfx.playSfx('error');
     this.game.particles.spawnErrorSparks(mesh.position.x, mesh.position.y, mesh.position.z);
-    this.game.ui.spawnFloatingText(`❌ FALSCH! (-10%)`, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, '#E63946');
+    this.game.ui.spawnFloatingText(`❌ FALSCH! (-${window.FFH.ECONOMY.MISPICK_INTEGRITY_COST}%)`, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, '#E63946');
     this.shakeItem(mesh);
     this.game.ui.showWarehouseManifest();
   }
@@ -298,6 +422,65 @@ window.FFH.PickPhase = class {
       }
     };
     runShake();
+  }
+
+  pulseRailForGender(gender) {
+    const row = gender === 'der' ? 0 : gender === 'die' ? 1 : 2;
+    const rail = this.tagRails[row];
+
+    // Day 1 FTUE: First-Shift Tutorial
+    if (this.game.state.currentShift === 1 && this.game.ui && this.game.ui.showTutorialBanner) {
+      if (gender === 'der') this.game.ui.showTutorialBanner('Der (Masculine) ➔ Tap the Blue Shelf', '#457B9D');
+      if (gender === 'die') this.game.ui.showTutorialBanner('Die (Feminine) ➔ Tap the Pink Shelf', '#E63946');
+      if (gender === 'das') this.game.ui.showTutorialBanner('Das (Neuter) ➔ Tap the Purple Shelf', '#7B2CBF');
+    }
+
+    if (rail) {
+      const originalScale = rail.scale.clone();
+      // Handle both standard materials and custom ShaderMaterials
+      const colorSource = rail.material.color || (rail.material.uniforms && rail.material.uniforms.uColor ? rail.material.uniforms.uColor.value : null);
+      if (!colorSource) return; // Cannot pulse color
+
+      const originalColor = colorSource.clone();
+      
+      let elapsed = 0;
+      const pulseDuration = 0.5;
+      const flashColor = new THREE.Color(0xffffff);
+      const isTutorial = this.game.state.currentShift === 1;
+      
+      const pulseInterval = setInterval(() => {
+        elapsed += 0.05;
+        const t = Math.sin((elapsed / pulseDuration) * Math.PI);
+        const currentColorTarget = rail.material.color || (rail.material.uniforms ? rail.material.uniforms.uColor.value : null);
+
+        if (t < 0 || elapsed >= pulseDuration) {
+          if (rail.scale) rail.scale.copy(originalScale);
+          if (currentColorTarget) currentColorTarget.copy(originalColor);
+          if (rail.material && rail.material.uniforms && rail.material.uniforms.uEmissive) {
+              rail.material.uniforms.uEmissive.value = new THREE.Color(0x000000);
+          } else if (rail.material && rail.material.emissive) {
+              rail.material.emissive.setHex(0x000000);
+          }
+          clearInterval(pulseInterval);
+        } else {
+          if (rail.scale) {
+            rail.scale.set(originalScale.x, originalScale.y * (1 + t * 0.3), originalScale.z * (1 + t * 0.3));
+          }
+          if (currentColorTarget) {
+            currentColorTarget.lerpColors(originalColor, flashColor, t * 0.5);
+          }
+          // Extra bright glow for tutorial
+          if (isTutorial) {
+            if (rail.material && rail.material.uniforms && rail.material.uniforms.uEmissive) {
+                // If the shader supports emissive (needs to be added if missing)
+                rail.material.uniforms.uEmissive.value.copy(originalColor).multiplyScalar(t * 1.5);
+            } else if (rail.material && rail.material.emissive) {
+                rail.material.emissive.copy(originalColor).multiplyScalar(t * 1.5);
+            }
+          }
+        }
+      }, 50);
+    }
   }
 
   exit() {

@@ -7,6 +7,9 @@
 window.FFH.ShopPhase = class {
   constructor(game) {
     this.game = game;
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
+    this.onTap = this.onTap.bind(this);
   }
 
   enter() {
@@ -16,12 +19,39 @@ window.FFH.ShopPhase = class {
     }
 
     this.game.currentCamera = this.game.cameras.warehouseCamera;
-    this.game.currentCamera.position.set(8, 7.2, 8);
-    this.game.currentCamera.lookAt(0, 0.85, 0);
+    this.game.currentCamera.position.set(2.8, 2.8, 3.5);
+    this.game.currentCamera.lookAt(0, 0.4, 0);
 
     this.game.setupTitleDiorama();
+    
+    // Show top HUD and exit button only
+    this.game.ui.showRoomHubUI();
+    this.game.ui.spawnFloatingText("TAP OBJECTS TO UPGRADE", window.innerWidth/2, window.innerHeight - 100, '#ECC238');
 
-    this.game.ui.showShopUI();
+    window.addEventListener('pointerdown', this.onTap);
+  }
+
+  onTap(e) {
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return; // Ignore UI clicks
+
+    const rect = this.game.renderer.domElement.getBoundingClientRect();
+    this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+    this.raycaster.setFromCamera(this.mouse, this.game.currentCamera);
+    
+    if (this.game.titleRoom) {
+      const intersects = this.raycaster.intersectObjects(this.game.titleRoom.children, true);
+      if (intersects.length > 0) {
+        let target = intersects[0].object;
+        while (target && !target.userData.upgradeId) {
+          target = target.parent;
+        }
+        if (target && target.userData.upgradeId) {
+          this.buyUpgrade(target.userData.upgradeId);
+        }
+      }
+    }
   }
 
   buyUpgrade(upgradeId) {
@@ -32,33 +62,28 @@ window.FFH.ShopPhase = class {
     const affordable = state.wallet >= upgrade.cost;
     const alreadyOwned = state.upgrades[upgradeId];
 
-    if (affordable && !alreadyOwned) {
+    if (alreadyOwned) {
+      this.game.ui.spawnFloatingText("ALREADY OWNED", window.innerWidth/2, window.innerHeight/2, '#AAAAAA');
+      return;
+    }
+
+    if (affordable) {
       state.wallet = window.FFH.round2(state.wallet - upgrade.cost);
       state.upgrades[upgradeId] = true;
       this.game.sfx.playSfx('success');
+      this.game.ui.spawnFloatingText(`BOUGHT ${upgrade.nameEn}!`, window.innerWidth/2, window.innerHeight/2, '#2A9D8F');
       
       // Re-render the room diorama immediately with the new furnishings visible
       this.game.setupTitleDiorama();
+      this.game.ui.showRoomHubUI(); // Update wallet text
     } else {
       this.game.sfx.playSfx('error');
-    }
-
-    this.game.ui.showShopUI();
-  }
-
-  closeShop() {
-    this.exit();
-
-    if (this.game.state.wallet >= window.FFH.ECONOMY.TUITION_GOAL) {
-      this.game.transitionTo('WIN');
-    } else {
-      // Advance to the next shift and display the Room Hub first
-      this.game.state.currentShift++;
-      this.game.transitionTo('ROOM_HUB');
+      this.game.ui.spawnFloatingText(`NEED ${upgrade.cost}€`, window.innerWidth/2, window.innerHeight/2, '#E63946');
     }
   }
 
   exit() {
+    window.removeEventListener('pointerdown', this.onTap);
     this.game.ui.clear();
     this.game.clearTitleDiorama();
   }

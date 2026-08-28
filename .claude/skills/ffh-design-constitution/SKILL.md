@@ -1,11 +1,11 @@
 ---
 name: ffh-design-constitution
-description: Enforces strict compliance with Docs/00_DESIGN_CONSTITUTION.md. Use before making any gameplay, narrative, UI, or architectural changes to ensure non-negotiable pillars are upheld.
+description: Enforces strict compliance with Docs/README_HACKATHON.md (Section 2: Four Non-Negotiable Design Pillars). Use before making any gameplay, narrative, UI, or architectural changes to ensure non-negotiable pillars are upheld.
 ---
 
 # FFH Design Constitution Enforcement Skill
 
-Before modifying ANY game mechanic, UI layout, audio pipeline, or data model, verify compliance with `Docs/00_DESIGN_CONSTITUTION.md`:
+Before modifying ANY game mechanic, UI layout, audio pipeline, or data model, verify compliance with `Docs/README_HACKATHON.md` (Section 2: Four Non-Negotiable Design Pillars):
 
 ## Mandatory Pre-Flight Checks:
 1. **Spoken-Only German**: 

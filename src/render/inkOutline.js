@@ -108,7 +108,7 @@ window.FFH.createInkRenderer = function (renderer, scene, camera) {
     _camera: camera,
     render() {
       const cam = this._camera;
-      // Pass 1: normals + depth into an offscreen target
+
       const prevOverride = scene.overrideMaterial;
       scene.overrideMaterial = normalMaterial;
       renderer.setRenderTarget(normalTarget);
@@ -116,6 +116,7 @@ window.FFH.createInkRenderer = function (renderer, scene, camera) {
       renderer.render(scene, cam);
       scene.overrideMaterial = prevOverride;
       renderer.setRenderTarget(null);
+
       // Pass 2+3: normal color render, then the outline composite
       composer.render();
     },

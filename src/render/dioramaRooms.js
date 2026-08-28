@@ -167,33 +167,29 @@ window.FFH.createLevel0Room = function(state = window.FFH.state) {
   pillow.position.set(-0.75, pilY, -1.0);
   room.add(mattress, blanket, pillow);
 
-  // TIER 2: Cozy patterned wool rug, potted windowsill plant
-  if (upgrades.cozy_rug || isWon) {
-    const rugMat = window.FFH.createCelMaterial(0x588157);
-    const rug = new THREE.Mesh(boxGeo, rugMat);
-    rug.scale.set(1.6, 0.02, 1.4);
-    rug.position.set(0.2, 0.01, 0.3);
-    
-    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.05, 0.12), window.FFH.createCelMaterial(0xE76F51));
-    pot.position.set(-1.3, 1.05, 0.3);
-    const plant = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1, 0), window.FFH.createCelMaterial(0x3A5A40));
-    plant.position.set(-1.3, 1.18, 0.3);
-    
-    room.add(rug, pot, plant);
-  }
+  // Wool rug, potted windowsill plant
+  const rugMat = window.FFH.createCelMaterial(0x588157);
+  const rug = new THREE.Mesh(boxGeo, rugMat);
+  rug.scale.set(1.6, 0.02, 1.4);
+  rug.position.set(0.2, 0.01, 0.3);
+  
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.05, 0.12), window.FFH.createCelMaterial(0xE76F51));
+  pot.position.set(-1.3, 1.05, 0.3);
+  const plant = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1, 0), window.FFH.createCelMaterial(0x3A5A40));
+  plant.position.set(-1.3, 1.18, 0.3);
+  
+  room.add(rug, pot, plant);
 
-  // TIER 3: Animated Cube Cat sleeping on bed
-  if (upgrades.cube_pet_cat || isWon) {
-    const catMat = window.FFH.createCelMaterial(0xE07A5F);
-    const catBody = new THREE.Mesh(boxGeo, catMat);
-    catBody.scale.set(0.24, 0.22, 0.3);
-    catBody.position.set(-0.7, matY + 0.23, -0.6);
+  // Animated Cube Cat sleeping on bed
+  const catMat = window.FFH.createCelMaterial(0xE07A5F);
+  const catBody = new THREE.Mesh(boxGeo, catMat);
+  catBody.scale.set(0.24, 0.22, 0.3);
+  catBody.position.set(-0.7, matY + 0.23, -0.6);
 
-    const catHead = new THREE.Mesh(boxGeo, catMat);
-    catHead.scale.set(0.18, 0.16, 0.16);
-    catHead.position.set(-0.7, matY + 0.38, -0.48);
-    room.add(catBody, catHead);
-  }
+  const catHead = new THREE.Mesh(boxGeo, catMat);
+  catHead.scale.set(0.18, 0.16, 0.16);
+  catHead.position.set(-0.7, matY + 0.38, -0.48);
+  room.add(catBody, catHead);
 
   // Cardboard Moving Box & Coffee Mug
   const boxMat = window.FFH.createCelMaterial(0xD4A373);
@@ -205,13 +201,48 @@ window.FFH.createLevel0Room = function(state = window.FFH.state) {
   mug.position.set(0.85, 0.47, 0.7);
   room.add(crate, mug);
 
-  // Orange Courier Delivery Backpack (Always present)
-  const bagMat = window.FFH.createCelMaterial(0xFF6B35);
+  // UPGRADES -----------------------------
+
+  // E-Bike (Wheel leaning on crate)
+  const bikeMat = window.FFH.createCelMaterial(upgrades.ebike ? 0x2A9D8F : 0x888888);
+  const bikeWheel = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 16), bikeMat);
+  bikeWheel.position.set(1.2, 0.2, 0.5);
+  bikeWheel.rotation.y = Math.PI / 4;
+  bikeWheel.userData = { upgradeId: 'ebike' };
+  room.add(bikeWheel);
+  
+  // Thermal Bag (bag mesh)
+  const bagMat = window.FFH.createCelMaterial(upgrades.thermalBag ? 0xFF6B35 : 0x888888);
   const bag = new THREE.Mesh(boxGeo, bagMat);
   bag.scale.set(0.38, 0.48, 0.3);
   bag.position.set(0.4, 0.24, 0.85);
   bag.rotation.y = -0.4;
+  bag.userData = { upgradeId: 'thermalBag' };
   room.add(bag);
+
+  // Shelf Labels (Labels box on crate)
+  const labelsMat = window.FFH.createCelMaterial(upgrades.shelfLabels ? 0xE9C46A : 0x888888);
+  const labelsBox = new THREE.Mesh(boxGeo, labelsMat);
+  labelsBox.scale.set(0.15, 0.1, 0.2);
+  labelsBox.position.set(0.85, 0.47, 0.5);
+  labelsBox.userData = { upgradeId: 'shelfLabels' };
+  room.add(labelsBox);
+
+  // Pocket Notepad (on desk)
+  const notepadMat = window.FFH.createCelMaterial(upgrades.pocketNotepad ? 0xFFD166 : 0x888888);
+  const notepad = new THREE.Mesh(boxGeo, notepadMat);
+  notepad.scale.set(0.15, 0.02, 0.1);
+  notepad.position.set(0.4, 0.74, -0.7);
+  notepad.userData = { upgradeId: 'pocketNotepad' };
+  room.add(notepad);
+
+  // Vocab Cards (on desk)
+  const cardsMat = window.FFH.createCelMaterial(upgrades.vocabCards ? 0xFF006E : 0x888888);
+  const cards = new THREE.Mesh(boxGeo, cardsMat);
+  cards.scale.set(0.12, 0.05, 0.08);
+  cards.position.set(0.8, 0.74, -0.7);
+  cards.userData = { upgradeId: 'vocabCards' };
+  room.add(cards);
 
   room.userData.updateIdle = (time) => {
     // Gentle cat breathing / tail twitch
@@ -376,7 +407,7 @@ window.FFH.createLevel4Room = function() {
   const tableMat = window.FFH.createCelMaterial(0xD4A373);
   const table = new THREE.Mesh(boxGeo, tableMat);
   table.scale.set(0.8, 0.35, 0.5);
-  table.position.set(0, 0.18, 0.2);
+  table.position.set(0, 0.18, 0.6);
   room.add(table);
 
   return room;

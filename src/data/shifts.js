@@ -42,3 +42,16 @@ window.FFH.getShiftItemPool = function (n) {
   const all = window.FFH.items.map(it => it.id);
   return all.slice(0, Math.min(all.length, 3 + n));
 };
+
+// TEACH on shift 1, ANTICIPATE on shift 2, TEST from shift 3 on.
+window.FFH.rampStage = function (n) {
+  if (n <= 1) return 'TEACH';
+  if (n === 2) return 'ANTICIPATE';
+  return 'TEST';
+};
+
+window.FFH.iconRevealDelay = function (n, upgrades) {
+  const base = { TEACH: 0.0, ANTICIPATE: 1.5, TEST: 2.5 }[window.FFH.rampStage(n)];
+  // Vocab Cards trade a shorter listening window for a bigger early-pick payout.
+  return Math.max(0, base - (upgrades && upgrades.vocabCards ? 0.8 : 0));
+};

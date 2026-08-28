@@ -172,8 +172,16 @@ window.FFH.shaderProfiles = {
 // Material registry for live hot-swapping
 window.FFH.managedMaterials = [];
 
+window.FFH.materialCache = {};
+
 window.FFH.createCelMaterial = function(colorHex, customStyleKey) {
   const styleKey = customStyleKey || window.FFH.activeShaderStyle || 'MESSENGER_COZY';
+  const cacheKey = `${styleKey}_${colorHex}`;
+  
+  if (window.FFH.materialCache[cacheKey]) {
+    return window.FFH.materialCache[cacheKey];
+  }
+
   const profile = window.FFH.shaderProfiles[styleKey] || window.FFH.shaderProfiles.MESSENGER_COZY;
 
   const mat = new THREE.ShaderMaterial({
@@ -187,6 +195,7 @@ window.FFH.createCelMaterial = function(colorHex, customStyleKey) {
 
   mat.userData = { originalColor: colorHex };
   window.FFH.managedMaterials.push(mat);
+  window.FFH.materialCache[cacheKey] = mat;
   return mat;
 };
 

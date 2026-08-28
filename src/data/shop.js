@@ -7,40 +7,35 @@ window.FFH.shopUpgrades = [
     id: 'ebike',
     nameEn: 'E-Bike',
     cost: 45,
-    category: 'equipment',
-    effectEn: 'Cuts travel time by 40%. Less road time means fresher deliveries.',
+    effectEn: '-40% transit time; less road time means fresher cargo',
     icon: '⚡'
   },
   {
-    id: 'insulatedBag',
-    nameEn: 'Thermal Courier Bag',
+    id: 'thermalBag',
+    nameEn: 'Thermal Bag',
     cost: 50,
-    category: 'equipment',
-    effectEn: 'Halves freshness decay while riding.',
+    effectEn: 'Halves freshness decay while riding',
     icon: '🎒'
   },
   {
-    id: 'desk_lamp',
-    nameEn: 'Study Desk & Lamp',
+    id: 'shelfLabels',
+    nameEn: 'Shelf Labels',
     cost: 25,
-    category: 'furniture',
-    effectEn: 'Furnishes your room. Boosts student study focus (+2s Pick time limit).',
-    icon: '🛋️'
+    effectEn: 'Gender symbol (▲●■) shown on each item, not just the rail',
+    icon: '🏷️'
   },
   {
-    id: 'cozy_rug',
-    nameEn: 'Warm Bohemian Rug',
+    id: 'pocketNotepad',
+    nameEn: 'Pocket Notepad',
     cost: 20,
-    category: 'furniture',
-    effectEn: 'Cozy floor covering. Adds warmth to your bare room.',
-    icon: '🧶'
+    effectEn: 'One re-listen per shift — replays current item audio',
+    icon: '📋'
   },
   {
-    id: 'cube_pet_cat',
-    nameEn: 'Companion Cat',
+    id: 'vocabCards',
+    nameEn: 'Vocab Cards',
     cost: 35,
-    category: 'pet',
-    effectEn: 'A sweet companion that sits on your bed (+5% tip bonus on deliveries).',
-    icon: '🐱'
+    effectEn: '-0.8s icon delay, +25% early-pick bonus',
+    icon: '🎴'
   }
 ];

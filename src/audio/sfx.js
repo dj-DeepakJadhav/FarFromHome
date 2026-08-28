@@ -30,6 +30,17 @@ window.FFH.AudioEngine = class {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
       osc.start(now);
       osc.stop(now + 0.35);
+    } else if (type === 'early_success') {
+      // High-pitched layered chime / register sound
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(659.25, now); // E5
+      osc.frequency.setValueAtTime(880.00, now + 0.06); // A5
+      osc.frequency.setValueAtTime(1046.50, now + 0.12); // C6
+      osc.frequency.setValueAtTime(1318.51, now + 0.18); // E6
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+      osc.start(now);
+      osc.stop(now + 0.45);
     } else if (type === 'error') {
       // Low buzzer
       osc.type = 'sawtooth';
@@ -47,6 +58,14 @@ window.FFH.AudioEngine = class {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
       osc.start(now);
       osc.stop(now + 0.15);
+    } else if (type === 'click') {
+      // Tiny soft clicking blip
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(700, now);
+      gain.gain.setValueAtTime(0.02, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc.start(now);
+      osc.stop(now + 0.04);
     }
   }
 };

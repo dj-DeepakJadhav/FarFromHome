@@ -20,6 +20,15 @@ class GameEngine {
   }
 
   init() {
+    // Install three-mesh-bvh
+    if (window.MeshBVH) {
+      THREE.BufferGeometry.prototype.computeBoundsTree = window.MeshBVH.computeBoundsTree;
+      THREE.BufferGeometry.prototype.disposeBoundsTree = window.MeshBVH.disposeBoundsTree;
+      THREE.Mesh.prototype.raycast = window.MeshBVH.acceleratedRaycast;
+    } else {
+      console.warn('MeshBVH not found, sliding collision will fallback or fail.');
+    }
+
     // Renderer & scene components initialization
     this.sceneData = window.FFH.setupScene('canvas-container');
     this.scene = this.sceneData.scene;
@@ -27,14 +36,15 @@ class GameEngine {
     this.cameras = {
       warehouseCamera: this.sceneData.warehouseCamera,
       streetCamera: this.sceneData.streetCamera,
-      titleCamera: this.sceneData.titleCamera
+      titleCamera: this.sceneData.titleCamera,
+      cityCamera: this.sceneData.cityCamera
     };
     this.currentCamera = this.sceneData.titleCamera;
 
     this.titleDiorama = null;
     this.titleWorld = null;
 
-    // Title camera zoom state — a flat, static diorama (no auto-spin, no
+    // Title camera zoom state - a flat, static diorama (no auto-spin, no
     // drag-rotate); the only camera control is dolly in/out.
     this.titleCameraDir = new THREE.Vector3(0, 13, 17).normalize();
     this.titleCameraDist = Math.hypot(13, 17);
@@ -50,9 +60,9 @@ class GameEngine {
 
     // Wire stages
     this.phases.PICK = new window.FFH.PickPhase(this);
-    this.phases.RIDE = new window.FFH.RidePhase(this);
-    this.phases.INTERCOM = new window.FFH.IntercomPhase(this);
     this.phases.SHOP = new window.FFH.ShopPhase(this);
+    this.phases.CITY_EXPLORATION = new window.FFH.CityExplorationPhase(this);
+    this.phases.DIALOGUE = new window.FFH.DialoguePhase(this);
 
     // Setup zoom controls
     this.initZoomControls();
@@ -117,7 +127,7 @@ class GameEngine {
     this.titleDiorama = new THREE.Group();
 
     // Add Level 0 Student Sublet Room as the hero 3D diorama
-    const level0Room = window.FFH.createLevel0Room();
+    const level0Room = window.FFH.createLevel0Room(this.state);
     this.titleRoom = level0Room;
     this.titleDiorama.add(level0Room);
 
@@ -137,7 +147,7 @@ class GameEngine {
     }
   }
 
-  transitionTo(phaseKey) {
+  transitionTo(phaseKey, params = {}) {
     if (this.currentPhase && this.currentPhase.exit) {
       this.currentPhase.exit();
     }
@@ -154,26 +164,27 @@ class GameEngine {
         this.currentCamera = this.cameras.titleCamera;
         this.setupTitleDiorama();
         this.ui.showRoomHubUI();
+      } else if (phaseKey === 'CITY_EXPLORATION') {
+        this.currentPhase = this.phases.CITY_EXPLORATION;
+        this.currentCamera = this.cameras.cityCamera;
+        this.currentPhase.enter(params);
+      } else if (phaseKey === 'DIALOGUE') {
+        this.currentPhase = this.phases.DIALOGUE;
+        this.currentCamera = this.cameras.titleCamera;
+        this.currentPhase.enter(params);
       } else if (phaseKey === 'PICK') {
         this.currentPhase = this.phases.PICK;
         this.currentCamera = this.cameras.warehouseCamera;
-        this.currentPhase.enter();
-      } else if (phaseKey === 'RIDE') {
-        this.currentPhase = this.phases.RIDE;
-        this.currentCamera = this.cameras.streetCamera;
-        this.currentPhase.enter();
-      } else if (phaseKey === 'INTERCOM') {
-        this.currentPhase = this.phases.INTERCOM;
-        this.currentCamera = this.cameras.warehouseCamera;
-        this.currentPhase.enter();
+        this.currentPhase.enter(params);
       } else if (phaseKey === 'DEBRIEF_RECEIPT') {
-        this.currentPhase = null;
         this.currentCamera = this.cameras.warehouseCamera;
         this.ui.showShiftSummaryUI();
       } else if (phaseKey === 'SHOP') {
+        this.ui.showPersistentHUD(this.state);
+        this.sfx.playBgm('shop');
         this.currentPhase = this.phases.SHOP;
         this.currentCamera = this.cameras.warehouseCamera;
-        this.currentPhase.enter();
+        this.currentPhase.enter(params);
       } else if (phaseKey === 'WIN') {
         this.currentPhase = null;
         this.currentCamera = this.cameras.warehouseCamera;
@@ -183,6 +194,16 @@ class GameEngine {
         this.currentCamera = this.cameras.warehouseCamera;
         this.ui.showLoseScreen();
       }
+      if (phaseKey !== 'BOOT' && phaseKey !== 'WIN' && phaseKey !== 'LOSE') {
+        if (window.FFH && window.FFH.saveGame) {
+          window.FFH.saveGame(this);
+        }
+      }
+
+      // Update the HUD after transitioning, so it shows the correct state
+      if (this.ui && this.ui.updatePersistentHUD) {
+        this.ui.updatePersistentHUD(this.state);
+      }
     }
   }
 
@@ -191,7 +212,7 @@ class GameEngine {
   restartRun() {
     this.state = window.FFH.createRunState();
     window.FFH.state = this.state;
-    this.transitionTo('ROOM_HUB');
+    this.transitionTo('SHOP');
   }
 
   triggerScreenShake() {
@@ -233,7 +254,7 @@ class GameEngine {
       this.titleRoom.userData.updateIdle(this.clock.getElapsedTime());
     }
 
-    // Render loop — the title diorama is a static flat map now (no auto-spin,
+    // Render loop - the title diorama is a static flat map now (no auto-spin,
     // zoom only; see initZoomControls) so there's nothing to animate here.
     if (this.renderer && this.scene && this.currentCamera) {
       if (this.inkRenderer) {
@@ -246,45 +267,20 @@ class GameEngine {
   }
 
   resize() {
-    const width = 390;
-    const height = 844;
-    const canvas = this.renderer.domElement;
-
-    // Lock aspect ratio calculations
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    const windowRatio = windowWidth / windowHeight;
-    const gameRatio = width / height;
-
-    let newWidth, newHeight;
-
-    if (windowRatio > gameRatio) {
-      newHeight = windowHeight;
-      newWidth = windowHeight * gameRatio;
-    } else {
-      newWidth = windowWidth;
-      newHeight = windowWidth / gameRatio;
-    }
-
-    canvas.style.width = newWidth + 'px';
-    canvas.style.height = newHeight + 'px';
-
-    // Update orthographic camera frustum to match viewport
-    const aspect = width / height;
-    const d = this.dioramaZoom || 3.6; // Respect zoomed-out default
-    if (this.cameras && this.cameras.warehouseCamera) {
-      this.cameras.warehouseCamera.left = -d * aspect;
-      this.cameras.warehouseCamera.right = d * aspect;
-      this.cameras.warehouseCamera.top = d;
-      this.cameras.warehouseCamera.bottom = -d;
-      this.cameras.warehouseCamera.updateProjectionMatrix();
+    const gameContainer = document.getElementById('game-container');
+    if (gameContainer) {
+      const scale = Math.min(window.innerWidth / 390, window.innerHeight / 844);
+      gameContainer.style.transform = `scale(${scale})`;
+      gameContainer.style.transformOrigin = 'center center';
     }
   }
 }
 
+window.FFH.Game = GameEngine;
+
 // Window load trigger
 window.addEventListener('DOMContentLoaded', () => {
-  const game = new GameEngine();
-  window.__game = game; // dev convenience hook for manual testing/debugging
+  const game = new window.FFH.Game();
+  window.FFH_GAME = game;
   game.init();
 });
