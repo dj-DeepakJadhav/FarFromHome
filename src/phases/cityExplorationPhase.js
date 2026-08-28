@@ -24,7 +24,7 @@ window.FFH.CityExplorationPhase = class {
     // Dedicated Road Spawn: Main central boulevard intersection
     this.playerPos = new THREE.Vector3(20.8, 0.05, 13.0);
     this.targetMovePos = null;
-    this.moveSpeed = 6.0;
+    this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
     this.playerRadius = 0.4;      // Collision cylinder radius
     
@@ -457,6 +457,11 @@ window.FFH.CityExplorationPhase = class {
       this.game.ambienceNode.stop();
       this.game.ambienceNode = null;
     }
+    
+    // Stop E-bike motor if playing
+    if (this.game.sfx.stopMotor) {
+      this.game.sfx.stopMotor();
+    }
   }
 
   setupCourier() {
@@ -464,7 +469,8 @@ window.FFH.CityExplorationPhase = class {
     this.courier.scale.set(0.9, 0.9, 0.9);
     
     // Equip bicycle model
-    const bikeMat = window.FFH.createCelMaterial(this.game.state.upgrades?.ebike ? 0xFF6B35 : 0x777777);
+    const hasEbike = this.game.state.upgrades?.ebike;
+    const bikeMat = window.FFH.createCelMaterial(hasEbike ? 0xFF6B35 : 0x777777);
     const bikeFrame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 1.4), bikeMat);
     bikeFrame.position.set(0, 0.2, 0); // slightly offset
     const wheelMat = window.FFH.createCelMaterial(0x222222);
@@ -474,9 +480,34 @@ window.FFH.CityExplorationPhase = class {
     const wheelB = wheelF.clone();
     wheelB.position.set(0, 0.1, -0.6);
     
+    bikeFrame.add(wheelF);
+    bikeFrame.add(wheelB);
+
+    if (hasEbike) {
+      // Add visual battery pack
+      const batteryMat = window.FFH.createCelMaterial(0x111111);
+      const battery = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 0.4), batteryMat);
+      battery.position.set(0, 0.2, -0.2);
+      bikeFrame.add(battery);
+
+      // Add illuminated headlight
+      const headLightMat = new THREE.MeshBasicMaterial({ color: 0xFFFFAA });
+      const headlight = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), headLightMat);
+      headlight.position.set(0, 0.4, 0.75);
+      
+      const pointLight = new THREE.PointLight(0xFFFFAA, 1.5, 5);
+      pointLight.position.set(0, 0, 0.1);
+      headlight.add(pointLight);
+      
+      bikeFrame.add(headlight);
+    }
+    
     // Equip packed grocery bag (thermal or paper)
     const hasThermal = this.game.state.upgrades?.thermalBag;
-    const bagMat = window.FFH.createCelMaterial(hasThermal ? 0x2A9D8F : 0xD4A373);
+    // Thermal bag is glowing orange (0xFF8C00 with emissive)
+    const bagMat = hasThermal 
+      ? new THREE.MeshLambertMaterial({ color: 0xFF8C00, emissive: 0xFF5500, emissiveIntensity: 0.4 }) 
+      : window.FFH.createCelMaterial(0xD4A373);
     const bagMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.4), bagMat);
     // Situate it on the back of the bike
     bagMesh.position.set(0, 0.55, -0.6);
@@ -826,6 +857,7 @@ window.FFH.CityExplorationPhase = class {
         if (distMoved < 0.001) {
           this.targetMovePos = null;
           if (this.targetMarker) this.targetMarker.visible = false;
+          if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
         } else {
           this.playerPos.x = nextX;
           this.playerPos.z = nextZ;
@@ -840,6 +872,7 @@ window.FFH.CityExplorationPhase = class {
           if (window.FFH.updateCourierWalk && this.courier) {
             window.FFH.updateCourierWalk(this.courier, delta, 1.0);
           }
+          if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(1.0);
         }
       } else {
         // Arrived at destination
@@ -848,11 +881,13 @@ window.FFH.CityExplorationPhase = class {
         if (window.FFH.updateCourierWalk && this.courier) {
           window.FFH.updateCourierWalk(this.courier, delta, 0);
         }
+        if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
       }
     } else {
       if (window.FFH.updateCourierWalk && this.courier) {
         window.FFH.updateCourierWalk(this.courier, delta, 0);
       }
+      if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
     }
 
     // Pulse target marker ring
@@ -863,7 +898,12 @@ window.FFH.CityExplorationPhase = class {
     
     // Quest/Delivery Hint Marker Update
     let targetMesh = null;
-    if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
+    const TUITION_GOAL = window.FFH.ECONOMY?.TUITION_GOAL || 250;
+
+    if (this.game.state.wallet >= TUITION_GOAL) {
+      // 4.5 Win Condition: Highlight University Registry when wallet hits €250
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
+    } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
       const tgt = this.game.state.deliveryTarget;
       targetMesh = this.interactiveMeshes.find(m => m.userData.gridX === tgt.gridX && m.userData.gridZ === tgt.gridZ);
     } else if (this.game.state.questStep < 4 && this.game.state.currentShift === 1) {

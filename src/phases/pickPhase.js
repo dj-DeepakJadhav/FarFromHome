@@ -227,6 +227,7 @@ window.FFH.PickPhase = class {
       
       this.shelfGroup.add(plank, tagRail);
       this.tagRails.push(tagRail);
+
     }
 
     this.game.scene.add(this.shelfGroup);
@@ -235,12 +236,32 @@ window.FFH.PickPhase = class {
     const spread = 1.2;
     const buckets = [derBucket, dieBucket, dasBucket];
 
+    const symbols = ['▲', '●', '■'];
+    
     buckets.forEach((bucket, row) => {
       bucket.forEach((itemDef, col) => {
         const x = -spread + (col / 3) * spread * 2;
         const itemMesh = window.FFH.createItemMesh(itemDef.type, itemDef.hex);
         itemMesh.position.set(x, shelfHeights[row] + 0.4, 0);
         itemMesh.userData = { id: itemDef.id, def: itemDef };
+
+        if (this.game.state.upgrades?.shelfLabels) {
+          const canvas = document.createElement('canvas');
+          canvas.width = 64; canvas.height = 64;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#' + railColors[row].toString(16).padStart(6, '0');
+          ctx.font = 'bold 48px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(symbols[row], 32, 36);
+
+          const tex = new THREE.CanvasTexture(canvas);
+          const spriteMat = new THREE.SpriteMaterial({ map: tex, depthTest: false });
+          const sprite = new THREE.Sprite(spriteMat);
+          sprite.scale.set(0.4, 0.4, 1);
+          sprite.position.set(0, 0.4, 0); // float above item
+          itemMesh.add(sprite);
+        }
 
         this.game.scene.add(itemMesh);
         this.shelvedMeshes.push(itemMesh);

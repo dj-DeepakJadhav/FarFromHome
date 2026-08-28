@@ -13,6 +13,84 @@ window.FFH.UI = class {
     const hud = document.getElementById('persistent-hud');
     if (hud) {
       hud.innerHTML = ''; // Clear and disable overlapping persistent HUD
+      
+      if (state.upgrades?.vocabNotebook) {
+        // Add Vocab Notebook button to persistent UI layer
+        hud.innerHTML = `
+          <div style="width: 100%; display: flex; justify-content: flex-end; padding: 10px;">
+            <button id="btn-vocab-notebook" style="
+              pointer-events: auto;
+              background: #FFD166;
+              border: 3px solid #222;
+              border-radius: 8px;
+              width: 50px;
+              height: 50px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              box-shadow: 0 4px 0 #222;
+              font-size: 24px;
+            ">📔</button>
+          </div>
+          <div id="vocab-modal" style="
+            display: none;
+            position: absolute;
+            top: 70px; right: 10px; width: 300px;
+            background: #FFF; border: 3px solid #222; border-radius: 8px;
+            padding: 15px; box-shadow: 4px 6px 0 rgba(0,0,0,0.3);
+            pointer-events: auto; z-index: 2000;
+            max-height: 400px; overflow-y: auto; font-family: sans-serif;
+          ">
+            <h2 style="margin:0 0 10px 0; border-bottom: 2px solid #EEE; padding-bottom: 5px;">Vocab Notebook</h2>
+            <div id="vocab-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <button id="btn-close-vocab" style="margin-top:10px; width:100%; padding:8px; background:#222; color:#FFF; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE</button>
+          </div>
+        `;
+
+        const btn = document.getElementById('btn-vocab-notebook');
+        const modal = document.getElementById('vocab-modal');
+        const list = document.getElementById('vocab-list');
+        const closeBtn = document.getElementById('btn-close-vocab');
+
+        if (btn) {
+          btn.addEventListener('click', () => {
+            if (modal.style.display === 'none') {
+              this.game.sfx.playSfx('click');
+              modal.style.display = 'block';
+              list.innerHTML = '';
+              // Populate known items
+              const items = window.FFH.GROCERY_ITEMS || [];
+              items.forEach(item => {
+                const el = document.createElement('div');
+                el.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#F8F9FA; padding:6px 10px; border-radius:4px; border:1px solid #DDD;';
+                
+                // Audio button
+                const btnAudio = document.createElement('button');
+                btnAudio.innerText = '🔊';
+                btnAudio.style.cssText = 'background:none; border:none; cursor:pointer; font-size:16px; margin-right:8px;';
+                btnAudio.onclick = () => {
+                  window.FFH.playGermanAudio(item.gender, item.name);
+                };
+
+                const textSpan = document.createElement('span');
+                textSpan.innerHTML = `<strong>${item.gender}</strong> ${item.name} <span style="color:#666; font-size:12px;">(${item.en})</span>`;
+                
+                el.appendChild(btnAudio);
+                el.appendChild(textSpan);
+                list.appendChild(el);
+              });
+            } else {
+              modal.style.display = 'none';
+            }
+          });
+        }
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+          });
+        }
+      }
     }
   }
 
@@ -180,13 +258,57 @@ window.FFH.UI = class {
   }
 
   showWinScreen() {
-    this.endScreen({
-      background: '#3A86FF',
-      accent: '#3A86FF',
-      badge: '\u{1F393}',
-      title: 'TUITION PAID',
-      subtitle: 'You made the semester fee.',
-      buttonLabel: 'PLAY AGAIN'
+    this.clear();
+    const s = this.game.state;
+    const div = document.createElement('div');
+    div.style.cssText = `
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; text-align: center; background: #5DB7AD; color: #222; font-family: sans-serif;
+      padding: 30px; box-sizing: border-box; pointer-events: auto;
+    `;
+
+    div.innerHTML = `
+      <h1 style="font-size: 32px; font-weight: 900; margin: 0 0 10px 0; color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">MATRICULATION COMPLETE!</h1>
+      <p style="font-size: 16px; color: #FFF; margin: 0 0 20px 0; font-weight: bold;">Tuition of €250 has been fully paid.</p>
+
+      <div style="background: #FFF; border: 3px solid #222; border-radius: 12px; width: 300px; padding: 20px; box-shadow: 4px 6px 0 rgba(0,0,0,0.25); text-align: left; position: relative;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #EEE; padding-bottom: 10px; margin-bottom: 15px;">
+          <div style="font-weight: 900; font-size: 14px; color: #3A86FF;">UNIVERSITÄT ZU LÜBECK</div>
+          <div style="font-size: 20px;">🎓</div>
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+          <div style="width: 70px; height: 90px; background: #CCC; border: 2px solid #222; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 30px;">
+            👤
+          </div>
+          <div style="font-size: 12px; line-height: 1.6;">
+            <div style="color: #666;">STUDENT ID / AUSWEIS</div>
+            <div style="font-weight: 900; font-size: 16px; margin-bottom: 5px;">#108422</div>
+            <div style="color: #666;">FACULTY</div>
+            <div style="font-weight: bold;">Logistics & Linguistics</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 2px dashed #EEE; font-size: 12px; display: flex; justify-content: space-between;">
+          <span>Shifts: ${s.stats.shiftsWorked}</span>
+          <span>Vocab: ${s.stats.wordsLearned || 0}</span>
+        </div>
+        
+        <div style="position: absolute; bottom: -15px; right: 10px; font-size: 40px; transform: rotate(-15deg); opacity: 0.8;">
+          ✅
+        </div>
+      </div>
+
+      <button id="btn-restart" style="
+        margin-top: 30px; background: #FFD166; color: #222; border: 3px solid #222; border-radius: 8px;
+        padding: 12px 30px; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #222;
+      ">PLAY AGAIN</button>
+    `;
+
+    this.container.appendChild(div);
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      window.location.reload();
     });
   }
 
@@ -390,9 +512,10 @@ window.FFH.UI = class {
           <span style="color: #666; font-size: 11px; margin-left: 4px;">(${totalPacked}/${totalOrdered})</span>
         </div>
         
-        <!-- Toggle Notepad Button -->
-        <button id="btn-toggle-checklist" style="
-          background: #FFFFFF;
+        <!-- Replay Audio Button (Pocket Notepad) -->
+        ${this.game.state.upgrades?.pocketNotepad ? `
+        <button id="btn-replay-audio" style="
+          background: ${this.game.state.notepadUsedThisShift ? '#DDD' : '#FFF'};
           border: 2.5px solid #222;
           border-radius: 8px;
           width: 40px;
@@ -400,67 +523,46 @@ window.FFH.UI = class {
           display: flex;
           align-items: center;
           justify-content: center;
-          cursor: pointer;
+          cursor: ${this.game.state.notepadUsedThisShift ? 'not-allowed' : 'pointer'};
           box-shadow: 0 3px 0 #222;
           font-size: 20px;
-        ">📋</button>
+        ">📋</button>` : ''}
       </div>
 
-      <!-- Main Hand-Drawn Whiteboard/Notepad Checklist matching reference art -->
-      <div id="checklist-card" style="
-        display: none;
-        background: #FFFFFF;
-        border: 3.5px solid #2B3A42;
-        border-radius: 8px;
-        box-shadow: 4px 6px 0 rgba(0,0,0,0.25);
-        padding: 16px 20px;
-        margin: 10px auto;
-        width: 88%;
-        max-width: 320px;
-        pointer-events: auto;
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
-      ">
-        <div style="
-          font-size: 18px;
-          font-weight: 900;
-          letter-spacing: 1px;
-          color: #1A1A1A;
-          margin-bottom: 12px;
-          border-bottom: 2px solid #EEE;
-          padding-bottom: 4px;
-        ">
-          CHECKLIST:
+      <!-- Center Warning Area (Empty by default) -->
+      <div id="pick-warning-center" style="display: none; align-self: center; font-size: 24px; font-weight: 900; color: #FFF; background: #FF006E; padding: 10px 20px; border-radius: 8px; border: 3px solid #222; margin-top: auto; margin-bottom: 20px; text-transform: uppercase;">
+        HURRY!
+      </div>
+
+      <!-- Freshness / Decay Bar -->
+      <div style="background: rgba(255,255,255,0.9); border: 2.5px solid #222; border-radius: 8px; padding: 8px; box-shadow: 0 3px 0 #222; pointer-events: auto; margin-bottom: 10px;">
+        <div style="font-weight: 900; font-size: 11px; margin-bottom: 4px; display: flex; justify-content: space-between;">
+          <span>📦 WAREN-CHECKLISTE</span>
         </div>
-        <div style="display: flex; flex-direction: column;">
+        
+        <div style="margin-bottom: 10px; max-height: 40vh; overflow-y: auto;">
           ${checklistLines}
         </div>
       </div>
-
-      <!-- Bottom Quick-Dock Bar with Item Icons & Counts -->
-      <div style="
-        pointer-events: auto;
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 6px;
-        z-index: 10;
-      ">
+      
+      <div style="display: flex; gap: 8px; justify-content: center; overflow-x: auto; padding: 4px;">
         ${bottomIcons}
       </div>
     `;
 
     this.container.appendChild(hud);
 
-    // Toggle checklist visibility button
-    const toggleBtn = document.getElementById('btn-toggle-checklist');
-    const card = document.getElementById('checklist-card');
-    if (toggleBtn && card) {
-      toggleBtn.addEventListener('click', () => {
-        if (card.style.display === 'none') {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
+    // Audio Replay logic (one per shift)
+    const btnReplay = document.getElementById('btn-replay-audio');
+    if (btnReplay && !this.game.state.notepadUsedThisShift) {
+      btnReplay.addEventListener('click', () => {
+        this.game.state.notepadUsedThisShift = true;
+        btnReplay.style.background = '#DDD';
+        btnReplay.style.cursor = 'not-allowed';
+        
+        const currentPrompt = this.game.state.activeOrder ? this.game.state.activeOrder.find(it => !it.packed) : null;
+        if (currentPrompt && this.game.speech) {
+          this.game.speech.speak(currentPrompt.gender + " " + currentPrompt.nameDe);
         }
       });
     }
