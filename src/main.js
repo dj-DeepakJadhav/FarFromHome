@@ -187,7 +187,7 @@ class GameEngine {
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DIALOGUE') {
         this.currentPhase = this.phases.DIALOGUE;
-        this.currentCamera = this.cameras.titleCamera; // Switch to fixed room diorama camera
+        this.currentCamera = this.cameras.cityCamera; // Stay in city camera, we will lerp it
         this.currentPhase.enter(params);
       } else if (phaseKey === 'PICK') {
         this.currentPhase = this.phases.PICK;
