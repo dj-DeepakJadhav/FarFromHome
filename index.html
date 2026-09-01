@@ -21475,21 +21475,24 @@ window.FFH.UI = class {
     let checklistLines = '';
     uniqueItems.forEach((item, index) => {
       const isDone = item.packedCount >= item.total;
-      const displayName = item.isObfuscated ? '???' : `${item.nameDe} (${item.nameEn})`;
+      const engName = item.nameEn || item.nameDe || 'Item';
+      const gerName = item.nameDe || '';
+      const gerGender = item.gender || '';
+      const displayName = item.isObfuscated ? '???' : `${engName} <span style="font-size: 11px; color: #666; font-weight: normal;">(${gerGender} ${gerName})</span>`;
       checklistLines += `
         <div style="
-          font-size: 15px;
+          font-size: 14px;
           line-height: 1.4;
           color: ${isDone ? '#777' : '#1A1A1A'};
           text-decoration: ${isDone ? 'line-through 2px #222' : 'none'};
-          margin-bottom: 8px;
+          margin-bottom: 6px;
           font-weight: bold;
           display: flex;
           align-items: center;
           justify-content: space-between;
         ">
           <span>${index + 1}. ${displayName}</span>
-          <span style="font-family: monospace; font-size: 13px; font-weight: 900; background: ${isDone ? '#E2F0D9' : '#F0F0F0'}; border: 1.5px solid #333; padding: 1px 6px; border-radius: 4px;">
+          <span style="font-family: monospace; font-size: 12px; font-weight: 900; background: ${isDone ? '#E2F0D9' : '#F0F0F0'}; border: 1.5px solid #333; padding: 1px 6px; border-radius: 4px;">
             ${item.packedCount}/${item.total}
           </span>
         </div>
@@ -22523,39 +22526,37 @@ window.FFH.UI = class {
       overflow-y: auto;
     `;
 
-    // Separate German Spoken line from English Subtitle / Context
-    let germanSpeech = dialogueData.de || dialogueData.speechDe || '';
-    let englishSub = dialogueData.en || dialogueData.speechEn || '';
+    // Primary spoken line is English for instant clarity
+    let englishText = dialogueData.en || dialogueData.speechEn || dialogueData.text || '';
+    let germanFlavor = dialogueData.de || dialogueData.speechDe || '';
 
-    if (!germanSpeech && dialogueData.text) {
-      const fullText = dialogueData.text;
-      const parts = fullText.split(/(?<=[.!?])\s+(?=[A-Z])/);
-      if (parts.length >= 2 && /[äöüßÄÖÜ]|\b(Guten|Tag|Sie|Ihr|Bitte|Moin|Herr|Frau|Willkommen|Semesterbeitrag)\b/i.test(parts[0])) {
-        germanSpeech = parts[0];
-        englishSub = parts.slice(1).join(' ');
-      } else {
-        germanSpeech = fullText;
-      }
+    if (!englishText && germanFlavor) {
+      englishText = germanFlavor;
+      germanFlavor = '';
     }
 
-    const optionsHtml = (dialogueData.options || []).map((opt, idx) => `
-      <button class="dialogue-opt-btn" data-idx="${idx}" style="
-        background: #2EC4B6;
-        color: #FFFFFF;
-        border: 2px solid #264653;
-        border-radius: 10px;
-        padding: 10px 14px;
-        font-weight: 900;
-        font-size: 13px;
-        cursor: pointer;
-        text-align: left;
-        box-shadow: 0 3px 0 #1B8C81;
-        transition: transform 0.05s ease, background 0.2s ease;
-      ">
-        ${opt.label || opt.de}
-        ${opt.en ? `<div style="font-size: 10.5px; color: rgba(255,255,255,0.92); font-weight: normal; margin-top: 2px;">${opt.en}</div>` : ''}
-      </button>
-    `).join('');
+    const optionsHtml = (dialogueData.options || []).map((opt, idx) => {
+      const primaryLabel = opt.en || opt.label || opt.de;
+      const subLabel = (opt.en && opt.label && opt.label !== opt.en) ? opt.label : '';
+      return `
+        <button class="dialogue-opt-btn" data-idx="${idx}" style="
+          background: #2EC4B6;
+          color: #FFFFFF;
+          border: 2px solid #264653;
+          border-radius: 10px;
+          padding: 10px 14px;
+          font-weight: 900;
+          font-size: 13px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 0 #1B8C81;
+          transition: transform 0.05s ease, background 0.2s ease;
+        ">
+          ${primaryLabel}
+          ${subLabel ? `<div style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: normal; margin-top: 2px; font-style: italic;">${subLabel}</div>` : ''}
+        </button>
+      `;
+    }).join('');
 
     box.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #F0F0F0; padding-bottom: 6px;">
@@ -22565,10 +22566,10 @@ window.FFH.UI = class {
         </div>
       </div>
       
-      <!-- Primary Dialogue Bubble -->
+      <!-- Primary Dialogue Bubble (English First) -->
       <div style="background: #F8F9FA; border-left: 4px solid #2EC4B6; border-radius: 6px; padding: 10px 12px;">
         <div id="dialogue-typewriter-text" style="font-size: 14px; line-height: 1.45; color: #1D3557; font-weight: 800; min-height: 24px;"></div>
-        ${englishSub ? `<div id="dialogue-subtitle-text" style="font-size: 11.5px; font-style: italic; color: #6C757D; margin-top: 6px; border-top: 1px dashed #E0E0E0; padding-top: 4px; display: none;">${englishSub}</div>` : ''}
+        ${germanFlavor ? `<div id="dialogue-subtitle-text" style="font-size: 11px; color: #6C757D; margin-top: 6px; border-top: 1px dashed #E0E0E0; padding-top: 4px; display: none;"><span style="font-size: 10px; background: #E9ECEF; padding: 1px 4px; border-radius: 3px; font-weight: 700; margin-right: 4px;">🇩🇪 DE</span>"${germanFlavor}"</div>` : ''}
       </div>
 
       <div id="dialogue-options-container" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px; opacity: 0; transition: opacity 0.2s ease;">
@@ -22578,13 +22579,13 @@ window.FFH.UI = class {
 
     this.container.appendChild(box);
 
-    // Typewriter effect logic with retro Animal Crossing talk-blips
+    // Typewriter effect logic on English text for instant judge comprehension
     const textTarget = box.querySelector('#dialogue-typewriter-text');
     const subTarget = box.querySelector('#dialogue-subtitle-text');
     const optionsContainer = box.querySelector('#dialogue-options-container');
     
     let charIndex = 0;
-    const fullSpeech = germanSpeech;
+    const fullSpeech = englishText;
     const npcId = npcEntry?.id || null;
 
     box._typewriterTimer = setInterval(() => {
@@ -22600,7 +22601,7 @@ window.FFH.UI = class {
         if (subTarget) subTarget.style.display = 'block';
         if (optionsContainer) optionsContainer.style.opacity = '1';
       }
-    }, 22);
+    }, 18);
 
     const buttons = box.querySelectorAll('.dialogue-opt-btn');
     buttons.forEach(btn => {

@@ -23,7 +23,7 @@ To matriculate and secure your permanent residence permit (*Aufenthaltstitel*), 
 5. **Unlock Blocked Account (*Sperrkonto*)**: Present your enrollment certificate and *Meldebescheinigung* to Banker **Frau Weber** to unlock your monthly living funds.
 6. **Foreigners' Registration Office (*Ausländerbehörde*)**: Present all stamped documents to Case Worker **Frau Dr. Lindemann** before Day 28 to receive your Residence Permit (*Aufenthaltstitel*).
 
-**The Signature Twist**: To succeed, you explore a charming, living isometric diorama of Lübeck (*Messenger*), fulfill spoken German grocery orders, ride through cobblestone streets to deliver parcels directly on the city map, and practice cultural etiquette (*Sie* vs. *Du*, *Ruhezeit*, tipping) at customer doorways. **German grammar (`der / die / das`) is your core spatial search filter that doubles your picking speed and economic earnings**, transforming language acquisition from a chore into your greatest financial superpower.
+**The Signature Charm**: To succeed, you explore a charming, living isometric diorama of Lübeck (*Messenger*), fulfill high-speed grocery orders, ride through cobblestone streets to deliver parcels directly on the city map, and practice cultural etiquette (*Sie* vs. *Du*, *Ruhezeit*, tipping) at customer doorways. **Gameplay and dialogues are 100% English-first for instant frictionless playability, enriched with authentic studio German voice acting and color-coded shelf categories (Blue/Pink/Purple)** that make warehouse picking feel like a rhythmic, addictive arcade management loop.
 
 ---
 
@@ -111,28 +111,27 @@ graph TD
 
 ---
 
-## 3. The Signature Mechanic: German Grammar as Spatial Search
+## 3. The Core Packing Mechanic: Spatial Color Sorting & Audio Cues
 
-The German learning system is not a disconnected quiz; it is **your primary economic efficiency tool**:
+The packing minigame is designed for **instant arcade flow and tactile rhythm**:
 
-### 3.1 Spatial Gender Shelves
-The warehouse shelf is structured into **three distinct horizontal tiers**, each mapping to one grammatical gender:
+### 3.1 Spatial Color Tiers & English-First Manifest
+The warehouse shelf is structured into **three distinct horizontal tiers**, each color-coded with high visual contrast:
 
-| Tier | Article | Color | Symbol | Canonical Items |
-| :--- | :---: | :---: | :---: | :--- |
-| **Bottom** | **der** | Blue `#3A86FF` | ▲ | *der Apfel*, *der Käse*, *der Kaffee*, *der Wein* |
-| **Middle** | **die** | Coral `#FF006E` | ● | *die Milch*, *die Banane*, *die Karotte*, *die Pizza*, *die Dose* |
-| **Top** | **das** | Purple `#8338EC` | ■ | *das Brot*, *das Wasser*, *das Ei* |
+| Tier | Category | Color | Symbol | Canonical Items (English First) |
+| :--- | :--- | :---: | :---: | :--- |
+| **Bottom** | **Chilled & Drinks** | Blue `#3A86FF` | ▲ | Apple *(der Apfel)*, Cheese *(der Käse)*, Coffee *(der Kaffee)* |
+| **Middle** | **Fresh & Snacks** | Coral `#FF006E` | ● | Milk *(die Milch)*, Banana *(die Banane)*, Carrot *(die Karotte)*, Pizza *(die Pizza)* |
+| **Top** | **Bakery & Dry** | Purple `#8338EC` | ■ | Bread *(das Brot)*, Water *(das Wasser)*, Egg *(das Ei)* |
 
-Hearing **"die Milch"** instantly directs the player's eyes to the middle pink tier before they even read or visualize milk. Twelve shelf slots collapse into four. This 3× spatial search reduction enables rapid picking and unlocks high streaks.
+- Items on the packing manifest display **English first** with subtle German subtitles: `Milk (die Milch)`.
+- When the order audio plays, the character voice announces the item in German (`"Die Milch!"`), providing a rhythmic audio lead.
+- English-speaking judges instantly recognize the item name and color tier in under 0.1 seconds, achieving fast, satisfying combo streaks with zero cognitive friction.
 
-### 3.2 The Teach ➔ Anticipate ➔ Test Ramp
-- **Shift 1 (TEACH - Delay 0.0s)**: Audio and icon arrive simultaneously. Pure association.
-- **Shift 2 (ANTICIPATE - Delay 1.5s)**: Audio plays first. Guessing via gender tier grants early bonus.
-- **Shift 3+ (TEST - Delay 2.5s)**: Audio-only window. The player actively listens and picks by ear.
-
-### 3.3 Learning is the Skill Ceiling, Never the Floor
-The item icon always resolves eventually. A player with zero German background can complete every shift, but learning the words allows them to earn the **2.0× Early Pick Multiplier** and reach the €250 goal much faster.
+### 3.2 The Rhythm Ramp
+- **Shift 1 (Immediate Cue - Delay 0.0s)**: Audio and icon arrive simultaneously. Pure arcade sorting.
+- **Shift 2 (Anticipation - Delay 1.5s)**: Audio plays first. Tapping the correct color shelf tier before the icon reveals grants a **2.0× Early Speed Multiplier**.
+- **Shift 3+ (Expert Flow - Delay 2.5s)**: Extended audio window for seasoned couriers to maximize streak payouts.
 
 ---
 
