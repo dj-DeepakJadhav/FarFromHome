@@ -1408,7 +1408,9 @@ window.FFH.UI = class {
       font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
     `;
 
-    const objectiveText = !s.hasJob ? 'Visit Kruma Express to start your first courier shift' :
+    const activePrologue = window.FFH.prologueQuests && window.FFH.prologueQuests[s.questStep];
+    const objectiveText = activePrologue ? activePrologue.prompt :
+      !s.hasJob ? 'Head to Kruma Express to start your courier shifts' :
       !s.isMatriculated ? 'Earn 250€ and visit University to pay Semesterbeitrag' :
       !s.hasApartment ? 'Earn 300€ and visit Hans Lokker to sign your WG lease' :
       !s.hasAnmeldung ? 'Visit Rathaus Bürgeramt for your address registration (Anmeldung)' :
