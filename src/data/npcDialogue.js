@@ -1073,6 +1073,16 @@ window.FFH.NPC_DATABASE = {
           audioKey: choice.audioKey,
           action: (game) => {
             game.state.lastEtiquetteTipDelta = choice.tipDelta;
+            
+            // Increment cumulative personality disposition heuristics
+            if (choice.disposition && game.state.disposition) {
+              game.state.disposition[choice.disposition] = (game.state.disposition[choice.disposition] || 0) + 1;
+            }
+
+            if (choice.audioKey && game.sfx && game.sfx.playSfx) {
+              game.sfx.playSfx(choice.audioKey);
+            }
+            
             game.ui.spawnFloatingText(choice.correct ? `✨ ${choice.feedbackEn}` : `⚠️ ${choice.feedbackEn}`, window.innerWidth / 2, window.innerHeight / 2, choice.correct ? '#4CAF50' : '#E63946');
             
             game.lastPayout = window.FFH.calculatePayout(game.state);

@@ -1485,23 +1485,50 @@ window.FFH.UI = class {
           </div>
         </div>
 
-        <!-- Row 2: Objective Tracker -->
-        <div id="city-quest-tracker" style="
-          box-sizing: border-box;
-          width: 100%;
-          background: #F0F4F8;
-          border-left: 4px solid #2EC4B6;
-          border-radius: 6px;
-          padding: 6px 10px;
-          font-size: 12px;
-          color: #1D3557;
-          font-weight: 800;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        ">
-          <span style="font-size: 13px; flex-shrink: 0;">🎯</span>
-          <span id="city-quest-text" style="line-height: 1.3;">${objectiveText}</span>
+        <!-- Row 2: Objective Tracker & Personality Archetype Badge -->
+        <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
+          <div id="city-quest-tracker" style="
+            box-sizing: border-box;
+            flex: 1;
+            background: #F0F4F8;
+            border-left: 4px solid #2EC4B6;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 11.5px;
+            color: #1D3557;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          ">
+            <span style="font-size: 13px; flex-shrink: 0;">🎯</span>
+            <span id="city-quest-text" style="line-height: 1.3;">${objectiveText}</span>
+          </div>
+
+          <!-- Cumulative Archetype Badge -->
+          <div id="archetype-badge" style="
+            background: #2B2D42;
+            color: #E9C46A;
+            border: 1.5px solid #264653;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+          ">
+            ${(() => {
+              const d = s.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
+              if (d.hustler >= d.bureaucrat && d.hustler >= d.diplomat && d.hustler > 0) return '⚡ Hustler';
+              if (d.bureaucrat >= d.hustler && d.bureaucrat >= d.diplomat && d.bureaucrat > 0) return '📑 Bureaucrat';
+              if (d.diplomat >= d.hustler && d.diplomat >= d.bureaucrat && d.diplomat > 0) return '🤝 Diplomat';
+              return '🌱 Expat';
+            })()}
+          </div>
         </div>
 
         <div id="delivery-distance-indicator" style="display: none; align-items: center; justify-content: flex-end; gap: 6px; background: #E8F5E9; padding: 4px 8px; border-radius: 4px; border: 1px solid #2A9D8F;">
