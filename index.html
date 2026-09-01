@@ -22284,33 +22284,35 @@ window.FFH.UI = class {
       'Visit Ausländerbehörde to receive your permanent Aufenthaltstitel!';
 
     explorerDiv.innerHTML = `
-      <!-- Top Title & Unified Objective Header -->
+      <!-- Top Title & Unified Sleek Objective Header -->
       <div id="city-header-bar" style="
         box-sizing: border-box;
         width: 100%;
-        background: #FFFFFF;
-        border-top: 3px solid #E76F51;
-        border-bottom: 3px solid #264653;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
+        border: 2px solid #264653;
         border-radius: 12px;
-        padding: 10px 14px;
+        padding: 8px 12px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
         color: #264653;
         pointer-events: auto;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.15);
         z-index: 100;
       ">
+        <!-- Row 1: Actions, Dossier Pips, & Tuition Progress -->
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- Left: Settings, Dictionary & Dossier Status -->
+          <div style="display: flex; align-items: center; gap: 6px;">
             <button id="btn-settings-menu" style="
               background: #F4A261;
               border: 2px solid #264653;
               color: #264653;
-              border-radius: 6px;
-              width: 28px;
-              height: 28px;
-              font-size: 14px;
+              border-radius: 8px;
+              width: 30px;
+              height: 30px;
+              font-size: 13px;
               display: flex;
               justify-content: center;
               align-items: center;
@@ -22321,67 +22323,61 @@ window.FFH.UI = class {
               background: #2EC4B6;
               border: 2px solid #264653;
               color: #FFFFFF;
-              border-radius: 6px;
+              border-radius: 8px;
               padding: 0 8px;
-              height: 28px;
+              height: 30px;
               font-size: 11px;
-              font-weight: 900;
+              font-weight: 800;
               display: flex;
               align-items: center;
               gap: 4px;
               cursor: pointer;
               box-shadow: 0 2px 0 #1B8C81;
             ">📖 VOKABELN</button>
-            <div>
-              <div style="font-size: 11px; font-weight: 900; color: #264653; text-transform: uppercase; letter-spacing: 0.5px;">Lübeck Altstadt</div>
-              <div style="font-size: 10px; color: #2A9D8F; font-weight: 800;">Shift #${s.currentShift} Active</div>
+            
+            <!-- Dossier Pips: Compact inline status -->
+            <div style="display: flex; align-items: center; gap: 3px; margin-left: 2px; background: #F0F4F8; padding: 3px 6px; border-radius: 6px; border: 1px solid #D0DCE5;" title="Bureaucracy Dossier: 1.Uni 2.Lease 3.Anmeldung 4.Bank">
+              <span style="font-size: 11px; opacity: ${s.isMatriculated ? '1' : '0.35'};">${s.isMatriculated ? '✅' : '📜'}</span>
+              <span style="font-size: 11px; opacity: ${s.hasApartment ? '1' : '0.35'};">${s.hasApartment ? '✅' : '📄'}</span>
+              <span style="font-size: 11px; opacity: ${s.hasAnmeldung ? '1' : '0.35'};">${s.hasAnmeldung ? '✅' : '📑'}</span>
+              <span style="font-size: 11px; opacity: ${s.isSperrkontoUnlocked ? '1' : '0.35'};">${s.isSperrkontoUnlocked ? '✅' : '💳'}</span>
             </div>
           </div>
 
-          <div style="text-align: right; display: flex; align-items: center; gap: 8px;">
-            <div style="text-align: right;">
-              <div style="font-size: 9px; color: #666; font-weight: 700; text-transform: uppercase;">Tuition Fund</div>
-              <div style="font-size: 12px; font-weight: 900; color: #E76F51;">${window.FFH.round2(s.wallet)}€ <span style="font-size: 10px; color: #888; font-weight: 700;">/ ${goal}€</span></div>
+          <!-- Right: Integrated Tuition & Visa Progress Pill -->
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="
+              background: #F8F9FA;
+              border: 1.5px solid #264653;
+              border-radius: 8px;
+              padding: 3px 8px;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-end;
+              min-width: 75px;
+            ">
+              <div style="font-size: 11px; font-weight: 900; color: #E76F51; font-family: monospace;">
+                ${window.FFH.round2(s.wallet)}€ <span style="font-size: 9px; color: #777; font-weight: 700;">/ ${goal}€</span>
+              </div>
+              <!-- Integrated Micro Progress Bar -->
+              <div style="width: 100%; height: 3px; background: #E0E0E0; border-radius: 2px; margin-top: 2px; overflow: hidden;">
+                <div style="height: 100%; width: ${Math.min(100, Math.round((s.wallet / goal) * 100))}%; background: linear-gradient(90deg, #2EC4B6, #E76F51); border-radius: 2px;"></div>
+              </div>
             </div>
-            <span style="font-size: 9px; font-weight: 900; background: #FFE8D6; color: #E76F51; padding: 3px 6px; border-radius: 4px; border: 1px solid #E76F51;">28d Visa</span>
+            <span style="font-size: 10px; font-weight: 900; background: #FFE8D6; color: #E76F51; padding: 4px 6px; border-radius: 6px; border: 1.5px solid #E76F51; white-space: nowrap;">
+              ⏳ 28d
+            </span>
           </div>
         </div>
 
-        <!-- Antonisse Mountain on Horizon: Tuition Progress Bar & Visa Countdown -->
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9px; font-weight: 800; color: #555;">
-            <span>TUITION PROGRESS</span>
-            <span style="color: #E76F51;">${Math.min(100, Math.round((s.wallet / goal) * 100))}% (${window.FFH.round2(s.wallet)}€ / ${goal}€)</span>
-          </div>
-          <div style="width: 100%; background: #E9ECEF; border-radius: 6px; height: 7px; overflow: hidden; border: 1px solid #CCC;">
-            <div style="background: linear-gradient(90deg, #2EC4B6, #E76F51); height: 100%; width: ${Math.min(100, Math.round((s.wallet / goal) * 100))}%; transition: width 0.3s ease;"></div>
-          </div>
-        </div>
-
-        <!-- 4-Document Bureaucracy Dossier Checklist -->
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: 9px; font-weight: 800;">
-          <span style="flex: 1; text-align: center; padding: 3px 2px; border-radius: 4px; border: 1px solid ${s.isMatriculated ? '#2EC4B6' : '#DDD'}; background: ${s.isMatriculated ? '#E8F8F5' : '#FFF'}; color: ${s.isMatriculated ? '#0E6655' : '#777'};">
-            ${s.isMatriculated ? '✅' : '📜'} 1.Uni
-          </span>
-          <span style="flex: 1; text-align: center; padding: 3px 2px; border-radius: 4px; border: 1px solid ${s.hasApartment ? '#2EC4B6' : '#DDD'}; background: ${s.hasApartment ? '#E8F8F5' : '#FFF'}; color: ${s.hasApartment ? '#0E6655' : '#777'};">
-            ${s.hasApartment ? '✅' : '📄'} 2.Miete
-          </span>
-          <span style="flex: 1; text-align: center; padding: 3px 2px; border-radius: 4px; border: 1px solid ${s.hasAnmeldung ? '#2EC4B6' : '#DDD'}; background: ${s.hasAnmeldung ? '#E8F8F5' : '#FFF'}; color: ${s.hasAnmeldung ? '#0E6655' : '#777'};">
-            ${s.hasAnmeldung ? '✅' : '📑'} 3.Anmeld
-          </span>
-          <span style="flex: 1; text-align: center; padding: 3px 2px; border-radius: 4px; border: 1px solid ${s.isSperrkontoUnlocked ? '#2EC4B6' : '#DDD'}; background: ${s.isSperrkontoUnlocked ? '#E8F8F5' : '#FFF'}; color: ${s.isSperrkontoUnlocked ? '#0E6655' : '#777'};">
-            ${s.isSperrkontoUnlocked ? '✅' : '💳'} 4.Konto
-          </span>
-        </div>
-
-        <!-- Objective Tracker Bar inside the same card -->
+        <!-- Row 2: Objective Tracker Bar -->
         <div id="city-quest-tracker" style="
           box-sizing: border-box;
           width: 100%;
           background: #F8F9FA;
           border-left: 3px solid #E76F51;
-          border-radius: 4px;
-          padding: 6px 10px;
+          border-radius: 6px;
+          padding: 5px 8px;
           font-size: 11px;
           color: #264653;
           font-weight: 800;
@@ -22390,9 +22386,9 @@ window.FFH.UI = class {
           justify-content: space-between;
           gap: 6px;
         ">
-          <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
-            <span style="font-size: 12px; flex-shrink: 0;">🎯</span>
-            <span id="city-quest-text" style="line-height: 1.3; letter-spacing: 0.2px;">${objectiveText}</span>
+          <div style="display: flex; align-items: center; gap: 5px; overflow: hidden;">
+            <span style="font-size: 11px; flex-shrink: 0;">🎯</span>
+            <span id="city-quest-text" style="line-height: 1.2; letter-spacing: 0.1px;">${objectiveText}</span>
           </div>
         </div>
 
