@@ -966,9 +966,14 @@ window.FFH.CityExplorationPhase = class {
   update(delta) {
     const timeSec = this.game.clock.getElapsedTime();
 
-    // 1. Water waves
-    if (this.waterMat && this.waterMat.uniforms && this.waterMat.uniforms.uTime) {
-      this.waterMat.uniforms.uTime.value = timeSec;
+    // 1. Water waves & Cel Shading
+    if (this.waterMat && this.waterMat.uniforms) {
+      if (this.waterMat.uniforms.uTime) {
+        this.waterMat.uniforms.uTime.value = timeSec;
+      }
+      if (this.waterMat.uniforms.uCamXZ) {
+        this.waterMat.uniforms.uCamXZ.value.set(this.playerPos.x, this.playerPos.z);
+      }
     }
 
     // 2. Day-Night cycle

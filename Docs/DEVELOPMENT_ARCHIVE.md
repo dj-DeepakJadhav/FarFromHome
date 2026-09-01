@@ -296,3 +296,17 @@
 - **Packaging & Size Verification**:
   - Rebuilt `index.html` via `node build/assemble.js` at **6.25 MB** uncompressed (~1.8 MB zipped release), strictly `< 35 MB`.
 
+### September 2, 2026: Stylized Anime Cel Water Shader (Inspired by `cortiz2894/stylized-components`)
+- **Shader Architecture & Algorithm (`src/render/cityMap.js`)**:
+  - Cloned and referenced `cortiz2894/stylized-components` in `Tools/stylized-components`.
+  - Extracted the core visual algorithms from `waterFloor/shaders/fragment.ts`:
+    - **Animated Voronoi F1 vs SmoothF1 (SF1)**: Nearest-neighbor cell distance minus polynomial smooth-min (`smin`) creates crisp cel-shaded anime boundary caustics.
+    - **FBM Noise Flow Distortion**: 2-octave value noise smoothly warps the Voronoi UV coordinates along the river current vector (`uFlowX: 0.06`, `uFlowZ: -0.18`).
+    - **3-Stop Cel Color Ramp**: Smooth interpolation across `#27a3d8` (deep anime azure) $\rightarrow$ `#59c0e8` (vibrant turquoise cyan) $\rightarrow$ `#ffffff` (pure white crisp foam caustics).
+    - **Dynamic Distance Fade**: Evaluated relative to the courier's focus point (`uCamXZ`).
+  - Implemented cleanly in our airgapped, single-file Three.js pipeline with zero external packages or heavy dependencies.
+- **Packaging & Verification**:
+  - Built single-file `index.html` via `node build/assemble.js` at **6.26 MB** uncompressed (~1.8 MB zipped release), strictly `< 35 MB`.
+  - Verified 60 FPS performance and 0 console errors.
+
+

@@ -780,66 +780,169 @@ window.FFH.CityAssetRegistry = {
   }
 };
 
-// Continuous Single Water Plane Shader
-// Continuous Single Water Plane Shader: Stylized Cel Water (Image 3 Reference: Clean Saturated Turquoise/Cyan with Soft Foam Sparkles)
+// Continuous Single Water Plane Shader: Stylized Cel Water
+// Inspired by cortiz2894/stylized-components waterFloor:
+// - Animated Voronoi F1 vs SmoothF1 cell caustics
+// - FBM noise flow distortion
+// - 3-stop cel-shaded color ramp (deep azure -> turquoise cyan -> crisp white foam caustics)
 window.FFH.createSeamlessWaterPlane = function(width = 110, height = 110) {
   const waterGeo = new THREE.PlaneGeometry(width, height, 1, 1);
   const waterMat = new THREE.ShaderMaterial({
     uniforms: {
-      uTime: { value: 0 },
-      uDeepColor: { value: new THREE.Color(0x0077B6) },   // Vibrant saturated azure/cerulean river blue
-      uShallowColor: { value: new THREE.Color(0x48CAE4) },// Bright shallow turquoise cyan
-      uFoamColor: { value: new THREE.Color(0xFFFFFF) }    // Pure white shoreline wave foam & sparkles
+      uTime:           { value: 0 },
+      uScale:          { value: 0.28 },
+      uSmoothness:     { value: 0.46 },
+      uEdgeThreshold:  { value: 0.09 },
+      uEdgeSoftness:   { value: 0.08 },
+      uFlowX:          { value: 0.06 },
+      uFlowZ:          { value: -0.18 },
+      uCellSpeed:      { value: 0.55 },
+      uNoiseScale:     { value: 0.85 },
+      uNoiseFlowSpeed: { value: 0.12 },
+      uDistortAmount:  { value: 0.28 },
+      uDeepColor:      { value: new THREE.Color(0x27A3D8) }, // Rich anime azure (#27a3d8)
+      uMidColor:       { value: new THREE.Color(0x59C0E8) }, // Soft vibrant cyan (#59c0e8)
+      uMidPos:         { value: 0.31 },
+      uHighlight:      { value: new THREE.Color(0xFFFFFF) }, // Pure white caustics
+      uOpacity:        { value: 0.96 },
+      uDeepOpacity:    { value: 0.88 },
+      uCamXZ:          { value: new THREE.Vector2(31.2, 31.2) },
+      uFadeDistance:   { value: 400.0 },
+      uFadeStrength:   { value: 1.2 }
     },
     vertexShader: `
-      varying vec2 vUv;
-      varying vec3 vWorldPos;
+      varying vec2 vWorldPos;
       void main() {
-        vUv = uv;
         vec4 worldPos = modelMatrix * vec4(position, 1.0);
-        vWorldPos = worldPos.xyz;
-        gl_Position = projectionMatrix * viewMatrix * worldPos;
+        vWorldPos     = worldPos.xz;
+        gl_Position   = projectionMatrix * viewMatrix * worldPos;
       }
     `,
     fragmentShader: `
       uniform float uTime;
-      uniform vec3 uDeepColor;
-      uniform vec3 uShallowColor;
-      uniform vec3 uFoamColor;
-      varying vec2 vUv;
-      varying vec3 vWorldPos;
+      uniform float uScale;
+      uniform float uSmoothness;
+      uniform float uEdgeThreshold;
+      uniform float uEdgeSoftness;
+      uniform float uFlowX;
+      uniform float uFlowZ;
+      uniform float uCellSpeed;
+      uniform float uNoiseScale;
+      uniform float uNoiseFlowSpeed;
+      uniform float uDistortAmount;
+      uniform vec3  uDeepColor;
+      uniform vec3  uMidColor;
+      uniform float uMidPos;
+      uniform vec3  uHighlight;
+      uniform float uOpacity;
+      uniform float uDeepOpacity;
+      uniform float uFadeDistance;
+      uniform float uFadeStrength;
+      uniform vec2  uCamXZ;
+
+      varying vec2 vWorldPos;
+
+      vec2 hash2(vec2 p) {
+        p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+        return fract(sin(p) * 43758.5453);
+      }
+
+      float smin(float a, float b, float k) {
+        float h = max(k - abs(a - b), 0.0) / k;
+        return min(a, b) - h * h * h * k / 6.0;
+      }
+
+      vec2 cellPt(vec2 seed) {
+        return 0.5 + 0.5 * sin(uTime * uCellSpeed + 6.2831 * seed);
+      }
+
+      float voronoiF1(vec2 p) {
+        vec2 i = floor(p), f = fract(p);
+        float md = 8.0;
+        for (int y = -1; y <= 1; y++) {
+          for (int x = -1; x <= 1; x++) {
+            vec2 n  = vec2(float(x), float(y));
+            vec2 pt = cellPt(hash2(i + n));
+            md = min(md, length(n + pt - f));
+          }
+        }
+        return md;
+      }
+
+      float voronoiSF1(vec2 p) {
+        vec2 i = floor(p), f = fract(p);
+        float res = 8.0;
+        for (int y = -1; y <= 1; y++) {
+          for (int x = -1; x <= 1; x++) {
+            vec2 n  = vec2(float(x), float(y));
+            vec2 pt = cellPt(hash2(i + n));
+            res = smin(res, length(n + pt - f), uSmoothness);
+          }
+        }
+        return res;
+      }
+
+      float nHash(vec2 p) {
+        p = fract(p * vec2(127.1, 311.7));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
+      }
+
+      float vnoise(vec2 p) {
+        vec2 i = floor(p), f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(
+          mix(nHash(i),                  nHash(i + vec2(1.0, 0.0)), f.x),
+          mix(nHash(i + vec2(0.0, 1.0)), nHash(i + vec2(1.0, 1.0)), f.x),
+          f.y
+        );
+      }
+
+      float fbm(vec2 p) {
+        float v = 0.0, a = 0.5;
+        for (int i = 0; i < 2; i++) { v += a * vnoise(p); p *= 2.0; a *= 0.5; }
+        return v;
+      }
 
       void main() {
-        // Uniform world-space coordinates for smooth seamless river tiling
-        vec2 coord = vWorldPos.xz * 0.36;
+        // 1. Noise distortion
+        vec2 noiseUV  = vWorldPos * uNoiseScale + vec2(uTime * uNoiseFlowSpeed, 0.0);
+        float noiseFac = fbm(noiseUV);
+        vec2 distort   = vec2(noiseFac - 0.5) * uDistortAmount;
 
-        // 1. Dual directional current flow
-        vec2 flow1 = coord + vec2(uTime * 0.38, uTime * 0.14);
-        vec2 flow2 = coord * 1.45 - vec2(uTime * 0.22, uTime * 0.32);
+        // 2. Voronoi UV: base river flow + noise distortion
+        vec2 uv = vWorldPos * uScale + vec2(uFlowX, uFlowZ) * uTime + distort;
 
-        // 2. Stylized circular wave sparkles & caustics (Image 3 reference)
-        float spark1 = sin(flow1.x * 2.5 + sin(flow1.y * 1.8));
-        float spark2 = cos(flow2.x * 2.8 - cos(flow2.y * 2.2));
-        float sparkle = smoothstep(0.55, 0.90, spark1 * spark2);
+        float f1   = voronoiF1(uv);
+        float sf1  = voronoiSF1(uv);
 
-        // 3. Floating sparkling foam motes
-        float moteA = sin(flow1.x * 4.8 + uTime * 1.3);
-        float moteB = cos(flow1.y * 4.8 - uTime * 1.0);
-        float motes = smoothstep(0.80, 0.98, moteA * moteB);
+        // F1 − SmoothF1: 0 at cell centers → positive at cell boundaries
+        float edge = f1 - sf1;
 
-        // 4. Subtle rhythmic river wave bands
-        float bands = sin(coord.y * 4.2 + sin(coord.x * 2.4) * 1.2 + uTime * 1.8);
-        float foamRipples = smoothstep(0.72, 0.94, bands) * 0.38;
+        // Cel-shaded ColorRamp: hard step at threshold
+        float t = smoothstep(
+          uEdgeThreshold - uEdgeSoftness,
+          uEdgeThreshold + uEdgeSoftness,
+          edge
+        );
 
-        // 5. Rich vibrant anime/indie diorama palette blending
-        float depthMix = sin(coord.x * 0.45 + coord.y * 0.45 + uTime * 0.4) * 0.25 + 0.5;
-        vec3 col = mix(uDeepColor, uShallowColor, depthMix);
+        // 3-stop ColorRamp: deepColor → midColor → highlight
+        float safeMP = max(uMidPos, 1e-4);
+        float seg0   = clamp(t / safeMP, 0.0, 1.0);
+        float seg1   = clamp((t - safeMP) / max(1.0 - safeMP, 1e-4), 0.0, 1.0);
+        float inSeg1 = step(safeMP, t);
+        vec3 color   = mix(
+          mix(uDeepColor, uMidColor, seg0),
+          mix(uMidColor,  uHighlight, seg1),
+          inSeg1
+        );
 
-        // Add caustics and foam sparkles
-        col = mix(col, uShallowColor * 1.25, sparkle * 0.42);
-        col = mix(col, uFoamColor, (motes * 0.88 + foamRipples));
+        // Distance fade
+        float dist = length(vWorldPos - uCamXZ);
+        float fade = 1.0 - pow(clamp(dist / uFadeDistance, 0.0, 1.0), uFadeStrength);
 
-        gl_FragColor = vec4(col, 0.96);
+        float alpha = mix(uDeepOpacity, 1.0, t) * uOpacity * fade;
+        gl_FragColor = vec4(color, alpha);
       }
     `,
     transparent: true
