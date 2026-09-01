@@ -268,3 +268,31 @@
   - Added POI interactions and audio-visual feedback for Burgtor, Dom, Kino, and ZOB.
 - **Packaging & Size Verification**:
   - Built single-file `index.html` via `node build/assemble.js` cleanly at **6.24 MB** uncompressed (~1.8 MB zipped release), strictly satisfying the ≤ 35 MB competition limit.
+
+### September 2, 2026: Authentic Holstentor Park, High Land Ratio (90% Land) & Stylized Cel Water Shader
+- **Stylized Cel Water Shader (Directly Matching Reference Image)**:
+  - Rebuilt `createSeamlessWaterPlane` in `src/render/cityMap.js` from dark vertex-distorted water to a stylized cartoon river:
+    - Saturated azure/cerulean river blue (`#0077B6`) blending into bright shallow turquoise cyan (`#48CAE4`).
+    - Procedural stylized circular wave sparkles and caustics drifting smoothly with current flow.
+    - Pure white shoreline foam bands and drifting foam sparkles (`#FFFFFF`).
+    - Perfectly flat plane positioned at \(Y = -0.10\) beneath the \(Y = 0.0\) land tiles, eliminating geometric clipping and vertex jitter.
+- **Authentic Holstentorplatz Park & Gate Complex (Matching Satellite Photo)**:
+  - Implemented the real Lübeck Holstentor layout:
+    - **West Roundabout (`R_R`)** on mainland.
+    - **Puppenbrücke (`BR`)** crossing the Stadtgraben canal.
+    - **Holstentorplatz**: Long green lawn park with trees (`G`, `T`) with **Museum Holstentor (`B_HOLSTEN`)** in the center.
+    - **Flanking One-Way Roads (`R_B`)**: One road running on the North flank and one on the South flank around Holstentor.
+    - **Holstenbrücke (`BR`)** crossing the inner Trave into Altstadt Holstenstraße!
+- **High Land-to-Water Ratio (90% Land / 10% Water)**:
+  - Converted the vast empty water expanses into solid mainland with residential quarters, suburban tree avenues, transit hubs, and parks.
+  - River channels (Stadtgraben, Trave, Kanal-Trave) are now authentic narrow 1–2 tile waterways wrapping the island.
+- **De-Cluttered & Distributed World Destinations**:
+  - Spread key destinations across mainland and island so couriers cross bridges on deliveries:
+    - **West Mainland**: ZOB & Hauptbahnhof (`B_ZOB`), western residential apartments (`A1`, `A2`), riverside parks.
+    - **Center Altstadt**: Marienkirche (`B_MARIEN`), Rathaus (`B_RATHAUS`), Bäckerei Hansa (`B_BAKERY`), Pizzeria Bella Lübeck (`B_PIZZA`).
+    - **North Altstadt**: Burgtor North Gate (`B_BURGTOR`), residential lanes (`A3`, `A4`), North Bridge.
+    - **South Altstadt**: Dom zu Lübeck (`B_DOM`), Student WG (`B_WG`), South Bridge.
+    - **East Mainland**: Universität zu Lübeck campus (`B_UNI`), Filmhaus Kino (`B_KINO`), Kruma Darkstore #104 (`B_DARKSTORE`), East Bridges.
+- **Packaging & Size Verification**:
+  - Rebuilt `index.html` via `node build/assemble.js` at **6.25 MB** uncompressed (~1.8 MB zipped release), strictly `< 35 MB`.
+

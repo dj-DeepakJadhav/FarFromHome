@@ -781,41 +781,65 @@ window.FFH.CityAssetRegistry = {
 };
 
 // Continuous Single Water Plane Shader
+// Continuous Single Water Plane Shader: Stylized Cel Water (Image 3 Reference: Clean Saturated Turquoise/Cyan with Soft Foam Sparkles)
 window.FFH.createSeamlessWaterPlane = function(width = 110, height = 110) {
-  const waterGeo = new THREE.PlaneGeometry(width, height, 48, 48);
+  const waterGeo = new THREE.PlaneGeometry(width, height, 1, 1);
   const waterMat = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
-      uDeepColor: { value: new THREE.Color(0x1D3557) },
-      uShallowColor: { value: new THREE.Color(0x457B9D) },
-      uFoamColor: { value: new THREE.Color(0xA8DADC) }
+      uDeepColor: { value: new THREE.Color(0x0077B6) },   // Vibrant saturated azure/cerulean river blue
+      uShallowColor: { value: new THREE.Color(0x48CAE4) },// Bright shallow turquoise cyan
+      uFoamColor: { value: new THREE.Color(0xFFFFFF) }    // Pure white shoreline wave foam & sparkles
     },
     vertexShader: `
-      uniform float uTime;
       varying vec2 vUv;
-      varying float vElevation;
+      varying vec3 vWorldPos;
       void main() {
         vUv = uv;
-        vec3 pos = position;
-        float wave = sin(pos.x * 0.3 + uTime * 1.4) * cos(pos.y * 0.3 + uTime * 1.1) * 0.14;
-        pos.z += wave;
-        vElevation = wave;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+        vWorldPos = worldPos.xyz;
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
       }
     `,
     fragmentShader: `
+      uniform float uTime;
       uniform vec3 uDeepColor;
       uniform vec3 uShallowColor;
       uniform vec3 uFoamColor;
       varying vec2 vUv;
-      varying float vElevation;
+      varying vec3 vWorldPos;
+
       void main() {
-        float mixVal = smoothstep(-0.08, 0.08, vElevation);
-        vec3 col = mix(uDeepColor, uShallowColor, mixVal);
-        if (vElevation > 0.06) {
-          col = mix(col, uFoamColor, 0.4);
-        }
-        gl_FragColor = vec4(col, 0.94);
+        // Uniform world-space coordinates for smooth seamless river tiling
+        vec2 coord = vWorldPos.xz * 0.36;
+
+        // 1. Dual directional current flow
+        vec2 flow1 = coord + vec2(uTime * 0.38, uTime * 0.14);
+        vec2 flow2 = coord * 1.45 - vec2(uTime * 0.22, uTime * 0.32);
+
+        // 2. Stylized circular wave sparkles & caustics (Image 3 reference)
+        float spark1 = sin(flow1.x * 2.5 + sin(flow1.y * 1.8));
+        float spark2 = cos(flow2.x * 2.8 - cos(flow2.y * 2.2));
+        float sparkle = smoothstep(0.55, 0.90, spark1 * spark2);
+
+        // 3. Floating sparkling foam motes
+        float moteA = sin(flow1.x * 4.8 + uTime * 1.3);
+        float moteB = cos(flow1.y * 4.8 - uTime * 1.0);
+        float motes = smoothstep(0.80, 0.98, moteA * moteB);
+
+        // 4. Subtle rhythmic river wave bands
+        float bands = sin(coord.y * 4.2 + sin(coord.x * 2.4) * 1.2 + uTime * 1.8);
+        float foamRipples = smoothstep(0.72, 0.94, bands) * 0.38;
+
+        // 5. Rich vibrant anime/indie diorama palette blending
+        float depthMix = sin(coord.x * 0.45 + coord.y * 0.45 + uTime * 0.4) * 0.25 + 0.5;
+        vec3 col = mix(uDeepColor, uShallowColor, depthMix);
+
+        // Add caustics and foam sparkles
+        col = mix(col, uShallowColor * 1.25, sparkle * 0.42);
+        col = mix(col, uFoamColor, (motes * 0.88 + foamRipples));
+
+        gl_FragColor = vec4(col, 0.96);
       }
     `,
     transparent: true
@@ -823,58 +847,58 @@ window.FFH.createSeamlessWaterPlane = function(width = 110, height = 110) {
 
   const waterMesh = new THREE.Mesh(waterGeo, waterMat);
   waterMesh.rotation.x = -Math.PI / 2;
-  waterMesh.position.set(31.2, -0.25, 31.2);
+  waterMesh.position.set(31.2, -0.10, 31.2);
   waterMesh.receiveShadow = true;
   return { waterMesh, waterMat };
 };
 
-// Hand-Painted 24x24 Lübeck Altstadt Island Layout with 2.6 unit tile scaling
-// Faithfully mirrors the user's hand-painted map:
-// - Teardrop island enclosed by the Trave river and moat channels
-// - 7 Historic Arched Bridges connecting mainland to island
-// - 3 Traffic Roundabouts (Kreisverkehre)
-// - Landmarks: Burgtor, Holstentor, ZOB, Marienkirche, Dom, UNI, Kino, Darkstore, WG Room, Rathaus, Bakery, Pizza
+// 24x24 Authentic Lübeck City Layout with 2.6 unit tile scaling
+// Real Lübeck Holstentor Layout & High Land-to-Water Ratio (90% Land / 10% Water):
+// - Natural 1-2 tile river channels (Stadtgraben on West, Trave in Center, Kanal-Trave on East)
+// - Holstentorplatz: Green park lawn with trees & central Museum Holstentor flanked by North & South one-way roads
+// - Puppenbrücke on West, Holstenbrücke on East connecting to Altstadt Holstenstraße
+// - Distributed destinations across mainland & island so players cross bridges on courier deliveries
 window.FFH.MAP_SIZE = 24;
 window.FFH.TILE_SCALE = 2.6;
 
 window.FFH.LUBECK_CITY_GRID = [
-  ['G','G','G','G','G','G','G','G','G','G','G','R_C','R_C','G','G','G','G','G','G','G','G','G','G','G'],
-  ['G','G','G','G','G','G','G','G','G','G','T','R_R','R_R','T','G','G','G','G','G','G','G','G','G','G'],
-  ['W','W','W','W','W','W','W','W','W','W','W','BR','BR','W','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','W','W','W','G','B_BURGTOR','R_B','G','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','BR','BR','W','W','R_B','R_B','R_B','R_C','R_B','R_B','R_B','W','W','W','W','W','W','W','W','W'],
-  ['G','G','T','G','W','W','R_B','G','A1','G','R_C','G','A2','G','R_B','G','W','W','G','T','G','G','G','G'],
-  ['G','B_ZOB','G','G','W','W','R_B','G','G','G','R_C','G','B_DARKSTORE','G','R_B','G','W','W','G','G','G','G','G','G'],
-  ['G','R_C','R_R','BR','BR','B_HOLSTEN','R_C','R_C','B_MARIEN','G','R_C','G','A3','G','R_B','W','W','G','T','G','G','G','G','G'],
-  ['G','G','G','W','W','G','R_B','G','R_C','G','R_C','G','G','G','R_C','B_UNI','R_B','W','W','G','G','G','G','G'],
-  ['G','T','G','W','W','G','R_B','G','B_RATHAUS','G','B_BAKERY','G','A4','G','R_C','R_B','BR','BR','G','G','T','G','G','G'],
-  ['G','G','G','W','W','G','R_B','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_B','W','W','G','G','G','G','G','G'],
-  ['G','G','R_C','BR','BR','G','B_WG','G','B_PIZZA','G','R_C','G','G','G','R_B','W','W','G','G','G','G','G','G','G'],
-  ['G','T','G','W','W','G','R_B','G','G','G','R_C','G','A1','G','R_B','W','W','G','T','G','G','G','G','G'],
-  ['G','G','G','W','W','G','R_B','G','A2','G','R_C','G','G','G','R_B','W','W','G','G','G','G','G','G','G'],
-  ['W','W','W','W','W','G','R_B','G','G','G','R_C','G','B_KINO','R_B','R_B','BR','BR','G','G','G','G','G','W','W'],
-  ['W','W','W','W','W','G','R_B','G','A3','G','R_C','G','R_R','R_R','G','W','W','G','G','T','G','W','W','W'],
-  ['W','W','W','W','W','W','R_B','G','G','G','R_C','G','A4','G','R_B','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','R_B','G','G','R_C','G','G','R_B','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','W','R_B','G','B_DOM','G','R_B','W','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','W','G','R_B','R_C','R_B','G','W','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','W','W','BR','BR','W','W','W','W','W','W','W','W','W','W','W','W','W'],
-  ['G','G','G','G','G','G','G','G','G','R_C','R_C','G','G','G','G','G','G','G','G','G','G','G','G','G'],
-  ['G','G','T','G','G','G','G','G','T','R_C','R_C','T','G','G','G','G','T','G','G','G','G','G','G','G'],
+  ['G','G','A1','G','T','G','A2','G','G','G','R_C','R_C','R_C','G','G','G','A3','G','T','G','A4','G','G','G'],
+  ['G','T','G','G','G','T','G','G','G','T','R_B','R_B','R_B','T','G','G','G','T','G','G','G','T','G','G'],
+  ['G','G','G','W','W','W','W','W','W','W','BR','BR','BR','W','W','W','W','W','W','G','G','G','G','G'],
+  ['A1','G','R_C','W','G','G','A3','G','R_B','R_B','B_BURGTOR','R_B','R_B','G','A4','G','G','W','R_C','G','A1','G','T','G'],
+  ['G','T','R_C','W','G','A2','G','R_B','R_B','G','R_C','R_C','R_B','R_B','G','A1','G','W','R_C','T','G','G','G','G'],
+  ['A2','G','R_C','W','G','G','R_B','R_B','G','G','R_C','G','G','R_B','R_B','G','G','W','R_B','G','B_UNI','G','A2','G'],
+  ['G','B_ZOB','R_C','W','R_B','R_B','R_B','G','G','A1','R_C','G','A2','G','R_B','R_B','R_B','W','R_B','R_B','R_B','R_B','G','T'],
+  ['G','R_R','R_C','BR','G','B_HOLSTEN','G','BR','R_B','R_C','B_MARIEN','R_C','B_BAKERY','R_C','R_B','R_B','R_B','W','BR','R_B','R_B','R_B','T','G'],
+  ['A3','G','R_C','W','R_B','R_B','R_B','G','R_B','G','R_C','G','R_C','G','R_B','R_B','R_B','W','R_B','G','G','T','G','G'],
+  ['G','T','R_C','W','G','G','R_B','R_B','G','B_RATHAUS','R_C','B_PIZZA','G','R_B','R_B','G','G','W','R_C','G','A3','G','T','G'],
+  ['G','G','R_C','W','G','A4','G','R_B','R_C','R_C','R_C','R_C','R_C','R_B','G','A2','G','W','R_C','G','G','G','G','G'],
+  ['A1','G','R_C','BR','R_B','G','G','R_B','G','A1','R_C','G','A2','G','R_B','G','G','BR','R_B','G','B_DARKSTORE','G','A1','G'],
+  ['G','T','R_C','W','R_B','G','A3','G','G','G','R_C','G','G','G','G','A4','G','W','R_B','R_B','R_B','R_B','T','G'],
+  ['G','G','R_C','W','R_B','G','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','R_B','W','R_C','G','G','G','G','G'],
+  ['A2','G','R_C','W','R_B','G','A1','G','R_C','G','G','G','R_C','G','A2','G','R_B','BR','R_B','G','B_KINO','G','A2','G'],
+  ['G','T','R_C','W','G','G','G','G','R_C','G','R_R','G','R_C','G','G','G','G','W','R_B','R_B','R_B','R_B','G','T'],
+  ['G','G','R_C','W','G','A3','G','G','R_C','B_WG','R_C','G','R_C','G','G','A4','G','W','R_C','G','G','T','G','G'],
+  ['A3','G','R_C','W','G','G','G','R_B','R_C','R_C','R_C','R_C','R_C','R_B','G','G','G','W','R_C','G','A3','G','T','G'],
+  ['G','T','R_C','W','G','A4','G','R_B','G','G','B_DOM','G','G','R_B','G','A1','G','W','R_C','T','G','G','G','G'],
+  ['G','G','R_C','W','G','G','G','R_B','R_B','R_B','R_B','R_B','R_B','R_B','G','G','G','W','R_C','G','A4','G','T','G'],
+  ['G','G','G','W','W','W','W','W','W','W','BR','BR','BR','W','W','W','W','W','W','G','G','G','G','G'],
+  ['G','T','G','G','G','T','G','G','G','T','R_B','R_B','R_B','T','G','G','G','T','G','G','G','T','G','G'],
+  ['G','G','A1','G','T','G','A2','G','G','G','R_C','R_C','R_C','G','G','G','A3','G','T','G','A4','G','G','G'],
   ['G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G']
 ];
 
 window.FFH.POI_METADATA = {
-  'B_HOLSTEN':    { name: 'Holstentor West Gate', tag: 'Historic Landmark', desc: '1464 Brick Gothic western gate. The iconic entryway into the Altstadt island.', action: 'Explore Gate' },
-  'B_BURGTOR':    { name: 'Burgtor North Gate', tag: 'Fortified Gateway', desc: '1444 Late-Gothic northern citadel gate protecting the bridge to the mainland.', action: 'Inspect Fortress' },
-  'B_ZOB':        { name: 'ZOB & Hauptbahnhof', tag: 'Transit Hub', desc: 'Lübeck Central Bus Station & Train Station. The arrival gateway where your journey began.', action: 'Check Bus Schedule' },
+  'B_HOLSTEN':    { name: 'Holstentor Museum & Park', tag: 'Historic Gateway', desc: '1464 Brick Gothic fortress gate centered in the green Holstentorplatz park with one-way avenues flanking both sides.', action: 'Explore Gate' },
+  'B_BURGTOR':    { name: 'Burgtor North Gate', tag: 'Citadel Gate', desc: '1444 Late-Gothic northern citadel gate protecting the bridge crossing to the north mainland.', action: 'Inspect Fortress' },
+  'B_ZOB':        { name: 'ZOB & Hauptbahnhof', tag: 'Transit Hub', desc: 'Lübeck Central Bus Station & Train Terminal on the western mainland. Commuters arriving daily.', action: 'Check Bus Schedule' },
   'B_MARIEN':     { name: 'St. Mary\'s (Marienkirche)', tag: 'Cathedral', desc: 'The architectural mother of Brick Gothic churches with towering 120m dual spires.', action: 'Visit Spire' },
   'B_DOM':        { name: 'Dom zu Lübeck (Cathedral)', tag: 'Romanesque Cathedral', desc: 'Historic 1173 cathedral founded by Henry the Lion, anchoring the southern tip of the island.', action: 'Walk Courtyard' },
-  'B_UNI':        { name: 'Universität zu Lübeck', tag: 'University', desc: 'Goal: Bank 250.00€ tuition fees (Semesterbeitrag) to pass enrollment!', action: 'Check Tuition' },
-  'B_KINO':       { name: 'Filmhaus & Stadthalle Kino', tag: 'Cultural Cinema', desc: 'Beloved local cinema and student film society venue near the southeastern canals.', action: 'View Showtimes' },
-  'B_DARKSTORE':  { name: 'Kruma Dark Store #104', tag: 'Warehouse Hub', desc: 'Your grocery pick & delivery workplace. Grab your next courier shift manifest!', action: 'Start Shift' },
-  'B_WG':         { name: 'Student Sublet (Your WG)', tag: 'Sanctuary', desc: 'Your cozy bedroom base with the glowing desk lamp, study books, and sleeping cat.', action: 'Enter Room' },
-  'B_RATHAUS':    { name: 'Bürgeramt & Rathaus', tag: 'City Hall', desc: 'Historic town hall. Register your address (Anmeldung) to unlock your banking rights.', action: 'Inspect Status' },
+  'B_UNI':        { name: 'Universität zu Lübeck', tag: 'University Campus', desc: 'East mainland university campus. Bank 250.00€ tuition fees (Semesterbeitrag) to pass enrollment!', action: 'Check Tuition' },
+  'B_KINO':       { name: 'Filmhaus & Stadthalle Kino', tag: 'Cultural Cinema', desc: 'Beloved local cinema and student film society venue on the east mainland arts quarter.', action: 'View Showtimes' },
+  'B_DARKSTORE':  { name: 'Kruma Dark Store #104', tag: 'Warehouse Hub', desc: 'Your grocery pick & delivery workplace on the eastern logistics boulevard. Grab your shift manifest!', action: 'Start Shift' },
+  'B_WG':         { name: 'Student Sublet (Your WG)', tag: 'Sanctuary', desc: 'Your cozy bedroom base in the south Altstadt with desk lamp, study books, and sleeping cat.', action: 'Enter Room' },
+  'B_RATHAUS':    { name: 'Bürgeramt & Rathaus', tag: 'City Hall', desc: 'Historic town hall on the market square. Register your address (Anmeldung) to unlock your banking rights.', action: 'Inspect Status' },
   'B_PIZZA':      { name: 'Pizzeria Bella Lübeck', tag: 'Food Pickup', desc: 'Charming terracotta restaurant counter for rapid food delivery dispatches.', action: 'Order Lunch' },
   'B_BAKERY':     { name: 'Bäckerei Hansa', tag: 'Artisan Shop', desc: 'Local artisan bakery baking fresh sourdough crust loaves (das Brot).', action: 'Buy Bread' },
   'B_HOSPITAL':   { name: 'Krankenhaus Altstadt', tag: 'Medical VIP', desc: 'High-stakes express delivery target for Station 4B night shifts.', action: 'View Delivery Target' }

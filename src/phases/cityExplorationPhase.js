@@ -21,8 +21,8 @@ window.FFH.CityExplorationPhase = class {
     this.sunLight = null;
     
     // Player position & Click-to-Move Target
-    // Dedicated Road Spawn: Main road right beside your Student WG Room (x: 6, z: 10)
-    this.playerPos = new THREE.Vector3(15.6, 0.05, 26.0);
+    // Dedicated Road Spawn: Cobblestone road right beside your Student WG Room (x: 10, z: 15)
+    this.playerPos = new THREE.Vector3(26.0, 0.05, 39.0);
     this.targetMovePos = null;
     this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
@@ -219,12 +219,13 @@ window.FFH.CityExplorationPhase = class {
       for (let x = 0; x < window.FFH.MAP_SIZE; x++) {
         const type = window.FFH.LUBECK_CITY_GRID[z][x];
         let color = '#84A98C'; // Grass
-        if (type === 'W') color = '#457B9D';
-        else if (type === 'R_C' || type === 'R_B' || type === 'BR') color = '#5C677D';
-        else if (type === 'R_R') color = '#A8DADC'; // Roundabouts
-        else if (type === 'T') color = '#2D6A4F';
-        else if (type.startsWith('B_')) color = '#ECC238'; // POIs
-        else if (type.startsWith('A')) color = '#E76F51'; // Residential
+        if (type === 'W') color = '#0096C7'; // Vibrant stylized river water
+        else if (type === 'BR') color = '#D4A373'; // Arched stone bridges
+        else if (type === 'R_C' || type === 'R_B') color = '#5C677D'; // Car & Radweg roads
+        else if (type === 'R_R') color = '#E9D8A6'; // Roundabouts
+        else if (type === 'T') color = '#2D6A4F'; // Trees
+        else if (type.startsWith('B_')) color = '#F4A261'; // Landmarks & POIs
+        else if (type.startsWith('A')) color = '#E76F51'; // Residential quarters
 
         ctx.fillStyle = color;
         ctx.fillRect(x * S, z * S, S, S);
