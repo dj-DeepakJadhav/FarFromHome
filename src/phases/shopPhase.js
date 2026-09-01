@@ -22,13 +22,13 @@ window.FFH.ShopPhase = class {
       this.game.phases.CITY_EXPLORATION.courier.visible = false;
     }
 
-    // Build the bike shop diorama room
+    // Build the student dorm diorama room with visible upgrades
     const state = this.game.state;
-    this.shopRoom = window.FFH.createBikeShopRoom ? window.FFH.createBikeShopRoom() : window.FFH.createRoomShell(0xF4A261, 0x264653);
+    this.shopRoom = window.FFH.createLevel0Room ? window.FFH.createLevel0Room(state) : window.FFH.createRoomShell(0xF29688, 0x76C8B8);
     this.shopRoom.position.set(0, 0, 0);
     this.game.scene.add(this.shopRoom);
 
-    // Position camera on the Bike Shop diorama in upper half of viewport
+    // Position camera on the Room diorama in upper half of viewport
     const cam = this.game.cameras.mainCamera;
     this.endCamTarget = new THREE.Vector3(0, -0.75, 0);
     const zoomOffset = new THREE.Vector3(10.0, 13.5, 10.0);
@@ -94,8 +94,8 @@ window.FFH.ShopPhase = class {
     box.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #EEE; padding-bottom: 6px;">
         <div>
-          <div style="font-size: 15px; font-weight: 900; color: #264653;">Hansa Rad Bike & Gear Shop</div>
-          <div style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">Equipment Upgrades</div>
+          <div style="font-size: 15px; font-weight: 900; color: #264653;">WG Dorm Room & Workbench</div>
+          <div style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">Tangible Gear & Room Upgrades</div>
         </div>
         <div style="text-align: right;">
           <div style="font-size: 9px; color: #666; font-weight: 700; text-transform: uppercase;">Your Wallet</div>
@@ -117,7 +117,7 @@ window.FFH.ShopPhase = class {
         letter-spacing: 0.5px;
         box-shadow: 0 3px 0 #264653;
         margin-top: 4px;
-      ">Leave Shop</button>
+      ">Leave Room</button>
     `;
 
     const list = box.querySelector('#shop-items-list');
@@ -170,6 +170,15 @@ window.FFH.ShopPhase = class {
             state.wallet = window.FFH.round2(state.wallet - upg.cost);
             state.upgrades[upg.id] = true;
             this.game.sfx.playSfx('success');
+            
+            // Live-refresh the 3D room diorama to show the new item immediately
+            if (this.shopRoom) {
+              this.game.scene.remove(this.shopRoom);
+              this.shopRoom = window.FFH.createLevel0Room(state);
+              this.shopRoom.position.set(0, 0, 0);
+              this.game.scene.add(this.shopRoom);
+            }
+
             this.renderShopUI();
             this.game.ui.updatePersistentHUD(state);
           } else {

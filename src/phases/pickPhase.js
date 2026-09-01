@@ -37,7 +37,13 @@ window.FFH.PickPhase = class {
     this.tagRails = [];
     this.activePicksCount = 0;
     this.shift = window.FFH.getShift(state.currentShift);
-    this.timeRemaining = this.shift.pickTimeLimit || 25;
+    
+    // Check if VIP Express Rush mode was chosen
+    if (state.isVipRush) {
+      this.timeRemaining = Math.max(12, Math.round((this.shift.pickTimeLimit || 25) * 0.75));
+    } else {
+      this.timeRemaining = this.shift.pickTimeLimit || 25;
+    }
     this.pickDuration = this.timeRemaining;
 
     state.activeOrder = this.buildOrder(this.shift);
@@ -79,7 +85,11 @@ window.FFH.PickPhase = class {
     this.game.ui.showWarehouseManifest();
     window.addEventListener('pointerdown', this.onTap);
 
-    if (this.shift && this.shift.briefing) {
+    if (state.isVipRush) {
+      setTimeout(() => {
+        this.game.ui.showTutorialBanner(`🔥 VIP EXPRESS RUSH: 2.5x Customer Tips Active! (Fast Timer)`, '#FF006E', 6000);
+      }, 300);
+    } else if (this.shift && this.shift.briefing) {
       setTimeout(() => {
         this.game.ui.showTutorialBanner(`📦 ${this.shift.name}: ${this.shift.briefing}`, '#3A86FF', 6000);
       }, 400);

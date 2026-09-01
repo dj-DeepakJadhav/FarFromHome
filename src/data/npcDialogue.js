@@ -429,11 +429,25 @@ window.FFH.NPC_DATABASE = {
 
       const options = [
         {
-          label: '🚴 "Clock In: Start Delivery Shift (Pick & Deliver)"',
-          en: 'Clock In: Start Delivery Shift (Pick orders & ride)',
+          label: '🚴 "Clock In: Standard Delivery Shift (Balanced Payout)"',
+          en: 'Clock In: Standard Delivery Shift (Pick orders & ride)',
           action: (game) => {
             game.state.hasJob = true;
+            game.state.isVipRush = false;
             game.sfx.playSfx('success');
+            game.ui.spawnFloatingText('🚴 Standard Shift Started! Ride safely!', window.innerWidth / 2, window.innerHeight / 2, '#2A9D8F');
+            game.transitionTo('PICK');
+          }
+        },
+        {
+          label: '🔥 "Clock In: High-Stakes VIP Express Rush (2.5x Tips!)"',
+          en: 'Clock In: VIP Rush Shift (Tighter timer, +2.5x customer tips & +15 Nina Rep)',
+          action: (game) => {
+            game.state.hasJob = true;
+            game.state.isVipRush = true;
+            game.state.npcRelationships['NPC_NINA'] = Math.min(100, game.state.npcRelationships['NPC_NINA'] + 15);
+            game.sfx.playSfx('success');
+            game.ui.spawnFloatingText('🔥 VIP Express Rush! 2.5x Tips active!', window.innerWidth / 2, window.innerHeight / 2, '#FF006E');
             game.transitionTo('PICK');
           }
         }
@@ -631,16 +645,39 @@ window.FFH.NPC_DATABASE = {
         }
       });
 
-      // Ventilation Lore
+      // Pfand Bottle Recycling Mini-Action
       options.push({
-        label: '🪟 "Why is everyone in Germany obsessed with \'Stoßlüften\' (Shock Ventilation)?"',
-        en: 'Ask: "Why is everyone in Germany obsessed with \'Stoßlüften\' (Shock Ventilation)?"',
+        label: '🍾 "Nico, let\'s return our empty Club-Mate Pfand bottles!" (+0.75€)',
+        en: 'Recycle Pfand Bottles: Return deposit bottles for +0.75€ instant cash.',
+        action: (game) => {
+          game.state.wallet = window.FFH.round2(game.state.wallet + 0.75);
+          game.sfx.playSfx('register');
+          game.ui.spawnFloatingText('🍾 Pfandflaschen zurückgegeben! +0.75€ Bargeld!', window.innerWidth / 2, window.innerHeight / 2, '#4CAF50');
+          game.ui.updatePersistentHUD(game.state);
+
+          window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
+            de: 'Pfand ist das geheime Überlebensnetz jedes Studenten in Deutschland! 3 Glasflaschen = 0,75€. Das reicht für eine Packung Haferflocken!',
+            en: 'Pfand deposit is the secret student safety net in Germany! 3 glass bottles = 0.75€. That pays for a fresh pack of oats at the supermarket!',
+            options: [{ label: '🪙 "Every cent counts!"', en: 'Every cent counts!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO' }) }]
+          };
+          game.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', custom: true });
+        }
+      });
+
+      // Ventilation & Freshness Recovery
+      options.push({
+        label: '🪟 "Let\'s do 5 minutes of Stoßlüften in the room!" (+20 Freshness)',
+        en: 'Shock-Ventilate Dorm: Open windows wide for complete fresh air exchange (+20 Freshness).',
         action: (game) => {
           game.state.storyFlags.stosslueftenCount++;
+          game.state.freshness = Math.min(100, (game.state.freshness || 100) + 20);
+          game.sfx.playSfx('success');
+          game.ui.spawnFloatingText('🌬️ Frische Luft eingeatmet! Frische +20', window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+
           window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
-            de: 'Stoßlüften ist in Deutschland fast eine Religion! Fenster 5 Minuten ganz weit aufreißen für kompletten Luftaustausch. Wenn du das nicht machst, droht Schimmel und Lokker steht vor deiner Tür!',
-            en: 'Shock-ventilation is practically a national ritual! Open windows fully for 5 minutes twice daily to prevent moisture buildup. If you do not do it, Lokker will inspect your room for humidity!',
-            options: [{ label: '🌬️ "I will ventilate daily!"', en: 'I will ventilate daily!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO' }) }]
+            de: 'Herrlich! Echte norddeutsche Brise. Stoßlüften vertreibt die Müdigkeit und hält Herrn Lokker glücklich!',
+            en: 'Wonderful! Crisp Baltic sea breeze. Shock ventilation clears mental fatigue and keeps Herr Lokker smiling!',
+            options: [{ label: '🌬️ "I feel completely refreshed!"', en: 'I feel completely refreshed!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO' }) }]
           };
           game.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', custom: true });
         }

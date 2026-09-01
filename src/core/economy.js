@@ -50,7 +50,12 @@ window.FFH.calculatePayout = function(state) {
   // tips = (roll(0 .. tipMax) * streakMult * freshnessFactor) + etiquetteTipDelta
   const freshnessFactor = state.freshness / 100;
   const rawTip = Math.random() * shift.tipMax;
-  const etiquetteTip = Math.max(0, rawTip * streakMult * freshnessFactor + (state.lastEtiquetteTipDelta || 0));
+  let etiquetteTip = Math.max(0, rawTip * streakMult * freshnessFactor + (state.lastEtiquetteTipDelta || 0));
+
+  // High-Stakes VIP Express Rush 2.5x Tip Multiplier
+  if (state.isVipRush) {
+    etiquetteTip = etiquetteTip * 2.5;
+  }
 
   // Damage deductions (from bag integrity drop)
   // damage = (100 − bagIntegrity) / 100 * baseWage * 0.5
