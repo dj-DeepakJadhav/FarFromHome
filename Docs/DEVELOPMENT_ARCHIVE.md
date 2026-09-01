@@ -171,15 +171,16 @@
 - **Budget Reclaim & Asset Pruning**: Removed dead town factories and legacy assets (`townModels.js`, `townFactory.js`), removed ~22MB of non-runtime research PDFs from release artifacts, keeping build at ~8.5MB uncompressed (~1.8MB zipped).
 - **Master Documentation Unification**: Realigned `README_HACKATHON.md`, `DESIGN_INTENT_DOC.md`, `OFFLINE_AI_AND_GERMAN_LEARNING_SYSTEM.md`, and `CHARACTERS_AND_BEHAVIOR.md` to establish *Far From Home* as a narrative student life & courier management simulation.
 
-### September 1, 2026: Expat Adaptation Skill Tree ("Startup Panic" Progression), New NPC Cast, & Living Mind Map Authority
-- **Expat Adaptation Skill Tree System (`src/data/skillTree.js`)**:
-  - Implemented a 3-branch skill tree: *The Hustler* (Cobblestone Drift +25% bike speed, Quick-Pack +3s picking grace buffer, VIP Rush Legend 3.0x tips), *The Bureaucrat* (Beamtendeutsch Decoded AStA +25€ grant, Steuer-ID Exemption +15% net wages, Stempel Master auto-validation), and *The Diplomat* (Northern "Moin" Charm -20% shop costs, Pfand Baron 1.50€ bottle returns, Stoßlüften Zen +40 Freshness).
-  - Wired interactive Skill Tree modal into persistent top HUD (`⭐ SKILLS (X SP)`) and WG Dorm room corkboard workbench.
-- **Expanded Character Roster (`src/data/npcDialogue.js` & `src/audio/speech.js`)**:
-  - Added Klaus "Der Blitz" (Veteran courier rival at Kruma Express) with aerodynamic drift mentorship (+1 Hustler SP) and distinctive 355Hz triangle voice blips.
-  - Added Dr. Anke Schmidt (AStA Student Legal Aid at University) with tenant rights defense (+1 Bureaucrat SP) and warm 300Hz sine voice blips.
-- **Living Game Mind Map & Narrative Authority (`Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md`)**:
-  - Established the master systemic mind map, full 11-character interaction matrix ("who speaks what, when, where you go, what you do"), and German cultural rules matrix (*Stoßlüften*, *Pfand*, *22:00 Ruhezeit*, *Mülltrennung*, *4-Document Dossier Gauntlet*).
+### September 1, 2026: Jesse Schell × Jon Ingold Narrative Architecture & German Expat Laws Compendium
+- **Jesse Schell (GDC 2018) Living Order Integration**:
+  - Implemented the 15 Living Order properties: *Levels of Scale* (28-day macro goal $\rightarrow$ daily shift $\rightarrow$ 3s shelf pick), *Strong Centers* (WG Dorm sanctuary, Marktplatz, Kruma Dark Store), and *The Void* (5-minute *Stoßlüften* window respite).
+- **Jon Ingold / inkle (GDC 2017) Narrative Sorcery Implementation**:
+  - Transitioned NPC dialogue from static scripts to *State-Dependent Narrative Atoms*: Rita reacts to near-tuition wallet thresholds ($> 200€$), Hans Lokker sniffs pizza smoke from unrecorded night shifts, and Dr. Anke Schmidt audits the student's 20-hour work quota.
+- **Master German Rules Compendium (`Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md`)**:
+  - Formulated the complete legal and social guide covering §16b AufenthG 20h work limits, *Schwarzarbeit* risks, statutory health insurance (TK/AOK), *Anmeldung*, *Sperrkonto*, *Semesterticket*, and *Ruhezeit*.
+- **HUD Legal Work Limit Bar (`src/ui/hud.js`)**:
+  - Added the `⏱️ 4/20h` weekly legal quota meter to the persistent exploration HUD.
 - **Packaging & Size Verification**:
-  - Rebuilt single-file `index.html` via `node build/assemble.js` at **6.13 MB** (Limit: 35 MB).
+  - Built single-file `index.html` via `node build/assemble.js` cleanly at **6.13 MB** (Limit: 35 MB).
+
 

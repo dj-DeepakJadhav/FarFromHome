@@ -17138,10 +17138,14 @@ window.FFH.NPC_DATABASE = {
         action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
       });
 
+      let greetingEn = `You currently have ${state.wallet.toFixed(2)}€. You still need ${remaining}€ for your Semesterbeitrag. Work delivery shifts at Kruma Express to earn the rest!`;
+      if (state.wallet >= 200 && state.wallet < tuitionGoal) {
+        greetingEn = `I can see the hunger and determination in your eyes! You have ${state.wallet.toFixed(2)}€—only ${remaining}€ left to reach your 250.00€ matriculation goal! Go finish one last rush!`;
+      }
+
       return {
         speaker: 'Rita Schneider (Registrar)',
-        de: `Guten Tag. Sie haben aktuell ${state.wallet.toFixed(2)}€. Für die Immatrikulation fehlen noch ${remaining}€. Arbeiten Sie fleißig bei Kruma Express!`,
-        en: `You currently have ${state.wallet.toFixed(2)}€. You still need ${remaining}€ for your Semesterbeitrag. Work delivery shifts at Kruma Express to earn the rest!`,
+        en: greetingEn,
         options: options
       };
     }
@@ -17552,9 +17556,14 @@ window.FFH.NPC_DATABASE = {
         action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
       });
 
+      let lokkerGreeting = 'Good day. Remember: The front entrance must remain locked and no shoes are to be left in the shared hallway!';
+      if ((state.zollRisk || 0) > 0) {
+        lokkerGreeting = '*Sniffs sharply* You smell of wood-smoke, garlic, and pizzeria dough! Doing late night shifts again? Keep your shoes outside, respect the 22:00 Ruhezeit, and don\'t forget to Stoßlüften your room!';
+      }
+
       return {
         speaker: 'Herr Hans Lokker',
-        en: 'Good day. Remember: The front entrance must remain locked and no shoes are to be left in the shared hallway!',
+        en: lokkerGreeting,
         options: options
       };
     }

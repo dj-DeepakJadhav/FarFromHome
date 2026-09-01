@@ -125,3 +125,25 @@ Before writing code or editing game narrative, every AI agent MUST evaluate agai
 - [ ] **Economic Sanity**: Do wages (€13.50 legal vs. €8.00 cash), fines (€60 Schwarzfahren), and costs (€250 Semesterbeitrag) match canonical German realities?
 - [ ] **Build Integrity**: Run `node build/assemble.js` and `node build/check-size.js` to ensure the build remains `< 35 MB` and 100% offline airgapped.
 
+---
+
+## 6. The Schell × Ingold Narrative Architecture (Living Systems & Narrative Atoms)
+
+### A. Jesse Schell's 15 Properties of Living Order applied to *Far From Home*
+1. **Levels of Scale**: Macro (28-day visa & 250€ tuition) $\rightarrow$ Meso (Daily shifts, Bürgeramt visit) $\rightarrow$ Micro (3s shelf pick, doorstep buzzer).
+2. **Strong Centers**: The WG Dorm Sanctuary (emotional anchor), Marktplatz (spatial anchor), Kruma Dark Store (economic anchor).
+3. **Boundaries as Thresholds**: The Doorstep Intercom & Buzzer—transforming public street cycling into intimate, high-stakes customer dialogue.
+4. **Alternating Repetition**: High-adrenaline courier picking & rush cycling alternated with peaceful room respite, tea, and *Stoßlüften*.
+5. **The Void & Inner Calm**: The 5-minute *Stoßlüften* window moment where cathedral bells chime and Freshness regenerates.
+6. **Non-Separateness**: The student character organically evolves from an alienated outsider with €20 into a recognized, beloved member of the Lübeck community.
+
+### B. Jon Ingold's Narrative Sorcery & Defensive Logic
+1. **Encounters over Linear Quests**: The player can roam Lübeck in any order; dialogue queries world state rather than locking into rigid trees.
+2. **Narrative Atoms with Preconditions**: Dialogue blocks only surface when preconditions are satisfied (e.g. Herr Vogel only double-stamps if the lease confirmation is signed).
+3. **State-Dependent Character Reactivity**:
+   - **Rita Schneider**: Reacts with urgency and maternal excitement when wallet $> 200€$ (close to tuition).
+   - **Hans Lokker**: Sniffs woodsmoke/dough when the player takes unrecorded night shifts at Mathias's pizzeria.
+   - **Dr. Anke Schmidt**: Audits player's 20-hour weekly work meter and advises on student labor protections.
+4. **Organic World Blockers**: No artificial invisible walls—blockers are real German laws (§16b AufenthG 20h cap, missing Anmeldung, Sparkasse prerequisites).
+
+
