@@ -103,6 +103,19 @@ window.FFH.ShopPhase = class {
         </div>
       </div>
       <div id="shop-items-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      <button id="btn-room-skills" style="
+        width: 100%;
+        padding: 9px 12px;
+        border: 2px solid #264653;
+        border-radius: 8px;
+        background: #FF006E;
+        color: #FFFFFF;
+        font-weight: 900;
+        font-size: 12px;
+        cursor: pointer;
+        box-shadow: 0 3px 0 #A30046;
+        margin-top: 4px;
+      ">⭐ Open Expat Skill Tree (${state.skillPoints || 0} SP Available)</button>
       <button id="btn-leave-shop" style="
         width: 100%;
         padding: 10px 14px;
@@ -116,7 +129,7 @@ window.FFH.ShopPhase = class {
         text-transform: uppercase;
         letter-spacing: 0.5px;
         box-shadow: 0 3px 0 #264653;
-        margin-top: 4px;
+        margin-top: 2px;
       ">Leave Room</button>
     `;
 
@@ -191,6 +204,13 @@ window.FFH.ShopPhase = class {
       row.appendChild(btn);
       list.appendChild(row);
     });
+
+    const skillsBtn = box.querySelector('#btn-room-skills');
+    if (skillsBtn) {
+      skillsBtn.onclick = () => {
+        this.game.ui.showSkillTreeModal();
+      };
+    }
 
     const leaveBtn = box.querySelector('#btn-leave-shop');
     leaveBtn.onclick = () => {

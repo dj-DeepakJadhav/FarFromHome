@@ -146,6 +146,17 @@ window.FFH.createRunState = function () {
     isSperrkontoUnlocked: false,
     hasVisaExtended: false,
 
+    // Expat Adaptation Skill Tree Progression
+    skillPoints: 1,
+    unlockedSkills: {},
+    bikeSpeedMult: 1.0,
+    pickGraceTimeBonus: 0,
+    vipTipMultiplier: 2.5,
+    wageBonusPercent: 0,
+    shopDiscount: 0,
+    pfandBonusMult: 1.0,
+    stosslueftenBonus: 20,
+
     npcRelationships: {
       NPC_RITA: 50,
       NPC_MATHIAS: 50,
@@ -155,7 +166,9 @@ window.FFH.createRunState = function () {
       NPC_NICO: 50,
       NPC_VOGEL: 50,
       NPC_WEBER: 50,
-      NPC_LINDEMANN: 50
+      NPC_LINDEMANN: 50,
+      NPC_KLAUS: 50,
+      NPC_ANKE: 50
     },
     npcMemory: {
       NPC_RITA: [],
@@ -166,7 +179,9 @@ window.FFH.createRunState = function () {
       NPC_NICO: [],
       NPC_VOGEL: [],
       NPC_WEBER: [],
-      NPC_LINDEMANN: []
+      NPC_LINDEMANN: [],
+      NPC_KLAUS: [],
+      NPC_ANKE: []
     },
 
     // Per-shift, reset by resetShiftState() at the top of every PICK phase

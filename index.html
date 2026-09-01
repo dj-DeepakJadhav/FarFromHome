@@ -16400,6 +16400,17 @@ window.FFH.createRunState = function () {
     isSperrkontoUnlocked: false,
     hasVisaExtended: false,
 
+    // Expat Adaptation Skill Tree Progression
+    skillPoints: 1,
+    unlockedSkills: {},
+    bikeSpeedMult: 1.0,
+    pickGraceTimeBonus: 0,
+    vipTipMultiplier: 2.5,
+    wageBonusPercent: 0,
+    shopDiscount: 0,
+    pfandBonusMult: 1.0,
+    stosslueftenBonus: 20,
+
     npcRelationships: {
       NPC_RITA: 50,
       NPC_MATHIAS: 50,
@@ -16409,7 +16420,9 @@ window.FFH.createRunState = function () {
       NPC_NICO: 50,
       NPC_VOGEL: 50,
       NPC_WEBER: 50,
-      NPC_LINDEMANN: 50
+      NPC_LINDEMANN: 50,
+      NPC_KLAUS: 50,
+      NPC_ANKE: 50
     },
     npcMemory: {
       NPC_RITA: [],
@@ -16420,7 +16433,9 @@ window.FFH.createRunState = function () {
       NPC_NICO: [],
       NPC_VOGEL: [],
       NPC_WEBER: [],
-      NPC_LINDEMANN: []
+      NPC_LINDEMANN: [],
+      NPC_KLAUS: [],
+      NPC_ANKE: []
     },
 
     // Per-shift, reset by resetShiftState() at the top of every PICK phase
@@ -17828,6 +17843,133 @@ window.FFH.NPC_DATABASE = {
     }
   },
 
+  // 10. KLAUS "DER BLITZ" (Veteran Courier Rival & Speed Mentor)
+  'NPC_KLAUS': {
+    id: 'NPC_KLAUS',
+    name: 'Klaus "Der Blitz"',
+    title: 'Veteran Kruma Courier',
+    building: 'B_DARKSTORE',
+    greetingAudio: 'guten_tag',
+    avatarColor: '#FF5400',
+    personality: {
+      type: 'Competitive Speedster with Deep Respect for Hustle',
+      likes: 'Drafting behind buses, shaved corner turns, e-bike battery mods.',
+      dislikes: 'Tourists blocking bike lanes, broken chains.'
+    },
+    dialogue: (state) => {
+      const options = [];
+
+      // Rival Speed Challenge & Skill Point Grant
+      options.push({
+        label: '⚡ "Klaus, teach me how you take sharp cobblestone turns without skidding!"',
+        en: 'Ask: "Klaus, teach me how you take sharp turns on wet cobblestones!"',
+        action: (game) => {
+          game.state.skillPoints = (game.state.skillPoints || 0) + 1;
+          game.state.npcRelationships['NPC_KLAUS'] = Math.min(100, game.state.npcRelationships['NPC_KLAUS'] + 20);
+          game.sfx.playSfx('success');
+          game.ui.spawnFloatingText('⚡ Learned Corner Drift! +1 Skill Point!', window.innerWidth / 2, window.innerHeight / 2, '#FF5400');
+          game.ui.updatePersistentHUD(game.state);
+
+          window.FFH.NPC_DATABASE['NPC_KLAUS'].currentResponse = {
+            en: 'Lean your body weight inside the turn, feather the rear brake, and never pedal over wet tram tracks! You have real talent, rookie. Keep this momentum going!',
+            options: [{ label: '🚴 "Thanks Klaus! Catch me on the leaderboard!"', en: 'Catch me on the leaderboard!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_KLAUS' }) }]
+          };
+          game.transitionTo('DIALOGUE', { npcKey: 'NPC_KLAUS', custom: true });
+        }
+      });
+
+      // Courier Rivalry Lore
+      options.push({
+        label: '🔥 "Why do you and Nina constantly debate route strategies?"',
+        en: 'Ask: "Why do you and Nina constantly debate route efficiency?"',
+        action: (game) => {
+          window.FFH.NPC_DATABASE['NPC_KLAUS'].currentResponse = {
+            en: 'Nina prioritizes perfect item safety and zero customer complaints. I prioritize pure aerodynamic speed! But together, we make Kruma Express the fastest dispatch crew in northern Germany.',
+            options: [{ label: '⚡ "Two sides of the same coin!"', en: 'Two sides of the same coin!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_KLAUS' }) }]
+          };
+          game.transitionTo('DIALOGUE', { npcKey: 'NPC_KLAUS', custom: true });
+        }
+      });
+
+      options.push({
+        label: '🚪 "See you on the road, Klaus!" (Leave)',
+        en: 'Leave Warehouse',
+        action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
+      });
+
+      return {
+        speaker: 'Klaus "Der Blitz"',
+        en: 'Moin! Every second on the street is cash in your pocket. Upgrade your bike and keep your tires pumped to 4 bar!',
+        options: options
+      };
+    }
+  },
+
+  // 11. FRAU DR. ANKE SCHMIDT (AStA Student Union Advocate & Legal Shield)
+  'NPC_ANKE': {
+    id: 'NPC_ANKE',
+    name: 'Dr. Anke Schmidt',
+    title: 'AStA Student Legal Counsel',
+    building: 'B_UNI',
+    greetingAudio: 'guten_tag',
+    avatarColor: '#4CC9F0',
+    personality: {
+      type: 'Tenacious Student Rights Advocate',
+      likes: 'Fair student wages, tenant rights, emergency bursaries, defeating red tape.',
+      dislikes: 'Illegal rent increases, unfair visa rejections.'
+    },
+    dialogue: (state) => {
+      const options = [];
+
+      // Emergency Student Hardship Bursary
+      if (!state.storyFlags.receivedAstaGrant) {
+        options.push({
+          label: '📑 "Dr. Schmidt, I need advice on student rights and emergency visa funds!" (+1 Skill Point)',
+          en: 'Consult AStA Counsel: Receive emergency legal orientation and +1 Skill Point.',
+          action: (game) => {
+            game.state.storyFlags.receivedAstaGrant = true;
+            game.state.skillPoints = (game.state.skillPoints || 0) + 1;
+            game.state.npcRelationships['NPC_ANKE'] = 100;
+            game.sfx.playSfx('success');
+            game.ui.spawnFloatingText('📑 Legal Rights Learned! +1 Skill Point!', window.innerWidth / 2, window.innerHeight / 2, '#4CC9F0');
+            game.ui.updatePersistentHUD(game.state);
+
+            window.FFH.NPC_DATABASE['NPC_ANKE'].currentResponse = {
+              en: 'Never let administrative pressure intimidate you! International students have full legal rights under German higher education law. Use your Skill Tree to decode Beamtendeutsch and protect your visa.',
+              options: [{ label: '🤝 "Thank you so much, Dr. Schmidt!"', en: 'Thank you so much!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_ANKE' }) }]
+            };
+            game.transitionTo('DIALOGUE', { npcKey: 'NPC_ANKE', custom: true });
+          }
+        });
+      }
+
+      // Tenant Rights Consultation
+      options.push({
+        label: '🏠 "What are my legal rights against strict landlords like Herr Lokker?"',
+        en: 'Ask: "What are my legal rights as a tenant in student housing?"',
+        action: (game) => {
+          window.FFH.NPC_DATABASE['NPC_ANKE'].currentResponse = {
+            en: 'Landlords cannot enter your room unannounced, and minor wear-and-tear is covered by law. But honoring quiet hours (Ruhezeit) and keeping common areas tidy prevents 99% of disputes!',
+            options: [{ label: '💡 "Empowering knowledge!"', en: 'Empowering knowledge!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_ANKE' }) }]
+          };
+          game.transitionTo('DIALOGUE', { npcKey: 'NPC_ANKE', custom: true });
+        }
+      });
+
+      options.push({
+        label: '🚪 "Goodbye, Dr. Schmidt!" (Leave)',
+        en: 'Leave AStA Office',
+        action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
+      });
+
+      return {
+        speaker: 'Dr. Anke Schmidt (AStA Legal Aid)',
+        en: 'Welcome to the Student Union! We protect international students from bureaucratic traps and unfair housing practices. How can I advocate for you today?',
+        options: options
+      };
+    }
+  },
+
   'NPC_DELIVERY_CUSTOMER': {
     id: 'NPC_DELIVERY_CUSTOMER',
     name: 'Customer',
@@ -18563,6 +18705,163 @@ window.FFH.shopUpgrades = [
     icon: '🎴'
   }
 ];
+
+
+/* --- FILE: src/data/skillTree.js --- */
+// Expat Adaptation Skill Tree System (The "Startup Panic" Progression Engine for Far From Home)
+window.FFH = window.FFH || {};
+
+window.FFH.SKILL_TREE = {
+  hustler: {
+    id: 'hustler',
+    title: 'The Courier Hustler',
+    icon: '🚴',
+    color: '#2A9D8F',
+    desc: 'Master the streets, cobblestone navigation, and lightning-fast order packing.',
+    skills: [
+      {
+        id: 'hustler_cobblestone',
+        name: 'Cobblestone Drift',
+        cost: 1,
+        tier: 1,
+        icon: '⚡',
+        descEn: 'Increase cycling speed by +25% across historic cobblestone streets.',
+        effect: (state) => { state.bikeSpeedMult = (state.bikeSpeedMult || 1.0) * 1.25; }
+      },
+      {
+        id: 'hustler_quickpack',
+        name: 'Quick-Pack Vision',
+        cost: 2,
+        tier: 2,
+        icon: '👀',
+        descEn: 'Gain +3.0s grace buffer on warehouse picking timers for easier streaks.',
+        effect: (state) => { state.pickGraceTimeBonus = (state.pickGraceTimeBonus || 0) + 3; }
+      },
+      {
+        id: 'hustler_vip_legend',
+        name: 'VIP Rush Legend',
+        cost: 3,
+        tier: 3,
+        icon: '🔥',
+        descEn: 'High-Stakes VIP Express shifts yield an unprecedented 3.0x customer tip multiplier.',
+        effect: (state) => { state.vipTipMultiplier = 3.0; }
+      }
+    ]
+  },
+
+  bureaucrat: {
+    id: 'bureaucrat',
+    title: 'The Bureaucrat',
+    icon: '📜',
+    color: '#1D3557',
+    desc: 'Decode Beamtendeutsch, master municipal law, and optimize student tax allowances.',
+    skills: [
+      {
+        id: 'bureaucrat_beamtendeutsch',
+        name: 'Beamtendeutsch Decoded',
+        cost: 1,
+        tier: 1,
+        icon: '📑',
+        descEn: 'Unlock AStA emergency student hardship grants (+25€ one-time bursary).',
+        effect: (state) => { state.wallet = window.FFH.round2(state.wallet + 25); }
+      },
+      {
+        id: 'bureaucrat_tax_id',
+        name: 'Steuer-ID Tax Exemption',
+        cost: 2,
+        tier: 2,
+        icon: '🪙',
+        descEn: 'Earn +15% higher net shift wages through student social security exemption.',
+        effect: (state) => { state.wageBonusPercent = 0.15; }
+      },
+      {
+        id: 'bureaucrat_stempel_aura',
+        name: 'Stempel Master',
+        cost: 3,
+        tier: 3,
+        icon: '🏛️',
+        descEn: 'Dr. Lindemann at Ausländerbehörde grants +25 relationship and expedited visa processing.',
+        effect: (state) => { state.npcRelationships['NPC_LINDEMANN'] = 100; }
+      }
+    ]
+  },
+
+  diplomat: {
+    id: 'diplomat',
+    title: 'The Local Diplomat',
+    icon: '☕',
+    color: '#F4A261',
+    desc: 'Build deep neighborhood bonds, conquer culture shock, and master student thrift.',
+    skills: [
+      {
+        id: 'diplomat_moin_charm',
+        name: 'Northern "Moin" Charm',
+        cost: 1,
+        tier: 1,
+        icon: '🥐',
+        descEn: 'Receive a 20% discount on all bakery bread, pizzas, and gear shop upgrades.',
+        effect: (state) => { state.shopDiscount = 0.20; }
+      },
+      {
+        id: 'diplomat_pfand_baron',
+        name: 'Pfand Baron',
+        cost: 2,
+        tier: 2,
+        icon: '🍾',
+        descEn: 'Double bottle deposit return value with Nico (+1.50€ cash per recycling run).',
+        effect: (state) => { state.pfandBonusMult = 2.0; }
+      },
+      {
+        id: 'diplomat_stosslueften_zen',
+        name: 'Stoßlüften Zen Master',
+        cost: 3,
+        tier: 3,
+        icon: '🌬️',
+        descEn: 'Freshness decays 50% slower, and room shock-ventilation restores +40 Freshness.',
+        effect: (state) => { state.stosslueftenBonus = 40; }
+      }
+    ]
+  }
+};
+
+window.FFH.canUnlockSkill = function(skillId, state = window.FFH.state) {
+  state.unlockedSkills = state.unlockedSkills || {};
+  state.skillPoints = state.skillPoints !== undefined ? state.skillPoints : 1;
+  
+  if (state.unlockedSkills[skillId]) return false; // Already owned
+
+  for (const branchKey in window.FFH.SKILL_TREE) {
+    const branch = window.FFH.SKILL_TREE[branchKey];
+    const skillIdx = branch.skills.findIndex(s => s.id === skillId);
+    if (skillIdx !== -1) {
+      const skill = branch.skills[skillIdx];
+      if (state.skillPoints < skill.cost) return false;
+      // Require previous tier in same branch
+      if (skillIdx > 0) {
+        const prevSkill = branch.skills[skillIdx - 1];
+        if (!state.unlockedSkills[prevSkill.id]) return false;
+      }
+      return true;
+    }
+  }
+  return false;
+};
+
+window.FFH.unlockSkill = function(skillId, state = window.FFH.state) {
+  if (!window.FFH.canUnlockSkill(skillId, state)) return false;
+
+  for (const branchKey in window.FFH.SKILL_TREE) {
+    const branch = window.FFH.SKILL_TREE[branchKey];
+    const skill = branch.skills.find(s => s.id === skillId);
+    if (skill) {
+      state.skillPoints -= skill.cost;
+      state.unlockedSkills[skillId] = true;
+      if (skill.effect) skill.effect(state);
+      return skill;
+    }
+  }
+  return false;
+};
 
 
 /* --- FILE: src/render/celShaderMaterial.js --- */
@@ -21085,6 +21384,8 @@ window.FFH.SpeechEngine = class SpeechEngine {
       'NPC_VOGEL': { pitch: 0.88, filterFreq: 1700, blipBase: 200, type: 'square' },
       'NPC_WEBER': { pitch: 1.02, filterFreq: 2900, blipBase: 290, type: 'sine' },
       'NPC_LINDEMANN': { pitch: 0.97, filterFreq: 2200, blipBase: 250, type: 'sine' },
+      'NPC_KLAUS': { pitch: 1.12, filterFreq: 3900, blipBase: 355, type: 'triangle' },
+      'NPC_ANKE': { pitch: 1.04, filterFreq: 3300, blipBase: 300, type: 'sine' },
       'NPC_DELIVERY_CUSTOMER': { pitch: 1.00, filterFreq: 2100, blipBase: 240, type: 'triangle' }
     };
   }
@@ -22584,44 +22885,59 @@ window.FFH.UI = class {
       ">
         <!-- Row 1: Actions, Dossier Pips, & Tuition Progress -->
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <!-- Left: Settings, Dictionary & Dossier Status -->
-          <div style="display: flex; align-items: center; gap: 6px;">
+          <!-- Left: Settings, Skills, Dictionary & Dossier Status -->
+          <div style="display: flex; align-items: center; gap: 5px;">
             <button id="btn-settings-menu" style="
               background: #F4A261;
               border: 2px solid #264653;
               color: #264653;
               border-radius: 8px;
-              width: 30px;
-              height: 30px;
-              font-size: 13px;
+              width: 28px;
+              height: 28px;
+              font-size: 12px;
               display: flex;
               justify-content: center;
               align-items: center;
               cursor: pointer;
               box-shadow: 0 2px 0 #264653;
             ">⚙️</button>
+            <button id="btn-open-skills" style="
+              background: #FF006E;
+              border: 2px solid #264653;
+              color: #FFFFFF;
+              border-radius: 8px;
+              padding: 0 7px;
+              height: 28px;
+              font-size: 10.5px;
+              font-weight: 900;
+              display: flex;
+              align-items: center;
+              gap: 3px;
+              cursor: pointer;
+              box-shadow: 0 2px 0 #A30046;
+            ">⭐ SKILLS (${s.skillPoints || 0})</button>
             <button id="btn-open-dictionary" style="
               background: #2EC4B6;
               border: 2px solid #264653;
               color: #FFFFFF;
               border-radius: 8px;
-              padding: 0 8px;
-              height: 30px;
-              font-size: 11px;
+              padding: 0 7px;
+              height: 28px;
+              font-size: 10.5px;
               font-weight: 800;
               display: flex;
               align-items: center;
-              gap: 4px;
+              gap: 3px;
               cursor: pointer;
               box-shadow: 0 2px 0 #1B8C81;
-            ">📖 VOKABELN</button>
+            ">📖 VOCAB</button>
             
             <!-- Dossier Pips: Compact inline status -->
-            <div style="display: flex; align-items: center; gap: 3px; margin-left: 2px; background: #F0F4F8; padding: 3px 6px; border-radius: 6px; border: 1px solid #D0DCE5;" title="Bureaucracy Dossier: 1.Uni 2.Lease 3.Anmeldung 4.Bank">
-              <span style="font-size: 11px; opacity: ${s.isMatriculated ? '1' : '0.35'};">${s.isMatriculated ? '✅' : '📜'}</span>
-              <span style="font-size: 11px; opacity: ${s.hasApartment ? '1' : '0.35'};">${s.hasApartment ? '✅' : '📄'}</span>
-              <span style="font-size: 11px; opacity: ${s.hasAnmeldung ? '1' : '0.35'};">${s.hasAnmeldung ? '✅' : '📑'}</span>
-              <span style="font-size: 11px; opacity: ${s.isSperrkontoUnlocked ? '1' : '0.35'};">${s.isSperrkontoUnlocked ? '✅' : '💳'}</span>
+            <div style="display: flex; align-items: center; gap: 2px; margin-left: 2px; background: #F0F4F8; padding: 2px 5px; border-radius: 6px; border: 1px solid #D0DCE5;" title="Bureaucracy Dossier: 1.Uni 2.Lease 3.Anmeldung 4.Bank">
+              <span style="font-size: 10px; opacity: ${s.isMatriculated ? '1' : '0.35'};">${s.isMatriculated ? '✅' : '📜'}</span>
+              <span style="font-size: 10px; opacity: ${s.hasApartment ? '1' : '0.35'};">${s.hasApartment ? '✅' : '📄'}</span>
+              <span style="font-size: 10px; opacity: ${s.hasAnmeldung ? '1' : '0.35'};">${s.hasAnmeldung ? '✅' : '📑'}</span>
+              <span style="font-size: 10px; opacity: ${s.isSperrkontoUnlocked ? '1' : '0.35'};">${s.isSperrkontoUnlocked ? '✅' : '💳'}</span>
             </div>
           </div>
 
@@ -22693,14 +23009,23 @@ window.FFH.UI = class {
         pointer-events: auto;
         animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
         z-index: 100;
         margin-bottom: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       ">
-        <button id="btn-close-poi" style="position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #999; pointer-events: auto; padding: 4px 8px;">✕</button>
-        <span id="poi-card-tag" style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; background: #FFE8D6; color: #E76F51; letter-spacing: 0.5px;">Location</span>
-        <h2 id="poi-card-title" style="font-size: 16px; color: #264653; margin: 0 0 4px 0; font-weight: 900;">Building Name</h2>
-        <p id="poi-card-desc" style="font-size: 11px; color: #555; line-height: 1.4; margin: 0 0 12px 0;">Description of this point of interest.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #EEE; padding-bottom: 4px;">
+          <div>
+            <div id="poi-card-title" style="font-size: 14px; font-weight: 900; color: #264653;">University of Lübeck</div>
+            <div id="poi-card-tag" style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">Campus Center</div>
+          </div>
+          <button id="btn-close-poi" style="background: none; border: none; font-size: 14px; cursor: pointer; color: #888; font-weight: 900;">✕</button>
+        </div>
+        <div id="poi-card-desc" style="font-size: 11.5px; line-height: 1.35; color: #555;">
+          Administrative headquarters. Finalize enrollment certificates and pay tuition.
+        </div>
         <button id="btn-poi-action" style="
           width: 100%;
           padding: 10px 14px;
@@ -22722,7 +23047,15 @@ window.FFH.UI = class {
 
     this.container.appendChild(explorerDiv);
 
-        // Wire Dictionary button
+    // Wire Skills button
+    const skillsBtn = document.getElementById('btn-open-skills');
+    if (skillsBtn) {
+      skillsBtn.addEventListener('click', () => {
+        this.showSkillTreeModal();
+      });
+    }
+
+    // Wire Dictionary button
     const dictBtn = document.getElementById('btn-open-dictionary');
     if (dictBtn) {
       dictBtn.addEventListener('click', () => {
@@ -22791,16 +23124,16 @@ window.FFH.UI = class {
       border-left: 2px solid #264653;
       border-right: 2px solid #264653;
       border-radius: 16px;
-      padding: 12px 14px;
+      padding: 14px 16px;
       box-shadow: 0 10px 28px rgba(0,0,0,0.35);
       font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
       pointer-events: auto;
       animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       z-index: 200;
-      max-height: 48vh;
+      max-height: 56vh;
       overflow-y: auto;
     `;
 
@@ -22837,9 +23170,9 @@ window.FFH.UI = class {
         </div>
       </div>
       
-      <!-- Primary Dialogue Bubble (Clean English First) -->
-      <div style="background: #F8F9FA; border-left: 4px solid #2EC4B6; border-radius: 6px; padding: 10px 12px;">
-        <div id="dialogue-typewriter-text" style="font-size: 14px; line-height: 1.45; color: #1D3557; font-weight: 800; min-height: 24px;"></div>
+      <!-- Primary Dialogue Bubble (Clean English First with plenty of breathing room) -->
+      <div style="background: #F8F9FA; border-left: 4px solid #2EC4B6; border-radius: 8px; padding: 10px 12px; margin-top: 2px;">
+        <div id="dialogue-typewriter-text" style="font-size: 13.5px; line-height: 1.45; color: #1D3557; font-weight: 800; min-height: 24px; padding: 2px 0;"></div>
       </div>
 
       <div id="dialogue-options-container" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px; opacity: 0; transition: opacity 0.2s ease;">
@@ -22887,6 +23220,133 @@ window.FFH.UI = class {
         }
       });
     });
+  }
+
+  showSkillTreeModal() {
+    const existing = document.getElementById('skill-tree-modal');
+    if (existing) existing.remove();
+
+    const state = this.game.state;
+    state.unlockedSkills = state.unlockedSkills || {};
+    state.skillPoints = state.skillPoints !== undefined ? state.skillPoints : 1;
+
+    const modal = document.createElement('div');
+    modal.id = 'skill-tree-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(13, 27, 42, 0.88);
+      backdrop-filter: blur(6px);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 14px;
+      box-sizing: border-box;
+      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+      animation: fadeIn 0.2s ease;
+      pointer-events: auto;
+    `;
+
+    const renderTree = () => {
+      let branchesHtml = '';
+      for (const bKey in window.FFH.SKILL_TREE) {
+        const branch = window.FFH.SKILL_TREE[bKey];
+        const skillsHtml = branch.skills.map((skill, idx) => {
+          const isOwned = !!state.unlockedSkills[skill.id];
+          const canUnlock = window.FFH.canUnlockSkill ? window.FFH.canUnlockSkill(skill.id, state) : false;
+          
+          let btnBg = '#ADB5BD';
+          let btnText = `LOCKED (${skill.cost} SP)`;
+          let btnCursor = 'not-allowed';
+          
+          if (isOwned) {
+            btnBg = '#2A9D8F';
+            btnText = 'ACQUIRED ★';
+            btnCursor = 'default';
+          } else if (canUnlock) {
+            btnBg = '#FF006E';
+            btnText = `UNLOCK (${skill.cost} SP)`;
+            btnCursor = 'pointer';
+          }
+
+          return `
+            <div style="background: ${isOwned ? '#EBFBEE' : '#FFFFFF'}; border: 2px solid ${isOwned ? '#2A9D8F' : (canUnlock ? '#FF006E' : '#D0DCE5')}; border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+              <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                <span style="font-size: 20px;">${skill.icon}</span>
+                <div>
+                  <div style="font-size: 12px; font-weight: 900; color: #264653;">${skill.name}</div>
+                  <div style="font-size: 10px; color: #666; line-height: 1.25; margin-top: 1px;">${skill.descEn}</div>
+                </div>
+              </div>
+              <button class="btn-unlock-skill" data-skill="${skill.id}" style="
+                background: ${btnBg};
+                color: #FFFFFF;
+                border: 1.5px solid #264653;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 10px;
+                font-weight: 900;
+                cursor: ${btnCursor};
+                box-shadow: 0 2px 0 #264653;
+                white-space: nowrap;
+                flex-shrink: 0;
+              ">${btnText}</button>
+            </div>
+          `;
+        }).join('');
+
+        branchesHtml += `
+          <div style="background: #F8F9FA; border-radius: 12px; border: 2px solid ${branch.color}; padding: 10px 12px; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; border-bottom: 1.5px solid #E9ECEF; padding-bottom: 4px;">
+              <span style="font-size: 16px;">${branch.icon}</span>
+              <span style="font-size: 13px; font-weight: 900; color: ${branch.color};">${branch.title}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #777; margin-bottom: 8px; font-style: italic;">${branch.desc}</div>
+            ${skillsHtml}
+          </div>
+        `;
+      }
+
+      modal.innerHTML = `
+        <div style="background: #FFFFFF; border-radius: 16px; border-top: 4px solid #FF006E; border-bottom: 4px solid #264653; border-left: 2px solid #264653; border-right: 2px solid #264653; display: flex; flex-direction: column; height: 100%; box-shadow: 0 12px 32px rgba(0,0,0,0.4); overflow: hidden;">
+          <!-- Header -->
+          <div style="padding: 12px 14px; border-bottom: 2px solid #F0F0F0; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 15px; font-weight: 900; color: #1D3557;">🎓 Expat Survival Skill Tree</div>
+              <div style="font-size: 11px; color: #FF006E; font-weight: 800;">Available Skill Points: ${state.skillPoints || 0} SP</div>
+            </div>
+            <button id="btn-close-skills" style="background: #F8F9FA; border: 2px solid #264653; border-radius: 8px; width: 30px; height: 30px; font-weight: 900; color: #264653; cursor: pointer;">✕</button>
+          </div>
+
+          <!-- Body -->
+          <div id="skills-tree-scroll" style="flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column;">
+            ${branchesHtml}
+          </div>
+        </div>
+      `;
+
+      // Wire close button
+      modal.querySelector('#btn-close-skills').onclick = () => modal.remove();
+
+      // Wire unlock buttons
+      modal.querySelectorAll('.btn-unlock-skill').forEach(btn => {
+        btn.onclick = () => {
+          const skillId = btn.getAttribute('data-skill');
+          if (window.FFH.canUnlockSkill && window.FFH.canUnlockSkill(skillId, state)) {
+            const unlocked = window.FFH.unlockSkill(skillId, state);
+            if (unlocked) {
+              this.game.sfx.playSfx('success');
+              this.spawnFloatingText(`⭐ Learned: ${unlocked.name}!`, window.innerWidth / 2, window.innerHeight / 2, '#FF006E');
+              this.updatePersistentHUD(state);
+              renderTree();
+            }
+          }
+        };
+      });
+    };
+
+    renderTree();
+    (document.getElementById('ui-container') || document.body).appendChild(modal);
   }
 
   showRideMockScreen() {
@@ -23823,6 +24283,19 @@ window.FFH.ShopPhase = class {
         </div>
       </div>
       <div id="shop-items-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      <button id="btn-room-skills" style="
+        width: 100%;
+        padding: 9px 12px;
+        border: 2px solid #264653;
+        border-radius: 8px;
+        background: #FF006E;
+        color: #FFFFFF;
+        font-weight: 900;
+        font-size: 12px;
+        cursor: pointer;
+        box-shadow: 0 3px 0 #A30046;
+        margin-top: 4px;
+      ">⭐ Open Expat Skill Tree (${state.skillPoints || 0} SP Available)</button>
       <button id="btn-leave-shop" style="
         width: 100%;
         padding: 10px 14px;
@@ -23836,7 +24309,7 @@ window.FFH.ShopPhase = class {
         text-transform: uppercase;
         letter-spacing: 0.5px;
         box-shadow: 0 3px 0 #264653;
-        margin-top: 4px;
+        margin-top: 2px;
       ">Leave Room</button>
     `;
 
@@ -23911,6 +24384,13 @@ window.FFH.ShopPhase = class {
       row.appendChild(btn);
       list.appendChild(row);
     });
+
+    const skillsBtn = box.querySelector('#btn-room-skills');
+    if (skillsBtn) {
+      skillsBtn.onclick = () => {
+        this.game.ui.showSkillTreeModal();
+      };
+    }
 
     const leaveBtn = box.querySelector('#btn-leave-shop');
     leaveBtn.onclick = () => {

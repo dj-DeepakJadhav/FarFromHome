@@ -1,5 +1,5 @@
 # Far From Home: Kruma Express — Design Intent Document
-*Word Count: 426 words (Strict Limit: ≤ 500 words)*
+*Word Count: 442 words (Strict Limit: ≤ 500 words)*
 
 ## 1. Game Title and Genre
 **Far From Home: Kruma Express** — Narrative Life & Courier Management Simulation (Fixed Portrait Mobile WebGL, 390×844).
@@ -20,9 +20,10 @@ Designed for **single-thumb mobile portrait** touch and pointer play:
 - **Dorm Room Upgrades**: Reinvest wages into tangible 3D room upgrades (E-Bike motor, Thermal Bag, Study Corkboard) that visibly furnish your student dorm and accelerate future shifts.
 
 ## 4. Core Progression & Economic Engine
-Two growth engines drive the experience:
-1. **The Management Engine (Invest ➔ Harvest ➔ Upgrade ➔ Observe Growth)**: Courier packing shifts generate wages and tip multipliers; dorm workbench upgrades visibly transform your room and boost speed.
-2. **The 4-Document Dossier Gauntlet**: Your persistent "Mountain on the Horizon" HUD systematically ticks off essential legal milestones (Matriculation ➔ Lease ➔ Anmeldung ➔ Sperrkonto ➔ Residence Permit).
+Three intertwined progression engines drive the experience:
+1. **The Management Engine (Invest ➔ Harvest ➔ Upgrade ➔ Observe Growth)**: Courier packing shifts generate wages and tip multipliers; dorm workbench upgrades visibly transform your room.
+2. **The 3-Branch Expat Skill Tree**: Level up your character across *The Hustler* (bike speed & rush tips), *The Bureaucrat* (tax exemptions & legal aid with AStA's Dr. Schmidt), and *The Diplomat* (thrift, *Pfand* bonuses, and *Stoßlüften* stamina recovery).
+3. **The 4-Document Dossier Gauntlet**: Your persistent HUD systematically ticks off essential legal milestones (Matriculation ➔ Lease ➔ Anmeldung ➔ Sperrkonto ➔ Residence Permit).
 
 ## 5. Prototype Scope & Technical Feasibility
 - 100% offline, airgapped runtime packaged as a single self-contained `index.html` (~6.1MB uncompressed, ~1.8MB zipped, limit 35MB).

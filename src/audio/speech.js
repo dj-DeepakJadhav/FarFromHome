@@ -20,6 +20,8 @@ window.FFH.SpeechEngine = class SpeechEngine {
       'NPC_VOGEL': { pitch: 0.88, filterFreq: 1700, blipBase: 200, type: 'square' },
       'NPC_WEBER': { pitch: 1.02, filterFreq: 2900, blipBase: 290, type: 'sine' },
       'NPC_LINDEMANN': { pitch: 0.97, filterFreq: 2200, blipBase: 250, type: 'sine' },
+      'NPC_KLAUS': { pitch: 1.12, filterFreq: 3900, blipBase: 355, type: 'triangle' },
+      'NPC_ANKE': { pitch: 1.04, filterFreq: 3300, blipBase: 300, type: 'sine' },
       'NPC_DELIVERY_CUSTOMER': { pitch: 1.00, filterFreq: 2100, blipBase: 240, type: 'triangle' }
     };
   }

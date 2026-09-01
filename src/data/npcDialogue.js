@@ -886,6 +886,133 @@ window.FFH.NPC_DATABASE = {
     }
   },
 
+  // 10. KLAUS "DER BLITZ" (Veteran Courier Rival & Speed Mentor)
+  'NPC_KLAUS': {
+    id: 'NPC_KLAUS',
+    name: 'Klaus "Der Blitz"',
+    title: 'Veteran Kruma Courier',
+    building: 'B_DARKSTORE',
+    greetingAudio: 'guten_tag',
+    avatarColor: '#FF5400',
+    personality: {
+      type: 'Competitive Speedster with Deep Respect for Hustle',
+      likes: 'Drafting behind buses, shaved corner turns, e-bike battery mods.',
+      dislikes: 'Tourists blocking bike lanes, broken chains.'
+    },
+    dialogue: (state) => {
+      const options = [];
+
+      // Rival Speed Challenge & Skill Point Grant
+      options.push({
+        label: '⚡ "Klaus, teach me how you take sharp cobblestone turns without skidding!"',
+        en: 'Ask: "Klaus, teach me how you take sharp turns on wet cobblestones!"',
+        action: (game) => {
+          game.state.skillPoints = (game.state.skillPoints || 0) + 1;
+          game.state.npcRelationships['NPC_KLAUS'] = Math.min(100, game.state.npcRelationships['NPC_KLAUS'] + 20);
+          game.sfx.playSfx('success');
+          game.ui.spawnFloatingText('⚡ Learned Corner Drift! +1 Skill Point!', window.innerWidth / 2, window.innerHeight / 2, '#FF5400');
+          game.ui.updatePersistentHUD(game.state);
+
+          window.FFH.NPC_DATABASE['NPC_KLAUS'].currentResponse = {
+            en: 'Lean your body weight inside the turn, feather the rear brake, and never pedal over wet tram tracks! You have real talent, rookie. Keep this momentum going!',
+            options: [{ label: '🚴 "Thanks Klaus! Catch me on the leaderboard!"', en: 'Catch me on the leaderboard!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_KLAUS' }) }]
+          };
+          game.transitionTo('DIALOGUE', { npcKey: 'NPC_KLAUS', custom: true });
+        }
+      });
+
+      // Courier Rivalry Lore
+      options.push({
+        label: '🔥 "Why do you and Nina constantly debate route strategies?"',
+        en: 'Ask: "Why do you and Nina constantly debate route efficiency?"',
+        action: (game) => {
+          window.FFH.NPC_DATABASE['NPC_KLAUS'].currentResponse = {
+            en: 'Nina prioritizes perfect item safety and zero customer complaints. I prioritize pure aerodynamic speed! But together, we make Kruma Express the fastest dispatch crew in northern Germany.',
+            options: [{ label: '⚡ "Two sides of the same coin!"', en: 'Two sides of the same coin!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_KLAUS' }) }]
+          };
+          game.transitionTo('DIALOGUE', { npcKey: 'NPC_KLAUS', custom: true });
+        }
+      });
+
+      options.push({
+        label: '🚪 "See you on the road, Klaus!" (Leave)',
+        en: 'Leave Warehouse',
+        action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
+      });
+
+      return {
+        speaker: 'Klaus "Der Blitz"',
+        en: 'Moin! Every second on the street is cash in your pocket. Upgrade your bike and keep your tires pumped to 4 bar!',
+        options: options
+      };
+    }
+  },
+
+  // 11. FRAU DR. ANKE SCHMIDT (AStA Student Union Advocate & Legal Shield)
+  'NPC_ANKE': {
+    id: 'NPC_ANKE',
+    name: 'Dr. Anke Schmidt',
+    title: 'AStA Student Legal Counsel',
+    building: 'B_UNI',
+    greetingAudio: 'guten_tag',
+    avatarColor: '#4CC9F0',
+    personality: {
+      type: 'Tenacious Student Rights Advocate',
+      likes: 'Fair student wages, tenant rights, emergency bursaries, defeating red tape.',
+      dislikes: 'Illegal rent increases, unfair visa rejections.'
+    },
+    dialogue: (state) => {
+      const options = [];
+
+      // Emergency Student Hardship Bursary
+      if (!state.storyFlags.receivedAstaGrant) {
+        options.push({
+          label: '📑 "Dr. Schmidt, I need advice on student rights and emergency visa funds!" (+1 Skill Point)',
+          en: 'Consult AStA Counsel: Receive emergency legal orientation and +1 Skill Point.',
+          action: (game) => {
+            game.state.storyFlags.receivedAstaGrant = true;
+            game.state.skillPoints = (game.state.skillPoints || 0) + 1;
+            game.state.npcRelationships['NPC_ANKE'] = 100;
+            game.sfx.playSfx('success');
+            game.ui.spawnFloatingText('📑 Legal Rights Learned! +1 Skill Point!', window.innerWidth / 2, window.innerHeight / 2, '#4CC9F0');
+            game.ui.updatePersistentHUD(game.state);
+
+            window.FFH.NPC_DATABASE['NPC_ANKE'].currentResponse = {
+              en: 'Never let administrative pressure intimidate you! International students have full legal rights under German higher education law. Use your Skill Tree to decode Beamtendeutsch and protect your visa.',
+              options: [{ label: '🤝 "Thank you so much, Dr. Schmidt!"', en: 'Thank you so much!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_ANKE' }) }]
+            };
+            game.transitionTo('DIALOGUE', { npcKey: 'NPC_ANKE', custom: true });
+          }
+        });
+      }
+
+      // Tenant Rights Consultation
+      options.push({
+        label: '🏠 "What are my legal rights against strict landlords like Herr Lokker?"',
+        en: 'Ask: "What are my legal rights as a tenant in student housing?"',
+        action: (game) => {
+          window.FFH.NPC_DATABASE['NPC_ANKE'].currentResponse = {
+            en: 'Landlords cannot enter your room unannounced, and minor wear-and-tear is covered by law. But honoring quiet hours (Ruhezeit) and keeping common areas tidy prevents 99% of disputes!',
+            options: [{ label: '💡 "Empowering knowledge!"', en: 'Empowering knowledge!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_ANKE' }) }]
+          };
+          game.transitionTo('DIALOGUE', { npcKey: 'NPC_ANKE', custom: true });
+        }
+      });
+
+      options.push({
+        label: '🚪 "Goodbye, Dr. Schmidt!" (Leave)',
+        en: 'Leave AStA Office',
+        action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
+      });
+
+      return {
+        speaker: 'Dr. Anke Schmidt (AStA Legal Aid)',
+        en: 'Welcome to the Student Union! We protect international students from bureaucratic traps and unfair housing practices. How can I advocate for you today?',
+        options: options
+      };
+    }
+  },
+
   'NPC_DELIVERY_CUSTOMER': {
     id: 'NPC_DELIVERY_CUSTOMER',
     name: 'Customer',

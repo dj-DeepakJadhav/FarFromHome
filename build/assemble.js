@@ -68,6 +68,7 @@ function assemble() {
     'src/data/voiceSprites.js',
     'src/core/grammarEngine.js',
     'src/data/shop.js',
+    'src/data/skillTree.js',
     'src/render/celShaderMaterial.js',
     'src/render/inkOutline.js',
     'src/render/dioramaRooms.js',
