@@ -1415,23 +1415,21 @@ window.FFH.UI = class {
       <div id="city-header-bar" style="
         box-sizing: border-box;
         width: 100%;
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(12px);
-        border: 2px solid #264653;
-        border-radius: 14px;
+        background: #FFFFFF;
+        border: 2.5px solid #264653;
+        border-radius: 12px;
         padding: 8px 12px;
         display: flex;
         flex-direction: column;
         gap: 6px;
         color: #264653;
         pointer-events: auto;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.18);
         z-index: 100;
       ">
-        <!-- Row 1: Actions, Financial Progress & Work Limit -->
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px;">
-          <!-- Left: Settings & Skills -->
-          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+        <!-- Row 1: Settings, Skills, and Tuition -->
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 6px;">
             <button id="btn-settings-menu" style="
               background: #F4A261;
               border: 2px solid #264653;
@@ -1439,21 +1437,22 @@ window.FFH.UI = class {
               border-radius: 8px;
               width: 32px;
               height: 32px;
-              font-size: 13px;
+              font-size: 14px;
               display: flex;
               justify-content: center;
               align-items: center;
               cursor: pointer;
               box-shadow: 0 2px 0 #264653;
-            " title="Settings / Menu">⚙️</button>
+            " title="Settings">⚙️</button>
+            
             <button id="btn-open-skills" style="
               background: #FF006E;
               border: 2px solid #264653;
               color: #FFFFFF;
               border-radius: 8px;
-              padding: 0 10px;
+              padding: 0 12px;
               height: 32px;
-              font-size: 11px;
+              font-size: 11.5px;
               font-weight: 900;
               display: flex;
               align-items: center;
@@ -1461,78 +1460,43 @@ window.FFH.UI = class {
               cursor: pointer;
               box-shadow: 0 2px 0 #A30046;
               white-space: nowrap;
-            ">⭐ SKILLS (${s.skillPoints || 0})</button>
+            ">⭐ Skills (${s.skillPoints || 0})</button>
           </div>
 
-          <!-- Right: Tuition Progress & Legal Hours -->
-          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-            <!-- Tuition Goal -->
-            <div style="
-              background: #F8F9FA;
-              border: 1.5px solid #264653;
-              border-radius: 8px;
-              padding: 3px 8px;
-              display: flex;
-              flex-direction: column;
-              align-items: flex-end;
-              min-width: 80px;
-            ">
-              <div style="font-size: 11px; font-weight: 900; color: #E76F51; font-family: monospace; line-height: 1.1;">
-                ${window.FFH.round2(s.wallet)}€ <span style="font-size: 9px; color: #777; font-weight: 700;">/ ${goal}€</span>
-              </div>
-              <div style="width: 100%; height: 3px; background: #E0E0E0; border-radius: 2px; margin-top: 3px; overflow: hidden;">
-                <div style="height: 100%; width: ${Math.min(100, Math.round((s.wallet / goal) * 100))}%; background: linear-gradient(90deg, #2EC4B6, #E76F51); border-radius: 2px;"></div>
-              </div>
+          <!-- Tuition Goal -->
+          <div style="
+            background: #F8F9FA;
+            border: 2px solid #264653;
+            border-radius: 8px;
+            padding: 4px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          ">
+            <span style="font-size: 13px;">💶</span>
+            <div style="font-size: 12px; font-weight: 900; color: #E76F51; font-family: monospace;">
+              ${window.FFH.round2(s.wallet)}€ <span style="font-size: 10px; color: #777; font-weight: 700;">/ ${goal}€</span>
             </div>
-
-            <!-- 20-Hour Work Limit Badge -->
-            <span style="
-              font-size: 10px;
-              font-weight: 900;
-              background: ${(s.weeklyHoursWorked || 0) >= 20 ? '#FFD8D8' : '#E8F5E9'};
-              color: ${(s.weeklyHoursWorked || 0) >= 20 ? '#D90429' : '#2A9D8F'};
-              padding: 5px 6px;
-              border-radius: 8px;
-              border: 1.5px solid ${(s.weeklyHoursWorked || 0) >= 20 ? '#D90429' : '#2A9D8F'};
-              white-space: nowrap;
-              display: flex;
-              align-items: center;
-              gap: 2px;
-            " title="German 20-Hour Student Work Limit (§16b AufenthG)">
-              ⏱️ ${s.weeklyHoursWorked || 0}/20h
-            </span>
           </div>
         </div>
 
-        <!-- Row 2: Objective Tracker & Dossier Status -->
+        <!-- Row 2: Objective Tracker -->
         <div id="city-quest-tracker" style="
           box-sizing: border-box;
           width: 100%;
-          background: #F8F9FA;
-          border-left: 3px solid #E76F51;
-          border-radius: 8px;
+          background: #F0F4F8;
+          border-left: 4px solid #2EC4B6;
+          border-radius: 6px;
           padding: 6px 10px;
-          font-size: 11.5px;
-          color: #264653;
+          font-size: 12px;
+          color: #1D3557;
           font-weight: 800;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 8px;
+          gap: 6px;
         ">
-          <!-- Quest Description -->
-          <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; flex: 1;">
-            <span style="font-size: 12px; flex-shrink: 0;">🎯</span>
-            <span id="city-quest-text" style="line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${objectiveText}</span>
-          </div>
-
-          <!-- Dossier Checkmarks -->
-          <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0; background: #FFF; padding: 2px 6px; border-radius: 6px; border: 1px solid #D0DCE5;" title="Bureaucracy Dossier: 1.Uni 2.Lease 3.Anmeldung 4.Bank">
-            <span style="font-size: 10px; opacity: ${s.isMatriculated ? '1' : '0.3'};">📜${s.isMatriculated ? '✓' : ''}</span>
-            <span style="font-size: 10px; opacity: ${s.hasApartment ? '1' : '0.3'};">📄${s.hasApartment ? '✓' : ''}</span>
-            <span style="font-size: 10px; opacity: ${s.hasAnmeldung ? '1' : '0.3'};">📑${s.hasAnmeldung ? '✓' : ''}</span>
-            <span style="font-size: 10px; opacity: ${s.isSperrkontoUnlocked ? '1' : '0.3'};">💳${s.isSperrkontoUnlocked ? '✓' : ''}</span>
-          </div>
+          <span style="font-size: 13px; flex-shrink: 0;">🎯</span>
+          <span id="city-quest-text" style="line-height: 1.3;">${objectiveText}</span>
         </div>
 
         <div id="delivery-distance-indicator" style="display: none; align-items: center; justify-content: flex-end; gap: 6px; background: #E8F5E9; padding: 4px 8px; border-radius: 4px; border: 1px solid #2A9D8F;">
