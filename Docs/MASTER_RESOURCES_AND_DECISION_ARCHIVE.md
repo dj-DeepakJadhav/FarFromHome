@@ -16,6 +16,7 @@
 | **5** | [**80 Days: Narrative Design & Post-Mortem**](https://www.youtube.com/watch?v=--3meejDM-U)<br>[**inkle: 80 Days Official**](https://www.inklestudios.com/80days/) | Meg Jayanth & Jon Ingold (inkle) | • **4-Resource Tension Engine**: Time (28d), Money (250€), Work Quota (20h), Freshness.<br>• **"Leading Players Astray"**: Tempting risky side-stories (e.g. Mathias's pizza cash shift).<br>• **"NPCs with Agency"**: Characters have their own grief, families, and schedules.<br>• **Player Persona Voice**: Choices define *Hustler* vs. *Bureaucrat* vs. *Diplomat*. | Anchors the emotional depth of every resident and creates tempting narrative detours. |
 | **6** | [**German Laws & Expat Life Compendium**](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md) | Official German Federal Law & Student Reality | • **§16b AufenthG**: Strict 20-Hour Weekly Work Limit.<br>• **Schwarzarbeit**: Unregistered cash gigs vs. primary contract.<br>• **4-Document Catch-22**: Lease ➔ Anmeldung ➔ Bank ➔ Uni ➔ Visa.<br>• **Alltag Rules**: *Stoßlüften*, *Pfand*, *22:00 Ruhezeit*, *Mülltrennung*. | Guarantees 100% authentic cultural and legal simulation without fantasy shortcuts. |
 | **7** | [**The Three Pillars of Game Writing**](https://www.youtube.com/watch?v=wNNXdoj7cCQ) | Extra Credits | • **Plot**: External ticking pressure (28d visa, 250€ tuition).<br>• **Character**: Internal motivations & grief (Lokker's Anna, Rita's daughter).<br>• **Lore**: Hanseatic brick gothic history, Beamtendeutsch, and German daily life. | Forms the 3-act narrative architecture and character depth of our entire world. |
+| **8** | [**How To Start Your Game Narrative: Design Mechanics First**](https://www.youtube.com/watch?v=22HoViH4vOU) | Extra Credits (James Portnow) | • **Mechanics First, Story Last**: Emotional Core ➔ Core Gameplay Loop ➔ Art Style ➔ Narrative.<br>• **Zero Ludonarrative Dissonance**: Dialogue and quests must emerge directly from player verbs (Steering, Sorting, Budgeting).<br>• **Show & DO**: The player feels the tension through the 20h quota and cobblestone friction before any NPC speaks. | Ensures that every dialogue line and story quest reinforces live gameplay mechanics. |
 
 ---
 
@@ -40,6 +41,10 @@
 ### Q5: Why did we add the Randomized Winter vs. Summer Semester Intake?
 * **Decision**: Each fresh game start randomly assigns either *Wintersemester (WiSe)* or *Sommersemester (SoSe)*, altering lighting palette, fog density, street friction, heating/freshness rules, and NPC greetings.
 * **Rationale**: Gives players and hackathon judges instant replayability and delightful surprise on every run with **0KB asset bloat**, reflecting the two distinct seasonal realities of studying in Germany.
+
+### Q6: Why do we follow the "Design Mechanics First" philosophy?
+* **Decision**: We engineered the economic simulation, 4-phase loop, 20h quota, and bicycle drift physics *before* writing the dialogue. The dialogue directly comments on your wallet balance, your speed, your current work hours, and your dorm upgrades.
+* **Rationale**: Prevents ludonarrative dissonance. The player never feels like they are reading an irrelevant novel; every word spoken by Rita, Lokker, or Nina is a direct reaction to what the player just did mechanically.
 
 ---
 
