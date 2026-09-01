@@ -411,6 +411,8 @@ window.FFH.CityExplorationPhase = class {
     this.timeOfDay = progress % 1.0;
     const isWinter = this.game && this.game.state && this.game.state.semester === 'WINTER';
 
+    let skyColor, fogColor, lightColor, lightIntensity, ambIntensity;
+
     if (isWinter) {
       // Wintersemester Palette (Crisp Baltic Winter, Cool Sky, Glowing Windows)
       if (this.timeOfDay < 0.25) {
