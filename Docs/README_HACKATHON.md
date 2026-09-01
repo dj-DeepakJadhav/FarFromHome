@@ -179,15 +179,18 @@ window.FFH.ECONOMY = {
 1. **E-Bike Conversion Kit (€45)**:
    - *Visual*: Mounts a sleek battery pack to the bicycle frame.
    - *Mechanical*: Increases courier movement speed across the city map by +50%.
-2. **Thermal Delivery Bag (€30)**:
+2. **Thermal Delivery Bag (€50)**:
    - *Visual*: Equips an insulated orange delivery backpack.
-   - *Mechanical*: Completely halts food freshness decay during city delivery.
+   - *Mechanical*: Halves food freshness decay during city delivery.
 3. **Warehouse Shelf Labels (€25)**:
    - *Visual*: Permanently mounts metallic `DER`, `DIE`, and `DAS` plaques on shelf rails.
-   - *Mechanical*: Provides permanent high-contrast spatial navigation cues.
-4. **Pocket Vocab Notebook (€15)**:
+   - *Mechanical*: Displays gender symbols on items for faster spatial navigation.
+4. **Pocket Vocab Notebook (€20)**:
    - *Visual*: Adds an interactive dictionary icon to the HUD.
-   - *Mechanical*: Displays German-English word tooltips and expands early recognition bonuses.
+   - *Mechanical*: Allows one re-listen per shift to replay spoken German nouns.
+5. **Vocab Cards (€35)**:
+   - *Visual*: Flashcard deck in student room.
+   - *Mechanical*: -0.8s icon delay, +25% early-pick accuracy bonus.
 
 ---
 
@@ -197,7 +200,7 @@ window.FFH.ECONOMY = {
 - **Mathias Becker** (Hansa Rad Bike Mechanic): Energetic local mechanic who repairs bikes, sells E-Bikes, and cheers your financial progress.
 - **Martha Webber / Oma Martha** (Traditional Baker): Warm local baker who rewards proper formal German (*Sie*) and shares Hanseatic pastries.
 - **Nina Lindemann** (Kruma Dispatch Lead): Pragmatic warehouse manager who assigns shifts, tracks quotas, and manages equipment.
-- **Hans Lokker** (WG Sublet Landlord): Strict building manager monitoring quiet hours (*Ruhezeit*) and waste separation (*Mülltrennung*).
+- **Hans Lokker** (WG Sublet Landlord): Strict building manager monitoring quiet hours (*Ruhezeit*), waste separation (*Mülltrennung*), and €30 Kaution deposit.
 - **Herr Vogel** (Rathaus Bürgeramt Bureaucrat): Peak *Amtsschimmel* who stamps residence registrations (*Meldebescheinigung*).
 
 ---

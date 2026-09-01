@@ -382,7 +382,257 @@ window.FFH.CityAssetRegistry = {
     return group;
   },
 
-  // 9. Street Props: Historical Hanseatic Lamp Post & Electrical Utility Boxes
+  // 10. Burgtor North Gate (Late Gothic Fortress Gate with Arched Portal & Hipped Roof)
+  createBurgtor() {
+    const group = new THREE.Group();
+    const P = window.FFH.ProceduralTextures;
+    const brickTex = P ? P.getBrickFacadeTexture(5) : null;
+    const brickNorm = P ? P.getBrickFacadeNormalMap(5) : null;
+    const brickMat = brickTex
+      ? new THREE.MeshStandardMaterial({ map: brickTex, normalMap: brickNorm, normalScale: new THREE.Vector2(0.7, 0.7), roughness: 0.82 })
+      : new THREE.MeshLambertMaterial({ color: 0x7F1D1D });
+
+    // Main Fortified Gate Tower
+    const tower = new THREE.Mesh(new THREE.BoxGeometry(2.6, 5.2, 2.2), brickMat);
+    tower.position.y = 2.6;
+    tower.castShadow = true;
+    tower.receiveShadow = true;
+
+    // Arched Gate Portal Tunnel
+    const gateTunnel = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.8, 2.3), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+    gateTunnel.position.set(0, 1.4, 0);
+
+    // Decorative stepped parapet crenellations atop tower
+    const parapet = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.4, 2.4), new THREE.MeshLambertMaterial({ color: 0xEDE5D8 }));
+    parapet.position.set(0, 5.4, 0);
+    parapet.castShadow = true;
+
+    // Steep 4-sided Hipped Roof
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(1.8, 3.2, 4), this.materials.roofCopper);
+    roof.position.set(0, 7.0, 0);
+    roof.rotation.y = Math.PI / 4;
+    roof.castShadow = true;
+
+    // Central Finial Spire
+    const finial = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.08, 1.2, 8), new THREE.MeshLambertMaterial({ color: 0xD4AF37 }));
+    finial.position.set(0, 8.8, 0);
+
+    group.add(tower, gateTunnel, parapet, roof, finial);
+    return group;
+  },
+
+  // 11. Dom zu Lübeck (1173 Romanesque-Gothic Cathedral with Twin Soaring Spires)
+  createDom() {
+    const group = new THREE.Group();
+    const P = window.FFH.ProceduralTextures;
+    const brickTex = P ? P.getBrickFacadeTexture(0) : null;
+    const brickNorm = P ? P.getBrickFacadeNormalMap(0) : null;
+    const brickMat = brickTex
+      ? new THREE.MeshStandardMaterial({ map: brickTex, normalMap: brickNorm, normalScale: new THREE.Vector2(0.65, 0.65), roughness: 0.82 })
+      : new THREE.MeshLambertMaterial({ color: 0x8C2424 });
+
+    // Massive Central Basilica Nave
+    const nave = new THREE.Mesh(new THREE.BoxGeometry(2.6, 4.4, 3.8), brickMat);
+    nave.position.y = 2.2;
+    nave.castShadow = true;
+    nave.receiveShadow = true;
+
+    // High Pitched Nave Roof
+    const naveRoof = new THREE.Mesh(new THREE.ConeGeometry(2.2, 2.4, 4), this.materials.roofBrick);
+    naveRoof.position.set(0, 5.4, 0);
+    naveRoof.rotation.y = Math.PI / 4;
+    naveRoof.scale.set(1.1, 1.0, 1.6);
+    naveRoof.castShadow = true;
+
+    // Twin Massive Square Romanesque Towers on Front Facade
+    [-0.95, 0.95].forEach(tx => {
+      const tower = new THREE.Mesh(new THREE.BoxGeometry(1.05, 6.8, 1.05), brickMat);
+      tower.position.set(tx, 3.4, 1.4);
+      tower.castShadow = true;
+      tower.receiveShadow = true;
+
+      // Tall slender copper spire
+      const spire = new THREE.Mesh(new THREE.ConeGeometry(0.85, 4.5, 8), this.materials.roofCopper);
+      spire.position.set(tx, 8.9, 1.4);
+      spire.castShadow = true;
+      group.add(tower, spire);
+    });
+
+    // Great Cathedral Arched Portal
+    const portal = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.9, 0.15), new THREE.MeshLambertMaterial({ color: 0x222222 }));
+    portal.position.set(0, 0.95, 1.92);
+
+    // Bronze Crucifix Finial atop ridge
+    const crossBar = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.06), new THREE.MeshLambertMaterial({ color: 0xD4AF37 }));
+    crossBar.position.set(0, 6.7, -0.6);
+    const crossStem = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.8, 0.06), new THREE.MeshLambertMaterial({ color: 0xD4AF37 }));
+    crossStem.position.set(0, 6.7, -0.6);
+    group.add(nave, naveRoof, portal, crossBar, crossStem);
+
+    return group;
+  },
+
+  // 12. Filmhaus & Stadthalle Kino (Cultural Cinema with Glowing Marquee)
+  createKino() {
+    const group = new THREE.Group();
+    const wallMat = new THREE.MeshLambertMaterial({ color: 0xF4E8C1 }); // Cream Art Deco facade
+    const body = new THREE.Mesh(new THREE.BoxGeometry(2.7, 3.2, 2.7), wallMat);
+    body.position.y = 1.6;
+    body.castShadow = true;
+    body.receiveShadow = true;
+
+    // Streamlined Coral Trim Roof Band
+    const trim = new THREE.Mesh(new THREE.BoxGeometry(2.85, 0.35, 2.85), new THREE.MeshLambertMaterial({ color: 0xE76F51 }));
+    trim.position.y = 3.35;
+    trim.castShadow = true;
+
+    // Glowing Amber "KINO" Marquee Canopy
+    const marquee = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.45, 0.9), new THREE.MeshLambertMaterial({ color: 0x1A1C20 }));
+    marquee.position.set(0, 1.9, 1.45);
+    marquee.castShadow = true;
+
+    const marqueeGlow = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.25, 0.05), new THREE.MeshBasicMaterial({ color: 0xFFB703 }));
+    marqueeGlow.position.set(0, 1.9, 1.91);
+
+    // Glass Double Entrance Doors
+    const doors = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.6, 0.06), new THREE.MeshLambertMaterial({ color: 0x264653 }));
+    doors.position.set(0, 0.8, 1.36);
+
+    // Movie Poster Lightboxes on sides
+    [-0.95, 0.95].forEach(px => {
+      const posterFrame = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.7, 0.04), new THREE.MeshLambertMaterial({ color: 0x222222 }));
+      posterFrame.position.set(px, 1.3, 1.36);
+      const posterArt = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.62, 0.05), new THREE.MeshBasicMaterial({ color: px < 0 ? 0xE63946 : 0x457B9D }));
+      posterArt.position.set(px, 1.3, 1.37);
+      group.add(posterFrame, posterArt);
+    });
+
+    group.add(body, trim, marquee, marqueeGlow, doors);
+    return group;
+  },
+
+  // 13. ZOB & Hauptbahnhof Transit Hub (Modern Glass Canopies & Bus Parking Bay)
+  createZOB() {
+    const group = new THREE.Group();
+    const steelMat = new THREE.MeshLambertMaterial({ color: 0x343A40 });
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0x8ecae6, transparent: true, opacity: 0.65 });
+
+    // Raised Passenger Platform
+    const platform = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.22, 2.6), new THREE.MeshLambertMaterial({ color: 0xADB5BD }));
+    platform.position.y = 0.11;
+    platform.receiveShadow = true;
+
+    // Modern Glass Overhang Canopy
+    const canopy = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 2.2), glassMat);
+    canopy.position.set(0, 2.2, 0);
+    canopy.castShadow = true;
+
+    // Steel Support Pillars
+    [-0.9, 0.9].forEach(px => {
+      [-0.8, 0.8].forEach(pz => {
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.1, 8), steelMat);
+        pole.position.set(px, 1.1, pz);
+        pole.castShadow = true;
+        group.add(pole);
+      });
+    });
+
+    // Digital Departure Board Totem
+    const totem = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.6, 0.15), steelMat);
+    totem.position.set(0, 0.9, 0.6);
+    const screen = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.55, 0.16), new THREE.MeshBasicMaterial({ color: 0xFFB703 }));
+    screen.position.set(0, 1.25, 0.61);
+
+    // Waiting Bench
+    const bench = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.28, 0.35), new THREE.MeshLambertMaterial({ color: 0x8D6E63 }));
+    bench.position.set(0, 0.28, -0.4);
+
+    group.add(platform, canopy, totem, screen, bench);
+    return group;
+  },
+
+  // 14. 3D Circular Traffic Roundabout Plaza (Kreisverkehr)
+  createRoundabout() {
+    const group = new THREE.Group();
+    const S = window.FFH.TILE_SCALE || 2.6;
+
+    // Cobblestone Circular Apron
+    const apronGeo = new THREE.CylinderGeometry(S * 0.48, S * 0.48, 0.36, 24);
+    const apron = new THREE.Mesh(apronGeo, this.materials.cobble);
+    apron.position.y = -0.04;
+    apron.receiveShadow = true;
+
+    // Raised Outer Stone Curb Ring
+    const curbRingGeo = new THREE.TorusGeometry(S * 0.26, 0.06, 8, 24);
+    const curbRing = new THREE.Mesh(curbRingGeo, new THREE.MeshLambertMaterial({ color: 0x7D8A9D }));
+    curbRing.rotation.x = Math.PI / 2;
+    curbRing.position.y = 0.16;
+    curbRing.castShadow = true;
+
+    // Inner Manicured Garden Center
+    const gardenGeo = new THREE.CylinderGeometry(S * 0.25, S * 0.25, 0.12, 20);
+    const garden = new THREE.Mesh(gardenGeo, this.materials.grass);
+    garden.position.y = 0.18;
+    garden.receiveShadow = true;
+
+    // Centerpiece: Historic Stone Monument Fountain
+    const fountainPlinth = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.35, 12), new THREE.MeshLambertMaterial({ color: 0xEDE5D8 }));
+    fountainPlinth.position.y = 0.40;
+    fountainPlinth.castShadow = true;
+
+    const fountainBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.25, 0.2, 12), new THREE.MeshLambertMaterial({ color: 0xEDE5D8 }));
+    fountainBowl.position.y = 0.65;
+    fountainBowl.castShadow = true;
+
+    const waterCore = new THREE.Mesh(new THREE.CylinderGeometry(0.40, 0.40, 0.05, 12), new THREE.MeshBasicMaterial({ color: 0x457B9D }));
+    waterCore.position.y = 0.72;
+
+    group.add(apron, curbRing, garden, fountainPlinth, fountainBowl, waterCore);
+    return group;
+  },
+
+  // 15. 3D Arched Hanseatic Bridge with Stone Balustrades (Brücke)
+  createArchedBridge(roadRotation = 0) {
+    const group = new THREE.Group();
+    const S = window.FFH.TILE_SCALE || 2.6;
+
+    // Bridge Road Deck
+    const deckGeo = new THREE.BoxGeometry(S, 0.38, S);
+    const deck = new THREE.Mesh(deckGeo, this.materials.bikeLane);
+    deck.position.y = 0.06;
+    deck.rotation.y = roadRotation;
+    deck.receiveShadow = true;
+
+    // Twin Stone Balustrades / Railings along the road edges
+    const balustradeMat = new THREE.MeshLambertMaterial({ color: 0xEDE5D8 });
+    const isEW = Math.abs(roadRotation) > 0.1; // If rotated 90 deg, bridge runs East-West
+    const balGeo = isEW 
+      ? new THREE.BoxGeometry(S, 0.42, 0.12)
+      : new THREE.BoxGeometry(0.12, 0.42, S);
+
+    const bal1 = new THREE.Mesh(balGeo, balustradeMat);
+    const bal2 = new THREE.Mesh(balGeo, balustradeMat);
+
+    if (isEW) {
+      bal1.position.set(0, 0.42, -S * 0.46);
+      bal2.position.set(0, 0.42, S * 0.46);
+    } else {
+      bal1.position.set(-S * 0.46, 0.42, 0);
+      bal2.position.set(S * 0.46, 0.42, 0);
+    }
+    bal1.castShadow = true;
+    bal2.castShadow = true;
+
+    // Brick Arch Piers dipping into the water
+    const pierMat = this.materials.roofBrick;
+    const pier1 = new THREE.Mesh(new THREE.BoxGeometry(S * 0.9, 0.5, S * 0.9), pierMat);
+    pier1.position.y = -0.3;
+
+    group.add(deck, bal1, bal2, pier1);
+    return group;
+  },
+
+  // 16. Street Props: Historical Hanseatic Lamp Post & Electrical Utility Boxes
   createStreetLamp() {
     const group = new THREE.Group();
     const ironMat = new THREE.MeshLambertMaterial({ color: 0x22262B });
@@ -573,49 +823,61 @@ window.FFH.createSeamlessWaterPlane = function(width = 110, height = 110) {
 
   const waterMesh = new THREE.Mesh(waterGeo, waterMat);
   waterMesh.rotation.x = -Math.PI / 2;
-  waterMesh.position.set(24, -0.25, 24);
+  waterMesh.position.set(31.2, -0.25, 31.2);
   waterMesh.receiveShadow = true;
   return { waterMesh, waterMat };
 };
 
-// Uncluttered, spacious 20x20 City Layout with 2.6 unit tile scaling
-// Every building is situated directly alongside a road or green plaza, oriented to face its street approach.
-window.FFH.MAP_SIZE = 20;
+// Hand-Painted 24x24 Lübeck Altstadt Island Layout with 2.6 unit tile scaling
+// Faithfully mirrors the user's hand-painted map:
+// - Teardrop island enclosed by the Trave river and moat channels
+// - 7 Historic Arched Bridges connecting mainland to island
+// - 3 Traffic Roundabouts (Kreisverkehre)
+// - Landmarks: Burgtor, Holstentor, ZOB, Marienkirche, Dom, UNI, Kino, Darkstore, WG Room, Rathaus, Bakery, Pizza
+window.FFH.MAP_SIZE = 24;
 window.FFH.TILE_SCALE = 2.6;
 
 window.FFH.LUBECK_CITY_GRID = [
-  ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','BR','BR','W','W','W','W','W','BR','BR','W','W','W','W','W'],
-  ['W','W','G','T','G','R_B','R_B','R_B','R_B','R_B','R_B','R_B','R_B','R_B','R_B','G','T','G','W','W'],
-  ['W','G','B_HOLSTEN','G','G','R_B','G','A1','G','A2','G','B_DARKSTORE','G','A3','R_B','G','B_HOSPITAL','G','W','W'],
-  ['W','G','G','T','G','R_B','G','G','G','G','G','G','G','G','R_B','G','G','T','W','W'],
-  ['W','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','W','W'],
-  ['W','G','A4','G','R_C','G','T','G','R_C','G','B_MARIEN','G','R_C','G','T','G','A1','G','W','W'],
-  ['W','T','B_WG','G','R_C','G','G','G','R_C','G','G','G','R_C','G','G','G','B_BAKERY','T','W','W'],
-  ['W','G','G','G','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','G','G','W','W'],
-  ['W','W','R_B','R_B','R_B','G','A2','G','R_C','G','B_RATHAUS','G','R_C','G','A3','G','R_B','R_B','W','W'],
-  ['W','G','B_PIZZA','G','R_B','G','G','G','R_C','G','G','G','R_C','G','G','G','A4','G','W','W'],
-  ['W','G','G','T','R_B','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_B','G','T','W','W'],
-  ['W','T','A1','G','R_B','R_C','G','T','G','G','T','G','R_C','R_B','G','G','B_UNI','G','W','W'],
-  ['W','G','G','G','R_B','R_C','G','G','G','G','G','G','R_C','R_B','G','T','G','G','W','W'],
-  ['W','W','G','T','R_B','R_B','R_B','R_B','R_B','R_B','R_B','R_B','R_B','R_B','G','G','T','G','W','W'],
-  ['W','W','W','W','W','W','BR','BR','W','W','W','W','W','BR','BR','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'],
-  ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W']
+  ['G','G','G','G','G','G','G','G','G','G','G','R_C','R_C','G','G','G','G','G','G','G','G','G','G','G'],
+  ['G','G','G','G','G','G','G','G','G','G','T','R_R','R_R','T','G','G','G','G','G','G','G','G','G','G'],
+  ['W','W','W','W','W','W','W','W','W','W','W','BR','BR','W','W','W','W','W','W','W','W','W','W','W'],
+  ['W','W','W','W','W','W','W','W','W','W','G','B_BURGTOR','R_B','G','W','W','W','W','W','W','W','W','W','W'],
+  ['W','W','W','W','BR','BR','W','W','R_B','R_B','R_B','R_C','R_B','R_B','R_B','W','W','W','W','W','W','W','W','W'],
+  ['G','G','T','G','W','W','R_B','G','A1','G','R_C','G','A2','G','R_B','G','W','W','G','T','G','G','G','G'],
+  ['G','B_ZOB','G','G','W','W','R_B','G','G','G','R_C','G','B_DARKSTORE','G','R_B','G','W','W','G','G','G','G','G','G'],
+  ['G','R_C','R_R','BR','BR','B_HOLSTEN','R_C','R_C','B_MARIEN','G','R_C','G','A3','G','R_B','W','W','G','T','G','G','G','G','G'],
+  ['G','G','G','W','W','G','R_B','G','R_C','G','R_C','G','G','G','R_C','B_UNI','R_B','W','W','G','G','G','G','G'],
+  ['G','T','G','W','W','G','R_B','G','B_RATHAUS','G','B_BAKERY','G','A4','G','R_C','R_B','BR','BR','G','G','T','G','G','G'],
+  ['G','G','G','W','W','G','R_B','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_B','W','W','G','G','G','G','G','G'],
+  ['G','G','R_C','BR','BR','G','B_WG','G','B_PIZZA','G','R_C','G','G','G','R_B','W','W','G','G','G','G','G','G','G'],
+  ['G','T','G','W','W','G','R_B','G','G','G','R_C','G','A1','G','R_B','W','W','G','T','G','G','G','G','G'],
+  ['G','G','G','W','W','G','R_B','G','A2','G','R_C','G','G','G','R_B','W','W','G','G','G','G','G','G','G'],
+  ['W','W','W','W','W','G','R_B','G','G','G','R_C','G','B_KINO','R_B','R_B','BR','BR','G','G','G','G','G','W','W'],
+  ['W','W','W','W','W','G','R_B','G','A3','G','R_C','G','R_R','R_R','G','W','W','G','G','T','G','W','W','W'],
+  ['W','W','W','W','W','W','R_B','G','G','G','R_C','G','A4','G','R_B','W','W','W','W','W','W','W','W','W'],
+  ['W','W','W','W','W','W','W','R_B','G','G','R_C','G','G','R_B','W','W','W','W','W','W','W','W','W','W'],
+  ['W','W','W','W','W','W','W','W','R_B','G','B_DOM','G','R_B','W','W','W','W','W','W','W','W','W','W','W'],
+  ['W','W','W','W','W','W','W','W','G','R_B','R_C','R_B','G','W','W','W','W','W','W','W','W','W','W','W'],
+  ['W','W','W','W','W','W','W','W','W','BR','BR','W','W','W','W','W','W','W','W','W','W','W','W','W'],
+  ['G','G','G','G','G','G','G','G','G','R_C','R_C','G','G','G','G','G','G','G','G','G','G','G','G','G'],
+  ['G','G','T','G','G','G','G','G','T','R_C','R_C','T','G','G','G','G','T','G','G','G','G','G','G','G'],
+  ['G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G']
 ];
 
 window.FFH.POI_METADATA = {
   'B_HOLSTEN':    { name: 'Holstentor West Gate', tag: 'Historic Landmark', desc: '1464 Brick Gothic western gate. The iconic entryway into the Altstadt island.', action: 'Explore Gate' },
+  'B_BURGTOR':    { name: 'Burgtor North Gate', tag: 'Fortified Gateway', desc: '1444 Late-Gothic northern citadel gate protecting the bridge to the mainland.', action: 'Inspect Fortress' },
+  'B_ZOB':        { name: 'ZOB & Hauptbahnhof', tag: 'Transit Hub', desc: 'Lübeck Central Bus Station & Train Station. The arrival gateway where your journey began.', action: 'Check Bus Schedule' },
   'B_MARIEN':     { name: 'St. Mary\'s (Marienkirche)', tag: 'Cathedral', desc: 'The architectural mother of Brick Gothic churches with towering 120m dual spires.', action: 'Visit Spire' },
+  'B_DOM':        { name: 'Dom zu Lübeck (Cathedral)', tag: 'Romanesque Cathedral', desc: 'Historic 1173 cathedral founded by Henry the Lion, anchoring the southern tip of the island.', action: 'Walk Courtyard' },
+  'B_UNI':        { name: 'Universität zu Lübeck', tag: 'University', desc: 'Goal: Bank 250.00€ tuition fees (Semesterbeitrag) to pass enrollment!', action: 'Check Tuition' },
+  'B_KINO':       { name: 'Filmhaus & Stadthalle Kino', tag: 'Cultural Cinema', desc: 'Beloved local cinema and student film society venue near the southeastern canals.', action: 'View Showtimes' },
   'B_DARKSTORE':  { name: 'Kruma Dark Store #104', tag: 'Warehouse Hub', desc: 'Your grocery pick & delivery workplace. Grab your next courier shift manifest!', action: 'Start Shift' },
   'B_WG':         { name: 'Student Sublet (Your WG)', tag: 'Sanctuary', desc: 'Your cozy bedroom base with the glowing desk lamp, study books, and sleeping cat.', action: 'Enter Room' },
   'B_RATHAUS':    { name: 'Bürgeramt & Rathaus', tag: 'City Hall', desc: 'Historic town hall. Register your address (Anmeldung) to unlock your banking rights.', action: 'Inspect Status' },
   'B_PIZZA':      { name: 'Pizzeria Bella Lübeck', tag: 'Food Pickup', desc: 'Charming terracotta restaurant counter for rapid food delivery dispatches.', action: 'Order Lunch' },
   'B_BAKERY':     { name: 'Bäckerei Hansa', tag: 'Artisan Shop', desc: 'Local artisan bakery baking fresh sourdough crust loaves (das Brot).', action: 'Buy Bread' },
-  'B_HOSPITAL':   { name: 'Krankenhaus Altstadt', tag: 'Medical VIP', desc: 'High-stakes express delivery target for Station 4B night shifts.', action: 'View Delivery Target' },
-  'B_UNI':        { name: 'Universität zu Lübeck', tag: 'University', desc: 'Goal: Bank 250.00€ tuition fees (Semesterbeitrag) to pass enrollment!', action: 'Check Tuition' }
+  'B_HOSPITAL':   { name: 'Krankenhaus Altstadt', tag: 'Medical VIP', desc: 'High-stakes express delivery target for Station 4B night shifts.', action: 'View Delivery Target' }
 };
 
 // Calculate optimal building rotation so its front door faces the nearest road tile
@@ -624,7 +886,7 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
   const isRoad = (gx, gz) => {
     if (gx < 0 || gx >= S || gz < 0 || gz >= S) return false;
     const t = grid[gz][gx];
-    return t === 'R_C' || t === 'R_B' || t === 'BR';
+    return t === 'R_C' || t === 'R_B' || t === 'BR' || t === 'R_R';
   };
 
   // Check 4 adjacent directions: +Z (South), -Z (North), +X (East), -X (West)
@@ -646,7 +908,7 @@ window.FFH.buildLubeckCityWorld = function() {
   registry.initMaterials();
 
   // Single continuous Water Base Plane
-  const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(90, 90);
+  const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(110, 110);
   worldGroup.add(waterMesh);
 
   const tileGeo = new THREE.BoxGeometry(S, 0.35, S);
@@ -666,7 +928,7 @@ window.FFH.buildLubeckCityWorld = function() {
       const isRoad = (gx, gz) => {
         if (gx < 0 || gx >= window.FFH.MAP_SIZE || gz < 0 || gz >= window.FFH.MAP_SIZE) return false;
         const t = window.FFH.LUBECK_CITY_GRID[gz][gx];
-        return t === 'R_C' || t === 'R_B' || t === 'BR';
+        return t === 'R_C' || t === 'R_B' || t === 'BR' || t === 'R_R';
       };
 
       const roadE = isRoad(x + 1, z);
@@ -688,17 +950,25 @@ window.FFH.buildLubeckCityWorld = function() {
           roadRotation = 0;
         }
       } else if (type === 'BR') {
-        groundMat = registry.materials.bikeLane;
-        roadRotation = 0; // Bridges cross the Trave river North-South
+        if ((roadE || roadW) && !(roadN && roadS)) {
+          roadRotation = Math.PI / 2;
+        } else {
+          roadRotation = 0;
+        }
+        tileGroup.add(registry.createArchedBridge(roadRotation));
+      } else if (type === 'R_R') {
+        tileGroup.add(registry.createRoundabout());
       } else if (type === 'G') {
         groundMat = registry.materials.sidewalk || registry.materials.grass;
       }
 
-      const base = new THREE.Mesh(tileGeo, groundMat);
-      base.position.y = -0.05;
-      base.rotation.y = roadRotation;
-      base.receiveShadow = true;
-      tileGroup.add(base);
+      if (type !== 'BR' && type !== 'R_R') {
+        const base = new THREE.Mesh(tileGeo, groundMat);
+        base.position.y = -0.05;
+        base.rotation.y = roadRotation;
+        base.receiveShadow = true;
+        tileGroup.add(base);
+      }
 
       // Add stone curb border between road and pavement (matching 3D isometric diorama mockup)
       if (type === 'R_C' || type === 'R_B') {
@@ -739,6 +1009,14 @@ window.FFH.buildLubeckCityWorld = function() {
         bldgGroup = registry.createAltbau(variant, 2 + (variant % 2));
       } else if (type === 'B_HOLSTEN') {
         bldgGroup = registry.createHolstentor();
+      } else if (type === 'B_BURGTOR') {
+        bldgGroup = registry.createBurgtor();
+      } else if (type === 'B_DOM') {
+        bldgGroup = registry.createDom();
+      } else if (type === 'B_KINO') {
+        bldgGroup = registry.createKino();
+      } else if (type === 'B_ZOB') {
+        bldgGroup = registry.createZOB();
       } else if (type === 'B_MARIEN') {
         bldgGroup = registry.createMarienkirche();
       } else if (type === 'B_DARKSTORE') {

@@ -21,8 +21,8 @@ window.FFH.CityExplorationPhase = class {
     this.sunLight = null;
     
     // Player position & Click-to-Move Target
-    // Dedicated Road Spawn: Main central boulevard intersection
-    this.playerPos = new THREE.Vector3(20.8, 0.05, 13.0);
+    // Dedicated Road Spawn: Main road right beside your Student WG Room (x: 6, z: 10)
+    this.playerPos = new THREE.Vector3(15.6, 0.05, 26.0);
     this.targetMovePos = null;
     this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
@@ -42,9 +42,19 @@ window.FFH.CityExplorationPhase = class {
     this.lastPointerY = 0;
     this.pointerDownTime = 0;
     
-    // Pinch to zoom state
+    // Camera Zoom & Inspection Pan state (for full world inspection & debugging)
+    this.camZoom = 1.0;
+    this.targetCamZoom = 1.0;
+    this.minCamZoom = 0.22; // Full view of entire 24x24 island diorama
+    this.maxCamZoom = 2.5;  // Close-up
+    this.initialCamZoom = 1.0;
     this.initialPinchDist = null;
-    this.initialCamDistance = 5.8;
+    this.cameraPanOffset = new THREE.Vector3(0, 0, 0);
+    this.isPanningCamera = false;
+    this.panStartX = 0;
+    this.panStartY = 0;
+    this.initialPanOffset = new THREE.Vector3(0, 0, 0);
+    this.debugZoomBar = null;
     
     // Double click / double tap detection
     this.lastTapTime = 0;
@@ -64,6 +74,8 @@ window.FFH.CityExplorationPhase = class {
     this.onTouchMove = this.onTouchMove.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
     this.onWheel = this.onWheel.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
+    this.onContextMenu = (e) => e.preventDefault();
   }
 
   enter() {
@@ -115,7 +127,7 @@ window.FFH.CityExplorationPhase = class {
     const roadTiles = [];
     for (let z = 1; z < window.FFH.MAP_SIZE - 1; z++) {
       for (let x = 1; x < window.FFH.MAP_SIZE - 1; x++) {
-        if (['R_C', 'R_B', 'BR'].includes(window.FFH.LUBECK_CITY_GRID[z][x])) {
+        if (['R_C', 'R_B', 'BR', 'R_R'].includes(window.FFH.LUBECK_CITY_GRID[z][x])) {
           roadTiles.push({ x: x * S, z: z * S });
         }
       }
@@ -176,9 +188,12 @@ window.FFH.CityExplorationPhase = class {
     dom.addEventListener('touchmove', this.onTouchMove, { passive: false });
     dom.addEventListener('touchend', this.onTouchEnd);
     dom.addEventListener('wheel', this.onWheel, { passive: false });
+    dom.addEventListener('contextmenu', this.onContextMenu);
+    window.addEventListener('keydown', this.onKeyDown);
     
-    // Initialize Minimap Data
+    // Initialize Minimap Data & Debug Zoom UI
     this.setupMinimap();
+    this.setupDebugZoomUI();
 
     if (this.game.state.currentShift === 1) {
       if (this.game.state.activeDelivery) {
@@ -195,10 +210,10 @@ window.FFH.CityExplorationPhase = class {
 
   setupMinimap() {
     this.staticMapCanvas = document.createElement('canvas');
-    this.staticMapCanvas.width = 160;
-    this.staticMapCanvas.height = 160;
+    this.staticMapCanvas.width = 192;
+    this.staticMapCanvas.height = 192;
     const ctx = this.staticMapCanvas.getContext('2d');
-    const S = 8; // tile size in px
+    const S = 8; // tile size in px (24 * 8 = 192)
 
     for (let z = 0; z < window.FFH.MAP_SIZE; z++) {
       for (let x = 0; x < window.FFH.MAP_SIZE; x++) {
@@ -206,6 +221,7 @@ window.FFH.CityExplorationPhase = class {
         let color = '#84A98C'; // Grass
         if (type === 'W') color = '#457B9D';
         else if (type === 'R_C' || type === 'R_B' || type === 'BR') color = '#5C677D';
+        else if (type === 'R_R') color = '#A8DADC'; // Roundabouts
         else if (type === 'T') color = '#2D6A4F';
         else if (type.startsWith('B_')) color = '#ECC238'; // POIs
         else if (type.startsWith('A')) color = '#E76F51'; // Residential
@@ -489,13 +505,24 @@ window.FFH.CityExplorationPhase = class {
 
   exit() {
     const dom = this.game.renderer.domElement;
-    dom.removeEventListener('pointerdown', this.onPointerDown);
-    dom.removeEventListener('pointermove', this.onPointerMove);
-    dom.removeEventListener('pointerup', this.onPointerUp);
-    dom.removeEventListener('touchstart', this.onTouchStart);
-    dom.removeEventListener('touchmove', this.onTouchMove);
-    dom.removeEventListener('touchend', this.onTouchEnd);
-    dom.removeEventListener('wheel', this.onWheel);
+    if (dom) {
+      dom.removeEventListener('pointerdown', this.onPointerDown);
+      dom.removeEventListener('pointermove', this.onPointerMove);
+      dom.removeEventListener('pointerup', this.onPointerUp);
+      dom.removeEventListener('touchstart', this.onTouchStart);
+      dom.removeEventListener('touchmove', this.onTouchMove);
+      dom.removeEventListener('touchend', this.onTouchEnd);
+      dom.removeEventListener('wheel', this.onWheel);
+      dom.removeEventListener('contextmenu', this.onContextMenu);
+    }
+    window.removeEventListener('keydown', this.onKeyDown);
+    this.removeDebugZoomUI();
+
+    // Reset camera zoom to 1.0 upon leaving exploration
+    if (this.game.currentCamera) {
+      this.game.currentCamera.zoom = 1.0;
+      this.game.currentCamera.updateProjectionMatrix();
+    }
 
     if (this.targetMarker) {
       this.game.scene.remove(this.targetMarker);
@@ -512,9 +539,12 @@ window.FFH.CityExplorationPhase = class {
     }
     
     // Stop E-bike motor if playing
-    if (this.game.sfx.stopMotor) {
+    if (this.game.sfx && this.game.sfx.stopMotor) {
       this.game.sfx.stopMotor();
     }
+
+    // Clear HUD UI
+    this.game.ui.clear();
   }
 
   setupCourier() {
@@ -598,14 +628,18 @@ window.FFH.CityExplorationPhase = class {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       this.initialPinchDist = Math.hypot(dx, dy);
-      this.initialCamDistance = this.camDistance;
+      this.initialCamZoom = this.targetCamZoom;
     }
   }
 
   onTouchMove(e) {
     if (e.touches.length === 2 && this.initialPinchDist) {
       e.preventDefault();
-      // Pinch to zoom disabled to enforce fixed isometric viewport constraint
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const factor = dist / this.initialPinchDist;
+      this.setZoom(this.initialCamZoom * factor);
     }
   }
 
@@ -616,30 +650,62 @@ window.FFH.CityExplorationPhase = class {
   }
 
   onPointerDown(e) {
-    if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
+    if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#debug-zoom-bar') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
     
-    this.isPointerDown = true;
-    this.isDraggingCamera = false;
     this.pointerDownX = e.clientX;
     this.pointerDownY = e.clientY;
     this.lastPointerX = e.clientX;
     this.lastPointerY = e.clientY;
     this.pointerDownTime = Date.now();
+
+    // Right-click or middle-click or Shift-drag triggers camera panning
+    if (e.button === 2 || e.button === 1 || e.shiftKey) {
+      this.isPanningCamera = true;
+      this.initialPanOffset.copy(this.cameraPanOffset);
+      return;
+    }
+
+    this.isPointerDown = true;
+    this.isDraggingCamera = false;
   }
 
   onPointerMove(e) {
+    if (this.isPanningCamera) {
+      const dx = e.clientX - this.pointerDownX;
+      const dy = e.clientY - this.pointerDownY;
+      const panScale = (1.0 / (this.camZoom || 1.0)) * 0.04;
+      const worldDx = (dx - dy) * panScale;
+      const worldDz = (-dx - dy) * panScale;
+      this.cameraPanOffset.x = this.initialPanOffset.x - worldDx;
+      this.cameraPanOffset.z = this.initialPanOffset.z - worldDz;
+      this.lastPointerX = e.clientX;
+      this.lastPointerY = e.clientY;
+      return;
+    }
+
     if (!this.isPointerDown) return;
     const dragDist = Math.hypot(e.clientX - this.pointerDownX, e.clientY - this.pointerDownY);
     
     if (dragDist > 8) {
       this.isDraggingCamera = true;
-      // Removed orbit logic for fixed bird's-eye view.
+      // If zoomed out, drag also allows inspection panning across the city
+      if (this.targetCamZoom < 0.6) {
+        const dx = e.clientX - this.lastPointerX;
+        const dy = e.clientY - this.lastPointerY;
+        const panScale = (1.0 / (this.camZoom || 1.0)) * 0.035;
+        this.cameraPanOffset.x -= (dx - dy) * panScale;
+        this.cameraPanOffset.z -= (-dx - dy) * panScale;
+      }
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
     }
   }
 
   onPointerUp(e) {
+    if (this.isPanningCamera) {
+      this.isPanningCamera = false;
+      return;
+    }
     if (!this.isPointerDown) return;
     this.isPointerDown = false;
     
@@ -648,6 +714,10 @@ window.FFH.CityExplorationPhase = class {
 
     // Tap / Click handling (not a camera drag)
     if (dragDist < 8 && elapsed < 400) {
+      // Re-center camera on courier if user was close-up
+      if (this.cameraPanOffset.lengthSq() > 0.01 && this.targetCamZoom >= 0.7) {
+        this.cameraPanOffset.set(0, 0, 0);
+      }
       this.handleSingleOrDoubleTap(e);
     }
   }
@@ -713,7 +783,129 @@ window.FFH.CityExplorationPhase = class {
 
   onWheel(e) {
     e.preventDefault();
-    // Wheel zoom disabled to enforce fixed isometric viewport constraint
+    const factor = e.deltaY < 0 ? 1.16 : 0.86;
+    this.setZoom(this.targetCamZoom * factor);
+  }
+
+  setZoom(val) {
+    this.targetCamZoom = Math.max(this.minCamZoom, Math.min(this.maxCamZoom, val));
+    this.updateZoomUI();
+  }
+
+  toggleOverview() {
+    if (this.targetCamZoom < 0.45) {
+      // Return to normal 100% close-up view centered on player
+      this.setZoom(1.0);
+      this.cameraPanOffset.set(0, 0, 0);
+    } else {
+      // Zoom out to view entire 24x24 island diorama!
+      this.setZoom(0.28);
+      // Pan towards island center (12 * 2.6 = 31.2)
+      const islandCenterX = 12 * (window.FFH.TILE_SCALE || 2.6);
+      const islandCenterZ = 12 * (window.FFH.TILE_SCALE || 2.6);
+      this.cameraPanOffset.x = islandCenterX - this.playerPos.x;
+      this.cameraPanOffset.z = islandCenterZ - this.playerPos.z;
+    }
+  }
+
+  onKeyDown(e) {
+    if (e.key === '+' || e.key === '=') {
+      this.setZoom(this.targetCamZoom * 1.25);
+    } else if (e.key === '-' || e.key === '_') {
+      this.setZoom(this.targetCamZoom * 0.8);
+    } else if (e.key === '0') {
+      this.setZoom(1.0);
+      this.cameraPanOffset.set(0, 0, 0);
+    } else if (e.key === 'o' || e.key === 'O' || e.key === 'm' || e.key === 'M') {
+      this.toggleOverview();
+    }
+  }
+
+  setupDebugZoomUI() {
+    this.removeDebugZoomUI();
+
+    const bar = document.createElement('div');
+    bar.id = 'debug-zoom-bar';
+    bar.style.cssText = `
+      position: fixed;
+      bottom: 84px;
+      right: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 2px solid #264653;
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      z-index: 999;
+      pointer-events: auto;
+      user-select: none;
+      backdrop-filter: blur(4px);
+    `;
+
+    bar.innerHTML = `
+      <button id="btn-zoom-in" title="Zoom In (+ or Scroll Up)" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #264653;background:#E9ECEF;font-size:16px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#264653;touch-action:manipulation;">🔍+</button>
+      <button id="btn-zoom-reset" title="Reset 100% (0)" style="width:40px;height:24px;border-radius:6px;border:1.5px solid #264653;background:#FFF;font-size:11px;font-weight:700;cursor:pointer;color:#264653;display:flex;align-items:center;justify-content:center;touch-action:manipulation;">100%</button>
+      <button id="btn-zoom-out" title="Zoom Out (- or Scroll Down)" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #264653;background:#E9ECEF;font-size:16px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#264653;touch-action:manipulation;">🔍−</button>
+      <button id="btn-zoom-world" title="Toggle Full World Overview (O or M)" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #2A9D8F;background:#2A9D8F;color:#FFF;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;">🗺️</button>
+    `;
+
+    document.body.appendChild(bar);
+    this.debugZoomBar = bar;
+
+    const btnIn = bar.querySelector('#btn-zoom-in');
+    const btnOut = bar.querySelector('#btn-zoom-out');
+    const btnReset = bar.querySelector('#btn-zoom-reset');
+    const btnWorld = bar.querySelector('#btn-zoom-world');
+
+    btnIn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.setZoom(this.targetCamZoom * 1.3);
+    });
+
+    btnOut.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.setZoom(this.targetCamZoom * 0.75);
+    });
+
+    btnReset.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.setZoom(1.0);
+      this.cameraPanOffset.set(0, 0, 0);
+    });
+
+    btnWorld.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleOverview();
+    });
+  }
+
+  updateZoomUI() {
+    if (!this.debugZoomBar) return;
+    const lbl = this.debugZoomBar.querySelector('#btn-zoom-reset');
+    if (lbl) {
+      const pct = Math.round(this.targetCamZoom * 100);
+      lbl.textContent = `${pct}%`;
+    }
+    const btnWorld = this.debugZoomBar.querySelector('#btn-zoom-world');
+    if (btnWorld) {
+      if (this.targetCamZoom < 0.45) {
+        btnWorld.style.background = '#E76F51';
+        btnWorld.title = 'Exit Overview (Focus Courier)';
+      } else {
+        btnWorld.style.background = '#2A9D8F';
+        btnWorld.title = 'Toggle Full World Overview (O)';
+      }
+    }
+  }
+
+  removeDebugZoomUI() {
+    if (this.debugZoomBar && this.debugZoomBar.parentNode) {
+      this.debugZoomBar.parentNode.removeChild(this.debugZoomBar);
+    }
+    this.debugZoomBar = null;
   }
 
   handlePOIAction(action, poiData) {
@@ -753,6 +945,9 @@ window.FFH.CityExplorationPhase = class {
       this.game.transitionTo('DIALOGUE', { npcKey: targetNpc });
     } else {
       this.game.ui.spawnFloatingText(`Visited: ${poiData.name}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+      if (this.game.sfx && this.game.sfx.playSfx) {
+        this.game.sfx.playSfx('success');
+      }
     }
   }
 
@@ -1141,18 +1336,25 @@ window.FFH.CityExplorationPhase = class {
     const cam = this.game.currentCamera;
     if (!cam) return;
 
-    // Fixed High Isometric Bird's-Eye Offset
+    // Smoothly interpolate zoom on the OrthographicCamera
+    this.camZoom = THREE.MathUtils.lerp(this.camZoom || 1.0, this.targetCamZoom || 1.0, 0.15);
+    if (Math.abs(cam.zoom - this.camZoom) > 0.001) {
+      cam.zoom = this.camZoom;
+      cam.updateProjectionMatrix();
+    }
+
+    // High Isometric Bird's-Eye Offset
     const offsetX = 15;
     const offsetY = 20;
     const offsetZ = 15;
 
-    const camX = this.playerPos.x + offsetX;
-    const camY = this.playerPos.y + offsetY;
-    const camZ = this.playerPos.z + offsetZ;
+    const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
+    const lookTargetY = this.playerPos.y;
+    const lookTargetZ = this.playerPos.z + (this.cameraPanOffset ? this.cameraPanOffset.z : 0);
 
-    const targetLookX = this.playerPos.x;
-    const targetLookY = this.playerPos.y;
-    const targetLookZ = this.playerPos.z;
+    const camX = lookTargetX + offsetX;
+    const camY = lookTargetY + offsetY;
+    const camZ = lookTargetZ + offsetZ;
 
     if (snap) {
       cam.position.set(camX, camY, camZ);
@@ -1162,12 +1364,13 @@ window.FFH.CityExplorationPhase = class {
       cam.position.z = THREE.MathUtils.lerp(cam.position.z, camZ, 0.1);
     }
 
-    cam.lookAt(targetLookX, targetLookY, targetLookZ);
+    cam.lookAt(lookTargetX, lookTargetY, lookTargetZ);
   }
 
   updateBuildingOcclusionFade() {
     const cam = this.game.currentCamera;
     if (!cam) return;
+    if (this.camZoom < 0.6) return; // Keep all buildings solid in wide overview mode
 
     const charPos = new THREE.Vector3(this.playerPos.x, this.playerPos.y + 0.8, this.playerPos.z);
     const camPos = cam.position.clone();
@@ -1218,19 +1421,5 @@ window.FFH.CityExplorationPhase = class {
         }
       }
     });
-  }
-
-  exit() {
-    const dom = this.game.renderer.domElement;
-    dom.removeEventListener('pointerdown', this.onPointerDown);
-    dom.removeEventListener('pointermove', this.onPointerMove);
-    dom.removeEventListener('pointerup', this.onPointerUp);
-    dom.removeEventListener('touchstart', this.onTouchStart);
-    dom.removeEventListener('touchmove', this.onTouchMove);
-    dom.removeEventListener('touchend', this.onTouchEnd);
-    dom.removeEventListener('wheel', this.onWheel);
-    
-    // Clear HUD UI
-    this.game.ui.clear();
   }
 };

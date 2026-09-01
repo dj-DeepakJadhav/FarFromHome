@@ -192,5 +192,79 @@
 - **Packaging & Size Verification**:
   - Rebuilt single-file `index.html` via `node build/assemble.js` at **6.13 MB** (Limit: 35 MB).
 
+### September 1, 2026: Living Immigrant Narrative & GDC Systems Implementation (Brush × Ingold × Jayanth × Walsh)
+- **Stone Librande GDC One-Page Design Blueprint**:
+  - Created `Docs/ONE_PAGE_DESIGN_DOCUMENT.md` and compiled `Docs/ONE_PAGE_DESIGN_DOCUMENT.jpg` visual master reference poster.
+- **Mechanics as Metaphor & Lived Story (Andrew Walsh & James Portnow)**:
+  - Transformed the WG Dorm Room into an interactive sanctuary with real physical trade-offs:
+    - Cast-Iron Radiator trade-off: Spend €2.00 heating fee to stay warm (+30 Freshness) vs. freeze/shiver to protect the €250 tuition fund.
+    - 5-Minute Meditative Stoßlüften: Open the tilted *Kippfenster* window for ambient Baltic breeze and church bell chimes (+25 Freshness).
+- **Environmental Storytelling Breadcrumbs (Telltale Framework)**:
+  - Interactive corkboard Postcard from Home (*"We look at the calendar every morning back home... eat well, stay warm on your bicycle, we are so proud of you"*).
+  - Interactive landlord fridge note from Hans Lokker detailing mandatory waste sorting (*Mülltrennung*) and 22:00 *Ruhezeit*.
+- **State-Dependent Narrative Atoms & High-Impact Callbacks (Jon Ingold & Tony Howard-Arias)**:
+  - Frau Rita Schneider dynamically registers near-tuition excitement with maternal relief when holding >€200.
+  - Hans Lokker sniffs garlic/dough past 22:00 Ruhezeit if unrecorded shifts were taken, or acknowledges warm croissants and radiator warmth.
+  - Oma Martha remembers on-time flour deliveries from past shifts and offers the Emergency Clinic Favor.
+- **Meg Jayanth Moral Dilemmas & Burden of Proof Climax**:
+  - Mathias's *Schwarzarbeit* cash run (+€25 cash, +15% Zoll risk).
+  - Oma Martha's emergency medicine delivery for neighbor Frau Helga yielding a handwritten *Leumundszeugnis* (Character Reference Letter).
+  - Dr. Lindemann's Day 28 Final Hearing at Ausländerbehörde reconstructed as a Burden of Proof argument auditing legal documents, Zoll risk, community references, and expressive player archetypes (*The Hustler*, *The Bureaucrat*, *The Diplomat*).
+- **Packaging & Size Verification**:
+  - Single-file `index.html` compiled cleanly at **6.16 MB** uncompressed (~1.8 MB zipped release), strictly satisfying the ≤ 35 MB offline constraint.
 
+### September 2, 2026: Procedural Math Textures & Flicker-Free 3D Isometric Overworld (Project Tomorrow Technique)
+- **Procedural Canvas Math Texture Generator (`src/render/proceduralTextures.js`)**:
+  - Implemented 0 KB bundle-cost procedural canvas synthesis using trigonometric and geometric math:
+    - **Arched European Cobblestone Road Texture**: Sinusoidal fan-coursing, granite/slate color modulation, dark charcoal mortar joints, and top-left/bottom-right bevel relief.
+    - **Bicycle Highway Texture**: Dark slate asphalt, German Radweg terracotta red lane strip, crisp white divider lines, directional chevrons, and painted bicycle stencils.
+    - **Hanseatic Brick Facades**: Running-bond masonry with mortar grooves and rich clay/terracotta/mustard jitter across Altbau townhouses and Holstentor crimson bricks.
+    - **Scalloped Roof Tiles (*Biberschwanz*)**: Curved overlapping clay shingles with cast shadows.
+    - **Architectural Sash Windows**: White timber casings, 6-pane mullions, sills, and warm glowing amber interior glass.
+    - **Sidewalks & Stone Curbs**: Beveled granite curbs placed along all road borders.
+- **Flicker Elimination & Anti-Aliased Rendering (`src/render/inkOutline.js`, `sceneSetup.js`)**:
+  - Replaced binary `step()` edge detection with anti-aliased `smoothstep()` for normal and depth discontinuities.
+  - Upgraded depth target precision to `UnsignedIntType` (24/32-bit) to eliminate 16-bit depth quantization chatter.
+  - Added shadow map `bias: -0.0006` and `normalBias: 0.02` to directional lights to eliminate shadow acne.
+  - Defaulted to Clean Diorama Mode (hardware MSAA antialiased rendering) matching the 3D isometric diorama mockup with zero edge crawling.
+- **Historical Hanseatic Street Lamp Overhaul (`src/render/cityMap.js`)**:
+  - Overhauled street lamps with stone plinth base, iron fluted collar, hexagonal glowing amber lantern, and soft warm illumination halo matching the mockup.
+- **Packaging & Size Verification**:
+  - Single-file `index.html` assembled cleanly at **6.22 MB** uncompressed (~1.8 MB zipped release), well below the 35 MB competition limit.
 
+### September 2, 2026: German Street Hierarchy, Roof Z-Fighting Fix & Mathematical Normal Maps
+- **Mathematical Tangent-Space Normal Map Generator (`src/render/proceduralTextures.js`)**:
+  - Engineered procedural normal map engine using central-difference slope operator on grayscale heightmaps at runtime:
+    $$N_x = -\frac{H(x+1) - H(x-1)}{2} \cdot \text{strength}, \quad N_y = -\frac{H(y+1) - H(y-1)}{2} \cdot \text{strength}, \quad N_z = 1.0$$
+  - Applied tangent-space normal maps to `cobble`, `germanRoad`, `brick`, and `roof` materials via `THREE.MeshStandardMaterial`, creating genuine tactile relief and dynamic lighting specular response.
+- **Redesigned Light & Tactile Cobblestones**:
+  - Switched from dark gravel to lighter, warmer Hanseatic limestone/granite pavers (`#9EABB8`, `#B6C1CC`, `#C3CCD6`) with 2x larger paver geometry (9 rows instead of 16) and clean mortar joints.
+  - Paver heightmaps generate smooth spherical dome normals that catch sunlight dynamically.
+- **German Street Hierarchy & Continuous Directional Flow (`src/render/cityMap.js`)**:
+  - Structured urban streets following authentic German road hierarchy: two-way central car carriageway (`Fahrbahn`), dedicated German terracotta red bicycle lane (`Radweg`), and outer pedestrian sidewalk (`Gehweg`).
+  - Implemented road grid orientation detection: East-West roads automatically rotate 90° so car lanes and Radwege flow continuously across tiles without disjointed patches.
+- **Permanent Elimination of Roof & Gable Z-Fighting**:
+  - Geometrically recessed pitched roof panels in `createAltbau()` so they sit cleanly between front and rear stepped-gable parapets (`roofDepth = depth - (gableThickness * 2 + 0.06)`), completely eradicating coplanar face intersections.
+  - Added architectural stone drum collar beneath university dome in `createUniversity()`, elevating the dome above the roof plane and eliminating dome flickering.
+- **Packaging & Size Verification**:
+  - Assembled single-file `index.html` via `node build/assemble.js` at **6.23 MB** uncompressed (~1.8 MB zipped release), strictly `< 35 MB`.
+
+### September 2, 2026: 3D Recreation of Hand-Painted Lübeck Map (Teardrop Island, 7 Bridges, Roundabouts & Historic Landmarks)
+- **Hand-Painted Map Source Alignment (`Docs/far from home hand made map.jpg`)**:
+  - Faithfully transformed the user's hand-painted map into a full 24×24 3D world grid (`window.FFH.LUBECK_CITY_GRID`):
+    - **Teardrop Altstadt Island**: Narrow pointed north apex (Burgtor), expansive middle section (Holstentor, Marienkirche, Darkstore, WG, UNI), and tapering southern peninsula (Dom zu Lübeck).
+    - **Trave River & Moat Canal System**: Seamless water plane with vertex wave displacement completely encircling the historic island.
+    - **All 7 Arched Bridges**: North (Burgtor), West (Puppenbrücke / Holstentor), Upper-West (Northwest Trave), Southwest (Obertrave), South (Dankwartsbrücke), Southeast (Hüxtertorbrücke), and East (Kanalbrücke).
+    - **3 Traffic Roundabouts (*Kreisverkehre*)**: Outer cobblestone apron, raised stone curb ring, manicured lawn center, and historic stone monument fountain.
+- **Architectural 3D Landmark Models (`src/render/cityMap.js`)**:
+  - **Burgtor North Gate (`createBurgtor()`)**: 1444 Late-Gothic fortified gate tower with central carriage portal tunnel, stepped parapet battlements, steep hipped copper roof, and golden finial spire.
+  - **Dom zu Lübeck (`createDom()`)**: 1173 Romanesque-Gothic cathedral with high-pitched brick basilica nave, twin towering square spires capped with copper cones, arched portal, and bronze crucifix finial.
+  - **Filmhaus & Stadthalle Kino (`createKino()`)**: Art Deco cinema with cream facade, coral roof band, glowing amber neon "KINO" marquee canopy, glass double doors, and illuminated movie poster lightboxes.
+  - **ZOB & Hauptbahnhof Transit Hub (`createZOB()`)**: Modern western mainland bus & rail terminal with raised passenger platform, dark steel columns, translucent glass canopies, digital departure timetable totem, and transit bench.
+  - **Arched Stone Bridge (`createArchedBridge()`)**: 3D brick piers dipping into the water, bike lane road deck, and twin stone balustrades protecting cyclists.
+- **Exploration & Minimap Scaling (`src/phases/cityExplorationPhase.js`)**:
+  - Rescaled player spawn point to `(15.6, 0.05, 26.0)` right on the quiet residential road beside the Student WG Room.
+  - Upgraded live minimap canvas to 192×192 px ($24 \times 8$), rendering water channels, roads, roundabouts, residential blocks, and gold landmark pins.
+  - Added POI interactions and audio-visual feedback for Burgtor, Dom, Kino, and ZOB.
+- **Packaging & Size Verification**:
+  - Built single-file `index.html` via `node build/assemble.js` cleanly at **6.24 MB** uncompressed (~1.8 MB zipped release), strictly satisfying the ≤ 35 MB competition limit.
