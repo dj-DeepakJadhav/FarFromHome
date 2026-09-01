@@ -1,4 +1,4 @@
-// Doorstep Customer Hand-off Scenarios with Cultural Etiquette, Emotional Depth & Personality Heuristics
+﻿// Doorstep Customer Hand-off Scenarios with Cultural Etiquette, Emotional Depth & Personality Heuristics
 window.FFH.dialogue = [
   {
     shift: 1,
@@ -7,8 +7,8 @@ window.FFH.dialogue = [
     questionDe: 'Wie begrüßt du deinen Mitbewohner Nico?',
     choices: [
       {
-        textEn: 'Hey Nico! Hot breakfast is here. Don\'t lose hope—we\'ll conquer this city together, one shift at a time.',
-        textDe: 'Hey Nico! Warmes Frühstück ist da. Kopf hoch—wir schaffen das hier zusammen!',
+        textEn: 'Hey Nico! Hot breakfast is here. Don\'t lose hope, we\'ll conquer this city together, one shift at a time.',
+        textDe: 'Hey Nico! Warmes Frühstück ist da. Kopf hoch, wir schaffen das hier zusammen!',
         audioKey: 'guten_tag',
         correct: true,
         disposition: 'diplomat',
@@ -83,8 +83,8 @@ window.FFH.dialogue = [
     questionDe: 'Wie übergibst du die Lieferung an Herrn Lokker?',
     choices: [
       {
-        textEn: 'Good evening, Herr Lokker. Delivered at 21:55—strictly respecting the 22:00 Ruhezeit and quiet hallways!',
-        textDe: 'Guten Abend, Herr Lokker. Pünktlich um 21:55 Uhr—vor der 22:00 Uhr Ruhezeit geliefert!',
+        textEn: 'Good evening, Herr Lokker. Delivered at 21:55, strictly respecting the 22:00 Ruhezeit and quiet hallways!',
+        textDe: 'Guten Abend, Herr Lokker. Pünktlich um 21:55 Uhr, vor der 22:00 Uhr Ruhezeit geliefert!',
         audioKey: 'guten_tag',
         correct: true,
         disposition: 'bureaucrat',

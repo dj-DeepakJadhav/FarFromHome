@@ -184,6 +184,81 @@ window.FFH.UI = class {
     }, 550);
   }
 
+  triggerStampMoment(docTitle, docEmoji = '📜') {
+    // 1. Audio: Amtsschimmel heavy stamp (*CLACK-THUD!*)
+    if (this.game && this.game.sfx && this.game.sfx.playSfx) {
+      this.game.sfx.playSfx('stamp');
+    }
+
+    // 2. Visual: 3D Camera screen shake
+    if (this.game && this.game.triggerScreenShake) {
+      this.game.triggerScreenShake();
+    }
+
+    // 3. Ink Splat & Stamping Stamp Overlay Animation
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 10005;
+      background: rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(1px);
+    `;
+
+    overlay.innerHTML = `
+      <div id="stamp-seal" style="
+        background: #FFFFFF;
+        border: 4px solid #A32218;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        transform: scale(2.2) rotate(-8deg);
+        opacity: 0;
+        transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.22s ease-out;
+      ">
+        <div style="font-size: 38px;">${docEmoji}</div>
+        <div style="font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 1.5px; color: #A32218; text-transform: uppercase;">
+          ★ AMTLICH BEGLAUBIGT ★
+        </div>
+        <div style="font-size: 16px; font-weight: 900; color: #1B1A21; text-align: center;">
+          ${docTitle}
+        </div>
+        <div style="font-family: monospace; font-size: 10.5px; color: #2C6A4A; font-weight: 700;">
+          [ DOSSIER STAMP SECURED ]
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Trigger slam-down impact animation
+    requestAnimationFrame(() => {
+      const seal = document.getElementById('stamp-seal');
+      if (seal) {
+        seal.style.opacity = '1';
+        seal.style.transform = 'scale(1.0) rotate(-4deg)';
+      }
+    });
+
+    // Fade out and clean up
+    setTimeout(() => {
+      if (overlay.parentNode) {
+        overlay.style.transition = 'opacity 0.4s ease-out';
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 400);
+      }
+    }, 1800);
+  }
+
   showBootScreen() {
     this.clear();
 
@@ -398,45 +473,59 @@ window.FFH.UI = class {
     const div = document.createElement('div');
     div.style.cssText = `
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100%; text-align: center; background: #5DB7AD; color: #222; font-family: sans-serif;
-      padding: 30px; box-sizing: border-box; pointer-events: auto;
+      height: 100%; text-align: center; background: #1D3557; color: #FFF; font-family: sans-serif;
+      padding: 24px; box-sizing: border-box; pointer-events: auto; overflow-y: auto;
     `;
 
+    // 3.4 Four Ending Epilogues based on player decisions & disposition
+    const disp = s.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
+    let endingTitle = 'Hanseatic Citizen';
+    let endingDesc = 'You navigated the entire German immigration gauntlet with flawless integrity, paying every cent of tuition and winning the respect of Lübeck.';
+    let endingIcon = '🎓';
+
+    if (s.storyFlags?.hasCharacterReference || (disp.diplomat > disp.hustler && disp.diplomat > disp.bureaucrat)) {
+      endingTitle = 'The Community Pillar (Diplomat Ending)';
+      endingDesc = 'Dr. Lindemann read Oma Martha\'s Leumundszeugnis with tears in her eyes. By prioritizing people over raw profit and braving the sleet for Frau Helga, you earned a permanent home among Hanseatic neighbors.';
+      endingIcon = '🤝';
+    } else if (s.storyFlags?.receivedAstaGrant || (disp.bureaucrat > disp.hustler && disp.bureaucrat > disp.diplomat)) {
+      endingTitle = 'The Uncompromising Jurist (Bureaucrat Ending)';
+      endingDesc = 'Armed with §16b AufenthG statutory defenses and meticulous paperwork co-filed with AStA, you out-bureaucratized the bureaucracy. Your residence permit stands unquestioned.';
+      endingIcon = '⚖️';
+    } else if (s.storyFlags?.tookSchwarzarbeit || disp.hustler > 0) {
+      endingTitle = 'The Baltic Speed Demon (Hustler Ending)';
+      endingDesc = 'From 20€ to survival against impossible odds. You braved sub-zero cobblestone alleys, out-hustled the courier clock, and convinced Dr. Lindemann with sheer grit and resilience.';
+      endingIcon = '⚡';
+    }
+
     div.innerHTML = `
-      <h1 style="font-size: 32px; font-weight: 900; margin: 0 0 10px 0; color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">MATRICULATION COMPLETE!</h1>
-      <p style="font-size: 16px; color: #FFF; margin: 0 0 20px 0; font-weight: bold;">Tuition of €250 has been fully paid.</p>
+      <div style="font-size: 40px; margin-bottom: 6px;">${endingIcon}</div>
+      <h1 style="font-size: 24px; font-weight: 900; margin: 0 0 6px 0; color: #48CAE4; text-shadow: 0 2px 4px rgba(0,0,0,0.4);">AUFENTHALTSTITEL ERTEILT!</h1>
+      <div style="font-size: 13px; color: #FFD166; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">${endingTitle}</div>
 
-      <div style="background: #FFF; border: 3px solid #222; border-radius: 12px; width: 300px; padding: 20px; box-shadow: 4px 6px 0 rgba(0,0,0,0.25); text-align: left; position: relative;">
-        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #EEE; padding-bottom: 10px; margin-bottom: 15px;">
-          <div style="font-weight: 900; font-size: 14px; color: #3A86FF;">UNIVERSITÄT ZU LÜBECK</div>
-          <div style="font-size: 20px;">🎓</div>
+      <div style="background: #FFF; color: #222; border: 3px solid #222; border-radius: 12px; width: 100%; max-width: 320px; padding: 16px; box-shadow: 4px 6px 0 rgba(0,0,0,0.4); text-align: left; position: relative;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #EEE; padding-bottom: 8px; margin-bottom: 10px;">
+          <div style="font-weight: 900; font-size: 12px; color: #1D3557;">BUNDESREPUBLIK DEUTSCHLAND</div>
+          <div style="font-size: 16px;">🇩🇪</div>
         </div>
         
-        <div style="display: flex; gap: 15px;">
-          <div style="width: 70px; height: 90px; background: #CCC; border: 2px solid #222; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 30px;">
-            👤
-          </div>
-          <div style="font-size: 12px; line-height: 1.6;">
-            <div style="color: #666;">STUDENT ID / AUSWEIS</div>
-            <div style="font-weight: 900; font-size: 16px; margin-bottom: 5px;">#108422</div>
-            <div style="color: #666;">FACULTY</div>
-            <div style="font-weight: bold;">Logistics & Linguistics</div>
-          </div>
-        </div>
+        <p style="font-size: 12px; color: #333; line-height: 1.5; margin: 0 0 12px 0;">
+          ${endingDesc}
+        </p>
 
-        <div style="margin-top: 15px; padding-top: 10px; border-top: 2px dashed #EEE; font-size: 12px; display: flex; justify-content: space-between;">
-          <span>Shifts: ${s.stats.shiftsWorked}</span>
-          <span>Vocab: ${s.stats.wordsLearned || 0}</span>
+        <div style="display: flex; justify-content: space-between; border-top: 1.5px dashed #DDD; padding-top: 8px; font-size: 11px; color: #555; font-family: monospace;">
+          <span>Days: ${s.day || 1}/28</span>
+          <span>Shifts: ${s.stats?.shiftsWorked || 0}</span>
+          <span>Wallet: €${s.wallet.toFixed(2)}</span>
         </div>
         
-        <div style="position: absolute; bottom: -15px; right: 10px; font-size: 40px; transform: rotate(-15deg); opacity: 0.8;">
-          ✅
+        <div style="position: absolute; bottom: -12px; right: 10px; font-size: 32px; transform: rotate(-15deg); opacity: 0.9;">
+          🛡️
         </div>
       </div>
 
       <button id="btn-restart" style="
-        margin-top: 30px; background: #FFD166; color: #222; border: 3px solid #222; border-radius: 8px;
-        padding: 12px 30px; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #222;
+        margin-top: 20px; background: #E76F51; color: #FFF; border: 3px solid #222; border-radius: 8px;
+        padding: 12px 28px; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #222;
       ">PLAY AGAIN</button>
     `;
 
@@ -448,14 +537,27 @@ window.FFH.UI = class {
   }
 
   showLoseScreen() {
-    this.endScreen({
-      background: '#C62828',
-      accent: '#C62828',
-      badge: '\u{1F4E6}',
-      title: 'LET GO',
-      subtitle: 'Three bad shifts. The dark store cut your contract.',
-      buttonLabel: 'TRY AGAIN'
-    });
+    const s = this.game.state;
+    if (s.day > (window.FFH.ECONOMY.VISA_DAYS || 28)) {
+      // Day 28 Visa Expiry Ending: "The Return Flight"
+      this.endScreen({
+        background: '#2B2D42',
+        accent: '#E63946',
+        badge: '✈️',
+        title: 'THE RETURN FLIGHT',
+        subtitle: `Day 28 arrived before your dossier was completed. Your temporary entry visa has expired and you must return home. Germany will be waiting when you try again.`,
+        buttonLabel: 'START OVER'
+      });
+    } else {
+      this.endScreen({
+        background: '#C62828',
+        accent: '#C62828',
+        badge: '📦',
+        title: 'LET GO',
+        subtitle: 'Three bad shifts. The dark store cut your contract.',
+        buttonLabel: 'TRY AGAIN'
+      });
+    }
   }
 
   // Win and lose differ only in wording and colour - the run summary a judge
@@ -1005,6 +1107,7 @@ window.FFH.UI = class {
   showShiftSummaryUI() {
     this.clear();
     const payout = this.game.lastPayout;
+    const state = this.game.state;
 
     const hud = document.createElement('div');
     hud.style.cssText = `
@@ -1412,7 +1515,7 @@ window.FFH.UI = class {
     const objectiveText = activePrologue ? activePrologue.prompt :
       !s.hasJob ? 'Head to Kruma Express to start your courier shifts' :
       !s.isMatriculated ? 'Earn 250€ and visit University to pay Semesterbeitrag' :
-      !s.hasApartment ? 'Earn 300€ and visit Hans Lokker to sign your WG lease' :
+      !s.hasApartment ? 'Earn 30€ Kaution downpayment & visit Hans Lokker to sign WG lease' :
       !s.hasAnmeldung ? 'Visit Rathaus Bürgeramt for your address registration (Anmeldung)' :
       !s.isSperrkontoUnlocked ? 'Visit Sparkasse Bank to unlock your Sperrkonto' :
       'Visit Ausländerbehörde to receive your permanent Aufenthaltstitel!';
@@ -1434,55 +1537,61 @@ window.FFH.UI = class {
         box-shadow: 0 4px 14px rgba(0,0,0,0.18);
         z-index: 100;
       ">
-        <!-- Row 1: Settings, Skills, and Tuition -->
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <button id="btn-settings-menu" style="
-              background: #F4A261;
-              border: 2px solid #264653;
-              color: #264653;
-              border-radius: 8px;
-              width: 32px;
-              height: 32px;
-              font-size: 14px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              cursor: pointer;
-              box-shadow: 0 2px 0 #264653;
-            " title="Settings">⚙️</button>
-            
-            <button id="btn-open-skills" style="
-              background: #FF006E;
-              border: 2px solid #264653;
-              color: #FFFFFF;
-              border-radius: 8px;
-              padding: 0 12px;
-              height: 32px;
-              font-size: 11.5px;
-              font-weight: 900;
-              display: flex;
-              align-items: center;
-              gap: 4px;
-              cursor: pointer;
-              box-shadow: 0 2px 0 #A30046;
-              white-space: nowrap;
-            ">⭐ Skills (${s.skillPoints || 0})</button>
+        <!-- Row 1: Day Clock, Wallet, and Dossier Tracker (4 Slots) -->
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 6px;">
+          <!-- Day Counter -->
+          <div style="
+            background: #264653;
+            color: #FFFFFF;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 900;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+          ">
+            <span>📅</span>
+            <span>DAY ${s.day || 1}/28</span>
           </div>
 
-          <!-- Tuition Goal -->
+          <!-- 4-Slot Dossier Tracker -->
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #F0F4F8;
+            border: 1.5px solid #264653;
+            border-radius: 8px;
+            padding: 4px 6px;
+          " title="Dossier: Uni, WG Lease, Anmeldung, Bank">
+            <span style="font-size: 10px; font-weight: 900; color: #1D3557; margin-right: 2px;">DOCS:</span>
+            <!-- Slot 1: Matriculation -->
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.isMatriculated ? '#2A9D8F' : '#999'}; background: ${s.isMatriculated ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="University Matriculation">${s.isMatriculated ? '🎓' : ''}</span>
+            <!-- Slot 2: Lease -->
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
+            <!-- Slot 3: Anmeldung -->
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.hasAnmeldung ? '#2A9D8F' : '#999'}; background: ${s.hasAnmeldung ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${s.hasAnmeldung ? '📑' : ''}</span>
+            <!-- Slot 4: Sperrkonto Bank -->
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.isSperrkontoUnlocked ? '#2A9D8F' : '#999'}; background: ${s.isSperrkontoUnlocked ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${s.isSperrkontoUnlocked ? '💳' : ''}</span>
+          </div>
+
+          <!-- Wallet Balance -->
           <div style="
             background: #F8F9FA;
             border: 2px solid #264653;
             border-radius: 8px;
-            padding: 4px 10px;
+            padding: 4px 8px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            white-space: nowrap;
           ">
-            <span style="font-size: 13px;">💶</span>
-            <div style="font-size: 12px; font-weight: 900; color: #E76F51; font-family: monospace;">
-              ${window.FFH.round2(s.wallet)}€ <span style="font-size: 10px; color: #777; font-weight: 700;">/ ${goal}€</span>
+            <span style="font-size: 12px;">💶</span>
+            <div style="font-size: 11.5px; font-weight: 900; color: #E76F51; font-family: monospace;">
+              ${window.FFH.round2(s.wallet)}€
             </div>
           </div>
         </div>
@@ -1651,96 +1760,163 @@ window.FFH.UI = class {
     box.id = 'dialogue-overlay-box';
     box.style.cssText = `
       position: absolute;
-      bottom: 12px;
-      left: 12px;
-      right: 12px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40vh;
+      box-sizing: border-box;
       background: #FFFFFF;
-      border-top: 3px solid #E76F51;
-      border-bottom: 3px solid #264653;
-      border-left: 2px solid #264653;
-      border-right: 2px solid #264653;
-      border-radius: 16px;
-      padding: 14px 16px;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 10px 14px 12px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
       font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
       pointer-events: auto;
-      animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
-      gap: 10px;
       z-index: 200;
-      max-height: 56vh;
-      overflow-y: auto;
+      overflow: hidden;
     `;
 
     // Primary spoken line is English for instant emotional clarity and zero reading friction
     let englishText = dialogueData.en || dialogueData.speechEn || dialogueData.text || dialogueData.de || '';
 
-    const optionsHtml = (dialogueData.options || []).map((opt, idx) => {
-      const primaryLabel = opt.en || opt.label || '';
+    // Limit to exactly 2 options for clean, organic human choice
+    const options = (dialogueData.options || []).slice(0, 2);
+
+    const optionsHtml = options.map((opt, idx) => {
+      const primaryLabel = opt.label || opt.en || '';
       return `
         <button class="dialogue-opt-btn" data-idx="${idx}" style="
-          background: #2EC4B6;
-          color: #FFFFFF;
+          background: #FFFFFF;
+          color: #1D3557;
           border: 2px solid #264653;
-          border-radius: 10px;
-          padding: 10px 14px;
-          font-weight: 900;
-          font-size: 13px;
+          border-left: 5px solid ${idx === 0 ? '#2EC4B6' : '#E76F51'};
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
           cursor: pointer;
           text-align: left;
-          box-shadow: 0 3px 0 #1B8C81;
-          transition: transform 0.05s ease, background 0.2s ease;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
           line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;
         ">
-          ${primaryLabel}
+          <span style="flex: 1;">${primaryLabel}</span>
+          <span style="font-size: 13px; opacity: 0.7;">➔</span>
         </button>
       `;
     }).join('');
 
     box.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #F0F0F0; padding-bottom: 6px;">
-        <div>
-          <div style="font-size: 14px; font-weight: 900; color: #264653;">${dialogueData.speaker || npcEntry.name}</div>
-          <div style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">${npcEntry.title || 'Town Citizen'}</div>
+      <!-- Header: Speaker Name & Role -->
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #F0F4F8; padding-bottom: 5px; margin-bottom: 4px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: ${npcEntry.avatarColor || '#2EC4B6'};"></div>
+          <div>
+            <div style="font-size: 13px; font-weight: 900; color: #264653; line-height: 1.1;">${dialogueData.speaker || npcEntry.name}</div>
+            <div style="font-size: 9.5px; font-weight: 700; color: #7F8C8D; text-transform: uppercase; letter-spacing: 0.5px;">${npcEntry.title || 'Town Citizen'}</div>
+          </div>
+        </div>
+        <div id="dialogue-scroll-indicator" style="font-size: 10px; font-weight: 700; color: #2EC4B6; display: none; align-items: center; gap: 4px; animation: bounce 1s infinite;">
+          <span>Scroll for options</span> <span>↓</span>
         </div>
       </div>
       
-      <!-- Primary Dialogue Bubble (Clean English First with plenty of breathing room) -->
-      <div style="background: #F8F9FA; border-left: 4px solid #2EC4B6; border-radius: 8px; padding: 10px 12px; margin-top: 2px;">
-        <div id="dialogue-typewriter-text" style="font-size: 13.5px; line-height: 1.45; color: #1D3557; font-weight: 800; min-height: 24px; padding: 2px 0;"></div>
-      </div>
+      <!-- Unified Single Scroll Stream Container -->
+      <div id="dialogue-scroll-stream" style="
+        flex: 1;
+        overflow-y: auto;
+        padding: 4px 4px 10px 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        scroll-behavior: smooth;
+      ">
+        <!-- Natural Dialogue Bubble -->
+        <div style="
+          background: #F4F7F6;
+          border-radius: 12px;
+          padding: 10px 12px;
+          border: 1px solid #E2E8F0;
+          flex-shrink: 0;
+        ">
+          <div id="dialogue-typewriter-text" style="
+            font-size: 12.5px;
+            line-height: 1.45;
+            color: #1D3557;
+            font-weight: 700;
+          "></div>
+        </div>
 
-      <div id="dialogue-options-container" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px; opacity: 0; transition: opacity 0.2s ease;">
-        ${optionsHtml}
+        <!-- 2 Natural Conversation Choices inline in scroll stream with smooth fade-in -->
+        <div id="dialogue-options-container" style="
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          flex-shrink: 0;
+          opacity: 0;
+          transform: translateY(6px);
+          transition: opacity 0.35s ease, transform 0.35s ease;
+          margin-top: 2px;
+        ">
+          ${optionsHtml}
+        </div>
       </div>
     `;
 
     this.container.appendChild(box);
 
-    // Typewriter effect logic on English text for instant judge comprehension
+    const scrollStream = box.querySelector('#dialogue-scroll-stream');
     const textTarget = box.querySelector('#dialogue-typewriter-text');
-    const subTarget = box.querySelector('#dialogue-subtitle-text');
     const optionsContainer = box.querySelector('#dialogue-options-container');
+    const scrollIndicator = box.querySelector('#dialogue-scroll-indicator');
     
     let charIndex = 0;
     const fullSpeech = englishText;
     const npcId = npcEntry?.id || null;
 
+    const revealOptions = () => {
+      if (optionsContainer) {
+        optionsContainer.style.opacity = '1';
+        optionsContainer.style.transform = 'translateY(0)';
+      }
+      // Check if user needs to scroll to see options
+      if (scrollStream.scrollHeight > scrollStream.clientHeight + 15) {
+        if (scrollIndicator) scrollIndicator.style.display = 'flex';
+      }
+    };
+
+    scrollStream.addEventListener('scroll', () => {
+      const isNearBottom = scrollStream.scrollHeight - scrollStream.scrollTop - scrollStream.clientHeight < 25;
+      if (isNearBottom) {
+        if (scrollIndicator) scrollIndicator.style.display = 'none';
+        if (optionsContainer) {
+          optionsContainer.style.opacity = '1';
+          optionsContainer.style.transform = 'translateY(0)';
+        }
+      }
+    });
+
     box._typewriterTimer = setInterval(() => {
       if (charIndex < fullSpeech.length) {
         textTarget.textContent += fullSpeech[charIndex];
-        // Play acoustic character blip every 2 characters
         if (charIndex % 2 === 0 && this.game && this.game.speech) {
           this.game.speech.playTalkBlip(npcId);
         }
         charIndex++;
       } else {
         clearInterval(box._typewriterTimer);
-        if (subTarget) subTarget.style.display = 'block';
-        if (optionsContainer) optionsContainer.style.opacity = '1';
+        revealOptions();
       }
-    }, 18);
+    }, 16);
 
     const buttons = box.querySelectorAll('.dialogue-opt-btn');
     buttons.forEach(btn => {

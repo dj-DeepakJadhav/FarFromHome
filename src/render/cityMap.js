@@ -34,12 +34,82 @@ window.FFH.CityAssetRegistry = {
     foliage2:  new THREE.MeshPhongMaterial({ color: CITY_PALETTE.foliageDark, flatShading: true })
   },
 
-  // 1. Hanseatic Altbau Townhouse with realistic 2.2m front door and grand proportions
+  initMaterials() {
+    const P = window.FFH.ProceduralTextures;
+    if (!P) return;
+
+    // Apply procedural math-generated hand-drawn textures & normal maps (Project Tomorrow solo dev technique)
+    const cobbleTex = P.getCobblestoneTexture();
+    const cobbleNorm = P.getCobblestoneNormalMap();
+    const roadTex = P.getGermanRoadTexture();
+    const roadNorm = P.getGermanRoadNormalMap();
+    const roofBrickTex = P.getRoofTileTexture('terracotta');
+    const roofBrickNorm = P.getRoofTileNormalMap('terracotta');
+    const roofCopperTex = P.getRoofTileTexture('copper');
+    const roofCopperNorm = P.getRoofTileNormalMap('copper');
+    const sidewalkTex = P.getSidewalkTexture();
+
+    this.materials.cobble = new THREE.MeshStandardMaterial({
+      map: cobbleTex,
+      normalMap: cobbleNorm,
+      normalScale: new THREE.Vector2(0.9, 0.9),
+      roughness: 0.82,
+      metalness: 0.04
+    });
+
+    this.materials.bikeLane = new THREE.MeshStandardMaterial({
+      map: roadTex,
+      normalMap: roadNorm,
+      normalScale: new THREE.Vector2(0.7, 0.7),
+      roughness: 0.78,
+      metalness: 0.05
+    });
+
+    this.materials.sidewalk = new THREE.MeshStandardMaterial({
+      map: sidewalkTex,
+      roughness: 0.85,
+      metalness: 0.05
+    });
+
+    this.materials.roofBrick = new THREE.MeshStandardMaterial({
+      map: roofBrickTex,
+      normalMap: roofBrickNorm,
+      normalScale: new THREE.Vector2(0.85, 0.85),
+      roughness: 0.72,
+      metalness: 0.08,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1
+    });
+
+    this.materials.roofCopper = new THREE.MeshStandardMaterial({
+      map: roofCopperTex,
+      normalMap: roofCopperNorm,
+      normalScale: new THREE.Vector2(0.85, 0.85),
+      roughness: 0.65,
+      metalness: 0.2
+    });
+  },
+
+  // 1. Hanseatic Altbau Townhouse with procedural brick facade, window frames & scalloped roof tiles
+  // Geometrically recessed roof panels eliminate 100% of co-planar gable/roof z-fighting and flicker!
   createAltbau(variant = 0, floors = 3) {
     const group = new THREE.Group();
+    const P = window.FFH.ProceduralTextures;
+    
+    // Procedural Hanseatic Brick Texture & Tangent-Space Normal Map
+    const brickTex = P ? P.getBrickFacadeTexture(variant) : null;
+    const brickNorm = P ? P.getBrickFacadeNormalMap(variant) : null;
     const wallColors = [CITY_PALETTE.terracotta, CITY_PALETTE.mustard, CITY_PALETTE.wallSage, CITY_PALETTE.coral, CITY_PALETTE.wallCream];
-    const wallColor = wallColors[variant % wallColors.length];
-    const wallMat = new THREE.MeshLambertMaterial({ color: wallColor });
+    const wallMat = brickTex
+      ? new THREE.MeshStandardMaterial({
+          map: brickTex,
+          normalMap: brickNorm,
+          normalScale: new THREE.Vector2(0.65, 0.65),
+          roughness: 0.82,
+          metalness: 0.04
+        })
+      : new THREE.MeshLambertMaterial({ color: wallColors[variant % wallColors.length] });
     
     const width = 2.4, depth = 2.4, floorH = 2.0;
     const h = floors * floorH;
@@ -51,69 +121,103 @@ window.FFH.CityAssetRegistry = {
     body.receiveShadow = true;
     group.add(body);
 
-    // Realistic Front Door Frame & Wooden Door (Fits ~1.5 unit character)
-    const doorMat = new THREE.MeshLambertMaterial({ color: 0x3D2619 });
-    const door = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.08), doorMat);
-    door.position.set(0, 0.8, depth / 2 + 0.02);
+    // Sandstone Door Surround Frame & Dark Wooden Door
+    const frameMat = new THREE.MeshLambertMaterial({ color: 0xEDE5D8 });
+    const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.96, 1.72, 0.1), frameMat);
+    doorFrame.position.set(0, 0.86, depth / 2 + 0.02);
     
-    // Front Welcome Step / Porch
-    const stepMat = new THREE.MeshLambertMaterial({ color: 0x999999 });
-    const step = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.45), stepMat);
+    const doorMat = new THREE.MeshLambertMaterial({ color: 0x3D2619 });
+    const door = new THREE.Mesh(new THREE.BoxGeometry(0.82, 1.58, 0.08), doorMat);
+    door.position.set(0, 0.79, depth / 2 + 0.04);
+    
+    // Front Welcome Step / Granite Porch
+    const stepMat = new THREE.MeshLambertMaterial({ color: 0x7D8A9D });
+    const step = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.08, 0.45), stepMat);
     step.position.set(0, 0.04, depth / 2 + 0.22);
-    group.add(door, step);
+    group.add(doorFrame, door, step);
 
-    // Multi-floor Glowing Windows on Front Facade
-    const winMat = new THREE.MeshBasicMaterial({ color: 0xFFF3B0 });
+    // Multi-floor Detailed Glowing Windows on Front Facade with Frames & Sills
+    const winTex = P ? P.getWindowTexture() : null;
+    const winMat = winTex
+      ? new THREE.MeshBasicMaterial({ map: winTex })
+      : new THREE.MeshBasicMaterial({ color: 0xFFF3B0 });
+
     for (let f = 1; f < floors; f++) {
-      [-0.6, 0.6].forEach(wx => {
-        const win = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.8, 0.04), winMat);
-        win.position.set(wx, f * floorH + 0.9, depth / 2 + 0.02);
-        group.add(win);
+      [-0.62, 0.62].forEach(wx => {
+        // Sandstone Outer Window Frame
+        const casing = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.90, 0.04), frameMat);
+        casing.position.set(wx, f * floorH + 0.9, depth / 2 + 0.02);
+
+        // Window Glass Pane with Interior Glow & Mullions
+        const win = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.80, 0.04), winMat);
+        win.position.set(wx, f * floorH + 0.9, depth / 2 + 0.035);
+
+        // Projecting Window Sill
+        const sill = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.06, 0.10), frameMat);
+        sill.position.set(wx, f * floorH + 0.47, depth / 2 + 0.05);
+
+        group.add(casing, win, sill);
       });
     }
 
-    // Historic Hanseatic Stepped Gable Facade Top
+    // Historic Hanseatic Stepped Gable Facade Top (Front & Back Parapets)
     const steps = 4;
+    const stepH = 0.55;
+    const gableThickness = 0.22;
+    const frontZ = depth / 2 - gableThickness / 2;
+    const backZ = -depth / 2 + gableThickness / 2;
+
     for (let s = 0; s < steps; s++) {
       const stepW = width * (1 - s * 0.22);
-      const stepH = 0.55;
       
-      const gableStepF = new THREE.Mesh(new THREE.BoxGeometry(stepW, stepH, 0.2), wallMat);
-      gableStepF.position.set(0, h + (s * stepH) + stepH / 2, depth / 2 - 0.1);
+      const gableStepF = new THREE.Mesh(new THREE.BoxGeometry(stepW, stepH, gableThickness), wallMat);
+      gableStepF.position.set(0, h + (s * stepH) + stepH / 2, frontZ);
       gableStepF.castShadow = true;
+      gableStepF.receiveShadow = true;
       
-      const gableStepB = new THREE.Mesh(new THREE.BoxGeometry(stepW, stepH, 0.2), wallMat);
-      gableStepB.position.set(0, h + (s * stepH) + stepH / 2, -depth / 2 + 0.1);
+      const gableStepB = new THREE.Mesh(new THREE.BoxGeometry(stepW, stepH, gableThickness), wallMat);
+      gableStepB.position.set(0, h + (s * stepH) + stepH / 2, backZ);
       gableStepB.castShadow = true;
+      gableStepB.receiveShadow = true;
       
       group.add(gableStepF, gableStepB);
     }
 
-    // Proper Pitched Roof Panels
-    const roofHeight = steps * 0.55;
+    // Pitched Roof Panels: Recessed cleanly between front and back parapets to eliminate ALL Z-fighting/flicker!
+    const roofDepth = depth - (gableThickness * 2 + 0.06);
+    const roofHeight = steps * stepH;
     const roofWidth = width / 2;
     const roofLength = Math.sqrt(roofHeight * roofHeight + roofWidth * roofWidth);
     const roofAngle = Math.atan2(roofHeight, roofWidth);
 
-    const roofPanelL = new THREE.Mesh(new THREE.BoxGeometry(roofLength + 0.1, 0.1, depth), this.materials.roofBrick);
+    const roofMat = this.materials.roofBrick;
+
+    const roofPanelL = new THREE.Mesh(new THREE.BoxGeometry(roofLength + 0.02, 0.08, roofDepth), roofMat);
     roofPanelL.position.set(-roofWidth / 2, h + roofHeight / 2, 0);
     roofPanelL.rotation.z = roofAngle;
     roofPanelL.castShadow = true;
+    roofPanelL.receiveShadow = true;
     
-    const roofPanelR = new THREE.Mesh(new THREE.BoxGeometry(roofLength + 0.1, 0.1, depth), this.materials.roofBrick);
+    const roofPanelR = new THREE.Mesh(new THREE.BoxGeometry(roofLength + 0.02, 0.08, roofDepth), roofMat);
     roofPanelR.position.set(roofWidth / 2, h + roofHeight / 2, 0);
     roofPanelR.rotation.z = -roofAngle;
     roofPanelR.castShadow = true;
+    roofPanelR.receiveShadow = true;
     
     group.add(roofPanelL, roofPanelR);
 
     return group;
   },
 
-  // 2. Holstentor City Gate (Twin Conical Towers & Great Archway)
+  // 2. Holstentor City Gate (Twin Conical Towers & Great Archway with Crimson Brick & Normal Map)
   createHolstentor() {
     const group = new THREE.Group();
-    const brickMat = new THREE.MeshLambertMaterial({ color: 0x7F1D1D });
+    const P = window.FFH.ProceduralTextures;
+    const brickTex = P ? P.getBrickFacadeTexture(5) : null;
+    const brickNorm = P ? P.getBrickFacadeNormalMap(5) : null;
+    const brickMat = brickTex
+      ? new THREE.MeshStandardMaterial({ map: brickTex, normalMap: brickNorm, normalScale: new THREE.Vector2(0.7, 0.7), roughness: 0.82 })
+      : new THREE.MeshLambertMaterial({ color: 0x7F1D1D });
     
     // Twin Massive Conical Brick Towers
     [-1.3, 1.3].forEach(tx => {
@@ -125,6 +229,7 @@ window.FFH.CityAssetRegistry = {
       const cone = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3.2, 16), this.materials.roofBrick);
       cone.position.set(tx, 7.6, 0);
       cone.castShadow = true;
+      cone.receiveShadow = true;
       group.add(tower, cone);
     });
 
@@ -132,6 +237,7 @@ window.FFH.CityAssetRegistry = {
     const arch = new THREE.Mesh(new THREE.BoxGeometry(1.6, 4.2, 1.5), brickMat);
     arch.position.set(0, 2.1, 0);
     arch.castShadow = true;
+    arch.receiveShadow = true;
     
     const gateHole = new THREE.Mesh(new THREE.BoxGeometry(1.1, 2.5, 1.6), new THREE.MeshBasicMaterial({ color: 0x111111 }));
     gateHole.position.set(0, 1.25, 0);
@@ -205,19 +311,36 @@ window.FFH.CityAssetRegistry = {
     return group;
   },
 
-  // 6. University Courtyard Campus
+  // 6. University Courtyard Campus (with stone drum to eliminate dome coplanar z-fighting)
   createUniversity() {
     const group = new THREE.Group();
-    const main = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.6, 2.8), new THREE.MeshLambertMaterial({ color: 0xDDA15E }));
+    const P = window.FFH.ProceduralTextures;
+    const brickTex = P ? P.getBrickFacadeTexture(4) : null;
+    const brickNorm = P ? P.getBrickFacadeNormalMap(4) : null;
+    const stoneMat = brickTex ? new THREE.MeshStandardMaterial({
+      map: brickTex, normalMap: brickNorm, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.85
+    }) : new THREE.MeshLambertMaterial({ color: 0xDDA15E });
+
+    const main = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.6, 2.8), stoneMat);
     main.position.y = 1.8;
     main.castShadow = true;
+    main.receiveShadow = true;
     
     const portal = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.8, 0.1), new THREE.MeshLambertMaterial({ color: 0x3D2619 }));
     portal.position.set(0, 0.9, 1.41);
     
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2), this.materials.roofCopper);
-    dome.position.y = 3.6;
-    group.add(main, portal, dome);
+    // Stone drum collar elevates the dome cleanly above the roof box to prevent flickering
+    const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.96, 0.22, 16), new THREE.MeshLambertMaterial({ color: 0xEDE5D8 }));
+    drum.position.y = 3.6 + 0.11;
+    drum.castShadow = true;
+    drum.receiveShadow = true;
+
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.90, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2), this.materials.roofCopper);
+    dome.position.y = 3.6 + 0.22;
+    dome.castShadow = true;
+    dome.receiveShadow = true;
+
+    group.add(main, portal, drum, dome);
     return group;
   },
 
@@ -259,17 +382,61 @@ window.FFH.CityAssetRegistry = {
     return group;
   },
 
-  // 9. Street Props: Lamp Post & Electrical Utility Boxes
+  // 9. Street Props: Historical Hanseatic Lamp Post & Electrical Utility Boxes
   createStreetLamp() {
     const group = new THREE.Group();
-    const postMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 2.2, 6), postMat);
-    post.position.y = 1.1;
+    const ironMat = new THREE.MeshLambertMaterial({ color: 0x22262B });
+    const glassMat = new THREE.MeshBasicMaterial({ color: 0xFFB703 }); // Glowing amber core
+    const capMat = new THREE.MeshLambertMaterial({ color: 0x1A1C20 });
+
+    // Stone Plinth Base
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.12, 0.35), new THREE.MeshLambertMaterial({ color: 0x5C677D }));
+    plinth.position.y = 0.06;
+    plinth.castShadow = true;
+    plinth.receiveShadow = true;
+    group.add(plinth);
+
+    // Iron Column Base Collar
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.15, 0.22, 8), ironMat);
+    collar.position.y = 0.23;
+    collar.castShadow = true;
+    group.add(collar);
+
+    // Fluted Column Post
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.8, 8), ironMat);
+    post.position.y = 1.22;
     post.castShadow = true;
-    
-    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({ color: 0xFFF3B0 }));
-    lamp.position.set(0.2, 2.15, 0);
-    group.add(post, lamp);
+    group.add(post);
+
+    // Decorative Neck / Bracket Arms
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.06, 0.15, 6), ironMat);
+    neck.position.y = 2.18;
+    group.add(neck);
+
+    // Hexagonal / Truncated Lantern Glass (Glowing Amber)
+    const lantern = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.14, 0.38, 6), glassMat);
+    lantern.position.y = 2.42;
+    group.add(lantern);
+
+    // Lantern Iron Cap with Finial Top
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.18, 6), capMat);
+    cap.position.y = 2.68;
+    const finial = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), ironMat);
+    finial.position.y = 2.80;
+    group.add(cap, finial);
+
+    // Warm Light Glow Sphere (Soft Halo)
+    const glowGeo = new THREE.SphereGeometry(0.45, 8, 8);
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: 0xFFD166,
+      transparent: true,
+      opacity: 0.28,
+      blending: THREE.AdditiveBlending
+    });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    glow.position.y = 2.42;
+    group.add(glow);
+
     return group;
   },
 
@@ -475,11 +642,15 @@ window.FFH.buildLubeckCityWorld = function() {
   const registry = window.FFH.CityAssetRegistry;
   const S = window.FFH.TILE_SCALE;
 
+  // Initialize procedural textures
+  registry.initMaterials();
+
   // Single continuous Water Base Plane
   const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(90, 90);
   worldGroup.add(waterMesh);
 
   const tileGeo = new THREE.BoxGeometry(S, 0.35, S);
+  const curbMat = new THREE.MeshLambertMaterial({ color: 0x7D8A9D });
 
   for (let z = 0; z < window.FFH.MAP_SIZE; z++) {
     for (let x = 0; x < window.FFH.MAP_SIZE; x++) {
@@ -492,15 +663,74 @@ window.FFH.buildLubeckCityWorld = function() {
       const tileGroup = new THREE.Group();
       tileGroup.position.set(posX, 0, posZ);
 
+      const isRoad = (gx, gz) => {
+        if (gx < 0 || gx >= window.FFH.MAP_SIZE || gz < 0 || gz >= window.FFH.MAP_SIZE) return false;
+        const t = window.FFH.LUBECK_CITY_GRID[gz][gx];
+        return t === 'R_C' || t === 'R_B' || t === 'BR';
+      };
+
+      const roadE = isRoad(x + 1, z);
+      const roadW = isRoad(x - 1, z);
+      const roadN = isRoad(x, z - 1);
+      const roadS = isRoad(x, z + 1);
+
       let groundMat = registry.materials.grass;
-      if (type === 'R_C') groundMat = registry.materials.cobble;
-      else if (type === 'R_B') groundMat = registry.materials.bikeLane;
-      else if (type === 'BR') groundMat = registry.materials.bridge;
+      let roadRotation = 0;
+
+      if (type === 'R_C') {
+        groundMat = registry.materials.cobble;
+      } else if (type === 'R_B') {
+        groundMat = registry.materials.bikeLane;
+        // Directional alignment: East-West roads rotate 90 deg so car lanes & Radweg flow continuously
+        if ((roadE || roadW) && !(roadN && roadS)) {
+          roadRotation = Math.PI / 2;
+        } else {
+          roadRotation = 0;
+        }
+      } else if (type === 'BR') {
+        groundMat = registry.materials.bikeLane;
+        roadRotation = 0; // Bridges cross the Trave river North-South
+      } else if (type === 'G') {
+        groundMat = registry.materials.sidewalk || registry.materials.grass;
+      }
 
       const base = new THREE.Mesh(tileGeo, groundMat);
       base.position.y = -0.05;
+      base.rotation.y = roadRotation;
       base.receiveShadow = true;
       tileGroup.add(base);
+
+      // Add stone curb border between road and pavement (matching 3D isometric diorama mockup)
+      if (type === 'R_C' || type === 'R_B') {
+        if (z > 0 && window.FFH.LUBECK_CITY_GRID[z - 1][x] === 'G') {
+          const curbN = new THREE.Mesh(new THREE.BoxGeometry(S, 0.08, 0.12), curbMat);
+          curbN.position.set(0, 0.14, -S / 2 + 0.06);
+          curbN.castShadow = true;
+          curbN.receiveShadow = true;
+          tileGroup.add(curbN);
+        }
+        if (z < window.FFH.MAP_SIZE - 1 && window.FFH.LUBECK_CITY_GRID[z + 1][x] === 'G') {
+          const curbS = new THREE.Mesh(new THREE.BoxGeometry(S, 0.08, 0.12), curbMat);
+          curbS.position.set(0, 0.14, S / 2 - 0.06);
+          curbS.castShadow = true;
+          curbS.receiveShadow = true;
+          tileGroup.add(curbS);
+        }
+        if (x > 0 && window.FFH.LUBECK_CITY_GRID[z][x - 1] === 'G') {
+          const curbW = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, S), curbMat);
+          curbW.position.set(-S / 2 + 0.06, 0.14, 0);
+          curbW.castShadow = true;
+          curbW.receiveShadow = true;
+          tileGroup.add(curbW);
+        }
+        if (x < window.FFH.MAP_SIZE - 1 && window.FFH.LUBECK_CITY_GRID[z][x + 1] === 'G') {
+          const curbE = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, S), curbMat);
+          curbE.position.set(S / 2 - 0.06, 0.14, 0);
+          curbE.castShadow = true;
+          curbE.receiveShadow = true;
+          tileGroup.add(curbE);
+        }
+      }
 
       // Procedural Architecture & Landmarks with dynamic road-facing rotation
       let bldgGroup = null;

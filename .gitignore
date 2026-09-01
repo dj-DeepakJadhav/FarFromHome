@@ -1,8 +1,27 @@
+# Operating System & Editor Files
 .DS_Store
 Thumbs.db
-node_modules/
-.env
-.env.local
 *.log
 .vscode/
 .idea/
+
+# Environment & Dependencies
+node_modules/
+.env
+.env.local
+
+# Executables, Binaries & Temporary Network/Deploy Artifacts
+*.exe
+*.zip
+tunnel_url.txt
+.deploy/
+.claude/
+.gemini/
+
+# Working Draft Documents & Reference Media (User Request)
+Docs/*.jpg
+Docs/*.jpeg
+Docs/*.png
+Docs/*.html
+Docs/THE_IMMIGRANT_ODYSSEY_COMPLETE_STORY.md
+Docs/ONE_PAGE_DESIGN_DOCUMENT.md

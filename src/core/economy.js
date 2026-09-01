@@ -8,7 +8,10 @@ window.FFH = {
   ECONOMY: {
     STARTING_WALLET: 20,
     TUITION_GOAL: 250,
+    KAUTION_DEPOSIT: 30,
+    HOSTEL_DAILY_RENT: 8,
     MAX_STRIKES: 3,
+    VISA_DAYS: 28,
 
     ACCURACY_BONUS_PER_ITEM: 2.5,  // paid per item packed with no mis-tap on it
     STREAK_STEP: 0.14,              // multiplier gained per consecutive clean pick
@@ -86,6 +89,18 @@ window.FFH.finishShift = function(game) {
   state.shiftEarnings = payout.netPayout;
   state.stats.shiftsWorked++;
 
+  // Advance day by 1 for completed courier shift
+  state.day = (state.day || 1) + 1;
+
+  // Hostel Rent: €8/night starting Day 3 if player hasn't secured an apartment lease
+  if (!state.hasApartment && state.day >= 3) {
+    const rent = window.FFH.ECONOMY.HOSTEL_DAILY_RENT || 8;
+    state.wallet = window.FFH.round2(Math.max(0, state.wallet - rent));
+    if (game.ui && game.ui.spawnFloatingText) {
+      game.ui.spawnFloatingText(`🏨 Hostel Bed: -${rent.toFixed(2)}€`, window.innerWidth / 2, window.innerHeight / 2 - 40, '#E76F51');
+    }
+  }
+
   // Clear delivery state so the marker resets for the next city exploration
   state.activeDelivery = false;
   state.deliveryTarget = null;
@@ -97,9 +112,7 @@ window.FFH.finishShift = function(game) {
 
   if (state.strikes >= window.FFH.ECONOMY.MAX_STRIKES) {
     game.transitionTo('LOSE');
-  } else if (state.wallet >= window.FFH.ECONOMY.TUITION_GOAL) {
-    game.transitionTo('WIN');
-  } else if (state.currentShift >= 7) { // 7 Days Max
+  } else if (state.day > window.FFH.ECONOMY.VISA_DAYS) {
     game.transitionTo('LOSE');
   } else {
     // Advance to the next shift immediately so the Shop/Hub sees the correct shift
@@ -118,6 +131,7 @@ window.FFH.createRunState = function () {
   return {
     wallet: window.FFH.ECONOMY.STARTING_WALLET,
     currentShift: 1,
+    day: 1,
     // Story Quest and Progression State
     questStep: 0,
     activeQuests: ['main_visa_survival'],
@@ -136,7 +150,14 @@ window.FFH.createRunState = function () {
       knowsNinaShortcut: false,
       vogelAppointmentBooked: false,
       landlordConfirmationSigned: false,
-      paidSemesterFee: false
+      paidSemesterFee: false,
+      radiatorWarmth: false,
+      hasCharacterReference: false,
+      tookSchwarzarbeit: false,
+      helpedMarthaEmergency: false,
+      familyPostcardRead: false,
+      fridgeNoteRead: false,
+      moralDecisions: []
     },
     inventory: [], // Items collected from NPCs (e.g. 'fresh_croissant', 'landlord_paper', 'anmeldung_stamp')
     hasJob: false,

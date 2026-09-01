@@ -115,6 +115,33 @@ window.FFH.AudioEngine = class {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
       osc.start(now);
       osc.stop(now + 0.04);
+    } else if (type === 'stamp') {
+      // Official German Amtsschimmel Heavy Stamp (*CLACK-THUD!*)
+      // 1. Initial sharp wooden/metal mechanical click (clack)
+      const oscClick = this.ctx.createOscillator();
+      const gainClick = this.ctx.createGain();
+      oscClick.connect(gainClick);
+      gainClick.connect(this.ctx.destination);
+      oscClick.type = 'triangle';
+      oscClick.frequency.setValueAtTime(1400, now);
+      oscClick.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+      gainClick.gain.setValueAtTime(0.22, now);
+      gainClick.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      oscClick.start(now);
+      oscClick.stop(now + 0.04);
+
+      // 2. Heavy bass desk impact resonance (thud)
+      const oscThud = this.ctx.createOscillator();
+      const gainThud = this.ctx.createGain();
+      oscThud.connect(gainThud);
+      gainThud.connect(this.ctx.destination);
+      oscThud.type = 'sine';
+      oscThud.frequency.setValueAtTime(160, now + 0.03);
+      oscThud.frequency.exponentialRampToValueAtTime(45, now + 0.35);
+      gainThud.gain.setValueAtTime(0.40, now + 0.03);
+      gainThud.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      oscThud.start(now + 0.03);
+      oscThud.stop(now + 0.35);
     }
   }
 

@@ -75,6 +75,7 @@ function assemble() {
     'src/render/character.js',
     'src/render/npcFactory.js',
     'src/render/titleMesh.js',
+    'src/render/proceduralTextures.js',
     'src/render/cityMap.js',
     'src/render/geometryFactory.js',
     'src/render/sceneSetup.js',

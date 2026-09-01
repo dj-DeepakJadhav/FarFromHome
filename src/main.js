@@ -45,7 +45,9 @@ class GameEngine {
     this.particles = new window.FFH.ParticleSystem(this.scene);
     this.ui = new window.FFH.UI(this);
 
-    // Ink-outline post-processing wraps every render (see inkOutline.js)
+    // Ink-outline post-processing (optional, see inkOutline.js)
+    // Defaults to Clean Diorama Mode (hardware MSAA antialiased rendering matching 3D isometric mockup)
+    window.FFH.useInkOutline = (window.FFH.useInkOutline !== undefined) ? window.FFH.useInkOutline : false;
     this.inkRenderer = window.FFH.createInkRenderer(this.renderer, this.scene, this.currentCamera);
 
     // Wire stages
@@ -249,7 +251,7 @@ class GameEngine {
     }
 
     if (this.renderer && this.scene && this.currentCamera) {
-      if (this.inkRenderer) {
+      if (this.inkRenderer && window.FFH.useInkOutline) {
         this.inkRenderer.setCamera(this.currentCamera);
         this.inkRenderer.render();
       } else {

@@ -1,4 +1,4 @@
-// Equipment and Room Furnishing Upgrades.
+﻿// Equipment and Room Furnishing Upgrades.
 //
 // Buying upgrades both improves delivery mechanics and visibly furnishes
 // the student sublet room (the genre's visible growth readout).
@@ -28,7 +28,7 @@ window.FFH.shopUpgrades = [
     id: 'pocketNotepad',
     nameEn: 'Pocket Notepad',
     cost: 20,
-    effectEn: 'One re-listen per shift — replays current item audio',
+    effectEn: 'One re-listen per shift :  replays current item audio',
     icon: '📋'
   },
   {

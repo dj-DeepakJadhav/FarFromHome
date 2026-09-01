@@ -57,12 +57,12 @@ const OUTLINE_SHADER = {
       float dD = texture2D(tDepth, vUv - vec2(0.0, texel.y)).x;
       float depthDelta = abs(dR - d0) + abs(dL - d0) + abs(dU - d0) + abs(dD - d0);
 
-      float edge = max(
-        step(uNormalThreshold, normalDelta),
-        step(uDepthThreshold, depthDelta)
-      );
+      // Anti-aliased smoothstep edge detection eliminates high-frequency pixel crawling and flicker
+      float edgeN = smoothstep(uNormalThreshold, uNormalThreshold + 0.22, normalDelta);
+      float edgeD = smoothstep(uDepthThreshold, uDepthThreshold * 2.8, depthDelta);
+      float edge = clamp(max(edgeN, edgeD), 0.0, 1.0);
 
-      gl_FragColor = vec4(mix(base, uLineColor, edge), 1.0);
+      gl_FragColor = vec4(mix(base, uLineColor, edge * 0.88), 1.0);
     }
   `,
 };
@@ -73,15 +73,14 @@ window.FFH.createInkRenderer = function (renderer, scene, camera) {
   const w = Math.max(1, Math.floor(size.width * pr));
   const h = Math.max(1, Math.floor(size.height * pr));
 
-  // NearestFilter so normal/depth samples aren't blurred across edges —
-  // interpolation here would soften exactly the discontinuities we detect.
+  // High precision depth texture (UnsignedIntType) to avoid 16-bit depth quantization flicker
   const normalTarget = new THREE.WebGLRenderTarget(w, h, {
     minFilter: THREE.NearestFilter,
     magFilter: THREE.NearestFilter,
     format: THREE.RGBAFormat,
   });
   normalTarget.depthTexture = new THREE.DepthTexture(w, h);
-  normalTarget.depthTexture.type = THREE.UnsignedShortType;
+  normalTarget.depthTexture.type = (typeof THREE.UnsignedIntType !== 'undefined') ? THREE.UnsignedIntType : THREE.UnsignedShortType;
 
   const normalMaterial = new THREE.MeshNormalMaterial();
 

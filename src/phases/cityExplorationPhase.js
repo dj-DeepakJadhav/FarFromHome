@@ -187,7 +187,7 @@ window.FFH.CityExplorationPhase = class {
         }, 1000);
       } else if (this.game.state.questStep === 0) {
         setTimeout(() => {
-          this.game.ui.showTutorialBanner("Tap the yellow marker to visit Kruma Express and start your shift!", 6000);
+          this.game.ui.showTutorialBanner("Tap the yellow marker to visit Rita Schneider at the University to inspect your enrollment!", 6000);
         }, 1000);
       }
     }
@@ -402,6 +402,10 @@ window.FFH.CityExplorationPhase = class {
     this.sunLight.position.set(24, 35, 20);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.set(1024, 1024);
+    this.sunLight.shadow.camera.near = 0.5;
+    this.sunLight.shadow.camera.far = 100;
+    this.sunLight.shadow.bias = -0.0006;
+    this.sunLight.shadow.normalBias = 0.02;
 
     this.game.scene.add(this.ambientLight, this.sunLight);
     this.updateAtmosphericTime(0.35);
@@ -535,21 +539,54 @@ window.FFH.CityExplorationPhase = class {
     this.courier.position.copy(this.playerPos);
     this.game.scene.add(this.courier);
 
-    // Nav Arrow removed per user feedback
-    // Nav Line (Google Maps style trail on ground)
-    const lineMat = new THREE.LineDashedMaterial({
-      color: 0x2EC4B6,
-      linewidth: 3,
-      dashSize: 1,
-      gapSize: 0.5,
+    // Nav Path: High-contrast translucent ribbon highlighter & animated pulsing chevrons
+    this.navPathGroup = new THREE.Group();
+    this.navPathGroup.visible = false;
+    this.game.scene.add(this.navPathGroup);
+
+    // 1. Wide Translucent Glow Ribbon (Highlighter effect)
+    this.navRibbonMat = new THREE.MeshBasicMaterial({
+      color: 0xFFD166,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.55,
+      side: THREE.DoubleSide,
+      depthTest: false,
+      depthWrite: false
     });
-    const lineGeo = new THREE.BufferGeometry();
-    this.navLine = new THREE.Line(lineGeo, lineMat);
-    this.navLine.position.y = 0.1; // Just above ground
-    this.navLine.visible = false;
-    this.game.scene.add(this.navLine);
+    this.navRibbonGeo = new THREE.BufferGeometry();
+    this.navRibbonMesh = new THREE.Mesh(this.navRibbonGeo, this.navRibbonMat);
+    this.navRibbonMesh.renderOrder = 997;
+    this.navPathGroup.add(this.navRibbonMesh);
+
+    // 2. Animated Chevrons / Waypoint Markers along the path
+    this.navChevronPool = [];
+    const chevronShape = new THREE.Shape();
+    chevronShape.moveTo(-0.35, -0.28);
+    chevronShape.lineTo(0, 0.28);
+    chevronShape.lineTo(0.35, -0.28);
+    chevronShape.lineTo(0.22, -0.38);
+    chevronShape.lineTo(0, 0.05);
+    chevronShape.lineTo(-0.22, -0.38);
+    chevronShape.closePath();
+
+    const chevronGeo = new THREE.ShapeGeometry(chevronShape);
+    chevronGeo.rotateX(-Math.PI / 2);
+
+    for (let i = 0; i < 20; i++) {
+      const cMat = new THREE.MeshBasicMaterial({
+        color: 0xFFF3B0,
+        transparent: true,
+        opacity: 0.95,
+        side: THREE.DoubleSide,
+        depthTest: false,
+        depthWrite: false
+      });
+      const cMesh = new THREE.Mesh(chevronGeo, cMat);
+      cMesh.renderOrder = 998;
+      cMesh.visible = false;
+      this.navPathGroup.add(cMesh);
+      this.navChevronPool.push(cMesh);
+    }
   }
 
   // --- TOUCH & POINTER GESTURE HANDLING ---
@@ -943,37 +980,127 @@ window.FFH.CityExplorationPhase = class {
         this.questHintCircle.scale.set(circleScale, circleScale, circleScale);
       }
 
-      // Day 1 FTUE: Navigation Path
-      if (this.navLine) {
-        if (this.game.state.deliveryTarget) {
-          this.navLine.visible = true;
+      // Navigation Ground Path: Translucent Highlighter Ribbon & Animated Chevrons
+      if (this.navPathGroup) {
+        this.navPathGroup.visible = true;
 
-          // Calculate simple Manhattan path on the grid
-          const points = [];
-          points.push(new THREE.Vector3(this.playerPos.x, 0, this.playerPos.z));
-          
-          // Find corner point (move in Z then X, or X then Z)
-          // Since it's a grid, a single corner is usually enough for a rough route
-          if (Math.abs(this.playerPos.x - targetMesh.position.x) > Math.abs(this.playerPos.z - targetMesh.position.z)) {
-            points.push(new THREE.Vector3(targetMesh.position.x, 0, this.playerPos.z));
-          } else {
-            points.push(new THREE.Vector3(this.playerPos.x, 0, targetMesh.position.z));
+        const isDelivery = this.game.state.activeDelivery;
+        const mainColor = isDelivery ? 0x2EC4B6 : 0xFFD166;
+        const chevronColor = isDelivery ? 0xCBF3F0 : 0xFFF3B0;
+
+        this.navRibbonMat.color.setHex(mainColor);
+        this.navRibbonMat.opacity = 0.35 + Math.sin(timeSec * 3) * 0.08; // subtle breathing glow
+
+        // Build 3D Manhattan waypoints on the street grid
+        const waypoints = [];
+        waypoints.push(new THREE.Vector3(this.playerPos.x, 0.28, this.playerPos.z));
+
+        const midX = (Math.abs(this.playerPos.x - targetMesh.position.x) > Math.abs(this.playerPos.z - targetMesh.position.z))
+          ? targetMesh.position.x
+          : this.playerPos.x;
+        const midZ = (midX === targetMesh.position.x)
+          ? this.playerPos.z
+          : targetMesh.position.z;
+
+        waypoints.push(new THREE.Vector3(midX, 0.28, midZ));
+        waypoints.push(new THREE.Vector3(targetMesh.position.x, 0.28, targetMesh.position.z));
+
+        // Generate wide ribbon mesh along waypoints (width = 0.65 units)
+        const ribbonWidth = 0.65;
+        const positions = [];
+        const indices = [];
+
+        // Build segments
+        let vertCount = 0;
+        for (let i = 0; i < waypoints.length - 1; i++) {
+          const p1 = waypoints[i];
+          const p2 = waypoints[i + 1];
+          const dir = new THREE.Vector3().subVectors(p2, p1);
+          const len = dir.length();
+          if (len < 0.05) continue;
+          dir.normalize();
+
+          // Normal perpendicular on horizontal XZ plane
+          const perp = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(ribbonWidth / 2);
+
+          const v0 = new THREE.Vector3().addVectors(p1, perp);
+          const v1 = new THREE.Vector3().subVectors(p1, perp);
+          const v2 = new THREE.Vector3().addVectors(p2, perp);
+          const v3 = new THREE.Vector3().subVectors(p2, perp);
+
+          positions.push(
+            v0.x, v0.y, v0.z,
+            v1.x, v1.y, v1.z,
+            v2.x, v2.y, v2.z,
+            v3.x, v3.y, v3.z
+          );
+
+          indices.push(
+            vertCount, vertCount + 1, vertCount + 2,
+            vertCount + 1, vertCount + 3, vertCount + 2
+          );
+          vertCount += 4;
+        }
+
+        if (positions.length > 0) {
+          this.navRibbonGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+          this.navRibbonGeo.setIndex(indices);
+          this.navRibbonGeo.computeVertexNormals();
+        }
+
+        // Place and animate moving chevrons along the path
+        const totalDist = waypoints.reduce((acc, p, idx) => {
+          if (idx === 0) return 0;
+          return acc + p.distanceTo(waypoints[idx - 1]);
+        }, 0);
+
+        const chevronSpacing = 1.3;
+        const speed = 2.4; // speed of moving markers along trail
+        const offset = (timeSec * speed) % chevronSpacing;
+        let poolIdx = 0;
+
+        let curDist = offset;
+        while (curDist < totalDist && poolIdx < this.navChevronPool.length) {
+          // Find position and forward direction at curDist along waypoints
+          let remaining = curDist;
+          let segmentFound = false;
+
+          for (let i = 0; i < waypoints.length - 1; i++) {
+            const p1 = waypoints[i];
+            const p2 = waypoints[i + 1];
+            const segLen = p1.distanceTo(p2);
+
+            if (remaining <= segLen) {
+              const t = remaining / segLen;
+              const pos = new THREE.Vector3().lerpVectors(p1, p2, t);
+              pos.y = 0.32; // float visibly over ribbon
+              const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
+
+              const chevron = this.navChevronPool[poolIdx];
+              chevron.position.copy(pos);
+              chevron.rotation.y = Math.atan2(-dir.z, dir.x) - Math.PI / 2;
+              chevron.material.color.setHex(chevronColor);
+              chevron.material.opacity = 0.85 + Math.sin(timeSec * 8 + poolIdx) * 0.15;
+              chevron.visible = true;
+
+              poolIdx++;
+              segmentFound = true;
+              break;
+            }
+            remaining -= segLen;
           }
-          points.push(new THREE.Vector3(targetMesh.position.x, 0, targetMesh.position.z));
+          curDist += chevronSpacing;
+        }
 
-          this.navLine.geometry.setFromPoints(points);
-          this.navLine.computeLineDistances(); // required for LineDashedMaterial
-          this.navLine.material.dashOffset -= delta * 2; // Animate dashes
-        } else {
-
-          this.navLine.visible = false;
+        // Hide unused chevrons
+        for (let i = poolIdx; i < this.navChevronPool.length; i++) {
+          this.navChevronPool[i].visible = false;
         }
       }
 
     } else {
       if (this.questHintMarker) this.questHintMarker.visible = false;
-
-      if (this.navLine) this.navLine.visible = false;
+      if (this.navPathGroup) this.navPathGroup.visible = false;
     }
 
     // 5. Update Follower Camera & Building Transparency Fading

@@ -93,16 +93,16 @@ window.FFH.DialoguePhase = class {
       this.game.scene.add(this.npcGroup);
     }
 
-    // 3. Setup Cinematic Isometric View focused on the upper viewport of the diorama room
+    // 3. Setup Cinematic Isometric View perfectly fitted inside upper 60% viewport
     const cam = this.game.cameras.mainCamera;
     
-    // Target (0, -0.25, 0) and zoom 2.35 frames the room in the upper half of screen
-    this.endCamTarget = new THREE.Vector3(0, -0.25, 0);
+    // Target (0, -0.95, 0) with zoom 2.15 frames the complete diorama room with full edges visible
+    this.endCamTarget = new THREE.Vector3(0, -0.95, 0);
     const zoomOffset = new THREE.Vector3(10.0, 13.5, 10.0);
     this.endCamPos = new THREE.Vector3().copy(this.endCamTarget).add(zoomOffset);
-    this.endCamZoom = 2.35;
+    this.endCamZoom = 2.15;
 
-    // Direct snap: No jarring slow pan from the distant city coordinate to (0,0,0)
+    // Direct snap: clean focus without pan jitter
     cam.position.copy(this.endCamPos);
     cam.lookAt(this.endCamTarget);
     if (cam.isOrthographicCamera) {

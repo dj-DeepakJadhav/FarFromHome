@@ -91,17 +91,86 @@ window.FFH.ShopPhase = class {
     const state = this.game.state;
     const goal = window.FFH.ECONOMY?.TUITION_GOAL || 250;
 
+    const isWarm = !!state.storyFlags.radiatorWarmth;
+    const canHeat = state.wallet >= 2.0;
+
     box.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #EEE; padding-bottom: 6px;">
         <div>
-          <div style="font-size: 15px; font-weight: 900; color: #264653;">WG Dorm Room & Workbench</div>
-          <div style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">Tangible Gear & Room Upgrades</div>
+          <div style="font-size: 15px; font-weight: 900; color: #264653;">WG Dorm Room & Sanctuary</div>
+          <div style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">Student Life • Upgrades & Respite</div>
         </div>
         <div style="text-align: right;">
           <div style="font-size: 9px; color: #666; font-weight: 700; text-transform: uppercase;">Your Wallet</div>
-          <div style="font-size: 12px; font-weight: 900; color: #E76F51;">${window.FFH.round2(state.wallet)}€</div>
+          <div style="font-size: 13px; font-weight: 900; color: #E76F51;">${window.FFH.round2(state.wallet)}€</div>
         </div>
       </div>
+
+      <!-- DORM SANCTUARY & SURVIVAL TRADE-OFFS -->
+      <div style="background: #F4F1DE; border: 2px solid #264653; border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 11px; font-weight: 900; color: #264653;">🪟 DORM CLIMATE & SANCTUARY</span>
+          <span style="font-size: 10px; font-weight: 800; color: ${isWarm ? '#2A9D8F' : '#3D5A80'};">
+            ${isWarm ? '♨️ Radiator Level 3 (Warm)' : '🥶 Room Cold (Shivering)'}
+          </span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button id="btn-radiator-toggle" style="
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 10px;
+            font-weight: 800;
+            border-radius: 6px;
+            border: 1.5px solid #264653;
+            background: ${isWarm ? '#E76F51' : '#F4A261'};
+            color: #FFFFFF;
+            cursor: pointer;
+            box-shadow: 0 2px 0 #264653;
+          ">
+            ${isWarm ? '🔥 Radiator Active (-€2.00 Paid)' : (canHeat ? '🔥 Turn Radiator to Level 3 (-€2.00)' : '🥶 Shiver (Need €2.00 for Heat)')}
+          </button>
+          <button id="btn-stosslueften" style="
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 10px;
+            font-weight: 800;
+            border-radius: 6px;
+            border: 1.5px solid #264653;
+            background: #2EC4B6;
+            color: #FFFFFF;
+            cursor: pointer;
+            box-shadow: 0 2px 0 #264653;
+          ">
+            🌬️ 5-Min Stoßlüften (+25 Fresh)
+          </button>
+        </div>
+        <div style="display: flex; gap: 6px; border-top: 1px dashed #CCC; padding-top: 5px;">
+          <button id="btn-family-postcard" style="
+            flex: 1;
+            padding: 4px 6px;
+            font-size: 9.5px;
+            font-weight: 800;
+            border-radius: 5px;
+            border: 1px solid #264653;
+            background: #FFF;
+            color: #264653;
+            cursor: pointer;
+          ">💌 Postcard from Home</button>
+          <button id="btn-fridge-note" style="
+            flex: 1;
+            padding: 4px 6px;
+            font-size: 9.5px;
+            font-weight: 800;
+            border-radius: 5px;
+            border: 1px solid #264653;
+            background: #FFF;
+            color: #264653;
+            cursor: pointer;
+          ">📋 Lokker's House Rules</button>
+        </div>
+      </div>
+
+      <div style="font-size: 11px; font-weight: 900; color: #264653; margin-top: 2px;">🚴 EQUIPMENT & GEAR UPGRADES:</div>
       <div id="shop-items-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
       <button id="btn-room-skills" style="
         width: 100%;
@@ -130,7 +199,7 @@ window.FFH.ShopPhase = class {
         letter-spacing: 0.5px;
         box-shadow: 0 3px 0 #264653;
         margin-top: 2px;
-      ">Leave Room</button>
+      ">Leave Room & Explore City</button>
     `;
 
     const list = box.querySelector('#shop-items-list');
@@ -205,6 +274,58 @@ window.FFH.ShopPhase = class {
       list.appendChild(row);
     });
 
+    // Radiator Heating Toggle
+    const radBtn = box.querySelector('#btn-radiator-toggle');
+    if (radBtn) {
+      radBtn.onclick = () => {
+        if (!state.storyFlags.radiatorWarmth) {
+          if (state.wallet >= 2.0) {
+            state.wallet = window.FFH.round2(state.wallet - 2.0);
+            state.storyFlags.radiatorWarmth = true;
+            state.freshness = Math.min(100, (state.freshness || 100) + 30);
+            this.game.sfx.playSfx('success');
+            this.game.ui.spawnFloatingText('♨️ Radiator Level 3! Warmth restores +30 Freshness (-€2.00)', window.innerWidth / 2, window.innerHeight / 2, '#E76F51');
+            this.renderShopUI();
+            this.game.ui.updatePersistentHUD(state);
+          } else {
+            this.game.sfx.playSfx('error');
+            this.game.ui.spawnFloatingText('🥶 Need €2.00 for heat! Shivering under the thin blanket...', window.innerWidth / 2, window.innerHeight / 2, '#3D5A80');
+          }
+        } else {
+          this.game.ui.spawnFloatingText('♨️ The cast-iron radiator is hissing warmly with steam.', window.innerWidth / 2, window.innerHeight / 2, '#E76F51');
+        }
+      };
+    }
+
+    // 5-Minute Shock Ventilation (Stoßlüften) Respite
+    const ventBtn = box.querySelector('#btn-stosslueften');
+    if (ventBtn) {
+      ventBtn.onclick = () => {
+        state.storyFlags.stosslueftenCount++;
+        state.freshness = Math.min(100, (state.freshness || 100) + 25);
+        this.game.sfx.playSfx('success');
+        this.game.ui.spawnFloatingText('🌬️ Crisp Baltic breeze! St. Mary\'s bells chime in distance. (+25 Freshness)', window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+      };
+    }
+
+    // Family Postcard Modal (Emotional Heartbeat)
+    const cardBtn = box.querySelector('#btn-family-postcard');
+    if (cardBtn) {
+      cardBtn.onclick = () => {
+        state.storyFlags.familyPostcardRead = true;
+        this.showPostcardModal();
+      };
+    }
+
+    // Landlord Fridge Note Modal (Authentic Expat Reality)
+    const noteBtn = box.querySelector('#btn-fridge-note');
+    if (noteBtn) {
+      noteBtn.onclick = () => {
+        state.storyFlags.fridgeNoteRead = true;
+        this.showFridgeNoteModal();
+      };
+    }
+
     const skillsBtn = box.querySelector('#btn-room-skills');
     if (skillsBtn) {
       skillsBtn.onclick = () => {
@@ -218,6 +339,129 @@ window.FFH.ShopPhase = class {
     };
 
     (document.getElementById('ui-container') || document.body).appendChild(box);
+  }
+
+  showPostcardModal() {
+    const existing = document.getElementById('postcard-modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'postcard-modal-overlay';
+    overlay.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 16px;
+      animation: fadeIn 0.2s ease-out;
+    `;
+
+    overlay.innerHTML = `
+      <div style="
+        background: #FFFDF7;
+        border: 3px solid #8D5B4C;
+        border-radius: 12px;
+        padding: 20px;
+        max-width: 350px;
+        width: 100%;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        font-family: Georgia, serif;
+        position: relative;
+      ">
+        <div style="display: flex; justify-content: space-between; border-bottom: 2px dashed #D4A373; padding-bottom: 8px; margin-bottom: 12px;">
+          <div style="font-size: 11px; font-weight: bold; color: #8D5B4C; letter-spacing: 1px;">PAR AVION • AIR MAIL</div>
+          <div style="font-size: 11px; color: #E76F51; font-weight: bold;">📬 HOME ➔ LÜBECK</div>
+        </div>
+        <p style="font-size: 13px; line-height: 1.5; color: #2B2D42; margin-bottom: 12px; font-style: italic;">
+          "Dearest child,<br><br>
+          We look at the calendar every morning back home. It must be so cold by the Baltic Sea right now! Are you keeping warm? How is the city registration going?<br><br>
+          Your father told the whole neighborhood that you are cycling across historic cobblestones delivering for Kruma Express. We know money is tight and every euro is hard-earned. Please remember to eat warm food and take care of your health.<br><br>
+          We are so endlessly proud of your courage. One day soon, you will hold that degree."
+        </p>
+        <div style="text-align: right; font-weight: bold; color: #8D5B4C; font-size: 13px; margin-bottom: 16px;">
+          — Maa & Papa ❤️
+        </div>
+        <button id="btn-close-postcard" style="
+          width: 100%;
+          padding: 10px;
+          background: #8D5B4C;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          font-weight: bold;
+          font-family: sans-serif;
+          cursor: pointer;
+          font-size: 12px;
+        ">KEEP CLOSE TO HEART (CLOSE)</button>
+      </div>
+    `;
+
+    overlay.querySelector('#btn-close-postcard').onclick = () => overlay.remove();
+    (document.getElementById('ui-container') || document.body).appendChild(overlay);
+  }
+
+  showFridgeNoteModal() {
+    const existing = document.getElementById('fridge-note-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'fridge-note-overlay';
+    overlay.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 16px;
+      animation: fadeIn 0.2s ease-out;
+    `;
+
+    overlay.innerHTML = `
+      <div style="
+        background: #FFF3B0;
+        border: 2px solid #333333;
+        border-radius: 8px;
+        padding: 18px;
+        max-width: 350px;
+        width: 100%;
+        box-shadow: 4px 6px 0 #333333;
+        font-family: monospace, sans-serif;
+      ">
+        <div style="border-bottom: 2px solid #333; padding-bottom: 6px; margin-bottom: 10px; font-weight: 900; font-size: 13px; color: #D62828;">
+          📌 HAUSORDNUNG — HANS LOKKER
+        </div>
+        <div style="font-size: 11px; line-height: 1.5; color: #222; margin-bottom: 14px;">
+          <strong>1. RUHEZEIT (Quiet Hours):</strong> STRICTLY 22:00 – 07:00. No loud footsteps or slamming corridor doors!<br><br>
+          <strong>2. MÜLLTRENNUNG (Waste Sorting):</strong><br>
+          &nbsp;• 🟦 <strong>Blaue Tonne:</strong> Paper, clean cardboard, study notes.<br>
+          &nbsp;• 🟨 <strong>Gelber Sack:</strong> Packaging, plastic bottles, yogurt cups.<br>
+          &nbsp;• ⬛ <strong>Restmüll:</strong> Residual waste only.<br>
+          <em>*Contaminating bins will result in a building-wide penalty!*</em><br><br>
+          <strong>3. STOSSLÜFTEN:</strong> Open windows completely for 5 minutes twice daily. Tilted windows in winter waste heating energy!<br><br>
+          <strong>4. COURIER BICYCLES:</strong> Muddy tires belong outside in the bike rack, never in the carpeted hallway!
+        </div>
+        <button id="btn-close-fridge" style="
+          width: 100%;
+          padding: 10px;
+          background: #333333;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          font-weight: bold;
+          font-family: sans-serif;
+          cursor: pointer;
+          font-size: 12px;
+        ">VERSTANDEN (I UNDERSTAND)</button>
+      </div>
+    `;
+
+    overlay.querySelector('#btn-close-fridge').onclick = () => overlay.remove();
+    (document.getElementById('ui-container') || document.body).appendChild(overlay);
   }
 
   exit() {
