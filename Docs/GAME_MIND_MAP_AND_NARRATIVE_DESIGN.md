@@ -146,4 +146,55 @@ Before writing code or editing game narrative, every AI agent MUST evaluate agai
    - **Dr. Anke Schmidt**: Audits player's 20-hour weekly work meter and advises on student labor protections.
 4. **Organic World Blockers**: No artificial invisible walls—blockers are real German laws (§16b AufenthG 20h cap, missing Anmeldung, Sparkasse prerequisites).
 
+---
+
+## 7. The Inkle / Meg Jayanth Narrative Engine (*80 Days* Integration)
+
+1. **4-Resource Tension Engine**:
+   - **Time**: 28-Day Entry Visa deadline countdown.
+   - **Money**: €20 initial wallet $\rightarrow$ €250 Tuition Target.
+   - **Labor Quota**: 20-Hour Weekly Work Limit (§16b AufenthG).
+   - **Freshness / Stamina**: Physical well-being restored by *Stoßlüften*, food, and proper sleep.
+2. **"Leading the Player Astray" (Meg Jayanth)**:
+   - Tempting side-stories: Mathias's off-the-books night pizza cash run, Klaus's cobblestone speed race, Oma Martha's 5 AM hospital delivery.
+3. **NPCs with Agency**:
+   - Hans Lokker grieves his late wife Anna; Rita remembers her daughter alone in Tokyo; Mathias fights for traditional handmade food.
+4. **Expressive Player Persona**:
+   - Choices define whether you navigate Germany as **The Hustler** (*fast, ambitious*), **The Bureaucrat** (*legalistic, methodical*), or **The Diplomat** (*warm, community-focused*).
+
+---
+
+## 8. Extra Credits: The Three Pillars of Game Writing & Mechanics-First Design
+
+1. **Plot**: External systemic pressure (28-day visa, 250€ tuition, 4 sequential dossier certificates).
+2. **Character**: Internal motivations, vulnerabilities, and cultural friction.
+3. **Lore**: Authentic Hanseatic brick gothic history, *Beamtendeutsch*, *Ruhezeit*, *Stoßlüften*, and *Mülltrennung*.
+4. **Design Mechanics First**:
+   - Verbs come first (Steering, Sorting, Budgeting).
+   - The narrative directly comments on the player's physical and economic gameplay state.
+
+---
+
+## 9. Design Doc: Diamond Foldback Indie Branching Architecture
+
+```mermaid
+graph TD
+    Morning[🌅 Morning: Check Quota & Visa Clock] --> Choice{Choose Daily Focus}
+    Choice -->|Official Courier Shift| Kruma[📦 Kruma Express: +Wages, +4h Quota]
+    Choice -->|Shady Night Shift| Pizza[🍕 Mathias Pizzeria: +25€ Cash, +Zoll Risk]
+    Choice -->|Community Favor| Bakery[🥐 Oma Martha Bakery: +Freshness, +Recommendation]
+    
+    Kruma --> Dorm[🏠 Foldback: WG Dorm Room Sanctuary]
+    Pizza --> Dorm
+    Bakery --> Dorm
+    
+    Dorm --> Respite[🪟 Stoßlüften & Corkboard Upgrades]
+    Respite --> NextDay[🏛️ Next Day: Bürgeramt & University Progress]
+```
+
+1. **The Diamond Fold**: Meaningful divergence during the day converging back to the WG Dorm sanctuary at night.
+2. **Invisible Variable State Tracking**: Using lightweight numeric state tags (`zollRisk`, `semester`, `weeklyHoursWorked`, `npcRelationships`) to alter all NPC reactions without building separate 3D levels.
+3. **Delayed Consequences (Chekhov's Gun)**: Early favors (helping Oma Martha or Nico) unlock late-game advantages during landlord negotiations and visa hearings.
+
+
 

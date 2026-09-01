@@ -17,6 +17,7 @@
 | **6** | [**German Laws & Expat Life Compendium**](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md) | Official German Federal Law & Student Reality | • **§16b AufenthG**: Strict 20-Hour Weekly Work Limit.<br>• **Schwarzarbeit**: Unregistered cash gigs vs. primary contract.<br>• **4-Document Catch-22**: Lease ➔ Anmeldung ➔ Bank ➔ Uni ➔ Visa.<br>• **Alltag Rules**: *Stoßlüften*, *Pfand*, *22:00 Ruhezeit*, *Mülltrennung*. | Guarantees 100% authentic cultural and legal simulation without fantasy shortcuts. |
 | **7** | [**The Three Pillars of Game Writing**](https://www.youtube.com/watch?v=wNNXdoj7cCQ) | Extra Credits | • **Plot**: External ticking pressure (28d visa, 250€ tuition).<br>• **Character**: Internal motivations & grief (Lokker's Anna, Rita's daughter).<br>• **Lore**: Hanseatic brick gothic history, Beamtendeutsch, and German daily life. | Forms the 3-act narrative architecture and character depth of our entire world. |
 | **8** | [**How To Start Your Game Narrative: Design Mechanics First**](https://www.youtube.com/watch?v=22HoViH4vOU) | Extra Credits (James Portnow) | • **Mechanics First, Story Last**: Emotional Core ➔ Core Gameplay Loop ➔ Art Style ➔ Narrative.<br>• **Zero Ludonarrative Dissonance**: Dialogue and quests must emerge directly from player verbs (Steering, Sorting, Budgeting).<br>• **Show & DO**: The player feels the tension through the 20h quota and cobblestone friction before any NPC speaks. | Ensures that every dialogue line and story quest reinforces live gameplay mechanics. |
+| **9** | [**Branching Paths Without a AAA Budget**](https://www.youtube.com/watch?v=Gdt5zCdXoSc) | Design Doc | • **Diamond Foldback Structure**: Meaningful mid-chapter divergence (Kruma vs. Pizzeria vs. Bakery) folding back to shared milestones (WG Dorm Sanctuary).<br>• **Invisible Variable State Tracking**: Modifying dialogue/reputation via state tags (`zollRisk`, `semester`, `wallet`, `hoursWorked`) without expensive new 3D assets.<br>• **Delayed Consequences (Chekhov's Gun)**: Early kindness to Oma Martha or Nico pays off in late-game bureaucracy defense. | Enables deep multi-path branching within a strictly constrained 35 MB offline bundle. |
 
 ---
 
@@ -45,6 +46,10 @@
 ### Q6: Why do we follow the "Design Mechanics First" philosophy?
 * **Decision**: We engineered the economic simulation, 4-phase loop, 20h quota, and bicycle drift physics *before* writing the dialogue. The dialogue directly comments on your wallet balance, your speed, your current work hours, and your dorm upgrades.
 * **Rationale**: Prevents ludonarrative dissonance. The player never feels like they are reading an irrelevant novel; every word spoken by Rita, Lokker, or Nina is a direct reaction to what the player just did mechanically.
+
+### Q7: Why do we use the Diamond Foldback and Invisible State Tracking?
+* **Decision**: Instead of exponential story branching (which creates unmaintainable bloat), we use the *Diamond Foldback*: players make divergent daily choices (Kruma courier shift vs. Pizzeria night cash run vs. Bakery diplomacy) that converge back to the WG Dorm sanctuary at night, tracking consequences through state variables (`zollRisk`, `semester`, `weeklyHoursWorked`, `npcRelationships`).
+* **Rationale**: Delivers deep player agency, meaningful moral dilemmas, and high replayability without exploding asset size or engineering complexity.
 
 ---
 

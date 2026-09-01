@@ -183,4 +183,17 @@
 - **Packaging & Size Verification**:
   - Built single-file `index.html` via `node build/assemble.js` cleanly at **6.13 MB** (Limit: 35 MB).
 
+### September 1, 2026: Inkle 80 Days, Extra Credits 3 Pillars, Design Doc Diamond Fold & Randomized Semester Intake
+- **Randomized Academic Semester Intake (`src/core/economy.js` & `src/phases/cityExplorationPhase.js`)**:
+  - Added dynamic 50/50 roll on fresh boot: *Wintersemester (WiSe)* (cool Baltic blue sky, dense fog, higher *Stoßlüften* fresh air bonus) vs. *Sommersemester (SoSe)* (golden hour sunshine, warm water reflections, higher patio tips).
+- **Minimalist Exploration HUD (`src/ui/hud.js`)**:
+  - Removed obsolete vocab buttons and clutter; established clean 2-row layout with Settings, Skills, Tuition, and Full-Width Objective Tracker.
+- **Master Resource & Decision Archive (`Docs/MASTER_RESOURCES_AND_DECISION_ARCHIVE.md`)**:
+  - Established permanent catalog of 9 industry reference videos and 7 core architectural decisions.
+- **Diamond Foldback Story Architecture (`Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md`)**:
+  - Codified the Design Doc indie branching pattern (Kruma vs. Pizzeria vs. Bakery daily divergence folding back to WG Dorm room sanctuary).
+- **Packaging & Size Verification**:
+  - Built single-file `index.html` via `node build/assemble.js` at **6.13 MB** (Limit: 35 MB).
+
+
 
