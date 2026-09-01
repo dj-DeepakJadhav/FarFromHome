@@ -171,21 +171,15 @@
 - **Budget Reclaim & Asset Pruning**: Removed dead town factories and legacy assets (`townModels.js`, `townFactory.js`), removed ~22MB of non-runtime research PDFs from release artifacts, keeping build at ~8.5MB uncompressed (~1.8MB zipped).
 - **Master Documentation Unification**: Realigned `README_HACKATHON.md`, `DESIGN_INTENT_DOC.md`, `OFFLINE_AI_AND_GERMAN_LEARNING_SYSTEM.md`, and `CHARACTERS_AND_BEHAVIOR.md` to establish *Far From Home* as a narrative student life & courier management simulation.
 
-### September 1, 2026: GDC Narrative Framework Integrations, English-First UX, & Deep Emotional Storytelling
-- **Jamie Antonisse GDC 2014 Framework Integration**:
-  - Implemented the "Mountain on the Horizon" persistent goal tracker into the city exploration HUD (`[20€ / 250€] [Day 1 of 28] [📜 📄 📑 💳]`), linking daily courier hustle to the overarching tuition and residency goal.
-  - Formatted the student journey around a strict Narrative Economy (Goal ➔ Action ➔ Feedback ➔ Respite) across 7 contextual story shifts (Oma Martha's bakery emergency, hospital ward supply runs, bank audit rush).
-- **Andrew Walsh GDC 2021 Emotional Design Implementation**:
-  - Replaced passive "press button to feel" interactions with active "Show & DO" mechanics: courier hustle, cash scarcity, ticking visa deadlines, and the tangible relief of earning official municipal and university stamps.
-  - Expanded the emotional palette across the community: immigrant solidarity, maternal warmth, homesickness, and earned civic respect.
-- **Molly Maloney & Eric Stirpe GDC 2018 Writing & Narrative Architecture**:
-  - Overhauled NPC dialogue trees in `src/data/npcDialogue.js` to give every resident rich personal backstories (Mathias's 1994 arrival from Naples, Rita's daughter studying in Tokyo, Hans Lokker's memories of his late wife Anna, Oma Martha's post-war rebuilding memories, Nina's courier battles).
-  - Expanded 7 unique doorstep delivery handoff scenarios in `src/data/dialogue.js`.
-- **English-First Gameplay Pivot**:
-  - Shifted warehouse manifests and dialogue text to crisp, instantaneous English to eliminate language barriers for hackathon judges, while preserving authentic German atmospheric audio, greetings, and subtle item subtitles (`Milk (die Milch)`).
-  - Organized warehouse shelves into 3 intuitive, high-contrast color categories: Bottom Blue (Chilled/Drinks), Middle Pink (Fresh/Produce), and Top Purple (Bakery/Dry).
-- **HUD Decluttering & Refinement**:
-  - Redesigned the top exploration HUD into a sleek, compact 85px 2-row glassmorphic bar with integrated micro gradient progress bars and low-profile document pips.
+### September 1, 2026: Expat Adaptation Skill Tree ("Startup Panic" Progression), New NPC Cast, & Living Mind Map Authority
+- **Expat Adaptation Skill Tree System (`src/data/skillTree.js`)**:
+  - Implemented a 3-branch skill tree: *The Hustler* (Cobblestone Drift +25% bike speed, Quick-Pack +3s picking grace buffer, VIP Rush Legend 3.0x tips), *The Bureaucrat* (Beamtendeutsch Decoded AStA +25€ grant, Steuer-ID Exemption +15% net wages, Stempel Master auto-validation), and *The Diplomat* (Northern "Moin" Charm -20% shop costs, Pfand Baron 1.50€ bottle returns, Stoßlüften Zen +40 Freshness).
+  - Wired interactive Skill Tree modal into persistent top HUD (`⭐ SKILLS (X SP)`) and WG Dorm room corkboard workbench.
+- **Expanded Character Roster (`src/data/npcDialogue.js` & `src/audio/speech.js`)**:
+  - Added Klaus "Der Blitz" (Veteran courier rival at Kruma Express) with aerodynamic drift mentorship (+1 Hustler SP) and distinctive 355Hz triangle voice blips.
+  - Added Dr. Anke Schmidt (AStA Student Legal Aid at University) with tenant rights defense (+1 Bureaucrat SP) and warm 300Hz sine voice blips.
+- **Living Game Mind Map & Narrative Authority (`Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md`)**:
+  - Established the master systemic mind map, full 11-character interaction matrix ("who speaks what, when, where you go, what you do"), and German cultural rules matrix (*Stoßlüften*, *Pfand*, *22:00 Ruhezeit*, *Mülltrennung*, *4-Document Dossier Gauntlet*).
 - **Packaging & Size Verification**:
-  - Built single-file `index.html` cleanly with `node build/assemble.js` at **6.11 MB** (well below the 35 MB competition limit).
+  - Rebuilt single-file `index.html` via `node build/assemble.js` at **6.13 MB** (Limit: 35 MB).
 
