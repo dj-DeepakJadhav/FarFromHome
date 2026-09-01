@@ -21,8 +21,8 @@ window.FFH.CityExplorationPhase = class {
     this.sunLight = null;
     
     // Player position & Click-to-Move Target
-    // Dedicated Road Spawn: Cobblestone road right beside your Student WG Room (x: 10, z: 15)
-    this.playerPos = new THREE.Vector3(26.0, 0.05, 39.0);
+    // Dedicated Road Spawn: Cobblestone road right beside your Student WG Room on West Mainland (x: 3, z: 10)
+    this.playerPos = new THREE.Vector3(7.8, 0.05, 26.0);
     this.targetMovePos = null;
     this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
@@ -799,13 +799,13 @@ window.FFH.CityExplorationPhase = class {
       this.setZoom(1.0);
       this.cameraPanOffset.set(0, 0, 0);
     } else {
-      // Zoom out to view entire 24x24 island diorama!
-      this.setZoom(0.28);
-      // Pan towards island center (12 * 2.6 = 31.2)
-      const islandCenterX = 12 * (window.FFH.TILE_SCALE || 2.6);
-      const islandCenterZ = 12 * (window.FFH.TILE_SCALE || 2.6);
-      this.cameraPanOffset.x = islandCenterX - this.playerPos.x;
-      this.cameraPanOffset.z = islandCenterZ - this.playerPos.z;
+      // Zoom out to view entire 24x24 mainland and island diorama!
+      this.setZoom(0.26);
+      // Pan towards world center (11.5 * 2.6 = 29.9)
+      const worldCenterX = 11.5 * (window.FFH.TILE_SCALE || 2.6);
+      const worldCenterZ = 11.5 * (window.FFH.TILE_SCALE || 2.6);
+      this.cameraPanOffset.x = worldCenterX - this.playerPos.x;
+      this.cameraPanOffset.z = worldCenterZ - this.playerPos.z;
     }
   }
 

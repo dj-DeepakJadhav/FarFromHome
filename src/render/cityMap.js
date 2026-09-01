@@ -955,55 +955,81 @@ window.FFH.createSeamlessWaterPlane = function(width = 110, height = 110) {
   return { waterMesh, waterMat };
 };
 
-// 24x24 Authentic Lübeck City Layout with 2.6 unit tile scaling
-// Real Lübeck Holstentor Layout & High Land-to-Water Ratio (90% Land / 10% Water):
-// - Natural 1-2 tile river channels (Stadtgraben on West, Trave in Center, Kanal-Trave on East)
-// - Holstentorplatz: Green park lawn with trees & central Museum Holstentor flanked by North & South one-way roads
-// - Puppenbrücke on West, Holstenbrücke on East connecting to Altstadt Holstenstraße
-// - Distributed destinations across mainland & island so players cross bridges on courier deliveries
+// 24x24 Authentic Lübeck City Layout faithfully recreating the user's new hand-painted map (Docs/new handmade map.jpg):
+// - Solid Mainland Perimeter (North, West, South, East) with residential quarters, gardens & facilities
+// - Enclosed Water Moat / Canal Loop wrapping around the Central Altstadt Island
+// - 6 Designated Historic Bridges: North Bridge, BurgTor (NE), East Bridge, South Bridge, Bakery (WN), HolstenTor (WS)
+// - Exact POI Placements:
+//     West Mainland: ZOB (top-left), Bakery (mid-left), WG (residential), West Garden, Darkstore (bottom-left)
+//     Central Island: UNI (north tip), BurgTor (NE gate), HolstenTor (west gate), Kino (center), Dom (south tip)
+//     East Mainland: Church (St. Mary's), East Garden (top-right)
 window.FFH.MAP_SIZE = 24;
 window.FFH.TILE_SCALE = 2.6;
 
 window.FFH.LUBECK_CITY_GRID = [
-  ['G','G','A1','G','T','G','A2','G','G','G','R_C','R_C','R_C','G','G','G','A3','G','T','G','A4','G','G','G'],
-  ['G','T','G','G','G','T','G','G','G','T','R_B','R_B','R_B','T','G','G','G','T','G','G','G','T','G','G'],
-  ['G','G','G','W','W','W','W','W','W','W','BR','BR','BR','W','W','W','W','W','W','G','G','G','G','G'],
-  ['A1','G','R_C','W','G','G','A3','G','R_B','R_B','B_BURGTOR','R_B','R_B','G','A4','G','G','W','R_C','G','A1','G','T','G'],
-  ['G','T','R_C','W','G','A2','G','R_B','R_B','G','R_C','R_C','R_B','R_B','G','A1','G','W','R_C','T','G','G','G','G'],
-  ['A2','G','R_C','W','G','G','R_B','R_B','G','G','R_C','G','G','R_B','R_B','G','G','W','R_B','G','B_UNI','G','A2','G'],
-  ['G','B_ZOB','R_C','W','R_B','R_B','R_B','G','G','A1','R_C','G','A2','G','R_B','R_B','R_B','W','R_B','R_B','R_B','R_B','G','T'],
-  ['G','R_R','R_C','BR','G','B_HOLSTEN','G','BR','R_B','R_C','B_MARIEN','R_C','B_BAKERY','R_C','R_B','R_B','R_B','W','BR','R_B','R_B','R_B','T','G'],
-  ['A3','G','R_C','W','R_B','R_B','R_B','G','R_B','G','R_C','G','R_C','G','R_B','R_B','R_B','W','R_B','G','G','T','G','G'],
-  ['G','T','R_C','W','G','G','R_B','R_B','G','B_RATHAUS','R_C','B_PIZZA','G','R_B','R_B','G','G','W','R_C','G','A3','G','T','G'],
-  ['G','G','R_C','W','G','A4','G','R_B','R_C','R_C','R_C','R_C','R_C','R_B','G','A2','G','W','R_C','G','G','G','G','G'],
-  ['A1','G','R_C','BR','R_B','G','G','R_B','G','A1','R_C','G','A2','G','R_B','G','G','BR','R_B','G','B_DARKSTORE','G','A1','G'],
-  ['G','T','R_C','W','R_B','G','A3','G','G','G','R_C','G','G','G','G','A4','G','W','R_B','R_B','R_B','R_B','T','G'],
-  ['G','G','R_C','W','R_B','G','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','R_B','W','R_C','G','G','G','G','G'],
-  ['A2','G','R_C','W','R_B','G','A1','G','R_C','G','G','G','R_C','G','A2','G','R_B','BR','R_B','G','B_KINO','G','A2','G'],
-  ['G','T','R_C','W','G','G','G','G','R_C','G','R_R','G','R_C','G','G','G','G','W','R_B','R_B','R_B','R_B','G','T'],
-  ['G','G','R_C','W','G','A3','G','G','R_C','B_WG','R_C','G','R_C','G','G','A4','G','W','R_C','G','G','T','G','G'],
-  ['A3','G','R_C','W','G','G','G','R_B','R_C','R_C','R_C','R_C','R_C','R_B','G','G','G','W','R_C','G','A3','G','T','G'],
-  ['G','T','R_C','W','G','A4','G','R_B','G','G','B_DOM','G','G','R_B','G','A1','G','W','R_C','T','G','G','G','G'],
-  ['G','G','R_C','W','G','G','G','R_B','R_B','R_B','R_B','R_B','R_B','R_B','G','G','G','W','R_C','G','A4','G','T','G'],
-  ['G','G','G','W','W','W','W','W','W','W','BR','BR','BR','W','W','W','W','W','W','G','G','G','G','G'],
-  ['G','T','G','G','G','T','G','G','G','T','R_B','R_B','R_B','T','G','G','G','T','G','G','G','T','G','G'],
-  ['G','G','A1','G','T','G','A2','G','G','G','R_C','R_C','R_C','G','G','G','A3','G','T','G','A4','G','G','G'],
-  ['G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G','G']
+  // Row 0: North Mainland Border
+  ['G','G','A1','G','T','G','G','G','G','G','R_C','R_C','G','G','G','G','G','G','T','G','A2','G','G','G'],
+  // Row 1: North Mainland (ZOB approach & East Garden)
+  ['G','A2','R_C','R_C','R_C','G','G','G','G','T','R_C','R_C','T','G','G','G','G','G','G','T','G','T','G','G'],
+  // Row 2: North Mainland (ZOB & East Garden)
+  ['G','G','B_ZOB','G','R_C','G','G','G','G','G','R_C','R_C','G','G','G','G','G','G','G','G','T','G','G','G'],
+  // Row 3: North Mainland Approach to North Bridge
+  ['A1','G','R_C','G','R_C','G','G','G','G','G','R_B','R_B','G','G','G','G','G','G','G','G','A3','G','T','G'],
+  // Row 4: NORTH CANAL LOOP & NORTH BRIDGE
+  ['G','G','R_C','G','G','W','W','W','W','W','BR','BR','W','W','W','W','W','W','W','G','R_C','G','G','G'],
+  // Row 5: Island North Apex
+  ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','W','W','G','G','R_C','T','G','G'],
+  // Row 6: Island North (UNI)
+  ['G','G','R_C','G','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','G','W','W','G','G','R_C','G','A4','G'],
+  // Row 7: West-North Bridge (Bakery) & East BurgTor Bridge
+  ['A2','G','B_BAKERY','R_C','R_B','BR','BR','R_B','R_C','R_C','R_C','R_C','R_C','R_B','B_BURGTOR','R_B','BR','BR','R_B','R_C','R_C','G','T','G'],
+  // Row 8: West Mainland & Upper Island Core
+  ['G','T','R_C','G','G','W','G','G','R_C','G','A1','G','R_C','G','G','G','W','W','G','G','R_C','G','G','G'],
+  // Row 9: West Mainland & Island Market Center (Rathaus & Pizza)
+  ['G','G','R_C','G','G','W','G','G','R_C','B_RATHAUS','R_C','B_PIZZA','R_C','G','G','G','W','W','G','G','R_C','T','G','G'],
+  // Row 10: West Mainland (Student WG Room)
+  ['A1','G','B_WG','R_C','R_C','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','W','W','G','G','R_C','G','A1','G'],
+  // Row 11: West Mainland & Island Kino Avenue
+  ['G','T','R_C','G','G','W','G','G','R_C','G','A2','G','R_C','G','G','G','W','W','G','G','R_C','G','T','G'],
+  // Row 12: West Mainland (Garden) & Island Kino
+  ['G','G','R_C','T','G','W','G','G','R_C','G','B_KINO','G','R_C','G','G','G','W','W','G','G','R_C','G','G','G'],
+  // Row 13: West-South HolstenTor Bridge & East Church Bridge
+  ['G','T','R_C','G','R_B','BR','BR','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','BR','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
+  // Row 14: West Mainland (Garden) & Lower Island Core
+  ['G','T','G','T','G','W','G','G','R_C','G','A3','G','R_C','G','G','G','W','W','G','G','R_C','G','A2','G'],
+  // Row 15: West Mainland (Garden) & Lower Island
+  ['G','G','T','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','W','W','G','G','R_C','T','G','G'],
+  // Row 16: West Mainland Road to Darkstore
+  ['G','A3','R_C','G','G','W','G','G','R_C','G','A4','G','R_C','G','G','G','W','W','G','G','R_C','G','G','G'],
+  // Row 17: Island South Tip (Dom zu Lübeck)
+  ['G','G','R_C','G','G','W','G','G','R_C','G','B_DOM','G','R_C','G','G','G','W','W','G','G','R_C','G','A3','G'],
+  // Row 18: West Mainland (Kruma Darkstore #104)
+  ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','W','W','G','G','R_C','T','G','G'],
+  // Row 19: SOUTH CANAL LOOP & SOUTH BRIDGE
+  ['G','T','R_C','G','G','W','W','W','W','W','BR','BR','W','W','W','W','W','W','W','G','R_C','G','G','G'],
+  // Row 20: South Mainland Approach to South Bridge
+  ['G','G','R_C','G','G','G','G','G','G','G','R_B','R_B','G','G','G','G','G','G','G','G','R_C','G','A4','G'],
+  // Row 21: South Mainland Villas & Promenade
+  ['G','A1','R_C','R_C','R_C','G','G','G','T','R_C','R_C','R_C','T','G','G','G','G','R_C','R_C','R_C','R_C','G','T','G'],
+  // Row 22: South Mainland Parkland
+  ['G','G','T','G','R_C','T','G','G','G','G','R_C','R_C','G','G','G','G','T','G','R_C','G','T','G','G','G'],
+  // Row 23: South Mainland Border
+  ['G','G','G','G','A2','G','G','G','G','G','G','G','G','G','G','G','G','G','A3','G','G','G','G','G']
 ];
 
 window.FFH.POI_METADATA = {
-  'B_HOLSTEN':    { name: 'Holstentor Museum & Park', tag: 'Historic Gateway', desc: '1464 Brick Gothic fortress gate centered in the green Holstentorplatz park with one-way avenues flanking both sides.', action: 'Explore Gate' },
-  'B_BURGTOR':    { name: 'Burgtor North Gate', tag: 'Citadel Gate', desc: '1444 Late-Gothic northern citadel gate protecting the bridge crossing to the north mainland.', action: 'Inspect Fortress' },
-  'B_ZOB':        { name: 'ZOB & Hauptbahnhof', tag: 'Transit Hub', desc: 'Lübeck Central Bus Station & Train Terminal on the western mainland. Commuters arriving daily.', action: 'Check Bus Schedule' },
-  'B_MARIEN':     { name: 'St. Mary\'s (Marienkirche)', tag: 'Cathedral', desc: 'The architectural mother of Brick Gothic churches with towering 120m dual spires.', action: 'Visit Spire' },
+  'B_HOLSTEN':    { name: 'Holstentor West Gate', tag: 'Historic Gateway', desc: '1464 Brick Gothic fortress gate defending the western bridge crossing into the Altstadt island.', action: 'Explore Gate' },
+  'B_BURGTOR':    { name: 'Burgtor North Gate', tag: 'Citadel Gate', desc: '1444 Late-Gothic citadel gate defending the north-eastern bridge crossing.', action: 'Inspect Fortress' },
+  'B_ZOB':        { name: 'ZOB & Hauptbahnhof', tag: 'Transit Hub', desc: 'Lübeck Central Bus Station & Train Terminal on the northwest mainland where your journey began.', action: 'Check Bus Schedule' },
+  'B_MARIEN':     { name: 'St. Mary\'s (Church)', tag: 'Historic Cathedral', desc: 'The architectural mother of Brick Gothic churches on the east mainland.', action: 'Visit Church' },
   'B_DOM':        { name: 'Dom zu Lübeck (Cathedral)', tag: 'Romanesque Cathedral', desc: 'Historic 1173 cathedral founded by Henry the Lion, anchoring the southern tip of the island.', action: 'Walk Courtyard' },
-  'B_UNI':        { name: 'Universität zu Lübeck', tag: 'University Campus', desc: 'East mainland university campus. Bank 250.00€ tuition fees (Semesterbeitrag) to pass enrollment!', action: 'Check Tuition' },
-  'B_KINO':       { name: 'Filmhaus & Stadthalle Kino', tag: 'Cultural Cinema', desc: 'Beloved local cinema and student film society venue on the east mainland arts quarter.', action: 'View Showtimes' },
-  'B_DARKSTORE':  { name: 'Kruma Dark Store #104', tag: 'Warehouse Hub', desc: 'Your grocery pick & delivery workplace on the eastern logistics boulevard. Grab your shift manifest!', action: 'Start Shift' },
-  'B_WG':         { name: 'Student Sublet (Your WG)', tag: 'Sanctuary', desc: 'Your cozy bedroom base in the south Altstadt with desk lamp, study books, and sleeping cat.', action: 'Enter Room' },
-  'B_RATHAUS':    { name: 'Bürgeramt & Rathaus', tag: 'City Hall', desc: 'Historic town hall on the market square. Register your address (Anmeldung) to unlock your banking rights.', action: 'Inspect Status' },
-  'B_PIZZA':      { name: 'Pizzeria Bella Lübeck', tag: 'Food Pickup', desc: 'Charming terracotta restaurant counter for rapid food delivery dispatches.', action: 'Order Lunch' },
-  'B_BAKERY':     { name: 'Bäckerei Hansa', tag: 'Artisan Shop', desc: 'Local artisan bakery baking fresh sourdough crust loaves (das Brot).', action: 'Buy Bread' },
+  'B_UNI':        { name: 'Universität zu Lübeck', tag: 'University Campus', desc: 'North island university campus. Bank 250.00€ tuition fees (Semesterbeitrag) to pass enrollment!', action: 'Check Tuition' },
+  'B_KINO':       { name: 'Filmhaus & Stadthalle Kino', tag: 'Cultural Cinema', desc: 'Beloved local cinema and student film society venue at the center of the island.', action: 'View Showtimes' },
+  'B_DARKSTORE':  { name: 'Kruma Dark Store #104', tag: 'Warehouse Hub', desc: 'Your grocery pick & delivery workplace on the southwest mainland. Grab your shift manifest!', action: 'Start Shift' },
+  'B_WG':         { name: 'Student Sublet (Your WG)', tag: 'Sanctuary', desc: 'Your cozy bedroom base on the west mainland with desk lamp, study books, and sleeping cat.', action: 'Enter Room' },
+  'B_RATHAUS':    { name: 'Bürgeramt & Rathaus', tag: 'City Hall', desc: 'Historic town hall on the island market square. Register your address (Anmeldung) to unlock banking rights.', action: 'Inspect Status' },
+  'B_PIZZA':      { name: 'Pizzeria Bella Lübeck', tag: 'Food Pickup', desc: 'Charming terracotta restaurant counter on the island for rapid food deliveries.', action: 'Order Lunch' },
+  'B_BAKERY':     { name: 'Bäckerei Hansa (Bekary)', tag: 'Artisan Shop', desc: 'Local artisan bakery on the west mainland beside the northwest bridge. Fresh bread daily!', action: 'Buy Bread' },
   'B_HOSPITAL':   { name: 'Krankenhaus Altstadt', tag: 'Medical VIP', desc: 'High-stakes express delivery target for Station 4B night shifts.', action: 'View Delivery Target' }
 };
 

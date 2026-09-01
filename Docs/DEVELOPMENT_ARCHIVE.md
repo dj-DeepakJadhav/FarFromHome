@@ -309,4 +309,23 @@
   - Built single-file `index.html` via `node build/assemble.js` at **6.26 MB** uncompressed (~1.8 MB zipped release), strictly `< 35 MB`.
   - Verified 60 FPS performance and 0 console errors.
 
+### September 2, 2026: Complete 3D Integration of New Hand-Painted Map (`Docs/new handmade map.jpg`)
+- **Solid Mainland Perimeter Architecture**:
+  - Encapsulated the entire 24×24 world within solid German mainland, eliminating the floating-island ocean void when zoomed out.
+  - Implemented an enclosed, natural 1–2 tile canal loop wrapping around the central Altstadt island.
+- **6 Historic Designated Bridges**:
+  - North Bridge (connecting North Mainland to North Island tip).
+  - North-East Bridge (BurgTor citadel gate crossing to East Mainland).
+  - East Bridge (connecting island to East Mainland church quarter).
+  - South Bridge (connecting Dom peninsula to South Mainland).
+  - West-North Bridge (connecting West Mainland beside Bakery to island).
+  - West-South Bridge (connecting West Mainland beside WG & Garden to Holstentor gate).
+- **Exact POI Layout Matching Drawing**:
+  - West Mainland: `B_ZOB` (NW), `B_BAKERY` (W-N), `B_WG` (W residential spawn), `G`/`T` (West Garden), `B_DARKSTORE` (SW depot).
+  - Central Island: `B_UNI` (N tip), `B_BURGTOR` (NE gate), `B_HOLSTEN` (W gate), `B_KINO` (center), `B_RATHAUS`/`B_PIZZA` (market center), `B_DOM` (S tip).
+  - East Mainland: `G`/`T` (East Garden), `B_MARIEN` (East Church).
+- **Packaging & Verification**:
+  - Rebuilt `index.html` cleanly at **6.26 MB** uncompressed, well under 35 MB.
+
+
 
