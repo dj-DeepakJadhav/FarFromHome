@@ -2,35 +2,35 @@
 
 > **Format**: Vertical Portrait capture (390×844) centered on high-contrast background.  
 > **Duration**: 2:15 – 2:45  
-> **Key Goal**: Demonstrate the core loop, the *der/die/das* spatial filter innovation, the €20 ➔ €250 economic progression, and 100% offline airgap compliance.
+> **Key Goal**: Demonstrate the core loop, English-first accessible warehouse picking with German atmospheric audio, the €20 ➔ €250 economic progression, 4-document dossier gauntlet, and 100% offline airgap compliance.
 
 ---
 
 ## 🎬 Beat-by-Beat Timeline
 
-### Beat 1: The Student Dilemma & Bureaucracy Checklist (0:00 – 0:25)
-- **Visual**: Camera opens in the cozy 3D Altstadt isometric view outside the Temporary Hostel. UI shows the Paperwork Checklist: `Visa: 28 Days | Wallet: €20 | Semesterbeitrag: €250 | Anmeldung: ❌`.
-- **Narration**: *"You have just arrived in Lübeck on a 1-month student visa with €20 in your pocket. To stay in Germany, you have 28 days to conquer the bureaucracy gauntlet: pay your tuition, find an apartment, do your Anmeldung, and extend your visa. To fund it all, you work as a courier for Kruma Express."*
-- **Action**: Tap Kruma Dispatch -> Clock in for Shift 1.
+### Beat 1: The Student Dilemma & Mountain-on-Horizon HUD (0:00 – 0:25)
+- **Visual**: Camera opens in the cozy 3D Altstadt isometric view outside the Temporary Hostel. HUD prominently displays the persistent goal: `[20€ / 250€] [Day 1 of 28] [📜 📄 📑 💳]`.
+- **Narration**: *"You have just arrived in Lübeck on a 28-day student visa with €20 in your pocket. To secure your permanent residence permit, you must conquer the 4-document German bureaucracy gauntlet: earn your €250 semester tuition, sign your rental contract, register at the Bürgeramt, and unlock your bank account. To fund your dream, you work as a courier for Kruma Express."*
+- **Action**: Tap Kruma Dispatch -> Meet Nina Lindemann -> Clock in for Shift 1.
 
-### Beat 2: The Signature Mechanic — German Spatial Filter (0:25 – 1:00)
-- **Visual**: Close-up of the 3-tier warehouse shelf in the city.
-- **Narration**: *"Here is our signature mechanic: German grammatical gender is a spatial search filter. Blue shelf is DER. Pink shelf is DIE. Purple shelf is DAS."*
-- **Action (Audio ON)**: Spoken voice calls *"die Milch!"*. Player immediately taps the middle pink shelf. Then *"der Apfel!"* (bottom blue shelf), *"das Brot!"* (top purple shelf).
-- **Callout Banner**: `3x FASTER SEARCH SPEED | 2.0x EARLY PICK BONUS`.
+### Beat 2: English-First Warehouse Picking & Color Shelf Categories (0:25 – 1:00)
+- **Visual**: Close-up of the 3-tier warehouse shelf in the warehouse diorama.
+- **Narration**: *"Picking is fast, tactile, and intuitive. Orders display clear English titles with German subtitles, sorted across three color-coded shelf categories: Bottom Blue for Chilled drinks, Middle Pink for Fresh produce, and Top Purple for Bakery items."*
+- **Action (Audio ON)**: Spoken voice calls *"die Milch!"*. Player taps *Milk (die Milch)* on the middle pink shelf. Then *"der Apfel!"* (*Apple*), *"das Brot!"* (*Bread*).
+- **Callout Banner**: `INSTANT RECOGNITION | 2.0x EARLY PICK SPEED BONUS`.
 
-### Beat 3: The City Delivery Ride & Doorway Etiquette (1:00 – 1:30)
-- **Visual**: Courier cycles through cobblestone streets with the packed grocery bag on their bike, heading toward a glowing destination pin.
-- **Narration**: *"After packing, you cycle through the charming streets of Lübeck, delivering groceries to local residents while practicing German etiquette."*
-- **Action**: Courier stops at Oma Martha's bakery doorway -> Selects polite formal *Sie* greeting (*"Guten Tag, Frau Becker! Hier ist Ihre Lieferung."*) -> Oma Martha smiles and awards a generous €5.00 tip!
+### Beat 3: The City Delivery Ride & Doorstep Etiquette (1:00 – 1:30)
+- **Visual**: Courier cycles through cobblestone streets with the packed grocery bag on their bike, heading toward a glowing destination pin while avoiding obstacles.
+- **Narration**: *"After packing, you cycle through the historic streets of Lübeck, delivering groceries to local residents while practicing authentic cultural etiquette."*
+- **Action**: Courier arrives at Oma Martha's bakery doorway -> Selects polite formal greeting (*"Good morning, Frau Webber! Fresh flour and butter for your bakery!"*) -> Oma Martha beams with joy and awards a generous €12.00 tip!
 
 ### Beat 4: The Economic Engine & Shop Upgrades (1:30 – 2:00)
 - **Visual**: Shift summary receipt prints with base pay, streak multiplier, and customer tips.
-- **Narration**: *"In the bike shop, every euro you earn buys tangible gear upgrades that accelerate future shifts."*
-- **Action**: Player purchases the **E-Bike** and **Thermal Bag**. The bike visibly transforms, and delivery speed noticeably increases.
+- **Narration**: *"In your dorm room, every euro you earn buys tangible gear upgrades that accelerate future shifts."*
+- **Action**: Player purchases the **E-Bike** and **Thermal Bag**. The bike visibly transforms with an electric motor, and courier speed noticeably surges.
 
 ### Beat 5: Bureaucracy Victory & 100% Offline Airgap Proof (2:00 – 2:30)
-- **Visual**: Player deposits €250 at the University with Registrar Rita, signs their apartment lease with Hans Lokker, gets stamped at the Rathaus with Herr Vogel, and unlocks their Sperrkonto at Sparkasse.
-- **Victory**: Final scene at the Ausländerbehörde: Dr. Lindemann stamps the multi-year Aufenthaltstitel (Residence Permit)!
-- **Proof**: DevTools shown in Offline / Airplane mode with `far-from-home-release.zip` under 2 MB.
-- **Narration**: *"Far From Home: Kruma Express. A complete student life and management simulation built for the Meta Horizon Creator Competition."*
+- **Visual**: Player deposits €250 at the University with Registrar Rita, signs their lease with Hans Lokker, gets stamped at the Rathaus with Herr Vogel, and activates their Sperrkonto at Sparkasse with Frau Weber.
+- **Victory**: Final scene at the Ausländerbehörde: Dr. Lindemann stamps the permanent Residence Permit with full commendation!
+- **Proof**: DevTools shown in Offline / Airplane mode with single-file `index.html` running at 60 FPS fully self-contained.
+- **Narration**: *"Far From Home: Kruma Express. A heartfelt student management simulation built for the Meta Horizon Creator Competition."*

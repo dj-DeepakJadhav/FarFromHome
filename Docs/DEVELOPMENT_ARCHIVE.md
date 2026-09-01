@@ -171,3 +171,21 @@
 - **Budget Reclaim & Asset Pruning**: Removed dead town factories and legacy assets (`townModels.js`, `townFactory.js`), removed ~22MB of non-runtime research PDFs from release artifacts, keeping build at ~8.5MB uncompressed (~1.8MB zipped).
 - **Master Documentation Unification**: Realigned `README_HACKATHON.md`, `DESIGN_INTENT_DOC.md`, `OFFLINE_AI_AND_GERMAN_LEARNING_SYSTEM.md`, and `CHARACTERS_AND_BEHAVIOR.md` to establish *Far From Home* as a narrative student life & courier management simulation.
 
+### September 1, 2026: GDC Narrative Framework Integrations, English-First UX, & Deep Emotional Storytelling
+- **Jamie Antonisse GDC 2014 Framework Integration**:
+  - Implemented the "Mountain on the Horizon" persistent goal tracker into the city exploration HUD (`[20€ / 250€] [Day 1 of 28] [📜 📄 📑 💳]`), linking daily courier hustle to the overarching tuition and residency goal.
+  - Formatted the student journey around a strict Narrative Economy (Goal ➔ Action ➔ Feedback ➔ Respite) across 7 contextual story shifts (Oma Martha's bakery emergency, hospital ward supply runs, bank audit rush).
+- **Andrew Walsh GDC 2021 Emotional Design Implementation**:
+  - Replaced passive "press button to feel" interactions with active "Show & DO" mechanics: courier hustle, cash scarcity, ticking visa deadlines, and the tangible relief of earning official municipal and university stamps.
+  - Expanded the emotional palette across the community: immigrant solidarity, maternal warmth, homesickness, and earned civic respect.
+- **Molly Maloney & Eric Stirpe GDC 2018 Writing & Narrative Architecture**:
+  - Overhauled NPC dialogue trees in `src/data/npcDialogue.js` to give every resident rich personal backstories (Mathias's 1994 arrival from Naples, Rita's daughter studying in Tokyo, Hans Lokker's memories of his late wife Anna, Oma Martha's post-war rebuilding memories, Nina's courier battles).
+  - Expanded 7 unique doorstep delivery handoff scenarios in `src/data/dialogue.js`.
+- **English-First Gameplay Pivot**:
+  - Shifted warehouse manifests and dialogue text to crisp, instantaneous English to eliminate language barriers for hackathon judges, while preserving authentic German atmospheric audio, greetings, and subtle item subtitles (`Milk (die Milch)`).
+  - Organized warehouse shelves into 3 intuitive, high-contrast color categories: Bottom Blue (Chilled/Drinks), Middle Pink (Fresh/Produce), and Top Purple (Bakery/Dry).
+- **HUD Decluttering & Refinement**:
+  - Redesigned the top exploration HUD into a sleek, compact 85px 2-row glassmorphic bar with integrated micro gradient progress bars and low-profile document pips.
+- **Packaging & Size Verification**:
+  - Built single-file `index.html` cleanly with `node build/assemble.js` at **6.11 MB** (well below the 35 MB competition limit).
+

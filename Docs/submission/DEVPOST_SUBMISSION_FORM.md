@@ -8,42 +8,42 @@
 ---
 
 ## 1. Elevator Pitch (Short Description)
-*An atmospheric narrative management simulation where an international student in Lübeck conquers the 28-day German Bureaucracy Gauntlet (Jobs, Anmeldung, Sperrkonto, Visa) by working courier shifts—discovering that German grammar (`der/die/das`) is the spatial search filter that doubles picking speed and profits.*
+*An atmospheric narrative management simulation where an international student in Lübeck conquers the 28-day German Bureaucracy Gauntlet (Uni Matriculation, Landlord Lease, Bürgeramt Registration, Sparkasse Blocked Account) by working fast courier shifts—featuring English-first accessibility, authentic German atmospheric audio, and deep character stories of immigrant solidarity.*
 
 ---
 
 ## 2. Inspiration
-Moving to a new country is a whirlwind of bureaucracy, language barriers, and financial pressure. We wanted to capture the authentic emotional journey of an international student arriving in Germany (inspired by DW's *Nicos Weg*) combined with the cozy character interactions of *Coffee Talk* and the tactile courier deliveries of *Messenger by Abeto*. 
+Moving to a foreign country alone is a whirlwind of paperwork, language anxiety, and financial pressure. We drew inspiration from authentic international student experiences (such as DW's *Nicos Weg*), combined with the cozy character depth of *Coffee Talk* and the tactile courier deliveries of *Messenger by Abeto*.
 
-Instead of boring grammar drills, we turned German bureaucratic milestones (*Anmeldung*, *Sperrkonto*, *Kaution*, *Ausländerbehörde*) into a compelling quest progression and made language acquisition the player's greatest economic superpower.
+Grounded in narrative design principles from industry leaders (Jamie Antonisse, Andrew Walsh, Molly Maloney & Eric Stirpe), we transformed bureaucratic milestones into an emotionally resonant "Mountain on the Horizon" progression loop where every shift worked, every upgrade bought, and every neighbor befriended brings you one step closer to earning your permanent home.
 
 ---
 
 ## 3. What It Does & Core Gameplay
-1. **The Bureaucracy Checklist**: Manage your 28-day entry visa countdown as you check off the 5 essential milestones: Job, Apartment Kaution (€300), University Matriculation (€250), Rathaus *Anmeldung*, and Sparkasse *Sperrkonto*.
-2. **Lübeck 3D Island Exploration**: Explore stepped-gable Altbau landmarks, chat with university registrars, town hall bureaucrats, bankers, and bakers in a seamless fixed Bird's-Eye isometric diorama.
-3. **Audio Warehouse Picking**: Orders are called out in spoken German (*"die Milch!"*, *"der Apfel!"*). Shelves are partitioned into three color-coded gender tiers (Bottom Blue = *der* ▲, Middle Pink = *die* ●, Top Purple = *das* ■), collapsing search time by 66%.
-4. **In-City Courier Navigation**: Ride your bicycle across cobblestones with the packed order, balancing travel time against cargo freshness to reach customer pins.
-5. **Doorstep Cultural Etiquette**: Engage in authentic, voiced German dialogue choices (*Du* vs. *Sie*, quiet hours) for customer tip bonuses.
-6. **Bike Shop Management Engine**: Reinvest earnings into visible E-Bikes, Thermal Bags, Shelf Labels, and Vocab Notebooks to optimize future shifts.
+1. **The 4-Document Dossier Gauntlet**: Manage your 28-day visa countdown with persistent visual goals as you unlock the 4 essential legal milestones: `[📜 1. Uni Matriculation (€250)]`, `[📄 2. Landlord Confirmation (Hans Lokker)]`, `[📑 3. Rathaus Registration (Herr Vogel)]`, and `[💳 4. Sparkasse Blocked Account (Frau Weber)]`, culminating in permanent residency approval from Dr. Lindemann!
+2. **Lübeck 3D Island Exploration**: Explore stepped-gable Altbau landmarks in a seamless fixed isometric diorama, interacting with a rich cast of residents who offer deep emotional backstories and life advice.
+3. **English-First Warehouse Picking**: Pick grocery orders fast with crisp English titles, German subtitle lore, and three high-contrast arcade color shelves (Bottom Blue = Chilled, Middle Pink = Fresh, Top Purple = Bakery/Dry) with audio pronunciation cues.
+4. **In-City Courier Navigation**: Ride your bicycle across medieval cobblestones, dodging pedestrians and construction to deliver hot groceries while managing cargo freshness.
+5. **Doorstep Cultural Etiquette**: Complete contextual delivery hand-offs with local residents, navigating formal (*Sie*) vs. informal (*Du*) greetings and quiet hours (*Ruhezeit*) for generous tip multipliers.
+6. **Student Room & Bike Upgrades**: Reinvest shift earnings into visible E-Bikes, Thermal Bags, Shelf Labels, and Vocab Notepads to observe tangible economic growth.
 
 ---
 
 ## 4. How We Built It (Tech Stack & Architecture)
-- **Engine**: Three.js r128 (Vendored, zero CDNs, 100% airgapped offline compliance).
-- **Packaging**: Single unminified `index.html` release build bundled via custom build pipeline.
-- **Rendering**: Parametric procedural city generator, stepped-gable Altbau meshes, front-facing 2.5D picking shelves & customer entrance dioramas, custom cel-shading light ramps, and a normal+depth Sobel edge ink outline shader.
-- **Micro-NLP & Audio**: Authored symbolic German morphology engine (`grammarEngine.js`) guaranteeing 100% grammatically correct orders, coupled with lightweight studio-recorded character voice clips and interactive audio previews.
+- **Engine**: Three.js r128 (Vendored, zero external CDNs, 100% airgapped offline compliance).
+- **Packaging**: Single unminified `index.html` release build bundled via custom build pipeline (~6.1 MB uncompressed, ~1.8 MB zipped).
+- **Rendering**: Parametric procedural city generator, stepped-gable Altbau meshes, front-facing 2.5D picking shelves & diorama rooms, custom cel-shading light ramps, and a normal+depth Sobel edge ink outline shader.
+- **Narrative Architecture**: English-first typewriter dialogue engine, multi-branching emotional conversation trees, character memory systems, and authentic studio voice sprites.
 
 ---
 
 ## 5. Challenges We Ran Into
-- **Strict 35 MB Airgap Budget**: Stripping heavy textures and bloated neural models, replacing them with procedural shaders, parametric geometry, and symbolic grammar logic to achieve a lightweight ~5.7 MB uncompressed footprint (~1.8 MB zipped).
-- **The 90-Second Pedagogical Rule**: Tuning the teach ➔ anticipate ➔ test audio delay curves so judges experience the "I understood German!" breakthrough within their first 90 seconds of play.
+- **Balancing Depth vs. Accessibility**: Ensuring judges can jump in and have fun within the first 15 seconds without language barriers, while still preserving rich German cultural flavor and emotional authenticity.
+- **Strict 35 MB Airgap Budget**: Implementing rich 3D environments, voiced audio, procedural cel-shading, and deep dialogue trees within a lightweight ~6.1 MB single-file build with zero external network calls.
 
 ---
 
 ## 6. Accomplishments That We're Proud Of
-- A truly original mechanic where language learning is not bolted on, but is the literal spatial search filter driving economic simulation efficiency.
+- A truly satisfying progression loop: watching your persistent €20 ➔ €250 tuition meter fill up alongside your 4-document dossier stamps.
+- Deep, heartfelt character storytelling that captures the real emotions of immigrant resilience and community warmth.
 - Flawless single-thumb mobile portrait ergonomics (390×844) running at 60 FPS fully offline.
-- A heartfelt, culturally rich story of student resilience in Germany.
