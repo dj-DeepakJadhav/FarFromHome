@@ -81,3 +81,26 @@ Before claiming any task is complete or preparing a commit:
 2. Run `node build/check-size.js` and verify bundle size is `< 35 MB`.
 3. Verify that the loop executes end-to-end:
    `Boot ➔ Hub ➔ Shift ➔ Ride ➔ Doorway ➔ Debrief Receipt ➔ Bike Shop ➔ Next Shift ➔ Win / Lose`.
+
+---
+
+## 7. Strict Resource Reuse & Folder Discovery Protocol (Zero Waste)
+
+1. **Mandatory Folder Audit Before Creation**:
+   - **Never create new files, textures, geometry, or systems from scratch if they already exist in the repository.**
+   - All agents MUST search existing project directories (`src/`, `vendor/`, `Docs/`, `Tools/`) and reuse existing assets, shaders, modules, and data models first.
+   - Only create a new asset or file when the requested capability strictly does not exist in the repository.
+2. **Leveraging the `Tools/` Directory**:
+   - For 3D geometry, procedural generation, and visual pipelines, agents must inspect and utilize utilities located in `Tools/` (e.g. `Threejs-Awesome-Graphics-Agent-Skills`, `threejs-game-skills`, `webgpu-claude-skill`).
+
+---
+
+## 8. MCP Graph & Token Efficiency Standard
+
+1. **Prefer `codebase-memory-mcp` Over Full-File Dumps**:
+   - Always prioritize MCP knowledge graph queries (`search_graph`, `get_code_snippet`, `trace_path`) for targeted code discovery to minimize token overhead.
+   - Avoid reading giant files repeatedly when surgical line-range reads or symbol lookups suffice.
+2. **Lean, Focused Edits**:
+   - Perform surgical changes via targeted chunk replacements.
+   - Keep context windows clean and token consumption minimal.
+
