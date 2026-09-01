@@ -1506,7 +1506,10 @@ window.FFH.UI = class {
                 <div style="height: 100%; width: ${Math.min(100, Math.round((s.wallet / goal) * 100))}%; background: linear-gradient(90deg, #2EC4B6, #E76F51); border-radius: 2px;"></div>
               </div>
             </div>
-            <span style="font-size: 10px; font-weight: 900; background: #FFE8D6; color: #E76F51; padding: 4px 6px; border-radius: 6px; border: 1.5px solid #E76F51; white-space: nowrap;">
+            <span style="font-size: 10px; font-weight: 900; background: ${(s.weeklyHoursWorked || 0) >= 20 ? '#FFD8D8' : '#E8F5E9'}; color: ${(s.weeklyHoursWorked || 0) >= 20 ? '#D90429' : '#2A9D8F'}; padding: 4px 5px; border-radius: 6px; border: 1.5px solid ${(s.weeklyHoursWorked || 0) >= 20 ? '#D90429' : '#2A9D8F'}; white-space: nowrap;" title="German 20-Hour Legal Work Limit (§16b AufenthG)">
+              ⏱️ ${s.weeklyHoursWorked || 0}/20h
+            </span>
+            <span style="font-size: 10px; font-weight: 900; background: #FFE8D6; color: #E76F51; padding: 4px 5px; border-radius: 6px; border: 1.5px solid #E76F51; white-space: nowrap;">
               ⏳ 28d
             </span>
           </div>

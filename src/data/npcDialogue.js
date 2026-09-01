@@ -258,6 +258,25 @@ window.FFH.NPC_DATABASE = {
         }
       });
 
+      // The German Real-Life Dilemma: Off-the-Books Cash Side Shift (Schwarzgeld)
+      options.push({
+        label: '🤫 "Mathias, my 20-hour visa cap is full, but I desperately need tuition cash!" (Cash Shift)',
+        en: 'Offer off-the-books kitchen help: Earn +25.00€ instant cash (Ignores 20h quota, but risk of Zoll inspection).',
+        action: (game) => {
+          game.state.wallet = window.FFH.round2(game.state.wallet + 25);
+          game.state.zollRisk = (game.state.zollRisk || 0) + 15;
+          game.sfx.playSfx('success');
+          game.ui.spawnFloatingText('💶 +25.00€ Cash in Envelope! (⚠️ Zoll Risk +15%)', window.innerWidth / 2, window.innerHeight / 2, '#F4A261');
+          game.ui.updatePersistentHUD(game.state);
+
+          window.FFH.NPC_DATABASE['NPC_MATHIAS'].currentResponse = {
+            en: 'Listen, Kruma already has your Steuer-ID so I cannot register you. But you washed all the dough trays and delivered 4 rush orders! Here is 25.00€ cash in an envelope. Keep your head down if you see Ordnungsamt vans!',
+            options: [{ label: '🤝 "Thank you Mathias! My tuition fund is saved!"', en: 'Thank you!', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_MATHIAS' }) }]
+          };
+          game.transitionTo('DIALOGUE', { npcKey: 'NPC_MATHIAS', custom: true });
+        }
+      });
+
       // Craft Lore
       options.push({
         label: '💬 "What makes your pizza crust so extraordinary?"',

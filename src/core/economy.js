@@ -145,6 +145,13 @@ window.FFH.createRunState = function () {
     hasAnmeldung: false,
     isSperrkontoUnlocked: false,
     hasVisaExtended: false,
+    hasHealthInsurance: false,
+
+    // German Legal Employment & 20-Hour Rule (§16b AufenthG)
+    weeklyHoursWorked: 4,
+    maxLegalHours: 20,
+    zollRisk: 0,
+    primaryEmployer: 'KRUMA_EXPRESS',
 
     // Expat Adaptation Skill Tree Progression
     skillPoints: 1,

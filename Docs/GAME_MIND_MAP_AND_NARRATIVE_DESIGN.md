@@ -92,23 +92,36 @@ Tier 3 (3 SP): VIP Rush Legend         Tier 3 (3 SP): Stempel Master          Ti
 
 ## 4. The German Chaos & Cultural Rules Matrix
 
-1. **The 4-Document Sequential Dependency**:
+*(Derived strictly from the Master Authority Document: `Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md`)*
+
+1. **The 20-Hour Rule & Employment Law (§16b AufenthG)**:
+   - International students are legally capped at **20 hours per week**.
+   - Primary official contract (Kruma Express) logs registered tax hours.
+   - Off-the-books side cash gigs (Mathias's Pizzeria / Oma's Bakery) pay below minimum wage (8€/hr) in envelope cash (*Schwarzgeld*), ignoring the 20h quota but raising **Zoll / Ordnungsamt risk**.
+
+2. **The 4-Document Sequential Dependency**:
    - You *cannot* unlock your **Sperrkonto (Bank)** without **Anmeldung (Bürgeramt)**.
    - You *cannot* do **Anmeldung** without **Wohnungsgeberbestätigung (Landlord Lokker)**.
    - You *cannot* finalize **Visa (Dr. Lindemann)** without all 4 documents + Tuition cleared.
 
-2. **Daily Micro-Actions**:
-   - **Pfand Recycling**: Interacting with Nico yields instant grocery cash.
-   - **Stoßlüften**: Opening room windows prevents humidity penalties from Lokker and restores stamina.
-   - **22:00 Ruhezeit**: Ending shifts late requires polite customer interactions to avoid noise penalty deductions.
+3. **Statutory Health Insurance & Semesterticket**:
+   - Matriculation requires statutory student health insurance (TK/AOK at 125€/mo).
+   - Paying the 250€ Semesterbeitrag unlocks the regional **Semesterticket**, preventing 60€ *Schwarzfahren* fines.
+
+4. **Daily Micro-Actions**:
+   - **Pfand Recycling**: Interacting with Nico yields instant grocery cash (0.25€ single-use / 0.15€ glass).
+   - **Stoßlüften**: 5-minute room shock ventilation prevents mold penalties from Lokker and restores Freshness.
+   - **22:00 Ruhezeit**: Ending shifts late requires quiet, polite customer interactions to avoid noise penalty deductions.
    - **Punctuality & Etiquette**: Doorstep greeting choices determine whether you receive generous cash tips (+15€) or noise/attitude deductions (-4€).
 
 ---
 
-## 5. Maintenance Protocol for Agents
+## 5. Master Verification Scale for AI Agents
 
-Whenever changes are made:
-1. **New Systems / Upgrades**: Add node to Section 1 (Mind Map).
-2. **New NPCs / Dialogue Branches**: Add row to Section 2 (Character Interaction Matrix).
-3. **Skill Balance / Multipliers**: Update Section 3 (Skill Tree Deep Dive).
-4. **Build Verification**: Run `node build/assemble.js` and `node build/check-size.js` to ensure 100% compliance with Hackathon size (<35MB) and offline airgap constraints.
+Before writing code or editing game narrative, every AI agent MUST evaluate against this scale:
+- [ ] **20-Hour Quota Check**: Does this respect the weekly 20h student limit or frame excess as *Schwarzarbeit*?
+- [ ] **Document Order**: Does the quest chain follow the strict sequential dependency (Lease ➔ Anmeldung ➔ Bank ➔ Uni ➔ Visa)?
+- [ ] **Cultural Authenticity**: Are authentic German terms used properly (*Stoßlüften*, *Ruhezeit*, *Pfand*, *Mülltrennung*, *Beamtendeutsch*)?
+- [ ] **Economic Sanity**: Do wages (€13.50 legal vs. €8.00 cash), fines (€60 Schwarzfahren), and costs (€250 Semesterbeitrag) match canonical German realities?
+- [ ] **Build Integrity**: Run `node build/assemble.js` and `node build/check-size.js` to ensure the build remains `< 35 MB` and 100% offline airgapped.
+
