@@ -1032,29 +1032,33 @@ window.FFH.UI = class {
       : `<div style="background:#fdecea; border:2px solid #c62828; color:#c62828; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">BELOW QUOTA (${payout.shift.quota}\u20AC) \u2014 STRIKE</div>`;
 
     hud.innerHTML = `
-      <div style="text-align: center; border-bottom: 2px dashed #999; padding-bottom: 10px; margin-bottom: 16px;">
-        <span style="font-weight: 900; font-size: 18px; color: #222; font-family: sans-serif;">KRUMA EXPRESS</span><br>
-        <span style="font-size: 11px; color: #666;">RECEIPT - SHIFT ${payout.shift.index + 1}</span>
+      <div style="text-align: center; border-bottom: 2px dashed #222; padding-bottom: 12px; margin-bottom: 15px;">
+        <div style="font-size: 11px; font-weight: 900; letter-spacing: 1px; color: #E76F51; text-transform: uppercase;">KRUMA LOGISTICS GMBH • LÜBECK</div>
+        <h2 style="margin: 3px 0 1px 0; font-size: 20px; font-weight: 900; color: #264653;">COURIER PAYSLIP</h2>
+        <div style="font-size: 10px; color: #777; font-family: monospace;">LOHNABRECHNUNG • SHIFT #${state.currentShift || 1} • §16b AUFENTHG</div>
+        <div style="font-size: 11px; font-style: italic; color: #2A9D8F; margin-top: 4px; font-weight: bold;">
+          "Every shift teaches; every victory prepares."
+        </div>
       </div>
 
       ${quotaBanner}
 
-      <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px;">
-        ${line('Base Wage', payout.grossBaseWage.toFixed(2) + '\u20AC', '#222')}
-        ${line(`Accuracy (${payout.packedCount} items)`, '+' + payout.accuracyBonus.toFixed(2) + '\u20AC', '#2A9D8F')}
-        ${payout.streakBonus > 0 ? line(`Streak Bonus (x${payout.streakMult.toFixed(2)})`, '+' + payout.streakBonus.toFixed(2) + '\u20AC', '#FF6600') : ''}
-        ${line('Etiquette & Freshness Tip', '+' + payout.etiquetteTip.toFixed(2) + '\u20AC', '#3A86FF')}
-        ${payout.damageDeductions > 0 ? line('Damage Deductions', '-' + payout.damageDeductions.toFixed(2) + '\u20AC', '#E63946') : ''}
+      <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 18px; font-family: monospace; font-size: 12.5px;">
+        ${line('Gross Base Wage', payout.grossBaseWage.toFixed(2) + '\u20AC', '#222')}
+        ${line(`Picking Accuracy (${payout.packedCount} items)`, '+' + payout.accuracyBonus.toFixed(2) + '\u20AC', '#2A9D8F')}
+        ${payout.streakBonus > 0 ? line(`Cobblestone Flow (x${payout.streakMult.toFixed(2)})`, '+' + payout.streakBonus.toFixed(2) + '\u20AC', '#FF6600') : ''}
+        ${line('Doorstep Etiquette & Freshness Tip', '+' + payout.etiquetteTip.toFixed(2) + '\u20AC', '#3A86FF')}
+        ${payout.damageDeductions > 0 ? line('Transit Damage (Lesson Learned)', '-' + payout.damageDeductions.toFixed(2) + '\u20AC', '#E63946') : ''}
         
-        <div style="border-top: 2px solid #222; padding-top: 10px; margin-top: 5px; display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; font-family: sans-serif;">
-          <span>NET PAYOUT</span>
+        <div style="border-top: 2px solid #222; padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; font-family: sans-serif;">
+          <span>NET PAYOUT DISBURSED</span>
           <span style="color: #FF006E;">+${payout.netPayout.toFixed(2)}€</span>
         </div>
       </div>
 
-      <div style="margin-bottom: 20px;">
+      <div style="margin-bottom: 18px;">
         <div style="display: flex; justify-content: space-between; font-size: 11px; color: #555; margin-bottom: 4px; font-weight: bold;">
-          <span>TUITION PROGRESS</span>
+          <span>TUITION PROGRESS (SEMESTERBEITRAG)</span>
           <span id="tuition-text">${this.game.state.wallet.toFixed(2)}€ / ${window.FFH.ECONOMY.TUITION_GOAL}€</span>
         </div>
         <div style="width: 100%; height: 14px; background: #ddd; border: 2px solid #222; border-radius: 7px; overflow: hidden; position: relative;">
@@ -1065,17 +1069,18 @@ window.FFH.UI = class {
       <button id="btn-finish-shift" style="
         background: #2A9D8F;
         color: white;
-        border: 2px solid #222;
+        border: 2.5px solid #264653;
         width: 100%;
-        padding: 14px;
+        padding: 13px;
         font-weight: 900;
-        font-size: 15px;
-        border-radius: 8px;
+        font-size: 14px;
+        border-radius: 10px;
         cursor: pointer;
         pointer-events: auto;
-        box-shadow: 0 4px 0 #222;
+        box-shadow: 0 4px 0 #264653;
         font-family: sans-serif;
-      ">ACCEPT PAYOUT & GO TO ROOM</button>
+        letter-spacing: 0.5px;
+      ">RETURN TO DORM & PLAN NEXT SHIFT ➔</button>
     `;
 
     this.container.appendChild(hud);

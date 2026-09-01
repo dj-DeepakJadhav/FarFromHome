@@ -18,6 +18,7 @@
 | **7** | [**The Three Pillars of Game Writing**](https://www.youtube.com/watch?v=wNNXdoj7cCQ) | Extra Credits | • **Plot**: External ticking pressure (28d visa, 250€ tuition).<br>• **Character**: Internal motivations & grief (Lokker's Anna, Rita's daughter).<br>• **Lore**: Hanseatic brick gothic history, Beamtendeutsch, and German daily life. | Forms the 3-act narrative architecture and character depth of our entire world. |
 | **8** | [**How To Start Your Game Narrative: Design Mechanics First**](https://www.youtube.com/watch?v=22HoViH4vOU) | Extra Credits (James Portnow) | • **Mechanics First, Story Last**: Emotional Core ➔ Core Gameplay Loop ➔ Art Style ➔ Narrative.<br>• **Zero Ludonarrative Dissonance**: Dialogue and quests must emerge directly from player verbs (Steering, Sorting, Budgeting).<br>• **Show & DO**: The player feels the tension through the 20h quota and cobblestone friction before any NPC speaks. | Ensures that every dialogue line and story quest reinforces live gameplay mechanics. |
 | **9** | [**Branching Paths Without a AAA Budget**](https://www.youtube.com/watch?v=Gdt5zCdXoSc) | Design Doc | • **Diamond Foldback Structure**: Meaningful mid-chapter divergence (Kruma vs. Pizzeria vs. Bakery) folding back to shared milestones (WG Dorm Sanctuary).<br>• **Invisible Variable State Tracking**: Modifying dialogue/reputation via state tags (`zollRisk`, `semester`, `wallet`, `hoursWorked`) without expensive new 3D assets.<br>• **Delayed Consequences (Chekhov's Gun)**: Early kindness to Oma Martha or Nico pays off in late-game bureaucracy defense. | Enables deep multi-path branching within a strictly constrained 35 MB offline bundle. |
+| **10** | [**The Design in Narrative Design**](https://www.youtube.com/watch?v=f8VIlfTtypg) | Jurie Horneman (GDC 2015) | • **Systems & Narrative as Two Sides of One Coin**: Mechanics provide stakes; narrative provides meaning.<br>• **Authentic In-World Artifacts**: Stylized Lohnabrechnung (Courier Payslip) with gross wages, accuracy bonuses, and transit lessons learned.<br>• **Continuous Experiential Loop**: No binary game over; every movement is a moment of learning ("When you lose, you learn; when you win, you prepare for next"). | Grounds the shift debrief and economy directly in in-world working reality. |
 
 ---
 
@@ -50,6 +51,20 @@
 ### Q7: Why do we use the Diamond Foldback and Invisible State Tracking?
 * **Decision**: Instead of exponential story branching (which creates unmaintainable bloat), we use the *Diamond Foldback*: players make divergent daily choices (Kruma courier shift vs. Pizzeria night cash run vs. Bakery diplomacy) that converge back to the WG Dorm sanctuary at night, tracking consequences through state variables (`zollRisk`, `semester`, `weeklyHoursWorked`, `npcRelationships`).
 * **Rationale**: Delivers deep player agency, meaningful moral dilemmas, and high replayability without exploding asset size or engineering complexity.
+
+### Q8: Why is there no binary Win/Lose state? ("When you lose, you learn; when you win, you get ready for next")
+* **Decision**: We eliminated punishing "Game Over" restart screens. Incomplete deliveries or missed quotas result in reduced tip disbursements, constructive feedback on your *Lohnabrechnung* courier pay slip, and instant tactical adaptation in the Dorm room.
+* **Rationale**: Real immigrant life is not a binary game over; every setback is a lesson in resilience, and every victory is just preparation for the next shift.
+
+---
+
+## 3. Mandatory Protocol for Future Agents
+
+Every AI agent (Antigravity, Claude Code, Gemini CLI) MUST follow this rule before modifying game systems or writing code:
+1. **Consult This Resource Archive**: Check why existing systems were engineered before refactoring them.
+2. **Consult [`Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md`](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md)**: Ensure all economic and narrative changes obey canonical German legal constraints.
+3. **Consult [`Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md`](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md)**: Update the living mind map and character interaction matrix with every change.
+4. **Verify Build Integrity**: Always run `node build/assemble.js` and `node build/check-size.js` (must remain `< 35 MB` and 100% offline airgapped).
 
 ---
 
