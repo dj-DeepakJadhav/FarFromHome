@@ -988,11 +988,11 @@ window.FFH.UI = class {
           diagBox.style.display = 'block';
           if (isCorrect) {
             speaker.innerText = `🔊 ${config.residents[idx].name} (${config.floorCode})`;
-            text.innerText = `"Hallo! Tür ist auf, 3. Stock bitte!"`;
+            text.innerText = `"Buzzed in! Front door unlocked, 3rd floor please!"`;
             diagBox.style.borderColor = '#2A9D8F';
           } else {
-            speaker.innerText = `⚠️ FALSCHE KLINGEL`;
-            text.innerText = `"Falscher Name! Hier wohnt kein ${config.floorCode}!"`;
+            speaker.innerText = `⚠️ WRONG BUZZER`;
+            text.innerText = `"Wrong name! No delivery for ${config.floorCode} here!"`;
             diagBox.style.borderColor = '#E63946';
           }
         }
@@ -1650,18 +1650,11 @@ window.FFH.UI = class {
       overflow-y: auto;
     `;
 
-    // Primary spoken line is English for instant clarity
-    let englishText = dialogueData.en || dialogueData.speechEn || dialogueData.text || '';
-    let germanFlavor = dialogueData.de || dialogueData.speechDe || '';
-
-    if (!englishText && germanFlavor) {
-      englishText = germanFlavor;
-      germanFlavor = '';
-    }
+    // Primary spoken line is English for instant emotional clarity and zero reading friction
+    let englishText = dialogueData.en || dialogueData.speechEn || dialogueData.text || dialogueData.de || '';
 
     const optionsHtml = (dialogueData.options || []).map((opt, idx) => {
-      const primaryLabel = opt.en || opt.label || opt.de;
-      const subLabel = (opt.en && opt.label && opt.label !== opt.en) ? opt.label : '';
+      const primaryLabel = opt.en || opt.label || '';
       return `
         <button class="dialogue-opt-btn" data-idx="${idx}" style="
           background: #2EC4B6;
@@ -1675,9 +1668,9 @@ window.FFH.UI = class {
           text-align: left;
           box-shadow: 0 3px 0 #1B8C81;
           transition: transform 0.05s ease, background 0.2s ease;
+          line-height: 1.35;
         ">
           ${primaryLabel}
-          ${subLabel ? `<div style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: normal; margin-top: 2px; font-style: italic;">${subLabel}</div>` : ''}
         </button>
       `;
     }).join('');
@@ -1690,10 +1683,9 @@ window.FFH.UI = class {
         </div>
       </div>
       
-      <!-- Primary Dialogue Bubble (English First) -->
+      <!-- Primary Dialogue Bubble (Clean English First) -->
       <div style="background: #F8F9FA; border-left: 4px solid #2EC4B6; border-radius: 6px; padding: 10px 12px;">
         <div id="dialogue-typewriter-text" style="font-size: 14px; line-height: 1.45; color: #1D3557; font-weight: 800; min-height: 24px;"></div>
-        ${germanFlavor ? `<div id="dialogue-subtitle-text" style="font-size: 11px; color: #6C757D; margin-top: 6px; border-top: 1px dashed #E0E0E0; padding-top: 4px; display: none;"><span style="font-size: 10px; background: #E9ECEF; padding: 1px 4px; border-radius: 3px; font-weight: 700; margin-right: 4px;">🇩🇪 DE</span>"${germanFlavor}"</div>` : ''}
       </div>
 
       <div id="dialogue-options-container" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px; opacity: 0; transition: opacity 0.2s ease;">
