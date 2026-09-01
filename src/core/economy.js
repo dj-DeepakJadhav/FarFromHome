@@ -145,6 +145,13 @@ window.FFH.createRunState = function () {
     hasAnmeldung: false,
     isSperrkontoUnlocked: false,
     hasVisaExtended: false,
+    // Cumulative Personality Heuristics (Tony Howard-Arias GDC Framework)
+    disposition: {
+      hustler: 0,
+      bureaucrat: 0,
+      diplomat: 0
+    },
+
     // German Academic Semester Intake (Randomized WiSe vs SoSe)
     semester: Math.random() < 0.5 ? 'WINTER' : 'SUMMER',
     semesterName: 'Wintersemester (WiSe)',

@@ -194,7 +194,50 @@ graph TD
 
 1. **The Diamond Fold**: Meaningful divergence during the day converging back to the WG Dorm sanctuary at night.
 2. **Invisible Variable State Tracking**: Using lightweight numeric state tags (`zollRisk`, `semester`, `weeklyHoursWorked`, `npcRelationships`) to alter all NPC reactions without building separate 3D levels.
-3. **Delayed Consequences (Chekhov's Gun)**: Early favors (helping Oma Martha or Nico) unlock late-game advantages during landlord negotiations and visa hearings.
 
+---
 
+## 10. The 20-Resource Master Taxonomy & Architectural Synthesis
 
+```
+                               THE UNIFIED GAME ARCHITECTURE
+                                              │
+       ┌───────────────────────────────┬──────┴────────────────────────┬───────────────────────────────┐
+       ▼                               ▼                               ▼                               ▼
+[SYSTEMIC SIMULATION]        [NARRATIVE & CHOICES]           [VISUAL & ATMOSPHERE]           [LEARNING & LOOP]
+• 4-Resource Tension Engine  • Cumulative Heuristics         • Jose Vega Focal Hierarchy     • Horneman Lohnabrechnung
+• 20h Quota (§16b AufenthG)  • Diamond Foldback              • Cel-Shading & Ink Outlines    • Continuous Experiential Loop
+• Winter vs. Summer Physics  • Environmental Breadcrumbs     • Visual Affordances (der/die)  • No binary Game Over
+• Pizzeria Cash & Zoll Risk  • Tension Sinusoid Wave         • Evolving Character Mirror     • "Lose = Learn; Win = Next"
+```
+
+---
+
+## 11. Systemic Emergence & Dynamic Feedback
+
+- **Multi-System Overlap**: $\text{Player Outcome} = f(\text{Weekly Hours}, \text{Cobblestone Friction}, \text{Cash Risk}, \text{NPC Perception})$.
+- **Emergent Anecdotes**: Navigating winter sleet conditions with 19/20 legal hours while managing neighbor suspicion leads to uniquely memorable play sessions.
+
+---
+
+## 12. Cumulative Personality Heuristics
+
+- **Dynamic Disposition**: Tracks 3 continuous scores that shift dialogue availability:
+  - 🚴 **The Hustler**: Favors speed/VIP efficiency.
+  - 📜 **The Bureaucrat**: Focuses on document compliance/legal aid.
+  - ☕ **The Diplomat**: Prioritizes local community/Pfand economy.
+- **Character Mirrors**: NPCs change their opinion of the player based on the dominant archetype, resulting in personalized sub-narratives.
+
+---
+
+## 13. Visual Storytelling & Affordance Theory
+
+- **Focal Hierarchy**: Focuses on the "Interactive Center" (laptop, wallet, bike) contrasted with the "Tactile Grit" (weathered bricks, posters, steam).
+- **Cognitive Affordance**: Uses the 3-color shelf taxonomy (🔵 *der* / 🌸 *die* / 🟣 *das*) to anchor language acquisition into the game’s core delivery loop.
+
+---
+
+## 14. Experiential Loops & Tension Management
+
+- **Tension Sinusoid**: Balances high-adrenaline "Sprint" segments (Rush delivery, police patrol avoidance) with "Zen" segments (dorm room ventilation, postcard reading).
+- **The Non-Binary Philosophy**: Elimination of "Game Over" states. Every failure or fine triggers a pedagogical "Lohnabrechnung" (payslip) feedback, turning economic setbacks into educational milestones.

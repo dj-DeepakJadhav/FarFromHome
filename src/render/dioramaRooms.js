@@ -465,6 +465,17 @@ window.FFH.createLevel0Room = function(state = window.FFH.state) {
   rug.position.set(0.2, 0.01, 0.3);
   room.add(rug);
 
+  // Cast-Iron German Radiator with Damp Wool Coat (Grit & Immigrant Reality)
+  const radMat = window.FFH.createCelMaterial(0xE5E5E5);
+  const rad = new THREE.Mesh(boxGeo, radMat);
+  rad.scale.set(0.12, 0.55, 0.75);
+  rad.position.set(-1.44, 0.35, 1.0);
+  const coatMat = window.FFH.createCelMaterial(0x3D5A80);
+  const coat = new THREE.Mesh(boxGeo, coatMat);
+  coat.scale.set(0.14, 0.45, 0.45);
+  coat.position.set(-1.44, 0.45, 1.0);
+  room.add(rad, coat);
+
   // German Student Pfand Bottles Crate in Corner
   const crateMat = window.FFH.createCelMaterial(0xE76F51);
   const pCrate = new THREE.Mesh(boxGeo, crateMat);
