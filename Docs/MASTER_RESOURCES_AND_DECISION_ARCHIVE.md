@@ -15,6 +15,7 @@
 | **4** | [**Narrative Sorcery: Storytelling in Open Worlds**](https://www.youtube.com/watch?v=HZft_U4Fc-U) | Jon Ingold (inkle / GDC 2017) | • **Encounters over Quests**: Non-linear free exploration.<br>• **Narrative Atoms with Preconditions**: Dialogue blocks only surface when prerequisites are met.<br>• **State-Dependent Reactivity**: NPCs react to current funds, smell of food, and work hours.<br>• **Organic World Blockers**: Real German laws replace artificial invisible walls. | Replaced rigid branching dialogue with reactive, living NPC encounters that remember the player's recent actions. |
 | **5** | [**80 Days: Narrative Design & Post-Mortem**](https://www.youtube.com/watch?v=--3meejDM-U)<br>[**inkle: 80 Days Official**](https://www.inklestudios.com/80days/) | Meg Jayanth & Jon Ingold (inkle) | • **4-Resource Tension Engine**: Time (28d), Money (250€), Work Quota (20h), Freshness.<br>• **"Leading Players Astray"**: Tempting risky side-stories (e.g. Mathias's pizza cash shift).<br>• **"NPCs with Agency"**: Characters have their own grief, families, and schedules.<br>• **Player Persona Voice**: Choices define *Hustler* vs. *Bureaucrat* vs. *Diplomat*. | Anchors the emotional depth of every resident and creates tempting narrative detours. |
 | **6** | [**German Laws & Expat Life Compendium**](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md) | Official German Federal Law & Student Reality | • **§16b AufenthG**: Strict 20-Hour Weekly Work Limit.<br>• **Schwarzarbeit**: Unregistered cash gigs vs. primary contract.<br>• **4-Document Catch-22**: Lease ➔ Anmeldung ➔ Bank ➔ Uni ➔ Visa.<br>• **Alltag Rules**: *Stoßlüften*, *Pfand*, *22:00 Ruhezeit*, *Mülltrennung*. | Guarantees 100% authentic cultural and legal simulation without fantasy shortcuts. |
+| **7** | [**The Three Pillars of Game Writing**](https://www.youtube.com/watch?v=wNNXdoj7cCQ) | Extra Credits | • **Plot**: External ticking pressure (28d visa, 250€ tuition).<br>• **Character**: Internal motivations & grief (Lokker's Anna, Rita's daughter).<br>• **Lore**: Hanseatic brick gothic history, Beamtendeutsch, and German daily life. | Forms the 3-act narrative architecture and character depth of our entire world. |
 
 ---
 
@@ -35,6 +36,10 @@
 ### Q4: Why did we declutter the top HUD and remove the VOCAB button?
 * **Decision**: Reduced the top HUD to only 3 essential components on Row 1 (Settings, Skills Button, Tuition Progress) and a full-width Objective bar on Row 2.
 * **Rationale**: Squeezing 6 different buttons, tiny paper icons, and vocabulary drills into a 390px mobile portrait header caused horizontal overflow and text clipping. Clean, spacious minimalism ensures perfect legibility.
+
+### Q5: Why did we add the Randomized Winter vs. Summer Semester Intake?
+* **Decision**: Each fresh game start randomly assigns either *Wintersemester (WiSe)* or *Sommersemester (SoSe)*, altering lighting palette, fog density, street friction, heating/freshness rules, and NPC greetings.
+* **Rationale**: Gives players and hackathon judges instant replayability and delightful surprise on every run with **0KB asset bloat**, reflecting the two distinct seasonal realities of studying in Germany.
 
 ---
 

@@ -145,7 +145,10 @@ window.FFH.createRunState = function () {
     hasAnmeldung: false,
     isSperrkontoUnlocked: false,
     hasVisaExtended: false,
-    hasHealthInsurance: false,
+    // German Academic Semester Intake (Randomized WiSe vs SoSe)
+    semester: Math.random() < 0.5 ? 'WINTER' : 'SUMMER',
+    semesterName: 'Wintersemester (WiSe)',
+    semesterEmoji: '❄️',
 
     // German Legal Employment & 20-Hour Rule (§16b AufenthG)
     weeklyHoursWorked: 4,
@@ -162,7 +165,7 @@ window.FFH.createRunState = function () {
     wageBonusPercent: 0,
     shopDiscount: 0,
     pfandBonusMult: 1.0,
-    stosslueftenBonus: 20,
+    stosslueftenBonus: 25,
 
     npcRelationships: {
       NPC_RITA: 50,

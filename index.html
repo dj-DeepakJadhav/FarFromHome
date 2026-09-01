@@ -16399,7 +16399,10 @@ window.FFH.createRunState = function () {
     hasAnmeldung: false,
     isSperrkontoUnlocked: false,
     hasVisaExtended: false,
-    hasHealthInsurance: false,
+    // German Academic Semester Intake (Randomized WiSe vs SoSe)
+    semester: Math.random() < 0.5 ? 'WINTER' : 'SUMMER',
+    semesterName: 'Wintersemester (WiSe)',
+    semesterEmoji: '❄️',
 
     // German Legal Employment & 20-Hour Rule (§16b AufenthG)
     weeklyHoursWorked: 4,
@@ -16416,7 +16419,7 @@ window.FFH.createRunState = function () {
     wageBonusPercent: 0,
     shopDiscount: 0,
     pfandBonusMult: 1.0,
-    stosslueftenBonus: 20,
+    stosslueftenBonus: 25,
 
     npcRelationships: {
       NPC_RITA: 50,
@@ -17138,7 +17141,11 @@ window.FFH.NPC_DATABASE = {
         action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
       });
 
-      let greetingEn = `You currently have ${state.wallet.toFixed(2)}€. You still need ${remaining}€ for your Semesterbeitrag. Work delivery shifts at Kruma Express to earn the rest!`;
+      let seasonNote = state.semester === 'WINTER' 
+        ? '❄️ Welcome to the Winter Semester (WiSe)! Bundle up warm—Baltic winds and icy cobblestones show no mercy to cyclists.'
+        : '☀️ Welcome to the Summer Semester (SoSe)! Enjoy the warm Baltic sunshine and lively canal terraces before midterms arrive.';
+
+      let greetingEn = `${seasonNote} You currently have ${state.wallet.toFixed(2)}€. You still need ${remaining}€ for your Semesterbeitrag. Work delivery shifts at Kruma Express to earn the rest!`;
       if (state.wallet >= 200 && state.wallet < tuitionGoal) {
         greetingEn = `I can see the hunger and determination in your eyes! You have ${state.wallet.toFixed(2)}€—only ${remaining}€ left to reach your 250.00€ matriculation goal! Go finish one last rush!`;
       }
@@ -17556,7 +17563,9 @@ window.FFH.NPC_DATABASE = {
         action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
       });
 
-      let lokkerGreeting = 'Good day. Remember: The front entrance must remain locked and no shoes are to be left in the shared hallway!';
+      let lokkerGreeting = state.semester === 'WINTER'
+        ? 'Good day. It is freezing outside! Keep your radiator on Level 3, wipe slush off your tires, and shock-ventilate (Stoßlüften) twice daily to prevent mold!'
+        : 'Good day. Summer heat is here! Keep the heavy entrance door locked, don\'t leave wet river towels in the hallway, and respect the 22:00 Ruhezeit!';
       if ((state.zollRisk || 0) > 0) {
         lokkerGreeting = '*Sniffs sharply* You smell of wood-smoke, garlic, and pizzeria dough! Doing late night shifts again? Keep your shoes outside, respect the 22:00 Ruhezeit, and don\'t forget to Stoßlüften your room!';
       }
@@ -24829,36 +24838,68 @@ window.FFH.CityExplorationPhase = class {
 
   updateAtmosphericTime(progress) {
     this.timeOfDay = progress % 1.0;
-    let skyColor, fogColor, lightColor, lightIntensity, ambIntensity;
+    const isWinter = this.game && this.game.state && this.game.state.semester === 'WINTER';
 
-    if (this.timeOfDay < 0.25) {
-      skyColor = new THREE.Color(0xFDE2E4);
-      fogColor = new THREE.Color(0xFDE2E4);
-      lightColor = new THREE.Color(0xFFB703);
-      lightIntensity = 0.75;
-      ambIntensity = 0.55;
-    } else if (this.timeOfDay < 0.6) {
-      skyColor = new THREE.Color(0x76C8B8);
-      fogColor = new THREE.Color(0xD8F3DC);
-      lightColor = new THREE.Color(0xFFFAF0);
-      lightIntensity = 0.95;
-      ambIntensity = 0.65;
-    } else if (this.timeOfDay < 0.8) {
-      skyColor = new THREE.Color(0xF4A261);
-      fogColor = new THREE.Color(0xE76F51);
-      lightColor = new THREE.Color(0xF77F00);
-      lightIntensity = 0.85;
-      ambIntensity = 0.45;
+    if (isWinter) {
+      // Wintersemester Palette (Crisp Baltic Winter, Cool Sky, Glowing Windows)
+      if (this.timeOfDay < 0.25) {
+        skyColor = new THREE.Color(0xD0DCE5);
+        fogColor = new THREE.Color(0xC4D7ED);
+        lightColor = new THREE.Color(0xF4A261);
+        lightIntensity = 0.65;
+        ambIntensity = 0.50;
+      } else if (this.timeOfDay < 0.6) {
+        skyColor = new THREE.Color(0xB8D0EB);
+        fogColor = new THREE.Color(0xD0E1FD);
+        lightColor = new THREE.Color(0xE8F1F5);
+        lightIntensity = 0.85;
+        ambIntensity = 0.60;
+      } else if (this.timeOfDay < 0.8) {
+        skyColor = new THREE.Color(0x3D5A80);
+        fogColor = new THREE.Color(0x293241);
+        lightColor = new THREE.Color(0xEE6C4D);
+        lightIntensity = 0.70;
+        ambIntensity = 0.40;
+      } else {
+        skyColor = new THREE.Color(0x0F172A);
+        fogColor = new THREE.Color(0x090D16);
+        lightColor = new THREE.Color(0x94A3B8);
+        lightIntensity = 0.40;
+        ambIntensity = 0.30;
+      }
+      this.game.scene.background = skyColor;
+      this.game.scene.fog = new THREE.FogExp2(fogColor, 0.020);
     } else {
-      skyColor = new THREE.Color(0x1D2D44);
-      fogColor = new THREE.Color(0x0D1B2A);
-      lightColor = new THREE.Color(0x76C8B8);
-      lightIntensity = 0.45;
-      ambIntensity = 0.35;
+      // Sommersemester Palette (Golden Baltic Sunshine & Warm Canals)
+      if (this.timeOfDay < 0.25) {
+        skyColor = new THREE.Color(0xFDE2E4);
+        fogColor = new THREE.Color(0xFDE2E4);
+        lightColor = new THREE.Color(0xFFB703);
+        lightIntensity = 0.75;
+        ambIntensity = 0.55;
+      } else if (this.timeOfDay < 0.6) {
+        skyColor = new THREE.Color(0x76C8B8);
+        fogColor = new THREE.Color(0xD8F3DC);
+        lightColor = new THREE.Color(0xFFFAF0);
+        lightIntensity = 0.95;
+        ambIntensity = 0.65;
+      } else if (this.timeOfDay < 0.8) {
+        skyColor = new THREE.Color(0xF4A261);
+        fogColor = new THREE.Color(0xE76F51);
+        lightColor = new THREE.Color(0xF77F00);
+        lightIntensity = 0.85;
+        ambIntensity = 0.45;
+      } else {
+        skyColor = new THREE.Color(0x1D2D44);
+        fogColor = new THREE.Color(0x0D1B2A);
+        lightColor = new THREE.Color(0x76C8B8);
+        lightIntensity = 0.45;
+        ambIntensity = 0.35;
+      }
+      this.game.scene.background = skyColor;
+      this.game.scene.fog = new THREE.FogExp2(fogColor, 0.015);
     }
 
-    this.game.scene.background = skyColor;
-    this.game.scene.fog = new THREE.FogExp2(fogColor, 0.015);
     if (this.ambientLight) this.ambientLight.intensity = ambIntensity;
     if (this.sunLight) {
       this.sunLight.color = lightColor;

@@ -409,36 +409,68 @@ window.FFH.CityExplorationPhase = class {
 
   updateAtmosphericTime(progress) {
     this.timeOfDay = progress % 1.0;
-    let skyColor, fogColor, lightColor, lightIntensity, ambIntensity;
+    const isWinter = this.game && this.game.state && this.game.state.semester === 'WINTER';
 
-    if (this.timeOfDay < 0.25) {
-      skyColor = new THREE.Color(0xFDE2E4);
-      fogColor = new THREE.Color(0xFDE2E4);
-      lightColor = new THREE.Color(0xFFB703);
-      lightIntensity = 0.75;
-      ambIntensity = 0.55;
-    } else if (this.timeOfDay < 0.6) {
-      skyColor = new THREE.Color(0x76C8B8);
-      fogColor = new THREE.Color(0xD8F3DC);
-      lightColor = new THREE.Color(0xFFFAF0);
-      lightIntensity = 0.95;
-      ambIntensity = 0.65;
-    } else if (this.timeOfDay < 0.8) {
-      skyColor = new THREE.Color(0xF4A261);
-      fogColor = new THREE.Color(0xE76F51);
-      lightColor = new THREE.Color(0xF77F00);
-      lightIntensity = 0.85;
-      ambIntensity = 0.45;
+    if (isWinter) {
+      // Wintersemester Palette (Crisp Baltic Winter, Cool Sky, Glowing Windows)
+      if (this.timeOfDay < 0.25) {
+        skyColor = new THREE.Color(0xD0DCE5);
+        fogColor = new THREE.Color(0xC4D7ED);
+        lightColor = new THREE.Color(0xF4A261);
+        lightIntensity = 0.65;
+        ambIntensity = 0.50;
+      } else if (this.timeOfDay < 0.6) {
+        skyColor = new THREE.Color(0xB8D0EB);
+        fogColor = new THREE.Color(0xD0E1FD);
+        lightColor = new THREE.Color(0xE8F1F5);
+        lightIntensity = 0.85;
+        ambIntensity = 0.60;
+      } else if (this.timeOfDay < 0.8) {
+        skyColor = new THREE.Color(0x3D5A80);
+        fogColor = new THREE.Color(0x293241);
+        lightColor = new THREE.Color(0xEE6C4D);
+        lightIntensity = 0.70;
+        ambIntensity = 0.40;
+      } else {
+        skyColor = new THREE.Color(0x0F172A);
+        fogColor = new THREE.Color(0x090D16);
+        lightColor = new THREE.Color(0x94A3B8);
+        lightIntensity = 0.40;
+        ambIntensity = 0.30;
+      }
+      this.game.scene.background = skyColor;
+      this.game.scene.fog = new THREE.FogExp2(fogColor, 0.020);
     } else {
-      skyColor = new THREE.Color(0x1D2D44);
-      fogColor = new THREE.Color(0x0D1B2A);
-      lightColor = new THREE.Color(0x76C8B8);
-      lightIntensity = 0.45;
-      ambIntensity = 0.35;
+      // Sommersemester Palette (Golden Baltic Sunshine & Warm Canals)
+      if (this.timeOfDay < 0.25) {
+        skyColor = new THREE.Color(0xFDE2E4);
+        fogColor = new THREE.Color(0xFDE2E4);
+        lightColor = new THREE.Color(0xFFB703);
+        lightIntensity = 0.75;
+        ambIntensity = 0.55;
+      } else if (this.timeOfDay < 0.6) {
+        skyColor = new THREE.Color(0x76C8B8);
+        fogColor = new THREE.Color(0xD8F3DC);
+        lightColor = new THREE.Color(0xFFFAF0);
+        lightIntensity = 0.95;
+        ambIntensity = 0.65;
+      } else if (this.timeOfDay < 0.8) {
+        skyColor = new THREE.Color(0xF4A261);
+        fogColor = new THREE.Color(0xE76F51);
+        lightColor = new THREE.Color(0xF77F00);
+        lightIntensity = 0.85;
+        ambIntensity = 0.45;
+      } else {
+        skyColor = new THREE.Color(0x1D2D44);
+        fogColor = new THREE.Color(0x0D1B2A);
+        lightColor = new THREE.Color(0x76C8B8);
+        lightIntensity = 0.45;
+        ambIntensity = 0.35;
+      }
+      this.game.scene.background = skyColor;
+      this.game.scene.fog = new THREE.FogExp2(fogColor, 0.015);
     }
 
-    this.game.scene.background = skyColor;
-    this.game.scene.fog = new THREE.FogExp2(fogColor, 0.015);
     if (this.ambientLight) this.ambientLight.intensity = ambIntensity;
     if (this.sunLight) {
       this.sunLight.color = lightColor;

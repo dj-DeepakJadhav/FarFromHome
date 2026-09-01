@@ -174,7 +174,11 @@ window.FFH.NPC_DATABASE = {
         action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
       });
 
-      let greetingEn = `You currently have ${state.wallet.toFixed(2)}€. You still need ${remaining}€ for your Semesterbeitrag. Work delivery shifts at Kruma Express to earn the rest!`;
+      let seasonNote = state.semester === 'WINTER' 
+        ? '❄️ Welcome to the Winter Semester (WiSe)! Bundle up warm—Baltic winds and icy cobblestones show no mercy to cyclists.'
+        : '☀️ Welcome to the Summer Semester (SoSe)! Enjoy the warm Baltic sunshine and lively canal terraces before midterms arrive.';
+
+      let greetingEn = `${seasonNote} You currently have ${state.wallet.toFixed(2)}€. You still need ${remaining}€ for your Semesterbeitrag. Work delivery shifts at Kruma Express to earn the rest!`;
       if (state.wallet >= 200 && state.wallet < tuitionGoal) {
         greetingEn = `I can see the hunger and determination in your eyes! You have ${state.wallet.toFixed(2)}€—only ${remaining}€ left to reach your 250.00€ matriculation goal! Go finish one last rush!`;
       }
@@ -592,7 +596,9 @@ window.FFH.NPC_DATABASE = {
         action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
       });
 
-      let lokkerGreeting = 'Good day. Remember: The front entrance must remain locked and no shoes are to be left in the shared hallway!';
+      let lokkerGreeting = state.semester === 'WINTER'
+        ? 'Good day. It is freezing outside! Keep your radiator on Level 3, wipe slush off your tires, and shock-ventilate (Stoßlüften) twice daily to prevent mold!'
+        : 'Good day. Summer heat is here! Keep the heavy entrance door locked, don\'t leave wet river towels in the hallway, and respect the 22:00 Ruhezeit!';
       if ((state.zollRisk || 0) > 0) {
         lokkerGreeting = '*Sniffs sharply* You smell of wood-smoke, garlic, and pizzeria dough! Doing late night shifts again? Keep your shoes outside, respect the 22:00 Ruhezeit, and don\'t forget to Stoßlüften your room!';
       }
