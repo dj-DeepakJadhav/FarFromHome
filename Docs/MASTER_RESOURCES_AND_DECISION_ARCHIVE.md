@@ -20,6 +20,7 @@
 | **9** | [**Branching Paths Without a AAA Budget**](https://www.youtube.com/watch?v=Gdt5zCdXoSc) | Design Doc | • **Diamond Foldback Structure**: Meaningful mid-chapter divergence (Kruma vs. Pizzeria vs. Bakery) folding back to shared milestones (WG Dorm Sanctuary).<br>• **Invisible Variable State Tracking**: Modifying dialogue/reputation via state tags (`zollRisk`, `semester`, `wallet`, `hoursWorked`) without expensive new 3D assets.<br>• **Delayed Consequences (Chekhov's Gun)**: Early kindness to Oma Martha or Nico pays off in late-game bureaucracy defense. | Enables deep multi-path branching within a strictly constrained 35 MB offline bundle. |
 | **10** | [**The Design in Narrative Design**](https://www.youtube.com/watch?v=f8VIlfTtypg) | Jurie Horneman (GDC 2015) | • **Systems & Narrative as Two Sides of One Coin**: Mechanics provide stakes; narrative provides meaning.<br>• **Authentic In-World Artifacts**: Stylized Lohnabrechnung (Courier Payslip) with gross wages, accuracy bonuses, and transit lessons learned.<br>• **Continuous Experiential Loop**: No binary game over; every movement is a moment of learning ("When you lose, you learn; when you win, you prepare for next"). | Grounds the shift debrief and economy directly in in-world working reality. |
 | **11** | [**Storytelling Tools to Boost Indie Game Narrative**](https://www.youtube.com/watch?v=8fXE-E1hjKk) | Mata Haggis (GDC 2017) | • **Environmental Breadcrumbs**: Replacing text walls with in-world environmental clues (corkboard postcards, fridge notes, receipt memos).<br>• **Narrative Tension Sinusoid**: High-adrenaline 1-line radio calls during courier rushes, paired with deep meditative respite in the WG Dorm room.<br>• **Character Mirror**: The physical room visually evolves from a cold, barren attic into a warm, personalized sanctuary. | Keeps mobile portrait pacing snappy and avoids narrative fatigue. |
+| **12** | [**Systemic Game Design: Applied to Storytelling**](https://www.youtube.com/watch?v=-NKKIDYU0sU) | TurboHermit | • **Interlocking Systems Generate Emergent Narrative**: Combining independent systems (20h work limit + weather friction + Schwarzarbeit risk + NPC sensory perception) to create unique emergent anecdotes without manual scripting.<br>• **Rule Transparency**: Clear HUD indicators (20h meter, wallet, weather) allow players to make informed, high-stakes trade-offs.<br>• **Reactive NPC Synthesis**: Characters react dynamically to the overlapping state of multiple systems simultaneously. | Transforms scripted quests into a living, reactive student survival simulation. |
 
 ---
 
@@ -60,6 +61,10 @@
 ### Q9: Why do we use Environmental Breadcrumbs and Tension Sinusoids?
 * **Decision**: Rather than forcing players through lengthy exposition text, lore and rules are delivered via environmental breadcrumbs (fridge notes, corkboards, payslips) and rapid 1-line radio calls during street rushes, reserving deep emotional dialogue for the dorm room sanctuary.
 * **Rationale**: Matches the fast mobile portrait rhythm of the hackathon build, preventing player fatigue while keeping emotional impact high.
+
+### Q10: Why do we use Systemic Storytelling over Scripted Cutscenes?
+* **Decision**: We created overlapping systemic loops (legal work quotas, seasonal street physics, off-the-books cash risks, NPC sensory memory) so that unique, unscripted student survival stories emerge naturally from player decisions.
+* **Rationale**: Produces memorable emergent gameplay and high replayability, allowing each player to craft their own unique journey through the German expat maze.
 
 ---
 
