@@ -27,37 +27,21 @@ window.FFH.setupScene = function(canvasContainerId) {
   dirLight.shadow.mapSize.height = 1024;
   scene.add(dirLight);
   
-  // 1. Isometric Room Diorama Camera (Zoomed-out framing with dedicated space for top goal & bottom instruction cards)
+  // 1. Unified Main Camera: High Bird's-Eye View (Orthographic Isometric)
   const aspect = width / height;
-  const d = 3.6; // Clean zoomed-out framing
-  const warehouseCamera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
-  warehouseCamera.position.set(8, 7.2, 8);
-  warehouseCamera.lookAt(0, 0.85, 0);
+  const d = 12.0; // View volume size
+  const mainCamera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
   
-  // 2. Street-level third-person camera. near/far kept tight (0.3 .. 1600)
-  // rather than 0.1 .. 5000 — the ink outline pass Sobel-tests the depth
-  // buffer, and a 50000:1 depth range leaves too little precision at street
-  // scale for depth edges to register at all.
-  const streetCamera = new THREE.PerspectiveCamera(55, aspect, 0.5, 400);
-  streetCamera.position.set(0, 2.5, 4);
-  streetCamera.lookAt(0, 1.3, -2);
+  // Set default top-down isometric angle
+  mainCamera.position.set(15, 20, 15);
+  mainCamera.lookAt(0, 0, 0);
 
-  // 3. Title Screen Camera (Isometric view matching diorama rooms)
-  const titleCamera = warehouseCamera;
-
-  // 4. City Exploration Camera (Isometric Orthographic View)
-  const cityD = 12.0; // View volume size
-  const cityCamera = new THREE.OrthographicCamera(-cityD * aspect, cityD * aspect, cityD, -cityD, 1, 1000);
-  
   // Expose
   return {
     renderer,
     scene,
-    warehouseCamera,
-    streetCamera,
-    titleCamera,
-    cityCamera,
-    currentCamera: titleCamera
+    mainCamera,
+    currentCamera: mainCamera
   };
 };
 

@@ -11,13 +11,67 @@
 
 ---
 
-## 1. Pitch & Premise
+## 1. Pitch & Premise: The German Bureaucracy Gauntlet (*Bürokratie-Spießrutenlauf*)
 
-You are an international student newly arrived in the historic Hanseatic island city of Lübeck, Germany. You have **€20 in your wallet**, an urgent **€250 Semesterbeitrag (university tuition deadline)**, and 3 strikes before your work contract and student visa are revoked.
+You are an international student newly arrived in the historic Hanseatic island city of Lübeck, Germany, on a 1-month temporary entry visa. You check into a temporary student hostel with only **€20 in your pocket** and face a strict 28-day deadline to solve the infamous German bureaucratic puzzle before your visa expires.
 
-To survive and matriculate, you take up a bicycle courier job with **Kruma Express**. You explore a charming, living isometric diorama of Lübeck (*Messenger*), meet quirky local residents (Rita at the University Registry, Mathias at the Pizzeria, Oma Martha at the Bakery, Nina at Kruma Dispatch, and Hans Lokker at your WG sublet), fulfill grocery orders called out in authentic spoken German, ride through cobblestone streets to deliver parcels directly on the city map, and practice cultural etiquette (*Sie* vs. *Du*, *Ruhezeit*, tipping) at customer doorways.
+To matriculate and secure your permanent residence permit (*Aufenthaltstitel*), you must navigate a realistic web of interdependent real-world requirements:
+1. **Find a Job**: Work as an e-bike courier at **Kruma Express** with Dispatcher **Nina** to earn funds.
+2. **Matriculate at University**: Pay the **€250 Semesterbeitrag** to Registrar **Rita Schneider** at the Universität.
+3. **Find a Permanent Apartment (*Wohnungssuche*)**: Save **€300 Kaution (deposit)** and sign a lease with Caretaker **Hans Lokker** to move out of the temporary hostel.
+4. **City Registration (*Anmeldung*)**: Bring your lease to the **Rathaus (Bürgeramt)** to obtain your **Meldebescheinigung** from Bureaucrat **Herr Vogel**.
+5. **Unlock Blocked Account (*Sperrkonto*)**: Present your enrollment certificate and *Meldebescheinigung* to Banker **Frau Weber** to unlock your monthly living funds.
+6. **Foreigners' Registration Office (*Ausländerbehörde*)**: Present all stamped documents to Case Worker **Frau Dr. Lindemann** before Day 28 to receive your Residence Permit (*Aufenthaltstitel*).
 
-**The Signature Twist**: By shift three, you are intuitively understanding spoken German articles and vocabulary because **German grammar (`der / die / das`) is the core spatial search filter that doubles your picking speed and economic earnings**.
+**The Signature Twist**: To succeed, you explore a charming, living isometric diorama of Lübeck (*Messenger*), fulfill spoken German grocery orders, ride through cobblestone streets to deliver parcels directly on the city map, and practice cultural etiquette (*Sie* vs. *Du*, *Ruhezeit*, tipping) at customer doorways. **German grammar (`der / die / das`) is your core spatial search filter that doubles your picking speed and economic earnings**, transforming language acquisition from a chore into your greatest financial superpower.
+
+---
+
+## 2. Character Cast, Quirky Behaviors & Humor Dynamics (*Nicos Weg* Meets *Coffee Talk*)
+
+To make every interaction memorable, characters have distinct, exaggerated personalities and humorous idiosyncrasies reflecting real life in Germany:
+
+```mermaid
+graph TD
+    A[🛫 ARRIVAL: Temporary Hostel] -->|28-Day Visa Countdown Starts| B[🏛️ University Registry: Rita]
+    B -->|Catch: Must pay €250 Semesterbeitrag| C[⚡ Kruma Express: Nina Dispatch]
+    
+    subgraph "THE CORE ECONOMIC ENGINE (Invest ➔ Harvest ➔ Upgrade)"
+        C -->|Audio Packing Shift: der/die/das Filter| D[📦 Warehouse Picking Minigame]
+        D -->|Ride cobblestones & Doorway Etiquette| E[💶 Shift Payout + Customer Tips]
+        E -->|Reinvest in Bike Shop| F[🚴 Hansa Rad: Mathias]
+        F -->|E-Bike +50% Speed / Thermal Bag| C
+    end
+
+    E -->|Save €250| B
+    B -->|Issues Immatrikulationsbescheinigung| G[📜 University Enrollment Certificate]
+
+    E -->|Save €300 Kaution| H[🏠 WG Sublet: Hans Lokker]
+    H -->|Sign Mietvertrag & Obey Ruhezeit| I[📄 Wohnungsgeberbestätigung]
+
+    I -->|Take lease & passport| J[🏛️ Rathaus Bürgeramt: Herr Vogel]
+    J -->|Pass Beamtendeutsch Dialogue| K[📑 Meldebescheinigung Stamped]
+
+    K & G -->|Present Address + Uni Certificate| L[🏦 Sparkasse Bank: Frau Weber]
+    L -->|Unlock Blocked Account| M[💳 Active Girokonto & Sperrkonto Payout]
+
+    G & I & K & M -->|Complete 4-Document Dossier before Day 28| N[⚖️ Ausländerbehörde: Dr. Lindemann]
+    N -->|VICTORY!| O[🎉 Aufenthaltstitel Stamped: Permanent Residence Permit!]
+```
+
+### The Roster of Quirky Characters:
+
+| Character | Location | Personality & Trait | Humor & Idiosyncrasy |
+| :--- | :--- | :--- | :--- |
+| **Priya & Nico** | `B_HOSTEL` | Optimistic & Jetlagged | Survives on cheap instant coffee; gives chaotic advice on surviving German winters and recycling bins. |
+| **Rita Schneider** | `B_UNI` | Bureaucratic & Stamp-Obsessed | Takes deep sensual pleasure in stamping official papers (`*THUD-CLACK*`); gasps in horror at un-stapled forms. |
+| **Nina Lindemann** | `B_DARKSTORE` | High-Speed & No-Nonsense | Drinks 6 espressos per shift; treats grocery picking like an Olympic sport; yells motivating cycling mantras. |
+| **Mathias Becker** | `B_BIKESHOP` | Grumpy & Loudhearted | Shouts at everyone in Italian-German; complains about noisy bikes while selling you the loudest electric bell. |
+| **Oma Martha** | `B_BAKERY` | Warm, Sweet & Gossip-Loving | Tells long-winded 40-year-old Hanseatic stories; slips you free *Franzbrötchen* if you use polite *Sie* form. |
+| **Hans Lokker** | `B_WG` | Fanatical Rule Enforcer | Measures recycling bin angles with a ruler; patrols hallways with a decibel meter at 22:01 for *Ruhezeit*. |
+| **Herr Vogel** | `B_RATHAUS` | Peak *Amtsschimmel* (Bureaucrat) | Speaks strictly in passive-voice *Beamtendeutsch*; visibly brightens when rejecting forms missing middle names. |
+| **Frau Weber** | `B_BANK` | Hyper-Methodical & Formal | Refuses to touch coins without hand sanitizer; gives an 8-minute lecture on German interest rates. |
+| **Dr. Lindemann** | `B_AUSLAENDER` | Stern Immigration Boss | Imposing and poker-faced; secretly roots for students and breaks into a warm smile when the dossier is 100% complete. |
 
 ---
 
@@ -141,16 +195,33 @@ window.FFH.ECONOMY = {
 ## 6. Cast & Character Roles
 
 - **Rita Schneider** (University Registrar): Formal, bureaucratic; tracks your €250 tuition deadline and issues your final Student ID.
-- **Mathias Rossi** (Pizzeria Boss): Energetic local restaurant owner who orders ingredients and introduces Italian-German immigrant solidarity.
-- **Martha Webber / Oma Martha** (Traditional Baker): Warm local baker who rewards proper formal German (*Sie*) and shares Hanseatic stories.
+- **Mathias Becker** (Hansa Rad Bike Mechanic): Energetic local mechanic who repairs bikes, sells E-Bikes, and cheers your financial progress.
+- **Martha Webber / Oma Martha** (Traditional Baker): Warm local baker who rewards proper formal German (*Sie*) and shares Hanseatic pastries.
 - **Nina Lindemann** (Kruma Dispatch Lead): Pragmatic warehouse manager who assigns shifts, tracks quotas, and manages equipment.
 - **Hans Lokker** (WG Sublet Landlord): Strict building manager monitoring quiet hours (*Ruhezeit*) and waste separation (*Mülltrennung*).
+- **Herr Vogel** (Rathaus Bürgeramt Bureaucrat): Peak *Amtsschimmel* who stamps residence registrations (*Meldebescheinigung*).
 
 ---
 
-## 7. Technical & Submission Compliance
+## 7. Narrative Architecture: Antonisse Paper Prototyping Framework (GDC 2014)
+
+The narrative design is structured around **Jamie Antonisse's GDC Narrative Prototyping Principles**:
+
+1. **The Player as the True Hero**: The narrative stakes are directly tied to player agency—immigrant survival, economic freedom, and mastery of a foreign language.
+2. **The Mountain on the Horizon**: The €250 Semesterbeitrag goal, 28-day visa countdown, and 4-document dossier `[Uni 📜] [Lease 📄] [Anmeldung 📑] [Bank 💳]` remain persistently visible on the HUD, giving every shift high-stakes emotional weight.
+3. **Strict Narrative Economy (Rule of 4 Story Functions)**: Every dialogue beat strictly serves one of four functions:
+   - *Showcase the Goal* (Visa countdown & tuition pressure)
+   - *Call to Action* (Immediate warehouse picking or courier dispatch)
+   - *Direct Feedback* (Reactions to picking speed, grammar accuracy, and etiquette)
+   - *Emotional Respite & Reward* (Warm doorstep banter, fresh Franzbrötchen, and debrief receipt satisfaction)
+4. **Contextual Story Shifts**: Grocery packing shifts are grounded in community narratives (Oma Martha's emergency baking order, WG party supplies, Rathaus breakfast rush).
+
+---
+
+## 8. Technical & Submission Compliance
 
 - **Orientation**: Fixed Portrait (390×844 responsive scaling).
 - **Runtime**: 100% Offline Single-File `index.html` (Concatenated via `build/assemble.js`).
 - **Dependencies**: Three.js r128 (Inlined / local). Zero external network calls.
 - **Bundle Footprint**: Sub-10MB uncompressed, ~2MB zipped (Well within the 35MB competition limit).
+

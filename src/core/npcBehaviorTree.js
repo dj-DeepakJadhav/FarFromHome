@@ -1,4 +1,5 @@
-// Behavior Tree nodes and logic for Far From Home NPCs
+// Behavior Tree & Dynamic Reactive NPC AI Engine for Far From Home
+// Implements Shadow of Mordor-style memory tracking, etiquette sentiment, and adaptive response generation.
 window.FFH = window.FFH || {};
 
 class BTNode {
@@ -51,9 +52,89 @@ class ActionNode extends BTNode {
 
 // Global BT Node exports
 window.FFH.BT = {
+  BTNode,
   Selector,
   Sequence,
   ActionNode
+};
+
+// Character Memory & Relationship Reactive AI Model (Shadow of Mordor style)
+window.FFH.NPCMemoryManager = {
+  recordEncounter: (npcKey, eventTag, deltaRelation = 0, state = window.FFH.state) => {
+    if (!state.npcMemory) state.npcMemory = {};
+    if (!state.npcMemory[npcKey]) state.npcMemory[npcKey] = [];
+    if (!state.npcMemory[npcKey].includes(eventTag)) {
+      state.npcMemory[npcKey].push(eventTag);
+    }
+    if (!state.npcRelationships) state.npcRelationships = {};
+    if (state.npcRelationships[npcKey] === undefined) state.npcRelationships[npcKey] = 50;
+    state.npcRelationships[npcKey] = Math.max(0, Math.min(100, state.npcRelationships[npcKey] + deltaRelation));
+  },
+
+  hasMemory: (npcKey, eventTag, state = window.FFH.state) => {
+    return (state.npcMemory && state.npcMemory[npcKey] && state.npcMemory[npcKey].includes(eventTag));
+  },
+
+  getSentiment: (npcKey, state = window.FFH.state) => {
+    const rel = (state.npcRelationships && state.npcRelationships[npcKey]) || 50;
+    if (rel >= 75) return 'FRIENDLY';
+    if (rel <= 35) return 'COLD';
+    return 'NEUTRAL';
+  },
+
+  // Generates reactive greeting based on prior shifts, delivery performance, and etiquette
+  generateReactiveGreeting: (npcKey, state = window.FFH.state) => {
+    const sentiment = window.FFH.NPCMemoryManager.getSentiment(npcKey, state);
+    const memories = (state.npcMemory && state.npcMemory[npcKey]) || [];
+    const shiftCount = state.currentShift || 1;
+
+    switch (npcKey) {
+      case 'NPC_RITA':
+        if (memories.includes('matriculated')) return 'Frau Studentin! Willkommen an der Universität. Wie läuft das Semester?';
+        if (state.wallet >= (window.FFH.ECONOMY?.TUITION_GOAL || 250)) return 'Guten Tag! Ich sehe das Leuchten in Ihren Augen – Sie haben die Studiengebühren zusammen!';
+        if (sentiment === 'FRIENDLY') return 'Schön Sie wiederzusehen! Bringen Sie schon Ihre Immatrikulationsunterlagen?';
+        return 'Guten Tag. Bitte halten Sie Ihren Zulassungsbescheid und die Semestergebühr bereit.';
+
+      case 'NPC_MATHIAS':
+        if (memories.includes('dropped_pizza')) return 'Du schon wieder! Fahr bloß vorsichtig mit meinen Pizzen! Keine scharfen Kurven mehr!';
+        if (memories.includes('fast_delivery')) return 'Ah, mein schnellster Kurier! Der Ofen brennt schon, genau wie dein Tempo!';
+        if (sentiment === 'FRIENDLY') return 'Mamma mia, mein Lieblingsfahrer! Komm rein, nimm dir ein Stück warmes Focaccia!';
+        return 'Hör mal zu, Junge: Pünktlichkeit ist Ehrensache in dieser Pizzeria!';
+
+      case 'NPC_MARTHA':
+        if (memories.includes('helped_flour')) return 'Guten Morgen, mein Lieber! Danke nochmals für das Tragen der schweren Mehlsäcke!';
+        if (sentiment === 'FRIENDLY') return 'Moin moin! Du siehst hungrig aus vom Radfahren – nimm dir ein frisches Franzbrötchen!';
+        return 'Guten Tag junger Mann! Bei Oma Martha schmeckt das Sauerteigbrot wie vor 50 Jahren.';
+
+      case 'NPC_NINA':
+        if (state.upgrades?.ebike) return 'Whoa, look at that E-Bike! Your pick-to-drop cycle times must be insane now!';
+        if (memories.includes('picked_perfect')) return 'Clean picks on that last batch! The warehouse manager was actually impressed.';
+        if (shiftCount > 2) return 'Back for another shift? Lübeck never stops ordering groceries, so let’s rack up that tuition!';
+        return 'Kruma Dispatch here. Scan the article tag in your head before touching the shelves, okay?';
+
+      case 'NPC_LOKKER':
+        if (memories.includes('violated_ruhezeit')) return 'SIE! Ich habe gestern um 22:05 Uhr Schritte im Treppenhaus gehört! Ruhezeit ist heilig!';
+        if (sentiment === 'FRIENDLY') return 'Guten Tag. Sie sind ein vorbildlicher Mieter. Der Flur ist besenrein.';
+        return 'Guten Tag. Mülltrennung beachten: Papier blau, Plastik gelb, Bio braun. Und ab 22 Uhr absolute Zimmerlautstärke!';
+
+      case 'NPC_VOGEL':
+        if (memories.includes('anmeldung_complete')) return 'Guten Tag. Ihre Meldebescheinigung ist ordnungsgemäß archiviert. Aktenzeichen B-104.';
+        if (state.hasApartment) return 'Ah, Sie haben die Wohnungsgeberbestätigung! Treten Sie vor an Schalter 2.';
+        return 'Bürgeramt Lübeck. Ziehen Sie eine Wartemarke. Ohne Termin und Wohnungsgeberbestätigung keine Bearbeitung!';
+
+      case 'NPC_WEBER':
+        if (state.isSperrkontoUnlocked) return 'Guten Tag! Ihr Girokonto ist liquide und der monatliche Dauerauftrag läuft planmäßig.';
+        if (state.hasAnmeldung && state.isMatriculated) return 'Guten Tag! Sie bringen alle Nachweise mit! Wir können Ihr Sperrkonto umgehend freischalten.';
+        return 'Willkommen bei der Sparkasse. Für die Kontoeröffnung benötigen wir die Meldebescheinigung und Ihre Immatrikulation.';
+
+      case 'NPC_LINDEMANN':
+        const docs = [state.isMatriculated, state.hasApartment, state.hasAnmeldung, state.isSperrkontoUnlocked].filter(Boolean).length;
+        return `Ausländerbehörde Lübeck. Dokumentenstatus: ${docs}/4 vollständig. ${docs === 4 ? 'Treten Sie ein zur Visumsausstellung!' : 'Es fehlen noch Unterlagen vor Fristablauf!'}`;
+
+      default:
+        return 'Guten Tag! Wie kann ich Ihnen helfen?';
+    }
+  }
 };
 
 // Simple Behavior Tree for Roaming Citizens

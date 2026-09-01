@@ -43,331 +43,372 @@ window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB
   return room;
 };
 
-// LEVEL 0: Student Room (Possessions Look & Feel + Room-As-Progress-Bar)
-// The room dynamically reflects what the player has purchased with shift earnings.
-window.FFH.createLevel0Room = function(state = window.FFH.state) {
-  const room = window.FFH.createRoomShell(0xF29688, 0x76C8B8); // Warm salmon-pink wall, mint turquoise floor
+// 1. UNIVERSITY REGISTRAR (Rita Schneider)
+// Official academic counter, stamp rack, document trays, filing cabinets, desk lamp, Uni banner
+window.FFH.createUniRoom = function() {
+  const room = window.FFH.createRoomShell(0x2A9D8F, 0xE76F51); // Teal academic walls, terracotta floor
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-  const upgrades = state?.upgrades || {};
-  const isWon = state?.wallet >= (window.FFH.ECONOMY?.TUITION_GOAL || 250);
 
-  // 1. Bedroom Window (Left Wall) with Berlin TV tower background
-  const windowFrameMat = window.FFH.createCelMaterial(0x333333);
-  const windowGlassMat = window.FFH.createCelMaterial(0xD7F3FE);
-  const winFrame = new THREE.Mesh(boxGeo, windowFrameMat);
-  winFrame.scale.set(0.12, 1.3, 0.95);
-  winFrame.position.set(-1.46, 1.6, 0.3);
-  const winGlass = new THREE.Mesh(boxGeo, windowGlassMat);
-  winGlass.scale.set(0.14, 1.15, 0.82);
-  winGlass.position.set(-1.46, 1.6, 0.3);
-  room.add(winFrame, winGlass);
+  // Official Wooden Counter Desk
+  const deskMat = window.FFH.createCelMaterial(0x8D5B4C);
+  const desk = new THREE.Mesh(boxGeo, deskMat);
+  desk.scale.set(2.2, 0.85, 0.65);
+  desk.position.set(-0.2, 0.42, -0.65);
+  room.add(desk);
 
-  // 2. Wall Posters (Berlin Fernsehturm & Filmfestival Art)
-  const posterMat1 = window.FFH.createCelMaterial(0xF7EDE2);
-  const poster1 = new THREE.Mesh(boxGeo, posterMat1);
-  poster1.scale.set(0.04, 0.65, 0.45);
-  poster1.position.set(-1.47, 1.7, -0.6);
-  
-  const posterArtMat = window.FFH.createCelMaterial(0xE76F51);
-  const posterArt = new THREE.Mesh(boxGeo, posterArtMat);
-  posterArt.scale.set(0.05, 0.55, 0.38);
-  posterArt.position.set(-1.47, 1.7, -0.6);
-  room.add(poster1, posterArt);
+  // Acrylic Privacy Partition
+  const glassMat = window.FFH.createCelMaterial(0xD7F3FE);
+  const partition = new THREE.Mesh(boxGeo, glassMat);
+  partition.scale.set(2.0, 0.55, 0.04);
+  partition.position.set(-0.2, 1.12, -0.65);
+  room.add(partition);
 
-  const poster2Mat = window.FFH.createCelMaterial(0xFFD166);
-  const poster2 = new THREE.Mesh(boxGeo, poster2Mat);
-  poster2.scale.set(0.55, 0.75, 0.04);
-  poster2.position.set(-0.5, 1.75, -1.47);
-  room.add(poster2);
+  // Stamp Rack (Wooden rotating carousel)
+  const stampMat = window.FFH.createCelMaterial(0xD62828);
+  const stampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.12, 12), window.FFH.createCelMaterial(0x333333));
+  stampBase.position.set(-0.9, 0.91, -0.65);
+  const stampHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.14, 8), stampMat);
+  stampHandle.position.set(-0.9, 1.02, -0.65);
+  room.add(stampBase, stampHandle);
 
-  // 3. Wall Shelf with Books & Vinyl Records (Back Wall)
-  const shelfMat = window.FFH.createCelMaterial(0xD4A373);
-  const wallShelf = new THREE.Mesh(boxGeo, shelfMat);
-  wallShelf.scale.set(0.9, 0.05, 0.22);
-  wallShelf.position.set(0.7, 1.7, -1.38);
-  room.add(wallShelf);
-
-  // Vinyl Record on shelf
-  const vinylMat = window.FFH.createCelMaterial(0x222222);
-  const vinyl = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.02, 16), vinylMat);
-  vinyl.rotation.x = Math.PI / 2;
-  vinyl.position.set(0.85, 1.84, -1.35);
-  room.add(vinyl);
-
-  // Hanging Fairy Lights across back wall
-  const fairyLine = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 1.6), window.FFH.createCelMaterial(0x333333));
-  fairyLine.rotation.z = Math.PI / 2;
-  fairyLine.position.set(0.4, 2.25, -1.45);
-  room.add(fairyLine);
-  
-  const bulbLightMat = window.FFH.createCelMaterial(0xFFE49E);
-  for (let x = -0.3; x <= 1.1; x += 0.25) {
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), bulbLightMat);
-    bulb.position.set(x, 2.22 - Math.sin((x + 0.3) * 2.2) * 0.06, -1.43);
-    room.add(bulb);
+  // Stacks of Official Documents & Dossiers
+  const paperMat1 = window.FFH.createCelMaterial(0xFFFFFF);
+  const paperMat2 = window.FFH.createCelMaterial(0xF4A261);
+  for (let i = 0; i < 4; i++) {
+    const doc = new THREE.Mesh(boxGeo, i % 2 === 0 ? paperMat1 : paperMat2);
+    doc.scale.set(0.32, 0.03, 0.24);
+    doc.position.set(0.45, 0.86 + (i * 0.032), -0.65);
+    room.add(doc);
   }
 
-  // BASE STATE: Bare floor mattress, cardboard box, coffee mug
-  const mattressMat = window.FFH.createCelMaterial(0xF7EDE2);
-  const mattress = new THREE.Mesh(boxGeo, mattressMat);
-  mattress.scale.set(1.1, 0.15, 1.7);
-  
-  const blanketMat = window.FFH.createCelMaterial(0xF6BD60);
-  const blanket = new THREE.Mesh(boxGeo, blanketMat);
-  blanket.scale.set(1.12, 0.17, 1.1);
+  // Filing Cabinets on Back Wall
+  const cabinetMat = window.FFH.createCelMaterial(0x457B9D);
+  const cab1 = new THREE.Mesh(boxGeo, cabinetMat);
+  cab1.scale.set(0.8, 1.6, 0.45);
+  cab1.position.set(1.0, 0.8, -1.25);
+  room.add(cab1);
 
-  const pillowMat = window.FFH.createCelMaterial(0xFFFFFF);
-  const pillow = new THREE.Mesh(boxGeo, pillowMat);
-  pillow.scale.set(0.7, 0.1, 0.4);
+  // University Crest / Seal Wall Plaque
+  const plaqueMat = window.FFH.createCelMaterial(0xE9C46A);
+  const plaque = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.04, 16), plaqueMat);
+  plaque.rotation.x = Math.PI / 2;
+  plaque.position.set(-0.3, 1.85, -1.42);
+  room.add(plaque);
 
-  let matY = 0.08, blanY = 0.11, pilY = 0.18;
-
-  // TIER 1: Wooden bed frame, Study Desk, Chair & Desk Lamp
-  if (upgrades.desk_lamp || isWon) {
-    const bedFrameMat = window.FFH.createCelMaterial(0xDDA15E);
-    const bedFrame = new THREE.Mesh(boxGeo, bedFrameMat);
-    bedFrame.scale.set(1.2, 0.25, 1.8);
-    bedFrame.position.set(-0.75, 0.15, -0.4);
-    room.add(bedFrame);
-    
-    matY = 0.32; blanY = 0.35; pilY = 0.44;
-
-    const deskMat = window.FFH.createCelMaterial(0xF5EBE0);
-    const desk = new THREE.Mesh(boxGeo, deskMat);
-    desk.scale.set(1.1, 0.72, 0.55);
-    desk.position.set(0.65, 0.36, -0.9);
-
-    const chairMat = window.FFH.createCelMaterial(0xF4A261);
-    const chair = new THREE.Mesh(boxGeo, chairMat);
-    chair.scale.set(0.4, 0.45, 0.4);
-    chair.position.set(0.65, 0.25, -0.35);
-
-    const lampMat = window.FFH.createCelMaterial(0xE76F51);
-    const lamp = new THREE.Mesh(boxGeo, lampMat);
-    lamp.scale.set(0.12, 0.35, 0.12);
-    lamp.position.set(1.0, 0.92, -0.9);
-
-    const laptopMat = window.FFH.createCelMaterial(0x264653);
-    const laptop = new THREE.Mesh(boxGeo, laptopMat);
-    laptop.scale.set(0.3, 0.03, 0.2);
-    laptop.position.set(0.6, 0.74, -0.9);
-
-    room.add(desk, chair, lamp, laptop);
-  } else {
-    // Single glowing wire bulb hanging from ceiling
-    const bulbWire = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.2), window.FFH.createCelMaterial(0x333333));
-    bulbWire.position.set(0, 2.3, 0);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), window.FFH.createCelMaterial(0xFFEE88));
-    bulb.position.set(0, 1.65, 0);
-    room.add(bulbWire, bulb);
-  }
-
-  mattress.position.set(-0.75, matY, -0.4);
-  blanket.position.set(-0.75, blanY, -0.1);
-  pillow.position.set(-0.75, pilY, -1.0);
-  room.add(mattress, blanket, pillow);
-
-  // Wool rug, potted windowsill plant
-  const rugMat = window.FFH.createCelMaterial(0x588157);
-  const rug = new THREE.Mesh(boxGeo, rugMat);
-  rug.scale.set(1.6, 0.02, 1.4);
-  rug.position.set(0.2, 0.01, 0.3);
-  
-  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.05, 0.12), window.FFH.createCelMaterial(0xE76F51));
-  pot.position.set(-1.3, 1.05, 0.3);
-  const plant = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1, 0), window.FFH.createCelMaterial(0x3A5A40));
-  plant.position.set(-1.3, 1.18, 0.3);
-  
-  room.add(rug, pot, plant);
-
-  // Animated Cube Cat sleeping on bed
-  const catMat = window.FFH.createCelMaterial(0xE07A5F);
-  const catBody = new THREE.Mesh(boxGeo, catMat);
-  catBody.scale.set(0.24, 0.22, 0.3);
-  catBody.position.set(-0.7, matY + 0.23, -0.6);
-
-  const catHead = new THREE.Mesh(boxGeo, catMat);
-  catHead.scale.set(0.18, 0.16, 0.16);
-  catHead.position.set(-0.7, matY + 0.38, -0.48);
-  room.add(catBody, catHead);
-
-  // Cardboard Moving Box & Coffee Mug
-  const boxMat = window.FFH.createCelMaterial(0xD4A373);
-  const crate = new THREE.Mesh(boxGeo, boxMat);
-  crate.scale.set(0.48, 0.42, 0.48);
-  crate.position.set(0.85, 0.21, 0.7);
-  
-  const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.1, 8), window.FFH.createCelMaterial(0xFFFFFF));
-  mug.position.set(0.85, 0.47, 0.7);
-  room.add(crate, mug);
-
-  // UPGRADES -----------------------------
-
-  // E-Bike (Wheel leaning on crate)
-  const bikeMat = window.FFH.createCelMaterial(upgrades.ebike ? 0x2A9D8F : 0x888888);
-  const bikeWheel = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 16), bikeMat);
-  bikeWheel.position.set(1.2, 0.2, 0.5);
-  bikeWheel.rotation.y = Math.PI / 4;
-  bikeWheel.userData = { upgradeId: 'ebike' };
-  room.add(bikeWheel);
-  
-  // Thermal Bag (bag mesh)
-  const bagMat = window.FFH.createCelMaterial(upgrades.thermalBag ? 0xFF6B35 : 0x888888);
-  const bag = new THREE.Mesh(boxGeo, bagMat);
-  bag.scale.set(0.38, 0.48, 0.3);
-  bag.position.set(0.4, 0.24, 0.85);
-  bag.rotation.y = -0.4;
-  bag.userData = { upgradeId: 'thermalBag' };
-  room.add(bag);
-
-  // Shelf Labels (Labels box on crate)
-  const labelsMat = window.FFH.createCelMaterial(upgrades.shelfLabels ? 0xE9C46A : 0x888888);
-  const labelsBox = new THREE.Mesh(boxGeo, labelsMat);
-  labelsBox.scale.set(0.15, 0.1, 0.2);
-  labelsBox.position.set(0.85, 0.47, 0.5);
-  labelsBox.userData = { upgradeId: 'shelfLabels' };
-  room.add(labelsBox);
-
-  // Pocket Notepad (on desk)
-  const notepadMat = window.FFH.createCelMaterial(upgrades.pocketNotepad ? 0xFFD166 : 0x888888);
-  const notepad = new THREE.Mesh(boxGeo, notepadMat);
-  notepad.scale.set(0.15, 0.02, 0.1);
-  notepad.position.set(0.4, 0.74, -0.7);
-  notepad.userData = { upgradeId: 'pocketNotepad' };
-  room.add(notepad);
-
-  // Vocab Cards (on desk)
-  const cardsMat = window.FFH.createCelMaterial(upgrades.vocabCards ? 0xFF006E : 0x888888);
-  const cards = new THREE.Mesh(boxGeo, cardsMat);
-  cards.scale.set(0.12, 0.05, 0.08);
-  cards.position.set(0.8, 0.74, -0.7);
-  cards.userData = { upgradeId: 'vocabCards' };
-  room.add(cards);
-
-  room.userData.updateIdle = (time) => {
-    // Gentle cat breathing / tail twitch
-    const cat = room.children.find(c => c.geometry && c.scale && c.scale.x > 0.23 && c.scale.x < 0.25);
-    if (cat) {
-      cat.scale.y = 0.22 + Math.sin(time * 2.5) * 0.015;
-    }
-  };
+  // Desk Lamp
+  const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.02, 10), window.FFH.createCelMaterial(0x264653));
+  lampBase.position.set(-0.6, 0.86, -0.75);
+  const lampCone = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.15, 12), window.FFH.createCelMaterial(0x2EC4B6));
+  lampCone.position.set(-0.6, 1.05, -0.75);
+  room.add(lampBase, lampCone);
 
   return room;
 };
 
-// LEVEL 1: Dark Store Mini-Market
-// Supermarket shelves, fruit crates, shopping cart, grocery items
-window.FFH.createLevel1Room = function() {
-  const room = window.FFH.createRoomShell(0x8ECAE6, 0xD4A373); // Sky blue wall, beige tile floor
+// 2. KRUMA EXPRESS DARK STORE (Nina Lindemann)
+// High-tech courier hub, dispatch laptop, fruit crates, totes, barcode scanner
+window.FFH.createDarkStoreRoom = function() {
+  const room = window.FFH.createRoomShell(0x1D3557, 0x457B9D); // Dark navy walls, blue floor
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 
-  // 1. Tall Steel Market Shelf Unit (Back Wall)
-  const shelfMat = window.FFH.createCelMaterial(0x4A4E51);
-  const shelfBack = new THREE.Mesh(boxGeo, shelfMat);
-  shelfBack.scale.set(2.4, 2.0, 0.4);
-  shelfBack.position.set(0, 1.0, -1.2);
-  room.add(shelfBack);
+  // Steel Warehouse Racks on Back Wall
+  const rackMat = window.FFH.createCelMaterial(0x333333);
+  const rack = new THREE.Mesh(boxGeo, rackMat);
+  rack.scale.set(2.4, 2.0, 0.4);
+  rack.position.set(0, 1.0, -1.25);
+  room.add(rack);
 
-  // Shelf horizontal dividers
-  const woodMat = window.FFH.createCelMaterial(0xCCD5AE);
-  for (let y = 0.4; y <= 1.8; y += 0.5) {
-    const plank = new THREE.Mesh(boxGeo, woodMat);
-    plank.scale.set(2.35, 0.06, 0.42);
-    plank.position.set(0, y, -1.2);
-    room.add(plank);
-  }
+  // Glowing Shelf Strips
+  const cyanMat = window.FFH.createCelMaterial(0x2EC4B6);
+  const pinkMat = window.FFH.createCelMaterial(0xFF006E);
+  const purpMat = window.FFH.createCelMaterial(0x9B5DE5);
+  [
+    { y: 0.5, mat: cyanMat },
+    { y: 1.0, mat: pinkMat },
+    { y: 1.5, mat: purpMat }
+  ].forEach(shelf => {
+    const lightBar = new THREE.Mesh(boxGeo, shelf.mat);
+    lightBar.scale.set(2.36, 0.04, 0.42);
+    lightBar.position.set(0, shelf.y, -1.25);
+    room.add(lightBar);
+  });
 
-  // 2. Fruit Crates & Produce Display
+  // Dispatch Terminal Desk
+  const dispatchDesk = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x264653));
+  dispatchDesk.scale.set(1.4, 0.8, 0.6);
+  dispatchDesk.position.set(-0.6, 0.4, 0.1);
+  room.add(dispatchDesk);
+
+  // Dispatch Laptop
+  const laptopMat = window.FFH.createCelMaterial(0xCCD5AE);
+  const laptopBase = new THREE.Mesh(boxGeo, laptopMat);
+  laptopBase.scale.set(0.35, 0.03, 0.25);
+  laptopBase.position.set(-0.6, 0.82, 0.1);
+  const laptopScreen = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x2EC4B6));
+  laptopScreen.scale.set(0.35, 0.25, 0.03);
+  laptopScreen.position.set(-0.6, 0.95, -0.01);
+  room.add(laptopBase, laptopScreen);
+
+  // Fruit & Produce Crates
   const crateMat = window.FFH.createCelMaterial(0xDDA15E);
   const crate1 = new THREE.Mesh(boxGeo, crateMat);
-  crate1.scale.set(0.6, 0.35, 0.5);
-  crate1.position.set(-0.8, 0.18, 0.2);
-  
+  crate1.scale.set(0.55, 0.35, 0.45);
+  crate1.position.set(0.8, 0.18, 0.2);
   const crate2 = new THREE.Mesh(boxGeo, crateMat);
-  crate2.scale.set(0.6, 0.35, 0.5);
-  crate2.position.set(-0.8, 0.18, 0.8);
+  crate2.scale.set(0.55, 0.35, 0.45);
+  crate2.position.set(0.8, 0.53, 0.2);
   room.add(crate1, crate2);
 
-  // 3. Low-Poly Grocery Items placed on shelves and in crates
-  const redAppleMat = window.FFH.createCelMaterial(0xE63946);
-  const milkMat = window.FFH.createCelMaterial(0x457B9D);
-  const breadMat = window.FFH.createCelMaterial(0xE9C46A);
-
-  // Apples in crate
-  for (let i = -0.15; i <= 0.15; i += 0.15) {
-    const apple = window.FFH.createItemMesh('sphere', 0xE63946);
-    apple.scale.set(0.2, 0.2, 0.2);
-    apple.position.set(-0.8 + i, 0.4, 0.2);
-    room.add(apple);
-  }
-
-  // Milk cartons
-  for (let i = -0.3; i <= 0.3; i += 0.3) {
-    const carton = window.FFH.createItemMesh('carton', 0x457B9D);
-    carton.scale.set(0.15, 0.15, 0.15);
-    carton.position.set(i, 0.55, -1.2);
-    room.add(carton);
-  }
-
-  // Loaves of bread
-  for (let i = -0.3; i <= 0.3; i += 0.3) {
-    const bread = window.FFH.createItemMesh('box', 0xE9C46A);
-    bread.scale.set(0.15, 0.15, 0.15);
-    bread.position.set(i, 1.05, -1.2);
-    room.add(bread);
-  }
-
-  // Bananas in second crate
-  for (let i = -0.15; i <= 0.15; i += 0.15) {
-    const banana = window.FFH.createItemMesh('curve', 0xFFD60A);
-    banana.scale.set(0.2, 0.2, 0.2);
-    banana.position.set(-0.8 + i, 0.4, 0.8);
-    room.add(banana);
-  }
-
-  // 4. Shopping Basket / Cart
-  const cartMat = window.FFH.createCelMaterial(0xE76F51);
-  const cart = new THREE.Mesh(boxGeo, cartMat);
-  cart.scale.set(0.6, 0.5, 0.45);
-  cart.position.set(0.6, 0.3, 0.4);
-  cart.rotation.y = -0.2;
-  room.add(cart);
+  // Energy Drink Cans (Nina's fuel)
+  const canMat = window.FFH.createCelMaterial(0xFFD166);
+  const can = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.12, 10), canMat);
+  can.position.set(-0.2, 0.86, 0.1);
+  room.add(can);
 
   return room;
 };
 
-// LEVEL 2: Italian Pizzeria Restaurant Pickup
-window.FFH.createLevel2Room = function() {
-  const room = window.FFH.createRoomShell(0xF4A261, 0x264653); // Terracotta wall, dark slate floor
+// 3. MATHIAS'S ITALIAN PIZZERIA (Mathias Becker)
+// Stone deck pizza oven with warm red/orange fire, pizza boxes, dining chairs, chalkboard menu
+window.FFH.createPizzeriaRoom = function() {
+  const room = window.FFH.createRoomShell(0x9B2226, 0xEE9B00); // Warm terracotta red wall, burnt orange tile floor
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 
-  // Restaurant Service Counter
-  const counterMat = window.FFH.createCelMaterial(0xE76F51);
+  // Stone Deck Pizza Oven (Back Corner)
+  const ovenMat = window.FFH.createCelMaterial(0x555555);
+  const oven = new THREE.Mesh(boxGeo, ovenMat);
+  oven.scale.set(1.2, 1.4, 0.8);
+  oven.position.set(0.85, 0.7, -1.05);
+  
+  // Oven fire cavity with glowing embers
+  const fireMat = window.FFH.createCelMaterial(0xFF5400);
+  const fireCavity = new THREE.Mesh(boxGeo, fireMat);
+  fireCavity.scale.set(0.7, 0.4, 0.3);
+  fireCavity.position.set(0.85, 0.65, -0.68);
+  room.add(oven, fireCavity);
+
+  // Wooden Service Counter
+  const counterMat = window.FFH.createCelMaterial(0x8D5B4C);
   const counter = new THREE.Mesh(boxGeo, counterMat);
-  counter.scale.set(2.4, 0.9, 0.6);
-  counter.position.set(0, 0.45, -0.6);
+  counter.scale.set(1.8, 0.85, 0.6);
+  counter.position.set(-0.5, 0.42, -0.6);
   room.add(counter);
 
-  // Pizza Box Stacks
-  const pizzaBoxMat = window.FFH.createCelMaterial(0xFDF0D5);
-  for (let y = 0.95; y <= 1.25; y += 0.08) {
-    const pBox = new THREE.Mesh(boxGeo, pizzaBoxMat);
-    pBox.scale.set(0.45, 0.06, 0.45);
-    pBox.position.set(-0.6, y, -0.6);
+  // Stacks of Fresh Pizza Boxes
+  const boxMat = window.FFH.createCelMaterial(0xFDF0D5);
+  for (let y = 0.88; y <= 1.2; y += 0.07) {
+    const pBox = new THREE.Mesh(boxGeo, boxMat);
+    pBox.scale.set(0.42, 0.055, 0.42);
+    pBox.position.set(-0.9, y, -0.6);
     room.add(pBox);
   }
 
-  // Beverage Bottles
-  const wineMat = window.FFH.createCelMaterial(0x7209B7);
-  const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.35, 8), wineMat);
-  bottle.position.set(0.5, 1.08, -0.6);
-  room.add(bottle);
+  // Olive Oil Bottles & Condiments
+  const bottleMat = window.FFH.createCelMaterial(0x588157);
+  const oilBottle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.22, 8), bottleMat);
+  oilBottle.position.set(-0.3, 0.96, -0.6);
+  room.add(oilBottle);
+
+  // Hanging Chalkboard Menu
+  const boardMat = window.FFH.createCelMaterial(0x222222);
+  const menu = new THREE.Mesh(boxGeo, boardMat);
+  menu.scale.set(1.1, 0.8, 0.04);
+  menu.position.set(-0.4, 1.8, -1.42);
+  room.add(menu);
 
   return room;
 };
 
-// LEVEL 3: Doorstep Intercom Delivery
-window.FFH.createLevel3Room = function() {
+// 4. OMA MARTHA'S BAKERY (Martha Webber)
+// Fresh bread displays, wicker baskets, pastry counter, chalkboard price list
+window.FFH.createBakeryRoom = function() {
+  const room = window.FFH.createRoomShell(0xDDA15E, 0xBC6C25); // Warm pastry beige wall, wooden bakery floor
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
+  // Glass Display Bakery Showcase
+  const glassMat = window.FFH.createCelMaterial(0xD7F3FE);
+  const showcase = new THREE.Mesh(boxGeo, glassMat);
+  showcase.scale.set(1.8, 0.85, 0.65);
+  showcase.position.set(-0.4, 0.42, -0.6);
+  const baseMat = window.FFH.createCelMaterial(0x8D5B4C);
+  const woodBase = new THREE.Mesh(boxGeo, baseMat);
+  woodBase.scale.set(1.8, 0.2, 0.65);
+  woodBase.position.set(-0.4, 0.1, -0.6);
+  room.add(showcase, woodBase);
+
+  // Loaves of Sourdough & Baguettes in Display
+  const breadMat = window.FFH.createCelMaterial(0xE9C46A);
+  for (let x = -1.0; x <= 0.2; x += 0.3) {
+    const loaf = new THREE.Mesh(boxGeo, breadMat);
+    loaf.scale.set(0.2, 0.12, 0.35);
+    loaf.position.set(x, 0.45, -0.6);
+    room.add(loaf);
+  }
+
+  // Wicker Bread Baskets on Wall Shelf
+  const basketMat = window.FFH.createCelMaterial(0xCCD5AE);
+  const basketShelf = new THREE.Mesh(boxGeo, baseMat);
+  basketShelf.scale.set(1.2, 0.06, 0.35);
+  basketShelf.position.set(0.8, 1.1, -1.25);
+  const basket = new THREE.Mesh(boxGeo, basketMat);
+  basket.scale.set(0.5, 0.25, 0.3);
+  basket.position.set(0.8, 1.25, -1.25);
+  room.add(basketShelf, basket);
+
+  // Flour Sack on Floor
+  const sackMat = window.FFH.createCelMaterial(0xF7EDE2);
+  const sack = new THREE.Mesh(boxGeo, sackMat);
+  sack.scale.set(0.4, 0.5, 0.35);
+  sack.position.set(1.0, 0.25, 0.4);
+  room.add(sack);
+
+  // Chalkboard Price List
+  const boardMat = window.FFH.createCelMaterial(0x264653);
+  const priceBoard = new THREE.Mesh(boxGeo, boardMat);
+  priceBoard.scale.set(0.8, 0.9, 0.03);
+  priceBoard.position.set(-0.5, 1.8, -1.42);
+  room.add(priceBoard);
+
+  return room;
+};
+
+// 5. HANS LOKKER'S SUBLET APARTMENT OFFICE (Hans Lokker)
+// Key rack, quiet-hours clock on wall, recycling sorting bins (Ruhezeit enforcer)
+window.FFH.createWGRoom = function() {
+  const room = window.FFH.createRoomShell(0x588157, 0x3A5A40); // Olive green wall, dark forest green floor
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
+  // Caretaker Wooden Desk
+  const desk = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x606C38));
+  desk.scale.set(1.6, 0.8, 0.65);
+  desk.position.set(-0.4, 0.4, -0.6);
+  room.add(desk);
+
+  // Master Key Rack on Wall
+  const keyRackMat = window.FFH.createCelMaterial(0xDDA15E);
+  const keyRack = new THREE.Mesh(boxGeo, keyRackMat);
+  keyRack.scale.set(0.7, 0.4, 0.04);
+  keyRack.position.set(-0.4, 1.7, -1.42);
+  room.add(keyRack);
+
+  // Wall Clock (Strict 22:00 Ruhezeit indicator)
+  const clockMat = window.FFH.createCelMaterial(0xFFFFFF);
+  const clock = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.04, 16), clockMat);
+  clock.rotation.x = Math.PI / 2;
+  clock.position.set(0.6, 1.85, -1.42);
+  room.add(clock);
+
+  // German Recycling Sorting Bins (Paper, Bio, Plastic, Glass)
+  const binColors = [0x2A9D8F, 0xE76F51, 0xFFD166]; // Blue (Paper), Brown (Bio), Yellow (Plastik)
+  binColors.forEach((col, idx) => {
+    const bin = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(col));
+    bin.scale.set(0.28, 0.45, 0.3);
+    bin.position.set(0.6 + (idx * 0.32), 0.22, 0.6);
+    room.add(bin);
+  });
+
+  return room;
+};
+
+// 6. RATHAUS BÜRGERAMT (Herr Vogel - Peak Bureaucrat)
+// Formal municipal counter, hygiene glass partition, ticket dispenser (Wartemarke), eagle seal
+window.FFH.createRathausRoom = function() {
+  const room = window.FFH.createRoomShell(0x457B9D, 0x1D3557); // Formal steel blue walls, dark granite floor
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
+  // Massive Official Stone Counter
+  const counter = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x8D99AE));
+  counter.scale.set(2.2, 0.9, 0.65);
+  counter.position.set(-0.2, 0.45, -0.6);
+  room.add(counter);
+
+  // Glass Window with Speaking Hole
+  const glass = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xD7F3FE));
+  glass.scale.set(2.0, 0.6, 0.04);
+  glass.position.set(-0.2, 1.2, -0.6);
+  room.add(glass);
+
+  // Queue Number Ticket Dispenser (Wartemarken-Automat)
+  const dispenserMat = window.FFH.createCelMaterial(0xE63946);
+  const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.0, 8), window.FFH.createCelMaterial(0x333333));
+  stand.position.set(1.0, 0.5, 0.3);
+  const dispenserHead = new THREE.Mesh(boxGeo, dispenserMat);
+  dispenserHead.scale.set(0.25, 0.3, 0.2);
+  dispenserHead.position.set(1.0, 1.05, 0.3);
+  room.add(stand, dispenserHead);
+
+  // Official German Eagle Plaque
+  const eagleMat = window.FFH.createCelMaterial(0xFFD166);
+  const plaque = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.04, 16), eagleMat);
+  plaque.rotation.x = Math.PI / 2;
+  plaque.position.set(-0.2, 1.9, -1.42);
+  room.add(plaque);
+
+  return room;
+};
+
+// 7. SPARKASSE BANK (Frau Weber)
+// Polished banking counter, money safe, currency rate display
+window.FFH.createBankRoom = function() {
+  const room = window.FFH.createRoomShell(0xD62828, 0x003049); // Sparkasse red wall, navy floor
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
+  // Polished Marble Teller Counter
+  const counter = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xF7EDE2));
+  counter.scale.set(2.0, 0.9, 0.65);
+  counter.position.set(-0.3, 0.45, -0.6);
+  room.add(counter);
+
+  // Steel Money Vault Safe in Corner
+  const safeMat = window.FFH.createCelMaterial(0x333333);
+  const safe = new THREE.Mesh(boxGeo, safeMat);
+  safe.scale.set(0.7, 1.2, 0.6);
+  safe.position.set(0.9, 0.6, -1.1);
+  const safeWheel = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 16), window.FFH.createCelMaterial(0xFFD166));
+  safeWheel.position.set(0.9, 0.6, -0.78);
+  room.add(safe, safeWheel);
+
+  // Digital Interest Rate / Currency Wall Display
+  const screenMat = window.FFH.createCelMaterial(0x003049);
+  const screen = new THREE.Mesh(boxGeo, screenMat);
+  screen.scale.set(1.0, 0.6, 0.04);
+  screen.position.set(-0.3, 1.8, -1.42);
+  room.add(screen);
+
+  return room;
+};
+
+// 8. AUSLÄNDERBEHÖRDE IMMIGRATION OFFICE (Dr. Lindemann)
+// Formal conference desk, state flags, citizenship certificate dossier
+window.FFH.createAuslaenderRoom = function() {
+  const room = window.FFH.createRoomShell(0x264653, 0x2A9D8F); // Formal dark teal walls, mint floor
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
+  // Heavy Executive Desk
+  const desk = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x457B9D));
+  desk.scale.set(1.8, 0.85, 0.7);
+  desk.position.set(-0.3, 0.42, -0.6);
+  room.add(desk);
+
+  // Miniature German & EU Flagpole
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.5, 8), window.FFH.createCelMaterial(0xFFD166));
+  pole.position.set(0.4, 1.1, -0.6);
+  const flag = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xE76F51));
+  flag.scale.set(0.18, 0.12, 0.02);
+  flag.position.set(0.48, 1.25, -0.6);
+  room.add(pole, flag);
+
+  // Complete 4-Document Dossier Holder
+  const dossier = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xF4A261));
+  dossier.scale.set(0.35, 0.06, 0.28);
+  dossier.position.set(-0.4, 0.88, -0.6);
+  room.add(dossier);
+
+  return room;
+};
+
+// 9. DOORSTEP INTERCOM HANDOFF (Customer Doorway Delivery)
+window.FFH.createDoorwayRoom = function() {
   const room = window.FFH.createRoomShell(0xCCD5AE, 0xD4A373); // Sage green wall, stone floor
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 
@@ -388,109 +429,85 @@ window.FFH.createLevel3Room = function() {
   return room;
 };
 
-// LEVEL 4: Furniture Store Longing (Showroom)
-window.FFH.createLevel4Room = function() {
-  const room = window.FFH.createRoomShell(0xD8E2DC, 0xFAEDCD); // Warm pastel grey wall, wooden floor
+// LEVEL 0: Student Room (Possessions Look & Feel + Room-As-Progress-Bar)
+window.FFH.createLevel0Room = function(state = window.FFH.state) {
+  const room = window.FFH.createRoomShell(0xF29688, 0x76C8B8); // Warm salmon-pink wall, mint turquoise floor
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+  const upgrades = state?.upgrades || {};
 
-  // Cozy Modern Yellow Sofa
-  const sofaMat = window.FFH.createCelMaterial(0xE9C46A);
-  const sofaBase = new THREE.Mesh(boxGeo, sofaMat);
-  sofaBase.scale.set(1.6, 0.45, 0.75);
-  sofaBase.position.set(0, 0.22, -0.7);
-  
-  const sofaBack = new THREE.Mesh(boxGeo, sofaMat);
-  sofaBack.scale.set(1.6, 0.55, 0.22);
-  sofaBack.position.set(0, 0.65, -0.98);
-  room.add(sofaBase, sofaBack);
+  // Bedroom Window
+  const windowFrameMat = window.FFH.createCelMaterial(0x333333);
+  const windowGlassMat = window.FFH.createCelMaterial(0xD7F3FE);
+  const winFrame = new THREE.Mesh(boxGeo, windowFrameMat);
+  winFrame.scale.set(0.12, 1.3, 0.95);
+  winFrame.position.set(-1.46, 1.6, 0.3);
+  const winGlass = new THREE.Mesh(boxGeo, windowGlassMat);
+  winGlass.scale.set(0.14, 1.15, 0.82);
+  winGlass.position.set(-1.46, 1.6, 0.3);
+  room.add(winFrame, winGlass);
 
-  // Floor Standing Lamp
-  const lampMat = window.FFH.createCelMaterial(0x264653);
-  const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.8, 8), lampMat);
-  lampPole.position.set(1.0, 0.9, -0.8);
-  const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.3, 12), window.FFH.createCelMaterial(0xE76F51));
-  lampShade.position.set(1.0, 1.7, -0.8);
-  room.add(lampPole, lampShade);
+  // Mattress & Bed
+  const mattress = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xF7EDE2));
+  mattress.scale.set(1.1, 0.15, 1.7);
+  mattress.position.set(-0.75, 0.08, -0.4);
+  const blanket = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xF6BD60));
+  blanket.scale.set(1.12, 0.17, 1.1);
+  blanket.position.set(-0.75, 0.12, -0.1);
+  const pillow = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xFFFFFF));
+  pillow.scale.set(0.7, 0.12, 0.4);
+  pillow.position.set(-0.75, 0.18, -1.0);
+  room.add(mattress, blanket, pillow);
 
-  // Small Coffee Table
-  const tableMat = window.FFH.createCelMaterial(0xD4A373);
-  const table = new THREE.Mesh(boxGeo, tableMat);
-  table.scale.set(0.8, 0.35, 0.5);
-  table.position.set(0, 0.18, 0.6);
-  room.add(table);
+  // Rug
+  const rug = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x588157));
+  rug.scale.set(1.6, 0.02, 1.4);
+  rug.position.set(0.2, 0.01, 0.3);
+  room.add(rug);
+
+  // Upgrades: E-Bike Wheel, Thermal Bag, Notepad, Cards
+  if (upgrades.ebike) {
+    const bikeWheel = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 16), window.FFH.createCelMaterial(0x2A9D8F));
+    bikeWheel.position.set(1.2, 0.2, 0.5);
+    bikeWheel.rotation.y = Math.PI / 4;
+    room.add(bikeWheel);
+  }
+  if (upgrades.thermalBag) {
+    const bag = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xFF6B35));
+    bag.scale.set(0.38, 0.48, 0.3);
+    bag.position.set(0.4, 0.24, 0.85);
+    room.add(bag);
+  }
 
   return room;
 };
 
-// LEVEL 5: Pet & Comfort Toy Store
-window.FFH.createLevel5Room = function() {
-  const room = window.FFH.createRoomShell(0xFFCDB2, 0xB5E2FA); // Warm peach wall, soft blue floor
+// WAREHOUSE: Dedicated Warehouse Minigame Room
+window.FFH.createWarehouseRoom = function() {
+  const room = window.FFH.createRoomShell(0x2B2D42, 0x8D99AE);
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-
-  // Tiered Display Stand
-  const standMat = window.FFH.createCelMaterial(0xE5989B);
-  const stand1 = new THREE.Mesh(boxGeo, standMat);
-  stand1.scale.set(1.4, 0.35, 0.8);
-  stand1.position.set(0, 0.18, -0.6);
-
-  const stand2 = new THREE.Mesh(boxGeo, standMat);
-  stand2.scale.set(1.0, 0.35, 0.45);
-  stand2.position.set(0, 0.52, -0.8);
-  room.add(stand1, stand2);
-
-  // Cube Pets (Cat & Dog)
-  const catMat = window.FFH.createCelMaterial(0x2B2D42);
-  const cat = new THREE.Mesh(boxGeo, catMat);
-  cat.scale.set(0.28, 0.28, 0.28);
-  cat.position.set(-0.3, 0.5, -0.6);
-  
-  const dogMat = window.FFH.createCelMaterial(0xD4A373);
-  const dog = new THREE.Mesh(boxGeo, dogMat);
-  dog.scale.set(0.3, 0.3, 0.3);
-  dog.position.set(0.3, 0.52, -0.6);
-  room.add(cat, dog);
-
+  const crateMat = window.FFH.createCelMaterial(0xD4A373);
+  for (let x = -1.1; x <= -0.5; x += 0.5) {
+    const c = new THREE.Mesh(boxGeo, crateMat);
+    c.scale.set(0.45, 0.45, 0.45);
+    c.position.set(x, 0.22, -1.0);
+    room.add(c);
+  }
   return room;
 };
 
-// LEVEL 6: Christmas Celebration with Friends
-window.FFH.createLevel6Room = function() {
-  const room = window.FFH.createRoomShell(0x8D0801, 0x1B4332); // Deep holiday red wall, festive pine floor
+// BIKE SHOP: Dedicated Hansa Rad Bicycle Shop Diorama
+window.FFH.createBikeShopRoom = function() {
+  const room = window.FFH.createRoomShell(0x003049, 0x780000);
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-
-  // Decorated Christmas Tree
-  const pineMat = window.FFH.createCelMaterial(0x2D6A4F);
-  const t1 = new THREE.Mesh(new THREE.ConeGeometry(0.75, 0.9, 8), pineMat);
-  t1.position.set(-0.8, 0.6, -0.8);
-  const t2 = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.75, 8), pineMat);
-  t2.position.set(-0.8, 1.15, -0.8);
-  const t3 = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.6, 8), pineMat);
-  t3.position.set(-0.8, 1.6, -0.8);
-  
-  // Gold Star on top
-  const starMat = window.FFH.createCelMaterial(0xFFD166);
-  const star = new THREE.Mesh(new THREE.DodecahedronGeometry(0.12, 0), starMat);
-  star.position.set(-0.8, 2.0, -0.8);
-  room.add(t1, t2, t3, star);
-
-  // Gift Boxes under tree
-  const giftMat1 = window.FFH.createCelMaterial(0xEF476F);
-  const giftMat2 = window.FFH.createCelMaterial(0x118AB2);
-  const g1 = new THREE.Mesh(boxGeo, giftMat1);
-  g1.scale.set(0.3, 0.25, 0.3);
-  g1.position.set(-0.4, 0.13, -0.7);
-
-  const g2 = new THREE.Mesh(boxGeo, giftMat2);
-  g2.scale.set(0.26, 0.22, 0.26);
-  g2.position.set(-0.8, 0.11, -0.3);
-  room.add(g1, g2);
-
-  // Holiday Feast Table
-  const tableMat = window.FFH.createCelMaterial(0xFAEDCD);
-  const table = new THREE.Mesh(boxGeo, tableMat);
-  table.scale.set(1.4, 0.6, 0.9);
-  table.position.set(0.4, 0.3, 0.1);
-  room.add(table);
-
+  const bench = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0xDDA15E));
+  bench.scale.set(1.4, 0.75, 0.6);
+  bench.position.set(-0.6, 0.37, -0.9);
+  room.add(bench);
+  const tireMat = window.FFH.createCelMaterial(0x333333);
+  for (let x = -0.5; x <= 0.5; x += 0.5) {
+    const tire = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.03, 8, 24), tireMat);
+    tire.position.set(x, 1.6, -1.4);
+    room.add(tire);
+  }
   return room;
 };

@@ -16,59 +16,9 @@ window.FFH.DialoguePhase = class {
   }
 
   enter(params = {}) {
-    // 1. Hide City Explorer UI elements
-    const hud = document.getElementById('hud');
-    if (hud) hud.style.display = 'none';
-
-    this.targetNpcKey = params.isDelivery ? 'NPC_DELIVERY_CUSTOMER' : (params.npcKey || 'NPC_RITA');
-    const npcEntry = window.FFH.NPC_DATABASE ? window.FFH.NPC_DATABASE[this.targetNpcKey] : null;
-
-    // 2. Spawn NPC in the world relative to player position
-    const cityPhase = this.game.phases.CITY_EXPLORATION;
-    const playerPos = cityPhase.playerPos;
-    const playerHeading = cityPhase.playerHeading;
-
-    if (window.FFH.createNPCMesh) {
-      this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
-      
-      // Place NPC roughly 3.5 units in front of player
-      const npcDist = 3.5;
-      this.npcGroup.position.set(
-        playerPos.x + Math.sin(playerHeading) * npcDist,
-        playerPos.y,
-        playerPos.z + Math.cos(playerHeading) * npcDist
-      );
-      // NPC faces player
-      this.npcGroup.rotation.y = playerHeading + Math.PI;
-      this.game.scene.add(this.npcGroup);
-    }
-
-    // 3. Setup Cinematic Over-the-Shoulder (OTS) Camera Lerp
-    this.startCamPos.copy(this.game.cameras.cityCamera.position);
-    
-    // Default walk camera target is player pos (with slight pitch)
-    // We want the end camera to be over the player's right shoulder, looking at NPC
-    const offsetRight = new THREE.Vector3(-Math.cos(playerHeading), 0, Math.sin(playerHeading)).multiplyScalar(1.8);
-    const offsetBack = new THREE.Vector3(-Math.sin(playerHeading), 0, -Math.cos(playerHeading)).multiplyScalar(2.2);
-    
-    this.endCamPos.copy(playerPos).add(offsetRight).add(offsetBack);
-    this.endCamPos.y += 2.0; // Camera height slightly above shoulder
-
-    // The target we want to look at is the NPC's face
-    this.endCamTarget.copy(this.npcGroup ? this.npcGroup.position : playerPos);
-    this.endCamTarget.y += 1.8;
-
-    // We need a smooth transition
-    this.isTransitioning = true;
-    this.transitionTime = 0;
-
-    // 4. Trigger Character Greeting Voice
-    if (this.game.speech && npcEntry?.greetingAudio) {
-      this.game.speech.speakKey(npcEntry.greetingAudio);
-    }
-
-    // 5. Render Visual Dialogue UI (slightly delayed for cinematic effect)
-    setTimeout(() => {
+    // If already in DIALOGUE and just updating dialogue node/options, don't recreate room or restart camera
+    if (this.dioramaRoom && this.targetNpcKey === (params.isDelivery ? 'NPC_DELIVERY_CUSTOMER' : (params.npcKey || 'NPC_RITA'))) {
+      const npcEntry = window.FFH.NPC_DATABASE ? window.FFH.NPC_DATABASE[this.targetNpcKey] : null;
       if (npcEntry && npcEntry.dialogue) {
         if (params.custom && npcEntry.currentResponse) {
           this.dialogueData = npcEntry.currentResponse;
@@ -81,26 +31,109 @@ window.FFH.DialoguePhase = class {
           }
         });
       }
-    }, 600);
+      return;
+    }
+
+    // Clean up any existing room if switching NPC
+    if (this.dioramaRoom) {
+      this.game.scene.remove(this.dioramaRoom);
+      this.dioramaRoom = null;
+    }
+    if (this.npcGroup) {
+      this.game.scene.remove(this.npcGroup);
+      this.npcGroup = null;
+    }
+
+    // 1. Hide City Explorer UI and scene elements
+    const hud = document.getElementById('hud');
+    if (hud) hud.style.display = 'none';
+
+    if (this.game.phases.CITY_EXPLORATION.worldGroup) {
+      this.game.phases.CITY_EXPLORATION.worldGroup.visible = false;
+    }
+    if (this.game.phases.CITY_EXPLORATION.courier) {
+      this.game.phases.CITY_EXPLORATION.courier.visible = false;
+    }
+
+    this.targetNpcKey = params.isDelivery ? 'NPC_DELIVERY_CUSTOMER' : (params.npcKey || 'NPC_RITA');
+    const npcEntry = window.FFH.NPC_DATABASE ? window.FFH.NPC_DATABASE[this.targetNpcKey] : null;
+
+    // Build the respective diorama room depending on the building
+    const bType = npcEntry ? npcEntry.building : 'B_HOSTEL';
+    if (bType === 'B_UNI' && window.FFH.createUniRoom) {
+      this.dioramaRoom = window.FFH.createUniRoom();
+    } else if (bType === 'B_DARKSTORE' && window.FFH.createDarkStoreRoom) {
+      this.dioramaRoom = window.FFH.createDarkStoreRoom();
+    } else if (bType === 'B_PIZZA' && window.FFH.createPizzeriaRoom) {
+      this.dioramaRoom = window.FFH.createPizzeriaRoom();
+    } else if (bType === 'B_BAKERY' && window.FFH.createBakeryRoom) {
+      this.dioramaRoom = window.FFH.createBakeryRoom();
+    } else if (bType === 'B_WG' && window.FFH.createWGRoom) {
+      this.dioramaRoom = window.FFH.createWGRoom();
+    } else if (bType === 'B_RATHAUS' && window.FFH.createRathausRoom) {
+      this.dioramaRoom = window.FFH.createRathausRoom();
+    } else if (bType === 'B_BANK' && window.FFH.createBankRoom) {
+      this.dioramaRoom = window.FFH.createBankRoom();
+    } else if (bType === 'B_AUSLAENDER' && window.FFH.createAuslaenderRoom) {
+      this.dioramaRoom = window.FFH.createAuslaenderRoom();
+    } else if (params.isDelivery && window.FFH.createDoorwayRoom) {
+      this.dioramaRoom = window.FFH.createDoorwayRoom();
+    } else {
+      this.dioramaRoom = window.FFH.createLevel0Room ? window.FFH.createLevel0Room(this.game.state) : window.FFH.createRoomShell(0xF29688, 0x76C8B8);
+    }
+    this.dioramaRoom.position.set(0, 0, 0);
+    this.game.scene.add(this.dioramaRoom);
+
+    // 2. Spawn NPC in the center of the diorama room
+    if (window.FFH.createNPCMesh) {
+      this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
+      this.npcGroup.position.set(0, 0.05, 0);
+      // Face towards camera angle
+      this.npcGroup.rotation.y = Math.PI / 4;
+      this.game.scene.add(this.npcGroup);
+    }
+
+    // 3. Setup Cinematic Isometric View focused on the upper viewport of the diorama room
+    const cam = this.game.cameras.mainCamera;
+    
+    // Target (0, -0.25, 0) and zoom 2.35 frames the room in the upper half of screen
+    this.endCamTarget = new THREE.Vector3(0, -0.25, 0);
+    const zoomOffset = new THREE.Vector3(10.0, 13.5, 10.0);
+    this.endCamPos = new THREE.Vector3().copy(this.endCamTarget).add(zoomOffset);
+    this.endCamZoom = 2.35;
+
+    // Direct snap: No jarring slow pan from the distant city coordinate to (0,0,0)
+    cam.position.copy(this.endCamPos);
+    cam.lookAt(this.endCamTarget);
+    if (cam.isOrthographicCamera) {
+      cam.zoom = this.endCamZoom;
+      cam.updateProjectionMatrix();
+    }
+    this.isTransitioning = false;
+
+    // 4. Render Visual Dialogue UI & speak full German sentence
+    if (npcEntry && npcEntry.dialogue) {
+      if (params.custom && npcEntry.currentResponse) {
+        this.dialogueData = npcEntry.currentResponse;
+      } else {
+        this.dialogueData = npcEntry.dialogue(this.game.state);
+      }
+      this.game.ui.showDialogueBox(npcEntry, this.dialogueData, (option) => {
+        if (option && option.action) {
+          option.action(this.game);
+        }
+      });
+    }
   }
 
   update(delta) {
-    // Smooth camera transition
-    if (this.isTransitioning) {
-      this.transitionTime += delta * 2.0; // speed
-      if (this.transitionTime >= 1.0) {
-        this.transitionTime = 1.0;
-        this.isTransitioning = false;
-      }
-      
-      const t = this.easeInOutQuad(this.transitionTime);
-      this.game.cameras.cityCamera.position.lerpVectors(this.startCamPos, this.endCamPos, t);
-      
-      // Interpolate look target
-      const startTarget = this.game.phases.CITY_EXPLORATION.playerPos.clone().setY(1.0);
-      const currentTarget = new THREE.Vector3().lerpVectors(startTarget, this.endCamTarget, t);
-      this.game.cameras.cityCamera.lookAt(currentTarget);
+    const cam = this.game.cameras.mainCamera;
+    if (cam.isOrthographicCamera && cam.zoom !== this.endCamZoom) {
+      cam.zoom = this.endCamZoom;
+      cam.updateProjectionMatrix();
     }
+    cam.position.copy(this.endCamPos);
+    cam.lookAt(this.endCamTarget);
 
     // Gentle idle breathing for NPC
     if (this.npcGroup) {
@@ -116,9 +149,26 @@ window.FFH.DialoguePhase = class {
 
   exit() {
     this.game.ui.clear();
+    const cam = this.game.cameras.mainCamera;
+    if (cam && cam.isOrthographicCamera) {
+      cam.zoom = 1.0;
+      cam.updateProjectionMatrix();
+    }
     if (this.npcGroup) {
       this.game.scene.remove(this.npcGroup);
       this.npcGroup = null;
+    }
+    if (this.dioramaRoom) {
+      this.game.scene.remove(this.dioramaRoom);
+      this.dioramaRoom = null;
+    }
+
+    // Restore the city exploration world meshes visibility
+    if (this.game.phases.CITY_EXPLORATION.worldGroup) {
+      this.game.phases.CITY_EXPLORATION.worldGroup.visible = true;
+    }
+    if (this.game.phases.CITY_EXPLORATION.courier) {
+      this.game.phases.CITY_EXPLORATION.courier.visible = true;
     }
   }
 };

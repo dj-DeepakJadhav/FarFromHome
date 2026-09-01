@@ -9,82 +9,208 @@ window.FFH.ShopPhase = class {
     this.game = game;
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
-    this.onTap = this.onTap.bind(this);
   }
 
   enter() {
-    while (this.game.scene.children.length > 2) {
-      const obj = this.game.scene.children[this.game.scene.children.length - 1];
-      this.game.scene.remove(obj);
+    this.isTransitioning = true;
+    this.transitionTime = 0;
+    
+    if (this.game.phases.CITY_EXPLORATION.worldGroup) {
+      this.game.phases.CITY_EXPLORATION.worldGroup.visible = false;
+    }
+    if (this.game.phases.CITY_EXPLORATION.courier) {
+      this.game.phases.CITY_EXPLORATION.courier.visible = false;
     }
 
-    this.game.currentCamera = this.game.cameras.warehouseCamera;
-    this.game.currentCamera.position.set(2.8, 2.8, 3.5);
-    this.game.currentCamera.lookAt(0, 0.4, 0);
-
-    this.game.setupTitleDiorama();
-    
-    // Show top HUD and exit button only
-    this.game.ui.showRoomHubUI();
-    this.game.ui.spawnFloatingText("TAP OBJECTS TO UPGRADE", window.innerWidth/2, window.innerHeight - 100, '#ECC238');
-
-    window.addEventListener('pointerdown', this.onTap);
-  }
-
-  onTap(e) {
-    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return; // Ignore UI clicks
-
-    const rect = this.game.renderer.domElement.getBoundingClientRect();
-    this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-    this.raycaster.setFromCamera(this.mouse, this.game.currentCamera);
-    
-    if (this.game.titleRoom) {
-      const intersects = this.raycaster.intersectObjects(this.game.titleRoom.children, true);
-      if (intersects.length > 0) {
-        let target = intersects[0].object;
-        while (target && !target.userData.upgradeId) {
-          target = target.parent;
-        }
-        if (target && target.userData.upgradeId) {
-          this.buyUpgrade(target.userData.upgradeId);
-        }
-      }
-    }
-  }
-
-  buyUpgrade(upgradeId) {
+    // Build the bike shop diorama room
     const state = this.game.state;
-    const upgrade = window.FFH.shopUpgrades.find(u => u.id === upgradeId);
-    if (!upgrade) return;
+    this.shopRoom = window.FFH.createBikeShopRoom ? window.FFH.createBikeShopRoom() : window.FFH.createRoomShell(0xF4A261, 0x264653);
+    this.shopRoom.position.set(0, 0, 0);
+    this.game.scene.add(this.shopRoom);
 
-    const affordable = state.wallet >= upgrade.cost;
-    const alreadyOwned = state.upgrades[upgradeId];
+    // Position camera on the Bike Shop diorama in upper half of viewport
+    const cam = this.game.cameras.mainCamera;
+    this.endCamTarget = new THREE.Vector3(0, -0.75, 0);
+    const zoomOffset = new THREE.Vector3(10.0, 13.5, 10.0);
+    this.endCamPos = new THREE.Vector3().copy(this.endCamTarget).add(zoomOffset);
+    this.endCamZoom = 2.15;
 
-    if (alreadyOwned) {
-      this.game.ui.spawnFloatingText("ALREADY OWNED", window.innerWidth/2, window.innerHeight/2, '#AAAAAA');
-      return;
+    cam.position.copy(this.endCamPos);
+    cam.lookAt(this.endCamTarget);
+    if (cam.isOrthographicCamera) {
+      cam.zoom = this.endCamZoom;
+      cam.updateProjectionMatrix();
     }
+    this.isTransitioning = false;
 
-    if (affordable) {
-      state.wallet = window.FFH.round2(state.wallet - upgrade.cost);
-      state.upgrades[upgradeId] = true;
-      this.game.sfx.playSfx('success');
-      this.game.ui.spawnFloatingText(`BOUGHT ${upgrade.nameEn}!`, window.innerWidth/2, window.innerHeight/2, '#2A9D8F');
+    // Render HTML Shop UI
+    this.game.ui.clear();
+    this.renderShopUI();
+  }
+
+  update(delta) {
+    const cam = this.game.cameras.mainCamera;
+    if (cam.isOrthographicCamera && cam.zoom !== this.endCamZoom) {
+      cam.zoom = this.endCamZoom;
+      cam.updateProjectionMatrix();
+    }
+    cam.position.copy(this.endCamPos);
+    cam.lookAt(this.endCamTarget);
+  }
+
+  renderShopUI() {
+    const existing = document.getElementById('shop-ui-overlay');
+    if (existing) existing.remove();
+
+    const box = document.createElement('div');
+    box.id = 'shop-ui-overlay';
+    box.style.cssText = `
+      position: absolute;
+      bottom: 16px;
+      left: 14px;
+      right: 14px;
+      max-height: 54vh;
+      background: #FFFFFF;
+      border-top: 3px solid #E76F51;
+      border-bottom: 3px solid #264653;
+      border-left: 2px solid #264653;
+      border-right: 2px solid #264653;
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+      pointer-events: auto;
+      animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 200;
+      overflow-y: auto;
+    `;
+
+    const state = this.game.state;
+    const goal = window.FFH.ECONOMY?.TUITION_GOAL || 250;
+
+    box.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #EEE; padding-bottom: 6px;">
+        <div>
+          <div style="font-size: 15px; font-weight: 900; color: #264653;">Hansa Rad Bike & Gear Shop</div>
+          <div style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">Equipment Upgrades</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 9px; color: #666; font-weight: 700; text-transform: uppercase;">Your Wallet</div>
+          <div style="font-size: 12px; font-weight: 900; color: #E76F51;">${window.FFH.round2(state.wallet)}€</div>
+        </div>
+      </div>
+      <div id="shop-items-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      <button id="btn-leave-shop" style="
+        width: 100%;
+        padding: 10px 14px;
+        border: none;
+        border-radius: 8px;
+        background: #F4A261;
+        color: #264653;
+        font-weight: 900;
+        font-size: 13px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 3px 0 #264653;
+        margin-top: 4px;
+      ">Leave Shop</button>
+    `;
+
+    const list = box.querySelector('#shop-items-list');
+    window.FFH.shopUpgrades.forEach(upg => {
+      const isOwned = state.upgrades[upg.id];
+      const isAffordable = state.wallet >= upg.cost;
+      const name = upg.nameEn || upg.name || upg.id;
+      const desc = upg.effectEn || upg.desc || '';
       
-      // Re-render the room diorama immediately with the new furnishings visible
-      this.game.setupTitleDiorama();
-      this.game.ui.showRoomHubUI(); // Update wallet text
-    } else {
-      this.game.sfx.playSfx('error');
-      this.game.ui.spawnFloatingText(`NEED ${upgrade.cost}€`, window.innerWidth/2, window.innerHeight/2, '#E63946');
-    }
+      const row = document.createElement('div');
+      row.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: ${isOwned ? '#E9ECEF' : '#F8F9FA'};
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 2px solid ${isOwned ? '#ADB5BD' : '#264653'};
+        gap: 8px;
+      `;
+
+      const info = document.createElement('div');
+      info.style.cssText = 'flex: 1; min-width: 0;';
+      info.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span style="font-size: 14px;">${upg.icon || '📦'}</span>
+          <span style="font-size: 12px; font-weight: 900; color: #264653;">${name}</span>
+        </div>
+        <div style="font-size: 10px; color: #666; margin-top: 2px; line-height: 1.25;">${desc}</div>
+      `;
+      
+      const btn = document.createElement('button');
+      btn.textContent = isOwned ? "OWNED" : `€${upg.cost.toFixed(2)}`;
+      btn.style.cssText = `
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-weight: 900;
+        font-size: 11px;
+        border: 2px solid #264653;
+        background: ${isOwned ? '#ADB5BD' : (isAffordable ? '#2EC4B6' : '#FF6B6B')};
+        color: ${isOwned ? '#495057' : '#FFFFFF'};
+        cursor: ${isOwned ? 'default' : 'pointer'};
+        box-shadow: 0 2px 0 #264653;
+        flex-shrink: 0;
+      `;
+
+      if (!isOwned) {
+        btn.onclick = () => {
+          if (isAffordable) {
+            state.wallet = window.FFH.round2(state.wallet - upg.cost);
+            state.upgrades[upg.id] = true;
+            this.game.sfx.playSfx('success');
+            this.renderShopUI();
+            this.game.ui.updatePersistentHUD(state);
+          } else {
+            this.game.sfx.playSfx('error');
+          }
+        };
+      }
+
+      row.appendChild(info);
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+
+    const leaveBtn = box.querySelector('#btn-leave-shop');
+    leaveBtn.onclick = () => {
+      this.game.transitionTo('CITY_EXPLORATION');
+    };
+
+    (document.getElementById('ui-container') || document.body).appendChild(box);
   }
 
   exit() {
-    window.removeEventListener('pointerdown', this.onTap);
+    const existing = document.getElementById('shop-ui-overlay');
+    if (existing) existing.remove();
     this.game.ui.clear();
-    this.game.clearTitleDiorama();
+    const cam = this.game.cameras.mainCamera;
+    if (cam && cam.isOrthographicCamera) {
+      cam.zoom = 1.0;
+      cam.updateProjectionMatrix();
+    }
+    if (this.shopRoom) {
+      this.game.scene.remove(this.shopRoom);
+      this.shopRoom = null;
+    }
+
+    // Restore the city exploration world meshes visibility
+    if (this.game.phases.CITY_EXPLORATION.worldGroup) {
+      this.game.phases.CITY_EXPLORATION.worldGroup.visible = true;
+    }
+    if (this.game.phases.CITY_EXPLORATION.courier) {
+      this.game.phases.CITY_EXPLORATION.courier.visible = true;
+    }
   }
 };

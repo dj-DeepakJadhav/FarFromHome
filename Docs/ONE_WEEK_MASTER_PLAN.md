@@ -6,24 +6,27 @@
 
 ---
 
-## 📅 Day-by-Day Master Roadmap
+## 📅 System Milestones & Bureaucratic Loop Implementation
 
 ```text
  ┌─────────────────────────────────────────────────────────────────────────────┐
- │ Day 1: First-Time User Experience (FTUE) & Onboarding Overhaul             │
- │ Day 2: Economic Engine Polish & Visible Upgrade Impact                      │
- │ Day 3: Vocabulary Expansion & Pedagogical Tuning                            │
- │ Day 4: City Narrative & Nicos Weg Quest Immersion                          │
- │ Day 5: Visual, Audio, & Mobile Responsiveness Polish                       │
- │ Day 6: Automated Simulation Balance & Rigorous Playtesting                 │
- │ Day 7: Final Release Candidate Build, Packaging & Submission Gate          │
+ │ Milestone 1: Bureaucracy State Machine & Paperwork Checklist HUD            │
+ │ Milestone 2: Character Cast & Nicos Weg Dialogue Scenarios                 │
+ │ Milestone 3: Dynamic City POIs (Hostel, Uni, Rathaus, Bank, Dark Store)     │
+ │ Milestone 4: Economic Balance & Gear Upgrades (E-Bike, Thermal Bag)         │
+ │ Milestone 5: Audio Warehouse Picking & 90-Second Pedagogical Ramp           │
+ │ Milestone 6: Final Verification, Packaging & Submission Gate                │
  └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 🚀 Day 1: First-Time User Experience (FTUE) & Onboarding Overhaul
-*Goal: Ensure any new player or judge understands the stakes, the goal, and the controls in the first 15 seconds.*
+### 🏛️ Milestone 1: Bureaucracy State Machine & Paperwork Checklist HUD
+*Goal: Give the player a clear, realistic student immigration goal: 28 days to complete the 5 essential bureaucratic milestones.*
+
+- [x] **Bureaucracy State Flags**: Codify `hasJob`, `hasApartment`, `isMatriculated`, `hasAnmeldung`, `isSperrkontoUnlocked`, `hasVisaExtended`.
+- [x] **Collapsible Paperwork Checklist**: Renders on HUD showing active documents and next immediate destination.
+- [x] **28-Day Entry Visa Countdown**: Replaces arbitrary day limits with a meaningful immigration countdown.
 
 - [ ] **Prominent Goal HUD**: Add persistent top banner: `🎓 Tuition Goal: €20 / €250 | ⚠️ Strikes: 0/3`.
 - [ ] **First-Shift Spatial Tutorial**:

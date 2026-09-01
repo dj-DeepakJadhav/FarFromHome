@@ -94,6 +94,8 @@ window.FFH.finishShift = function(game) {
     game.transitionTo('LOSE');
   } else if (state.wallet >= window.FFH.ECONOMY.TUITION_GOAL) {
     game.transitionTo('WIN');
+  } else if (state.currentShift >= 7) { // 7 Days Max
+    game.transitionTo('LOSE');
   } else {
     // Advance to the next shift immediately so the Shop/Hub sees the correct shift
     state.currentShift++;
@@ -111,21 +113,55 @@ window.FFH.createRunState = function () {
   return {
     wallet: window.FFH.ECONOMY.STARTING_WALLET,
     currentShift: 1,
-    strikes: 0,
+    // Story Quest and Progression State
     questStep: 0,
+    activeQuests: ['main_visa_survival'],
+    completedQuests: [],
+    storyFlags: {
+      chosePath: null, // 'academic', 'hustler', 'diplomat'
+      hasBakeryCroissant: false,
+      bribedLokker: false,
+      separatedTrashCorrectly: false,
+      stosslueftenCount: 0,
+      mathiasPizzaOrderCount: 0,
+      heardPizzeriaGossip: false,
+      helpedNicoDorm: false,
+      askedBeamtendeutsch: false,
+      confrontedMathias: false,
+      knowsNinaShortcut: false,
+      vogelAppointmentBooked: false,
+      landlordConfirmationSigned: false,
+      paidSemesterFee: false
+    },
+    inventory: [], // Items collected from NPCs (e.g. 'fresh_croissant', 'landlord_paper', 'anmeldung_stamp')
+    hasJob: false,
+    isMatriculated: false,
+    hasApartment: false,
+    hasAnmeldung: false,
+    isSperrkontoUnlocked: false,
+    hasVisaExtended: false,
+
     npcRelationships: {
       NPC_RITA: 50,
       NPC_MATHIAS: 50,
       NPC_MARTHA: 50,
       NPC_NINA: 50,
-      NPC_LOKKER: 50
+      NPC_LOKKER: 50,
+      NPC_NICO: 50,
+      NPC_VOGEL: 50,
+      NPC_WEBER: 50,
+      NPC_LINDEMANN: 50
     },
     npcMemory: {
       NPC_RITA: [],
       NPC_MATHIAS: [],
       NPC_MARTHA: [],
       NPC_NINA: [],
-      NPC_LOKKER: []
+      NPC_LOKKER: [],
+      NPC_NICO: [],
+      NPC_VOGEL: [],
+      NPC_WEBER: [],
+      NPC_LINDEMANN: []
     },
 
     // Per-shift, reset by resetShiftState() at the top of every PICK phase

@@ -48,14 +48,17 @@ BOOT ──► CITY_EXPLORATION ──► PICK ──► CITY_EXPLORATION (Deliv
 
 ---
 
-## 2. Character Roster & Behavioral Roles
+## 2. Character Roster & Behavioral Roles (*Nicos Weg* Inspired)
 
-### Core Diorama Cast
-1. **Rita Schneider (University Registrar - `B_UNI`)**: Tracks €250 matriculation fee; issues official Student ID upon victory.
-2. **Mathias Rossi (Pizzeria Owner - `B_PIZZA`)**: Immigrant restaurateur who orders fresh cheeses and rewards fast couriers with food tips.
-3. **Martha Becker (Master Baker - `B_BAKERY`)**: Teaches traditional German bakery terms and rewards polite formal etiquette (*Sie*).
-4. **Nina Kowalski (Warehouse Dispatcher - `B_DARKSTORE`)**: Assigns shifts, monitors quota accuracy, tracks strikes, and unlocks shop gear upgrades.
-5. **Herr Lokker (Sublet Landlord - `B_SUBLET`)**: Enforces house rules, quiet hours (*Ruhezeit*), and student residence registration.
+### Core Representative Cast & Story Representatives
+1. **Rita Schneider (University Registrar - `B_UNI`)**: Bureaucratic registrar; demands proof of €250 *Semesterbeitrag* payment to issue the Enrollment Certificate (*Immatrikulationsbescheinigung*).
+2. **Nina Lindemann (Warehouse Dispatcher - `B_DARKSTORE`)**: Pragmatic Kruma Express manager; assigns shifts, monitors packing quotas, tracks strikes, and unlocks shop gear upgrades.
+3. **Mathias Rossi (Mechanic & Pizzeria Boss - `B_PIZZA` / `B_BIKESHOP`)**: Immigrant restaurateur & bike mechanic who sells e-bike gear upgrades and orders kitchen ingredients.
+4. **Martha Becker / Oma Martha (Master Baker - `B_BAKERY`)**: Teaches traditional German noun gender patterns (*-ung = die*), rewards polite formal etiquette (*Sie*), and shares local wisdom.
+5. **Hans Lokker (Apartment Landlord & Caretaker - `B_SUBLET`)**: Enforces house rules, quiet hours (*Ruhezeit*), waste sorting (*Mülltrennung*), and collects the €300 *Kaution* for the permanent student lease.
+6. **Herr Vogel (Rathaus Bürgeramt Official - `B_RATHAUS`)**: Formal town hall bureaucrat; tests formal *Beamtendeutsch* and stamps your *Meldebescheinigung* (Address Registration).
+7. **Frau Weber (Sparkasse Bank Officer - `B_BANK`)**: Methodical bank officer; verifies enrollment and *Anmeldung* to unlock your blocked student account (*Sperrkonto*).
+8. **Dr. Lindemann (Ausländerbehörde Immigration Case Worker - `B_AUSLAENDER`)**: The Final Milestone; verifies the 4-document dossier and stamps your permanent residence permit (*Aufenthaltstitel*).
 
 ### Residential Customers
 - **Frau Marina, Emily, Herr Reinhard, Frau Schumaker, Otto, & Zimmerman**: Doorway delivery encounters testing conversational choices (*Du* vs. *Sie*, tipping etiquette).
@@ -64,16 +67,39 @@ BOOT ──► CITY_EXPLORATION ──► PICK ──► CITY_EXPLORATION (Deliv
 
 ## 3. Micro-AI & German Morphology Engine (`src/core/grammarEngine.js`)
 
-A 100% offline, lightweight symbolic morphology system providing pedagogically accurate German orders:
-- **Spatial Shelf Filter**:
-  - 🔵 **Masculine (`der` ▲ - Bottom Shelf):** *der Apfel*, *der Käse*, *der Kaffee*, *der Kuchen*
-  - 🔴 **Feminine (`die` ● - Middle Shelf):** *die Milch*, *die Banane*, *die Karotte*, *die Pizza*
-  - 🟣 **Neuter (`das` ■ - Top Shelf):** *das Brot*, *das Wasser*, *das Ei*, *das Brötchen*
-- **Slot Grammar**: Dynamically constructs valid phrases (*"Zwei Äpfel und eine Milch, bitte"*, *"Ich brauche frischen Käse"*).
-- **Audio-First Reveal Delay**:
-  - Shift 1 (TEACH): 0.0s delay (Immediate audio + icon).
-  - Shift 2 (ANTICIPATE): 1.5s delay (Audio first; 2.0× Early Bonus for spatial guess).
-  - Shift 3+ (TEST): 2.5s delay (Pure audio recognition).
+A 100% offline, lightweight symbolic morphology system grounded in standard beginner grammar (*Basic German: A Grammar and Workbook* by Schenke/Seago & Goethe/telc A1):
+
+### 3.1 Core A1 Grammar Rules Codified in Engine
+1. **Gender & Articles (Units 1–3)**:
+   - Definite (*der, die, das*) & Indefinite (*ein, eine, ein*).
+   - Negative article (*kein, keine, kein*).
+2. **Case System — Nominativ vs. Akkusativ vs. Dativ (Units 4, 19, 21)**:
+   - **Nominative (Subject)**: *"Das Zimmer ist groß."*
+   - **Accusative (Direct Object / Food / Packing)**: *"Ich brauche **den** Apfel / **einen** Kaffee / **die** Milch."* (Masculine *der $\rightarrow$ den / einen* change).
+   - **Dative (Locations, Persons, Prepositions *mit, bei, nach, zu, aus*)**: *"Ich fahre mit **dem** Fahrrad zum **Rathaus**."*, *"Das Zimmer gefällt **mir**."*
+3. **Verb Conjugation & Word Order (Units 5–8)**:
+   - Regular (*kommen, wohnen, arbeiten, lernen*) & Irregular (*sein, haben, fahren, sprechen*).
+   - **V2 Rule (Verb in Second Position)**: *"Heute **fahre** ich zur Bank."*
+   - **Yes/No Questions (Verb First)**: *"**Haben** Sie das Formular?"*
+   - **W-Questions (Question Word + Verb)**: *"Wo **ist** die Universität?"*, *"Wie viel **kostet** die Miete?"*
+4. **Modal Verbs (Units 11–13)**:
+   - *müssen* (must): *"Ich muss den Semesterbeitrag bezahlen."*
+   - *können* (can): *"Können Sie mir helfen?"*
+   - *möchten* (would like): *"Ich möchte den Mietvertrag unterschreiben."*
+   - *dürfen* (allowed to): *"Hier darf man nicht rauchen."*
+5. **Separable Verbs (Unit 9)**:
+   - *ausfüllen* $\rightarrow$ *"Füllen Sie das Formular **aus**."*
+   - *unterschreiben* $\rightarrow$ *"Hier müssen Sie **unterschreiben**."*
+   - *anmelden* $\rightarrow$ *"Ich möchte mich **anmelden**."*
+   - *freischalten* $\rightarrow$ *"Wir schalten das Sperrkonto **frei**."*
+6. **Formal vs. Informal Register (Unit 2)**:
+   - Polite / Official (*Sie / Ihnen / Ihr*): Used for Rita, Herr Vogel, Dr. Lindemann, Hans Lokker, and customers for +tips.
+   - Informal / Student (*Du / Dir / Dein*): Used with Nico, Priya, and warehouse colleagues.
+
+### 3.2 The Spatial Gender Shelf System
+- 🔵 **Masculine (`der` ▲ - Bottom Shelf):** *der Apfel*, *der Käse*, *der Kaffee*, *der Kuchen*, *der Schinken*, *der Wein*
+- 🔴 **Feminine (`die` ● - Middle Shelf):** *die Milch*, *die Banane*, *die Karotte*, *die Pizza*, *die Butter*, *die Dose*
+- 🟣 **Neuter (`das` ■ - Top Shelf):** *das Brot*, *das Wasser*, *das Ei*, *das Brötchen*, *das Bier*, *das Fleisch*
 
 ---
 

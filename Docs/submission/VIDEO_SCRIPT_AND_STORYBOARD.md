@@ -8,30 +8,29 @@
 
 ## 🎬 Beat-by-Beat Timeline
 
-### Beat 1: The Hook & Student Dilemma (0:00 – 0:25)
-- **Visual**: Camera starts in the cozy 3D Student Sublet room diorama. UI shows: `Wallet: €20 | Tuition Bill: €250`.
-- **Narration**: *"You've just arrived in Germany as an international student with €20 in your pocket and an urgent €250 university tuition deadline. To pay it off, you take up courier shifts for Kruma Express in Lübeck."*
-- **Action**: Tap "START SHIFT" ➔ Smooth camera transition into the dark store warehouse.
+### Beat 1: The Student Dilemma & Bureaucracy Checklist (0:00 – 0:25)
+- **Visual**: Camera opens in the cozy 3D Altstadt isometric view outside the Temporary Hostel. UI shows the Paperwork Checklist: `Visa: 28 Days | Wallet: €20 | Semesterbeitrag: €250 | Anmeldung: ❌`.
+- **Narration**: *"You have just arrived in Lübeck on a 1-month student visa with €20 in your pocket. To stay in Germany, you have 28 days to conquer the bureaucracy gauntlet: pay your tuition, find an apartment, do your Anmeldung, and extend your visa. To fund it all, you work as a courier for Kruma Express."*
+- **Action**: Tap Kruma Dispatch -> Clock in for Shift 1.
 
 ### Beat 2: The Signature Mechanic — German Spatial Filter (0:25 – 1:00)
-- **Visual**: Close-up of the 3-tier warehouse shelf.
-- **Narration**: *"Here's our signature mechanic: German grammatical gender is a spatial search filter. Blue shelf is DER. Pink shelf is DIE. Purple shelf is DAS."*
-- **Action (Audio ON)**: Spoken voice calls *"die Milch!"*. Show player immediately tapping the middle pink shelf. Then *"der Apfel!"* (bottom blue shelf), *"das Brot!"* (top purple shelf).
+- **Visual**: Close-up of the 3-tier warehouse shelf in the city.
+- **Narration**: *"Here is our signature mechanic: German grammatical gender is a spatial search filter. Blue shelf is DER. Pink shelf is DIE. Purple shelf is DAS."*
+- **Action (Audio ON)**: Spoken voice calls *"die Milch!"*. Player immediately taps the middle pink shelf. Then *"der Apfel!"* (bottom blue shelf), *"das Brot!"* (top purple shelf).
 - **Callout Banner**: `3x FASTER SEARCH SPEED | 2.0x EARLY PICK BONUS`.
 
 ### Beat 3: The City Delivery Ride & Doorway Etiquette (1:00 – 1:30)
-- **Visual**: Seamless cut back to the 3D isometric city diorama. The courier rides their bicycle with the delivery bag on their back toward a glowing destination pin.
-- **Narration**: *"After packing, you cycle through the charming cobblestone streets of Lübeck, racing against food freshness to reach your customer."*
-- **Action**: Courier paths smoothly to Altbau Townhouse #4, triggering the front-facing doorway diorama.
-- **Doorway Interaction**: Player selects voiced polite greeting (*"Guten Tag, Herr Müller! Hier ist Ihre Lieferung."*) ➔ Customer smiles, audio plays, and awards a generous €4.50 tip!
+- **Visual**: Courier cycles through cobblestone streets with the packed grocery bag on their bike, heading toward a glowing destination pin.
+- **Narration**: *"After packing, you cycle through the charming streets of Lübeck, delivering groceries to local residents while practicing German etiquette."*
+- **Action**: Courier stops at Oma Martha's bakery doorway -> Selects polite formal *Sie* greeting (*"Guten Tag, Frau Becker! Hier ist Ihre Lieferung."*) -> Oma Martha smiles and awards a generous €5.00 tip!
 
 ### Beat 4: The Economic Engine & Shop Upgrades (1:30 – 2:00)
-- **Visual**: Shift summary receipt prints with detailed wage, streak bonus, and tips.
-- **Narration**: *"In the bike shop, every euro you earn buys tangible gear upgrades that transform future shifts."*
-- **Action**: Player purchases the **E-Bike** and **Shelf Labels**. The bike visibly transforms, and shelf rails gain permanent German article badges.
+- **Visual**: Shift summary receipt prints with base pay, streak multiplier, and customer tips.
+- **Narration**: *"In the bike shop, every euro you earn buys tangible gear upgrades that accelerate future shifts."*
+- **Action**: Player purchases the **E-Bike** and **Thermal Bag**. The bike visibly transforms, and delivery speed noticeably increases.
 
-### Beat 5: The Win Condition & 100% Offline Airgap Proof (2:00 – 2:30)
-- **Visual**: Quick montage of Shift 3 with rapid audio picking ➔ Wallet hits €250! 
-- **Victory**: Player visits Registrar Rita at the University diorama to receive their official Student ID!
+### Beat 5: Bureaucracy Victory & 100% Offline Airgap Proof (2:00 – 2:30)
+- **Visual**: Player deposits €250 at the University with Registrar Rita, signs their apartment lease with Hans Lokker, gets stamped at the Rathaus with Herr Vogel, and unlocks their Sperrkonto at Sparkasse.
+- **Victory**: Final scene at the Ausländerbehörde: Dr. Lindemann stamps the multi-year Aufenthaltstitel (Residence Permit)!
 - **Proof**: DevTools shown in Offline / Airplane mode with `far-from-home-release.zip` under 2 MB.
-- **Narration**: *"Far From Home: Kruma Express. A complete narrative management simulation built for the Meta Horizon Creator Competition."*
+- **Narration**: *"Far From Home: Kruma Express. A complete student life and management simulation built for the Meta Horizon Creator Competition."*

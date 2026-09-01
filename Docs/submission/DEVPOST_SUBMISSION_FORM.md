@@ -8,22 +8,22 @@
 ---
 
 ## 1. Elevator Pitch (Short Description)
-*An atmospheric, 100% offline narrative management simulation where an international student in Lübeck pays off a €250 tuition deadline by working courier shifts—discovering that German grammar (`der/die/das`) is the spatial search filter that doubles picking speed and profits.*
+*An atmospheric narrative management simulation where an international student in Lübeck conquers the 28-day German Bureaucracy Gauntlet (Jobs, Anmeldung, Sperrkonto, Visa) by working courier shifts—discovering that German grammar (`der/die/das`) is the spatial search filter that doubles picking speed and profits.*
 
 ---
 
 ## 2. Inspiration
-Moving to a new country is a whirlwind of bureaucracy, language barriers, and financial pressure. We wanted to capture the authentic emotional journey of an international student arriving in Germany (inspired by DW's *Nicos Weg*) combined with the cozy character interactions of *Coffee Talk* and the tactile courier deliveries of *Messenger of Abeto*. 
+Moving to a new country is a whirlwind of bureaucracy, language barriers, and financial pressure. We wanted to capture the authentic emotional journey of an international student arriving in Germany (inspired by DW's *Nicos Weg*) combined with the cozy character interactions of *Coffee Talk* and the tactile courier deliveries of *Messenger by Abeto*. 
 
-Most educational games fail because they feel like tests. We wanted to make German language acquisition the player's greatest economic superpower.
+Instead of boring grammar drills, we turned German bureaucratic milestones (*Anmeldung*, *Sperrkonto*, *Kaution*, *Ausländerbehörde*) into a compelling quest progression and made language acquisition the player's greatest economic superpower.
 
 ---
 
 ## 3. What It Does & Core Gameplay
-1. **Student Life Hub**: Manage your funds (€20 starting wallet) and work toward the €250 university matriculation fee.
-2. **Lübeck 3D Island Exploration**: Discover stepped-gable Altbau landmarks, chat with university registrars, pizzeria owners, and bakers directly on the continuous isometric map.
+1. **The Bureaucracy Checklist**: Manage your 28-day entry visa countdown as you check off the 5 essential milestones: Job, Apartment Kaution (€300), University Matriculation (€250), Rathaus *Anmeldung*, and Sparkasse *Sperrkonto*.
+2. **Lübeck 3D Island Exploration**: Explore stepped-gable Altbau landmarks, chat with university registrars, town hall bureaucrats, bankers, and bakers in a seamless fixed Bird's-Eye isometric diorama.
 3. **Audio Warehouse Picking**: Orders are called out in spoken German (*"die Milch!"*, *"der Apfel!"*). Shelves are partitioned into three color-coded gender tiers (Bottom Blue = *der* ▲, Middle Pink = *die* ●, Top Purple = *das* ■), collapsing search time by 66%.
-4. **In-City Courier Navigation**: Ride your bicycle across cobblestones with the packed order, balancing travel time against cargo freshness to reach the customer's house pin.
+4. **In-City Courier Navigation**: Ride your bicycle across cobblestones with the packed order, balancing travel time against cargo freshness to reach customer pins.
 5. **Doorstep Cultural Etiquette**: Engage in authentic, voiced German dialogue choices (*Du* vs. *Sie*, quiet hours) for customer tip bonuses.
 6. **Bike Shop Management Engine**: Reinvest earnings into visible E-Bikes, Thermal Bags, Shelf Labels, and Vocab Notebooks to optimize future shifts.
 

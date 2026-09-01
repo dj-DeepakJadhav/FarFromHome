@@ -2,26 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Far From Home: Kruma Express (Dev)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Far From Home: Kruma Express</title>
   <link rel="icon" href="data:,">
   <style>
-    body {
+    :root {
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --color-primary: #E76F51;
+      --color-primary-hover: #D65A3C;
+      --color-dark: #264653;
+      --color-dark-bg: rgba(38, 70, 83, 0.96);
+      --color-gold: #F4A261;
+      --color-accent-teal: #2A9D8F;
+      --color-light-bg: #FFFFFF;
+      --color-tag-bg: #FFE8D6;
+      --color-tag-text: #E76F51;
+      --color-border: #264653;
+      --color-subtle-border: rgba(255, 255, 255, 0.18);
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    html, body {
       margin: 0;
       padding: 0;
-      background: #111;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      background: #182C33;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
       overflow: hidden;
+      font-family: var(--font-family);
     }
     #game-container {
       position: relative;
       width: 390px;
       height: 844px;
+      max-width: 100vw;
+      max-height: 100dvh;
       background: #5DB7AD;
       overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     }
     #canvas-container {
       position: absolute;
@@ -29,6 +55,13 @@
       left: 0;
       width: 100%;
       height: 100%;
+      touch-action: none;
+    }
+    #canvas-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+      touch-action: none;
     }
     #ui-container {
       position: absolute;
@@ -39,7 +72,7 @@
       pointer-events: none;
     }
     /* Enable pointer events on active interactive items inside HUD */
-    #ui-container button, #ui-container input {
+    #ui-container button, #ui-container input, #ui-container a {
       pointer-events: auto;
     }
   </style>

@@ -25,6 +25,14 @@ window.FFH.PickPhase = class {
     // Every per-shift meter resets here.
     window.FFH.resetShiftState(state);
 
+    // Hide the city exploration world meshes entirely during warehouse picking
+    if (this.game.phases.CITY_EXPLORATION.worldGroup) {
+      this.game.phases.CITY_EXPLORATION.worldGroup.visible = false;
+    }
+    if (this.game.phases.CITY_EXPLORATION.courier) {
+      this.game.phases.CITY_EXPLORATION.courier.visible = false;
+    }
+
     this.shelvedMeshes = [];
     this.tagRails = [];
     this.activePicksCount = 0;
@@ -32,20 +40,26 @@ window.FFH.PickPhase = class {
     this.timeRemaining = this.shift.pickTimeLimit || 25;
     this.pickDuration = this.timeRemaining;
 
-    // Clear previous phase meshes, keeping lights
-    while (this.game.scene.children.length > 2) {
-      const obj = this.game.scene.children[this.game.scene.children.length - 1];
-      this.game.scene.remove(obj);
-    }
-
     state.activeOrder = this.buildOrder(this.shift);
+    
+    // Position room and shelves at origin (0, 0, 0)
+    this.shelfWorldPos = new THREE.Vector3(0, 0.4, 0);
+    
+    // Spawn warehouse diorama room shell
+    this.warehouseRoom = window.FFH.createWarehouseRoom ? window.FFH.createWarehouseRoom() : window.FFH.createRoomShell(0x8ECAE6, 0x489FB5);
+    this.warehouseRoom.position.set(0, 0, 0);
+    this.game.scene.add(this.warehouseRoom);
+
+    // Build picking shelves
     this.buildShelf(this.shift, state.activeOrder);
 
     // Paper bag the picked items drop into
     const bagGeo = new THREE.BoxGeometry(0.8, 1.0, 0.6);
     const bagMat = window.FFH.createCelMaterial(0xD2B48C);
     this.bagMesh = new THREE.Mesh(bagGeo, bagMat);
-    this.bagMesh.position.set(0, 0.1, 2.0);
+    
+    // Position bag near the shelf inside the room
+    this.bagMesh.position.set(1.0, 0.1, 1.0);
     this.game.scene.add(this.bagMesh);
 
     // Audio-Leads-Manifest: Setup reveal timing and speak first item
@@ -65,19 +79,61 @@ window.FFH.PickPhase = class {
     this.game.ui.showWarehouseManifest();
     window.addEventListener('pointerdown', this.onTap);
 
+    if (this.shift && this.shift.briefing) {
+      setTimeout(() => {
+        this.game.ui.showTutorialBanner(`📦 ${this.shift.name}: ${this.shift.briefing}`, '#3A86FF', 6000);
+      }, 400);
+    }
+
     if (state.currentShift === 1) {
       setTimeout(() => {
         this.game.ui.showTutorialBanner("Listen closely! Pick items by their gender color: Der = Blue, Die = Pink, Das = Purple", 8000);
-      }, 1000);
+      }, 6500);
     } else if (state.currentShift === 2 && !state.hasSeenShift2Tutorial) {
       state.hasSeenShift2Tutorial = true;
       setTimeout(() => {
         this.game.ui.showTutorialBanner("The item icon is hidden for 1.5s. Guess early based on the audio for a 2.0x early pick bonus!", 8000);
-      }, 1000);
+      }, 6500);
     }
+    // Setup camera target for the shelf (zooming in close to the 3-tier shelves at origin)
+    const cam = this.game.cameras.mainCamera;
+    this.startCamPos = new THREE.Vector3().copy(cam.position);
+    this.startCamZoom = cam.zoom || 1.0;
+    this.endCamTarget = new THREE.Vector3(0, 1.2, 0);
+    // Offset matching isometric camera angle (down and facing front of shelf)
+    this.endCamPos = this.endCamTarget.clone().add(new THREE.Vector3(10.0, 13.5, 10.0)); 
+    this.endCamZoom = 2.4;
+    
+    this.isTransitioning = true;
+    this.transitionTime = 0;
   }
 
   update(delta) {
+    const cam = this.game.cameras.mainCamera;
+    // Camera transition
+    if (this.isTransitioning) {
+      this.transitionTime += delta * 2.5;
+      if (this.transitionTime >= 1.0) {
+        this.transitionTime = 1.0;
+        this.isTransitioning = false;
+      }
+      const t = this.transitionTime < 0.5 ? 2 * this.transitionTime * this.transitionTime : -1 + (4 - 2 * this.transitionTime) * this.transitionTime;
+      cam.position.lerpVectors(this.startCamPos, this.endCamPos, t);
+      if (cam.isOrthographicCamera) {
+        cam.zoom = THREE.MathUtils.lerp(this.startCamZoom, this.endCamZoom, t);
+        cam.updateProjectionMatrix();
+      }
+      
+      cam.lookAt(this.endCamTarget);
+    } else {
+      if (cam.isOrthographicCamera && cam.zoom !== this.endCamZoom) {
+        cam.zoom = this.endCamZoom;
+        cam.updateProjectionMatrix();
+      }
+      cam.position.copy(this.endCamPos);
+      cam.lookAt(this.endCamTarget);
+    }
+
     if (this.timeRemaining > 0) {
       this.timeRemaining = Math.max(0, this.timeRemaining - delta);
       
@@ -239,8 +295,14 @@ window.FFH.PickPhase = class {
       
       this.shelfGroup.add(plank, tagRail);
       this.tagRails.push(tagRail);
-
     }
+
+    if (this.shelfWorldPos) {
+      this.shelfGroup.position.copy(this.shelfWorldPos);
+    }
+    
+    // Rotate shelf so its open front (+Z in local space) faces the camera (+X, +Z in world space)
+    this.shelfGroup.rotation.y = Math.PI / 4; 
 
     this.game.scene.add(this.shelfGroup);
 
@@ -275,7 +337,7 @@ window.FFH.PickPhase = class {
           itemMesh.add(sprite);
         }
 
-        this.game.scene.add(itemMesh);
+        this.shelfGroup.add(itemMesh);
         this.shelvedMeshes.push(itemMesh);
       });
     });
@@ -292,11 +354,17 @@ window.FFH.PickPhase = class {
   }
 
   onTap(e) {
+    // Only handle tap if not clicking on HTML UI
+    if (e.target && e.target.closest('#ui-container')) {
+      return;
+    }
+
     const rect = this.game.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-    this.raycaster.setFromCamera(this.mouse, this.game.cameras.warehouseCamera);
+    const cam = this.game.cameras.mainCamera;
+    this.raycaster.setFromCamera(this.mouse, cam);
     const intersects = this.raycaster.intersectObjects(this.shelvedMeshes, true);
     if (intersects.length === 0) return;
 
@@ -518,6 +586,34 @@ window.FFH.PickPhase = class {
 
   exit() {
     window.removeEventListener('pointerdown', this.onTap);
+    const cam = this.game.cameras.mainCamera;
+    if (cam && cam.isOrthographicCamera) {
+      cam.zoom = 1.0;
+      cam.updateProjectionMatrix();
+    }
+    if (this.shelfGroup) {
+      this.game.scene.remove(this.shelfGroup);
+      this.shelfGroup = null;
+    }
+    if (this.bagMesh) {
+      this.game.scene.remove(this.bagMesh);
+      this.bagMesh = null;
+    }
+    if (this.warehouseRoom) {
+      this.game.scene.remove(this.warehouseRoom);
+      this.warehouseRoom = null;
+    }
+    
+    // Restore the city exploration world meshes visibility
+    if (this.game.phases.CITY_EXPLORATION.worldGroup) {
+      this.game.phases.CITY_EXPLORATION.worldGroup.visible = true;
+    }
+    if (this.game.phases.CITY_EXPLORATION.courier) {
+      this.game.phases.CITY_EXPLORATION.courier.visible = true;
+    }
+
+    this.shelvedMeshes = [];
+    this.tagRails = [];
     this.game.ui.hideWarehouseManifest();
   }
 };

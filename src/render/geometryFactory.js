@@ -7,6 +7,9 @@ let _objLoader = null;
 
 function loadFoodModel(key) {
   if (_foodModelCache.has(key)) return _foodModelCache.get(key);
+  if (typeof THREE.MTLLoader === 'undefined' || typeof THREE.OBJLoader === 'undefined') {
+    return null; // Fall back cleanly to procedural meshes
+  }
   if (!_mtlLoader) _mtlLoader = new THREE.MTLLoader();
   if (!_objLoader) _objLoader = new THREE.OBJLoader();
   
@@ -33,7 +36,6 @@ function loadFoodModel(key) {
           child.castShadow = true;
           child.receiveShadow = true;
           if (child.material) {
-            // Apply Cel Shading to the loaded material but keep its color/map
             if (Array.isArray(child.material)) {
                child.material.forEach(m => {
                  m.type = 'MeshLambertMaterial';

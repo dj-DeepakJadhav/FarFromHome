@@ -34,22 +34,12 @@ class GameEngine {
     this.scene = this.sceneData.scene;
     this.renderer = this.sceneData.renderer;
     this.cameras = {
-      warehouseCamera: this.sceneData.warehouseCamera,
-      streetCamera: this.sceneData.streetCamera,
-      titleCamera: this.sceneData.titleCamera,
-      cityCamera: this.sceneData.cityCamera
+      mainCamera: this.sceneData.mainCamera
     };
-    this.currentCamera = this.sceneData.titleCamera;
+    this.currentCamera = this.sceneData.mainCamera;
 
     this.titleDiorama = null;
     this.titleWorld = null;
-
-    // Title camera zoom state - a flat, static diorama (no auto-spin, no
-    // drag-rotate); the only camera control is dolly in/out.
-    this.titleCameraDir = new THREE.Vector3(0, 13, 17).normalize();
-    this.titleCameraDist = Math.hypot(13, 17);
-    this.titleCameraDistMin = 8;
-    this.titleCameraDistMax = 60;
 
     // Core helpers
     this.particles = new window.FFH.ParticleSystem(this.scene);
@@ -76,50 +66,17 @@ class GameEngine {
 
     // Screen size change lock
     window.addEventListener('resize', () => this.resize());
+    window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 100));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => this.resize());
+      window.visualViewport.addEventListener('scroll', () => this.resize());
+    }
     this.resize();
   }
 
   initZoomControls() {
-    const canvas = this.renderer.domElement;
-    this.dioramaZoom = 3.6; // zoomed-out default
-    this.dioramaZoomMin = 2.0;
-    this.dioramaZoomMax = 5.5;
-
-    const applyZoom = (delta) => {
-      this.dioramaZoom = THREE.MathUtils.clamp(
-        this.dioramaZoom + delta,
-        this.dioramaZoomMin,
-        this.dioramaZoomMax
-      );
-      
-      const aspect = 390 / 844;
-      const d = this.dioramaZoom;
-      if (this.cameras && this.cameras.warehouseCamera) {
-        this.cameras.warehouseCamera.left = -d * aspect;
-        this.cameras.warehouseCamera.right = d * aspect;
-        this.cameras.warehouseCamera.top = d;
-        this.cameras.warehouseCamera.bottom = -d;
-        this.cameras.warehouseCamera.updateProjectionMatrix();
-      }
-    };
-
-    canvas.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      applyZoom(e.deltaY * 0.0035);
-    }, { passive: false });
-
-    // Pinch-to-zoom on touch devices
-    let lastPinchDist = null;
-    canvas.addEventListener('touchmove', (e) => {
-      if (e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const dist = Math.hypot(dx, dy);
-        if (lastPinchDist !== null) applyZoom((lastPinchDist - dist) * 0.01);
-        lastPinchDist = dist;
-      }
-    }, { passive: true });
-    canvas.addEventListener('touchend', () => { lastPinchDist = null; });
+    // Zooming is now handled strictly by the camera phases, 
+    // no manual zooming allowed to keep the bird's-eye consistent.
   }
 
   setupTitleDiorama() {
@@ -165,50 +122,53 @@ class GameEngine {
   }
 
   transitionTo(phaseKey, params = {}) {
-    if (this.currentPhase && this.currentPhase.exit) {
+    const isSamePhase = (this.currentPhaseName === phaseKey && this.currentPhase);
+    this.currentPhaseName = phaseKey;
+
+    if (!isSamePhase && this.currentPhase && this.currentPhase.exit) {
       this.currentPhase.exit();
     }
 
     if (phaseKey === 'BOOT') {
       this.currentPhase = null;
-      this.currentCamera = this.cameras.titleCamera;
+      this.currentCamera = this.cameras.mainCamera;
       this.setupTitleDiorama();
       this.ui.showBootScreen();
     } else {
       this.clearTitleDiorama();
       if (phaseKey === 'ROOM_HUB') {
         this.currentPhase = null;
-        this.currentCamera = this.cameras.titleCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.setupTitleDiorama();
         this.ui.showRoomHubUI();
       } else if (phaseKey === 'CITY_EXPLORATION') {
         this.currentPhase = this.phases.CITY_EXPLORATION;
-        this.currentCamera = this.cameras.cityCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DIALOGUE') {
         this.currentPhase = this.phases.DIALOGUE;
-        this.currentCamera = this.cameras.cityCamera; // Stay in city camera, we will lerp it
+        this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'PICK') {
         this.currentPhase = this.phases.PICK;
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DEBRIEF_RECEIPT') {
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.ui.showShiftSummaryUI();
       } else if (phaseKey === 'SHOP') {
-        this.ui.showPersistentHUD(this.state);
+        this.ui.updatePersistentHUD(this.state);
         this.sfx.playBgm('shop');
         this.currentPhase = this.phases.SHOP;
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'WIN') {
         this.currentPhase = null;
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.ui.showWinScreen();
       } else if (phaseKey === 'LOSE') {
         this.currentPhase = null;
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.ui.showLoseScreen();
       }
       if (phaseKey !== 'BOOT' && phaseKey !== 'WIN' && phaseKey !== 'LOSE') {
@@ -275,7 +235,7 @@ class GameEngine {
     if (this.titleDiorama && !this.currentPhase) {
       const t = this.clock.getElapsedTime();
       const radius = 28;
-      const cam = this.cameras.titleCamera;
+      const cam = this.cameras.mainCamera;
       if (cam) {
         cam.position.x = 20 + Math.sin(t * 0.04) * radius;
         cam.position.z = 26 + Math.cos(t * 0.04) * radius;
@@ -301,7 +261,9 @@ class GameEngine {
   resize() {
     const gameContainer = document.getElementById('game-container');
     if (gameContainer) {
-      const scale = Math.min(window.innerWidth / 390, window.innerHeight / 844);
+      const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const scale = Math.min(vw / 390, vh / 844);
       gameContainer.style.transform = `scale(${scale})`;
       gameContainer.style.transformOrigin = 'center center';
     }
@@ -314,5 +276,6 @@ window.FFH.Game = GameEngine;
 window.addEventListener('DOMContentLoaded', () => {
   const game = new window.FFH.Game();
   window.FFH_GAME = game;
+  window.game = game;
   game.init();
 });

@@ -94,42 +94,62 @@ window.FFH.UI = class {
     }
   }
 
-  showTutorialBanner(text, color = '#FFEB3B', duration = 4000) {
+  showTutorialBanner(text, color = '#E76F51', duration = 4000) {
+    // If the city quest text is present, update it directly with a highlight pulse so there is zero UI overlapping
+    const questTextEl = document.getElementById('city-quest-text');
+    if (questTextEl) {
+      questTextEl.innerHTML = `<span style="color: #E76F51; font-weight: 900;">${text}</span>`;
+      return;
+    }
+
+    const parent = document.getElementById('game-container') || document.body;
+    // Remove any previous banner to prevent overlap
+    const prev = document.getElementById('ffh-tutorial-banner');
+    if (prev) prev.remove();
+
     const el = document.createElement('div');
-    el.innerHTML = text;
+    el.id = 'ffh-tutorial-banner';
+    el.innerHTML = `<span style="margin-right: 6px;">💡</span>${text}`;
     el.style.cssText = `
-      position: fixed;
-      top: 30%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      background: rgba(17, 17, 17, 0.95);
-      border: 3px solid ${color};
-      color: #fff;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-family: -apple-system, sans-serif;
-      font-weight: 900;
-      font-size: 18px;
-      text-align: center;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.5), 0 0 20px ${color}40;
+      position: absolute;
+      top: 110px;
+      left: 14px;
+      right: 14px;
+      background: #FFFFFF;
+      border-left: 4px solid ${color};
+      border-right: 2px solid #264653;
+      border-top: 2px solid #264653;
+      border-bottom: 2px solid #264653;
+      color: #264653;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+      font-weight: 800;
+      font-size: 11px;
+      line-height: 1.4;
+      text-align: left;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
       pointer-events: none;
       z-index: 10000;
       opacity: 0;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform: translateY(-10px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     `;
-    document.body.appendChild(el);
+    parent.appendChild(el);
 
     // Fade in
     requestAnimationFrame(() => {
       el.style.opacity = '1';
-      el.style.transform = 'translate(-50%, -50%) scale(1)';
+      el.style.transform = 'translateY(0)';
     });
 
     // Fade out after duration
     setTimeout(() => {
-      el.style.opacity = '0';
-      el.style.transform = 'translate(-50%, -50%) scale(0.8)';
-      setTimeout(() => el.remove(), 300);
+      if (el.parentNode) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-10px)';
+        setTimeout(() => el.remove(), 250);
+      }
     }, duration);
   }
 
@@ -628,48 +648,39 @@ window.FFH.UI = class {
       `;
     });
 
+    const shiftStoryName = shift.name || `Shift #${state.currentShift}`;
+    const shiftCustomer = shift.customer || 'Customer';
+
     hud.innerHTML = `
-      <!-- Top Bar: Shift & Timer -->
-      <div style="display: flex; justify-content: space-between; align-items: center; pointer-events: auto; z-index: 10;">
-        <div style="background: #FFFFFF; border: 2.5px solid #222; border-radius: 8px; padding: 4px 10px; box-shadow: 0 3px 0 #222; font-weight: 900; font-size: 13px; font-family: sans-serif;">
-          ⏱️ <span id="pick-timer-text">${shift.pickTimeLimit}s</span>
-          <span style="color: #666; font-size: 11px; margin-left: 4px;">(${totalPacked}/${totalOrdered})</span>
+      <!-- Top Bar: Shift & Timer + Compact Order Status -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; z-index: 10; gap: 8px;">
+        <div style="background: #FFFFFF; border: 2.5px solid #222; border-radius: 8px; padding: 6px 10px; box-shadow: 0 3px 0 #222; font-family: sans-serif; display: flex; flex-direction: column; gap: 2px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-weight: 900; font-size: 13px;">⏱️ <span id="pick-timer-text">${shift.pickTimeLimit}s</span></span>
+            <span style="color: #666; font-size: 11px;">(${totalPacked}/${totalOrdered})</span>
+          </div>
+          <div style="font-size: 9px; font-weight: 800; color: #E76F51; text-transform: uppercase;">
+            📦 ${shiftStoryName}
+          </div>
+          <div style="font-size: 9px; color: #555;">
+            👤 ${shiftCustomer}
+          </div>
         </div>
         
-        <!-- Replay Audio Button (Pocket Notepad) -->
-        ${this.game.state.upgrades?.pocketNotepad ? `
-        <button id="btn-replay-audio" style="
-          background: ${this.game.state.notepadUsedThisShift ? '#DDD' : '#FFF'};
-          border: 2.5px solid #222;
-          border-radius: 8px;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: ${this.game.state.notepadUsedThisShift ? 'not-allowed' : 'pointer'};
-          box-shadow: 0 3px 0 #222;
-          font-size: 20px;
-        ">📋</button>` : ''}
-      </div>
-
-      <!-- Center Warning Area (Empty by default) -->
-      <div id="pick-warning-center" style="display: none; align-self: center; font-size: 24px; font-weight: 900; color: #FFF; background: #FF006E; padding: 10px 20px; border-radius: 8px; border: 3px solid #222; margin-top: auto; margin-bottom: 20px; text-transform: uppercase;">
-        HURRY!
-      </div>
-
-      <!-- Freshness / Decay Bar -->
-      <div style="background: rgba(255,255,255,0.9); border: 2.5px solid #222; border-radius: 8px; padding: 8px; box-shadow: 0 3px 0 #222; pointer-events: auto; margin-bottom: 10px;">
-        <div style="font-weight: 900; font-size: 11px; margin-bottom: 4px; display: flex; justify-content: space-between;">
-          <span>📦 WAREN-CHECKLISTE</span>
-        </div>
-        
-        <div style="margin-bottom: 10px; max-height: 40vh; overflow-y: auto;">
+        <!-- Compact Order Checklist in Top Right -->
+        <div style="background: rgba(255,255,255,0.95); border: 2px solid #222; border-radius: 8px; padding: 6px 10px; box-shadow: 0 3px 0 #222; min-width: 140px; font-family: -apple-system, sans-serif;">
+          <div style="font-weight: 900; font-size: 10px; color: #555; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">📦 Packing List</div>
           ${checklistLines}
         </div>
       </div>
-      
-      <div style="display: flex; gap: 8px; justify-content: center; overflow-x: auto; padding: 4px;">
+
+      <!-- Center Warning (Hurry) -->
+      <div id="pick-warning-center" style="display: none; align-self: center; font-size: 20px; font-weight: 900; color: #FFF; background: #FF006E; padding: 6px 16px; border-radius: 8px; border: 2.5px solid #222; margin-top: auto; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
+        ⚡ HURRY!
+      </div>
+
+      <!-- Bottom Audio Word Dock & Items -->
+      <div style="display: flex; gap: 8px; justify-content: center; overflow-x: auto; padding: 6px; pointer-events: auto;">
         ${bottomIcons}
       </div>
     `;
@@ -1386,54 +1397,133 @@ window.FFH.UI = class {
       justify-content: space-between;
       padding: 12px;
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
     `;
 
+    const objectiveText = !s.hasJob ? 'Visit Kruma Express to start your first courier shift' :
+      !s.isMatriculated ? 'Earn 250€ and visit University to pay Semesterbeitrag' :
+      !s.hasApartment ? 'Earn 300€ and visit Hans Lokker to sign your WG lease' :
+      !s.hasAnmeldung ? 'Visit Rathaus Bürgeramt for your address registration (Anmeldung)' :
+      !s.isSperrkontoUnlocked ? 'Visit Sparkasse Bank to unlock your Sperrkonto' :
+      'Visit Ausländerbehörde to receive your permanent Aufenthaltstitel!';
+
     explorerDiv.innerHTML = `
-      <!-- Top Title Bar -->
-      <div style="
+      <!-- Top Title & Unified Objective Header -->
+      <div id="city-header-bar" style="
         box-sizing: border-box;
         width: 100%;
-        background: rgba(38, 70, 83, 0.94);
-        backdrop-filter: blur(6px);
-        border-bottom: 3px solid rgba(255,255,255,0.15);
+        background: #FFFFFF;
+        border-top: 3px solid #E76F51;
+        border-bottom: 3px solid #264653;
+        border-radius: 12px;
         padding: 10px 14px;
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: #fff;
+        flex-direction: column;
+        gap: 8px;
+        color: #264653;
         pointer-events: auto;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        z-index: 100;
       ">
-        <div style="display:flex; align-items:center; gap: 8px;">
-          <button id="btn-settings-menu" style="
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #FFF;
-            border-radius: 4px;
-            width: 30px;
-            height: 30px;
-            font-size: 16px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-          ">⚙️</button>
-          <div>
-            <div style="font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Lübeck Altstadt</div>
-            <div style="font-size: 10px; color: #76C8B8; font-weight: 700;">Shift #${s.currentShift} Ready</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="btn-settings-menu" style="
+              background: #F4A261;
+              border: 2px solid #264653;
+              color: #264653;
+              border-radius: 6px;
+              width: 28px;
+              height: 28px;
+              font-size: 14px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              cursor: pointer;
+              box-shadow: 0 2px 0 #264653;
+            ">⚙️</button>
+            <button id="btn-open-dictionary" style="
+              background: #2EC4B6;
+              border: 2px solid #264653;
+              color: #FFFFFF;
+              border-radius: 6px;
+              padding: 0 8px;
+              height: 28px;
+              font-size: 11px;
+              font-weight: 900;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              cursor: pointer;
+              box-shadow: 0 2px 0 #1B8C81;
+            ">📖 VOKABELN</button>
+            <div>
+              <div style="font-size: 11px; font-weight: 900; color: #264653; text-transform: uppercase; letter-spacing: 0.5px;">Lübeck Altstadt</div>
+              <div style="font-size: 10px; color: #2A9D8F; font-weight: 800;">Shift #${s.currentShift} Active</div>
+            </div>
+          </div>
+
+          <div style="text-align: right; display: flex; align-items: center; gap: 8px;">
+            <div style="text-align: right;">
+              <div style="font-size: 9px; color: #666; font-weight: 700; text-transform: uppercase;">Tuition Fund</div>
+              <div style="font-size: 12px; font-weight: 900; color: #E76F51;">${window.FFH.round2(s.wallet)}€ <span style="font-size: 10px; color: #888; font-weight: 700;">/ ${goal}€</span></div>
+            </div>
+            <span style="font-size: 9px; font-weight: 900; background: #FFE8D6; color: #E76F51; padding: 3px 6px; border-radius: 4px; border: 1px solid #E76F51;">28d Visa</span>
           </div>
         </div>
 
-        <div style="text-align: right; display: flex; flex-direction: column; gap: 4px;">
-          <div>
-            <div style="font-size: 9px; color: #ccc; font-weight: 600;">Tuition Fund</div>
-            <div style="font-size: 12px; font-weight: 900; color: #F6BD60;">${window.FFH.round2(s.wallet)}€ / ${goal}€</div>
+        <!-- Antonisse Mountain on Horizon: Tuition Progress Bar & Visa Countdown -->
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9px; font-weight: 800; color: #555;">
+            <span>TUITION PROGRESS</span>
+            <span style="color: #E76F51;">${Math.min(100, Math.round((s.wallet / goal) * 100))}% (${window.FFH.round2(s.wallet)}€ / ${goal}€)</span>
           </div>
-          <div id="delivery-distance-indicator" style="display: none; align-items: center; justify-content: flex-end; gap: 4px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2);">
-            <span style="font-size: 10px; color: #2A9D8F; font-weight: 800; text-transform: uppercase;">Delivery:</span>
-            <span id="delivery-distance-val" style="font-size: 12px; color: #fff; font-weight: 900;">-- m</span>
-            <span id="delivery-distance-arrow" style="font-size: 14px; font-weight: 900; transform-origin: center; display: inline-block;">⬆</span>
+          <div style="width: 100%; background: #E9ECEF; border-radius: 6px; height: 7px; overflow: hidden; border: 1px solid #CCC;">
+            <div style="background: linear-gradient(90deg, #2EC4B6, #E76F51); height: 100%; width: ${Math.min(100, Math.round((s.wallet / goal) * 100))}%; transition: width 0.3s ease;"></div>
           </div>
+        </div>
+
+        <!-- 4-Document Bureaucracy Dossier Checklist -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: 9px; font-weight: 800;">
+          <span style="flex: 1; text-align: center; padding: 3px 2px; border-radius: 4px; border: 1px solid ${s.isMatriculated ? '#2EC4B6' : '#DDD'}; background: ${s.isMatriculated ? '#E8F8F5' : '#FFF'}; color: ${s.isMatriculated ? '#0E6655' : '#777'};">
+            ${s.isMatriculated ? '✅' : '📜'} 1.Uni
+          </span>
+          <span style="flex: 1; text-align: center; padding: 3px 2px; border-radius: 4px; border: 1px solid ${s.hasApartment ? '#2EC4B6' : '#DDD'}; background: ${s.hasApartment ? '#E8F8F5' : '#FFF'}; color: ${s.hasApartment ? '#0E6655' : '#777'};">
+            ${s.hasApartment ? '✅' : '📄'} 2.Miete
+          </span>
+          <span style="flex: 1; text-align: center; padding: 3px 2px; border-radius: 4px; border: 1px solid ${s.hasAnmeldung ? '#2EC4B6' : '#DDD'}; background: ${s.hasAnmeldung ? '#E8F8F5' : '#FFF'}; color: ${s.hasAnmeldung ? '#0E6655' : '#777'};">
+            ${s.hasAnmeldung ? '✅' : '📑'} 3.Anmeld
+          </span>
+          <span style="flex: 1; text-align: center; padding: 3px 2px; border-radius: 4px; border: 1px solid ${s.isSperrkontoUnlocked ? '#2EC4B6' : '#DDD'}; background: ${s.isSperrkontoUnlocked ? '#E8F8F5' : '#FFF'}; color: ${s.isSperrkontoUnlocked ? '#0E6655' : '#777'};">
+            ${s.isSperrkontoUnlocked ? '✅' : '💳'} 4.Konto
+          </span>
+        </div>
+
+        <!-- Objective Tracker Bar inside the same card -->
+        <div id="city-quest-tracker" style="
+          box-sizing: border-box;
+          width: 100%;
+          background: #F8F9FA;
+          border-left: 3px solid #E76F51;
+          border-radius: 4px;
+          padding: 6px 10px;
+          font-size: 11px;
+          color: #264653;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+        ">
+          <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+            <span style="font-size: 12px; flex-shrink: 0;">🎯</span>
+            <span id="city-quest-text" style="line-height: 1.3; letter-spacing: 0.2px;">${objectiveText}</span>
+          </div>
+        </div>
+
+        <div id="delivery-distance-indicator" style="display: none; align-items: center; justify-content: flex-end; gap: 6px; background: #E8F5E9; padding: 4px 8px; border-radius: 4px; border: 1px solid #2A9D8F;">
+          <span style="font-size: 9px; color: #2A9D8F; font-weight: 800; text-transform: uppercase;">Destination:</span>
+          <span id="delivery-distance-val" style="font-size: 11px; color: #264653; font-weight: 900;">-- m</span>
+          <span id="delivery-distance-arrow" style="font-size: 12px; font-weight: 900; color: #2A9D8F; transform-origin: center; display: inline-block;">⬆</span>
         </div>
       </div>
 
@@ -1442,23 +1532,50 @@ window.FFH.UI = class {
         display: none;
         box-sizing: border-box;
         width: 100%;
-        background: #ffffff;
+        background: #FFFFFF;
         border-top: 3px solid #E76F51;
-        border-bottom: 3px solid #222;
+        border-bottom: 3px solid #264653;
+        border-radius: 12px;
         padding: 14px 16px;
         pointer-events: auto;
         animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+        z-index: 100;
+        margin-bottom: 6px;
       ">
-        <button id="btn-close-poi" style="position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #999; pointer-events: auto;">✕</button>
-        <span id="poi-card-tag" style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; background: #FFE8D6; color: #E76F51;">Location</span>
+        <button id="btn-close-poi" style="position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #999; pointer-events: auto; padding: 4px 8px;">✕</button>
+        <span id="poi-card-tag" style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; background: #FFE8D6; color: #E76F51; letter-spacing: 0.5px;">Location</span>
         <h2 id="poi-card-title" style="font-size: 16px; color: #264653; margin: 0 0 4px 0; font-weight: 900;">Building Name</h2>
-        <p id="poi-card-desc" style="font-size: 11px; color: #555; line-height: 1.4; margin: 0 0 10px 0;">Description of this point of interest.</p>
-        <button id="btn-poi-action" style="width: 100%; padding: 9px; border: none; border-radius: 6px; background: #E76F51; color: white; font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: auto;">Enter Location</button>
+        <p id="poi-card-desc" style="font-size: 11px; color: #555; line-height: 1.4; margin: 0 0 12px 0;">Description of this point of interest.</p>
+        <button id="btn-poi-action" style="
+          width: 100%;
+          padding: 10px 14px;
+          border: none;
+          border-radius: 8px;
+          background: #E76F51;
+          color: #FFFFFF;
+          font-weight: 900;
+          font-size: 13px;
+          cursor: pointer;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          box-shadow: 0 3px 0 #D65A3C;
+          transition: transform 0.05s ease, background-color 0.1s ease;
+          pointer-events: auto;
+        ">Enter Location</button>
       </div>
     `;
 
     this.container.appendChild(explorerDiv);
+
+        // Wire Dictionary button
+    const dictBtn = document.getElementById('btn-open-dictionary');
+    if (dictBtn) {
+      dictBtn.addEventListener('click', () => {
+        this.showDictionaryModal();
+      });
+    }
 
     // Wire close POI card
     document.getElementById('btn-close-poi').addEventListener('click', () => {
@@ -1499,103 +1616,128 @@ window.FFH.UI = class {
   }
 
   showDialogueBox(npcEntry, dialogueData, onOptionChosen) {
-    // DO NOT this.clear() if we want it overlaying the city view, but we must remove existing dialogue boxes.
     const existing = document.getElementById('dialogue-overlay-box');
-    if (existing) existing.remove();
+    if (existing) {
+      if (existing._typewriterTimer) clearInterval(existing._typewriterTimer);
+      if (window.FFH.game && window.FFH.game.speech) {
+        window.FFH.game.speech.stopListening();
+      }
+      existing.remove();
+    }
 
     const box = document.createElement('div');
     box.id = 'dialogue-overlay-box';
     box.style.cssText = `
       position: absolute;
-      bottom: 20px;
-      left: 16px;
-      right: 16px;
-      background: rgba(255, 255, 255, 0.96);
-      border: 3px solid #222;
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      background: #FFFFFF;
+      border-top: 3px solid #E76F51;
+      border-bottom: 3px solid #264653;
+      border-left: 2px solid #264653;
+      border-right: 2px solid #264653;
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
       pointer-events: auto;
-      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       z-index: 200;
-      max-height: 85vh;
+      max-height: 48vh;
       overflow-y: auto;
     `;
 
-    // English subtitle fallback
-    const subtitle = dialogueData.en ? `<div style="font-size: 13px; font-style: italic; color: #666; margin-top: 4px;">${dialogueData.en}</div>` : '';
+    // Separate German Spoken line from English Subtitle / Context
+    let germanSpeech = dialogueData.de || dialogueData.speechDe || '';
+    let englishSub = dialogueData.en || dialogueData.speechEn || '';
+
+    if (!germanSpeech && dialogueData.text) {
+      const fullText = dialogueData.text;
+      const parts = fullText.split(/(?<=[.!?])\s+(?=[A-Z])/);
+      if (parts.length >= 2 && /[äöüßÄÖÜ]|\b(Guten|Tag|Sie|Ihr|Bitte|Moin|Herr|Frau|Willkommen|Semesterbeitrag)\b/i.test(parts[0])) {
+        germanSpeech = parts[0];
+        englishSub = parts.slice(1).join(' ');
+      } else {
+        germanSpeech = fullText;
+      }
+    }
 
     const optionsHtml = (dialogueData.options || []).map((opt, idx) => `
-      <div style="display: flex; gap: 8px;">
-        <button class="dialogue-audio-btn" data-audio="${opt.audioKey || ''}" style="
-          background: #ECC238;
-          color: #222;
-          border: 2px solid #222;
-          border-radius: 8px;
-          padding: 10px;
-          cursor: pointer;
-          font-size: 16px;
-          box-shadow: 0 3px 0 #9E7D1A;
-          ${opt.audioKey ? '' : 'display:none;'}
-        ">🔊</button>
-        <button class="dialogue-opt-btn" data-idx="${idx}" style="
-          flex: 1;
-          background: #2EC4B6;
-          color: #ffffff;
-          border: 2px solid #222;
-          border-radius: 8px;
-          padding: 12px 14px;
-          font-weight: 800;
-          font-size: 16px;
-          cursor: pointer;
-          text-align: left;
-          box-shadow: 0 3px 0 #1B8C81;
-          transition: transform 0.1s ease;
-        ">
-          ${opt.label || opt.de}
-          ${opt.en ? `<div style="font-size: 11px; color: rgba(255,255,255,0.8); font-weight: normal; margin-top: 2px;">${opt.en}</div>` : ''}
-        </button>
-      </div>
+      <button class="dialogue-opt-btn" data-idx="${idx}" style="
+        background: #2EC4B6;
+        color: #FFFFFF;
+        border: 2px solid #264653;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 900;
+        font-size: 13px;
+        cursor: pointer;
+        text-align: left;
+        box-shadow: 0 3px 0 #1B8C81;
+        transition: transform 0.05s ease, background 0.2s ease;
+      ">
+        ${opt.label || opt.de}
+        ${opt.en ? `<div style="font-size: 10.5px; color: rgba(255,255,255,0.92); font-weight: normal; margin-top: 2px;">${opt.en}</div>` : ''}
+      </button>
     `).join('');
 
     box.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 8px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #F0F0F0; padding-bottom: 6px;">
         <div>
-          <div style="font-size: 16px; font-weight: 900; color: #264653;">${dialogueData.speaker || npcEntry.name}</div>
-          <div style="font-size: 11px; font-weight: 800; color: ${npcEntry.avatarColor || '#E76F51'}; text-transform: uppercase;">${npcEntry.title || 'Town Citizen'}</div>
+          <div style="font-size: 14px; font-weight: 900; color: #264653;">${dialogueData.speaker || npcEntry.name}</div>
+          <div style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">${npcEntry.title || 'Town Citizen'}</div>
         </div>
       </div>
-      <div>
-        <div style="font-size: 18px; line-height: 1.4; color: #111; font-weight: 900;">
-          ${dialogueData.hintDe || dialogueData.de || dialogueData.text}
-        </div>
-        ${subtitle}
+      
+      <!-- Primary Dialogue Bubble -->
+      <div style="background: #F8F9FA; border-left: 4px solid #2EC4B6; border-radius: 6px; padding: 10px 12px;">
+        <div id="dialogue-typewriter-text" style="font-size: 14px; line-height: 1.45; color: #1D3557; font-weight: 800; min-height: 24px;"></div>
+        ${englishSub ? `<div id="dialogue-subtitle-text" style="font-size: 11.5px; font-style: italic; color: #6C757D; margin-top: 6px; border-top: 1px dashed #E0E0E0; padding-top: 4px; display: none;">${englishSub}</div>` : ''}
       </div>
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+
+      <div id="dialogue-options-container" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px; opacity: 0; transition: opacity 0.2s ease;">
         ${optionsHtml}
       </div>
     `;
 
     this.container.appendChild(box);
 
-    const audioBtns = box.querySelectorAll('.dialogue-audio-btn');
-    audioBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const key = btn.getAttribute('data-audio');
-        if (key && window.FFH.game.speech) {
-          window.FFH.game.speech.speakKey(key);
+    // Typewriter effect logic with retro Animal Crossing talk-blips
+    const textTarget = box.querySelector('#dialogue-typewriter-text');
+    const subTarget = box.querySelector('#dialogue-subtitle-text');
+    const optionsContainer = box.querySelector('#dialogue-options-container');
+    
+    let charIndex = 0;
+    const fullSpeech = germanSpeech;
+    const npcId = npcEntry?.id || null;
+
+    box._typewriterTimer = setInterval(() => {
+      if (charIndex < fullSpeech.length) {
+        textTarget.textContent += fullSpeech[charIndex];
+        // Play acoustic character blip every 2 characters
+        if (charIndex % 2 === 0 && this.game && this.game.speech) {
+          this.game.speech.playTalkBlip(npcId);
         }
-      });
-    });
+        charIndex++;
+      } else {
+        clearInterval(box._typewriterTimer);
+        if (subTarget) subTarget.style.display = 'block';
+        if (optionsContainer) optionsContainer.style.opacity = '1';
+      }
+    }, 22);
 
     const buttons = box.querySelectorAll('.dialogue-opt-btn');
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
+        if (box._typewriterTimer) clearInterval(box._typewriterTimer);
         const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (this.game && this.game.speech) {
+          this.game.speech.playOptionChime(idx);
+        }
         const chosen = dialogueData.options[idx];
         if (onOptionChosen) {
           onOptionChosen(chosen);
@@ -1606,6 +1748,164 @@ window.FFH.UI = class {
 
   showRideMockScreen() {
     // Redundant now that phase is fully implemented. Leave empty.
+  }
+
+
+  showDictionaryModal() {
+    const existing = document.getElementById('dictionary-modal');
+    if (existing) existing.remove();
+
+    const unlocked = window.FFH.SpacedRepetition ? window.FFH.SpacedRepetition.getUnlockedWords(this.game.state) : window.FFH.items;
+    const dueCount = window.FFH.SpacedRepetition ? window.FFH.SpacedRepetition.getDueWords(this.game.state).length : 0;
+
+    const modal = document.createElement('div');
+    modal.id = 'dictionary-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(13, 27, 42, 0.88);
+      backdrop-filter: blur(6px);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 14px;
+      box-sizing: border-box;
+      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+      animation: fadeIn 0.2s ease;
+      pointer-events: auto;
+    `;
+
+    modal.innerHTML = `
+      <div style="background: #FFFFFF; border-radius: 16px; border-top: 4px solid #2EC4B6; border-bottom: 4px solid #264653; border-left: 2px solid #264653; border-right: 2px solid #264653; display: flex; flex-direction: column; height: 100%; box-shadow: 0 12px 32px rgba(0,0,0,0.4); overflow: hidden;">
+        <!-- Header -->
+        <div style="padding: 14px 16px; border-bottom: 2px solid #F0F0F0; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 16px; font-weight: 900; color: #1D3557;">📖 Vokabel-Wörterbuch</div>
+            <div style="font-size: 10.5px; color: #2A9D8F; font-weight: 800;">${unlocked.length} Wörter Gelernt • Leitner Box (1/47)</div>
+          </div>
+          <button id="btn-close-dict" style="background: #F8F9FA; border: 2px solid #264653; border-radius: 8px; width: 30px; height: 30px; font-weight: 900; color: #264653; cursor: pointer;">✕</button>
+        </div>
+
+        <!-- Practice Banner -->
+        <div style="background: #FFF3CD; border-bottom: 2px solid #FFEBAA; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 900; color: #856404;">🎯 Spaced Repetition Practice</div>
+            <div style="font-size: 10px; color: #856404;">${dueCount > 0 ? dueCount + ' words ready for review!' : 'All words reviewed for this shift!'}</div>
+          </div>
+          <button id="btn-start-quiz" style="background: #E76F51; color: #FFF; border: 2px solid #264653; border-radius: 8px; padding: 6px 12px; font-weight: 900; font-size: 11px; cursor: pointer; box-shadow: 0 2px 0 #D65A3C;">🎮 PRACTICE</button>
+        </div>
+
+        <!-- Word List / Quiz Container -->
+        <div id="dict-content-body" style="flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+        </div>
+      </div>
+    `;
+
+    document.getElementById('ui-container').appendChild(modal);
+
+    const renderWordList = () => {
+      const body = modal.querySelector('#dict-content-body');
+      body.innerHTML = unlocked.map(item => {
+        const srs = (this.game.state.vocabSRS && this.game.state.vocabSRS[item.id]) || { box: 1 };
+        const boxStars = '★'.repeat(srs.box) + '☆'.repeat(4 - srs.box);
+        const genderColor = item.gender === 'der' ? '#3A86FF' : item.gender === 'die' ? '#FF006E' : '#8338EC';
+        const audioKey = item.audioKey || item.id;
+        return `
+          <div style="background: #F8F9FA; border: 2px solid #E9ECEF; border-left: 5px solid ${genderColor}; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 24px;">${item.icon || '📦'}</span>
+              <div>
+                <div style="font-size: 13px; font-weight: 900; color: #1D3557;">
+                  <span style="color: ${genderColor};">${item.gender}</span> ${item.nameDe}
+                </div>
+                <div style="font-size: 10.5px; color: #6C757D; font-style: italic;">${item.nameEn} • ${item.exampleDe || ''}</div>
+              </div>
+            </div>
+            <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+              <button class="btn-dict-audio" data-gender="${item.gender}" data-word="${item.nameDe}" style="background: #FFE8D6; border: 1px solid #E76F51; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;" title="Preview item acoustic sound">🎵</button>
+              <div style="font-size: 9px; color: #F4A261; font-weight: 900;">Box ${srs.box} ${boxStars}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      body.querySelectorAll('.btn-dict-audio').forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          if (this.game && this.game.speech) {
+            this.game.speech.playOptionChime(idx);
+          }
+        });
+      });
+    };
+
+    const renderQuizMinigame = () => {
+      const body = modal.querySelector('#dict-content-body');
+      const testItem = unlocked[Math.floor(Math.random() * unlocked.length)];
+      if (!testItem) return;
+
+      const genders = ['der', 'die', 'das'];
+      body.innerHTML = `
+        <div style="text-align: center; padding: 12px 0;">
+          <div style="font-size: 12px; font-weight: 800; color: #2A9D8F; text-transform: uppercase;">Grammar Gender Flashcard</div>
+          <div style="font-size: 48px; margin: 8px 0;">${testItem.icon || '📦'}</div>
+          <div style="font-size: 22px; font-weight: 900; color: #1D3557; margin-bottom: 4px;">___ ${testItem.nameDe}</div>
+          <div style="font-size: 12px; color: #6C757D; font-style: italic;">${testItem.nameEn}</div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          ${genders.map(g => `
+            <button class="btn-quiz-answer" data-choice="${g}" style="
+              flex: 1;
+              padding: 14px 10px;
+              background: ${g === 'der' ? '#3A86FF' : g === 'die' ? '#FF006E' : '#8338EC'};
+              color: #FFF;
+              border: 2px solid #264653;
+              border-radius: 10px;
+              font-size: 16px;
+              font-weight: 900;
+              cursor: pointer;
+              box-shadow: 0 4px 0 #1D3557;
+            ">${g}</button>
+          `).join('')}
+        </div>
+
+        <div id="quiz-feedback" style="margin-top: 16px; text-align: center; font-weight: 900; font-size: 13px; min-height: 24px;"></div>
+      `;
+
+      body.querySelectorAll('.btn-quiz-answer').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const choice = btn.getAttribute('data-choice');
+          const isCorrect = choice === testItem.gender;
+          const fb = body.querySelector('#quiz-feedback');
+
+          if (window.FFH.SpacedRepetition) {
+            window.FFH.SpacedRepetition.recordReview(testItem.id, isCorrect, this.game.state);
+          }
+
+          if (isCorrect) {
+            this.game.sfx.playSfx('early_success');
+            fb.innerHTML = `<span style="color: #2A9D8F;">✓ Richtig! ${testItem.gender} ${testItem.nameDe} (${testItem.nameEn})! (+Box Promoted)</span>`;
+          } else {
+            this.game.sfx.playSfx('error');
+            fb.innerHTML = `<span style="color: #E63946;">✗ Falsch! Es heißt: ${testItem.gender} ${testItem.nameDe} (${testItem.nameEn})</span>`;
+          }
+
+          setTimeout(() => {
+            renderQuizMinigame();
+          }, 1200);
+        });
+      });
+    };
+
+    modal.querySelector('#btn-close-dict').addEventListener('click', () => {
+      modal.remove();
+    });
+
+    modal.querySelector('#btn-start-quiz').addEventListener('click', () => {
+      renderQuizMinigame();
+    });
+
+    renderWordList();
   }
 
   updateQuestTracker() {

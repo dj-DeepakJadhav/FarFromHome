@@ -2,7 +2,7 @@
 
 > **Master Architecture Authority**: `Docs/README_HACKATHON.md`  
 > **Technical Reference**: `Docs/TECHNICAL_REFERENCE.md`  
-> **Vision**: *Messenger by Abeto* (Isometric Diorama) × *Nicos Weg* (Living German Immersion) × *Coffee Talk / Good Pizza, Great Pizza* (Tactile Management Loop)
+> **Vision**: *Nicos Weg* (German Student Immersion) × *Messenger by Abeto* (Isometric City) × *Coffee Talk / Good Pizza Great Pizza* (Tactile Management)
 
 ---
 
@@ -10,12 +10,12 @@
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ Milestone 1: Deterministic Micro-NLP & Pre-Baked Voiced Dialogue Engine     │
-│ Milestone 2: Unified In-City Delivery & Courier Navigation Loop             │
-│ Milestone 3: Smooth Navigation & Sliding Collision (three-mesh-bvh)         │
-│ Milestone 4: Economic Engine & Visible Upgrades ($15K Progression Target)    │
-│ Milestone 5: 90-Second Pedagogical Golden Pacing ($15K Innovation Target)    │
-│ Milestone 6: Automated Playtesting, Size Review & Final Packaging Gate       │
+│ Milestone 1: German Bureaucracy State Machine & Paperwork Tracker HUD       │
+│ Milestone 2: Nicos Weg Character Representatives & Dialogue Scenarios       │
+│ Milestone 3: City POI Expansion (Rathaus, Bank, Apartment, Ausländeramt)    │
+│ Milestone 4: Economic Balance & Gear Upgrades ($15K Progression Target)     │
+│ Milestone 5: 90-Second Pedagogical Golden Pacing ($15K Innovation Target)   │
+│ Milestone 6: Automated Playtesting, Size Review & Final Packaging Gate      │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 

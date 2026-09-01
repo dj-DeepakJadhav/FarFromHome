@@ -16316,6 +16316,8 @@ window.FFH.finishShift = function(game) {
     game.transitionTo('LOSE');
   } else if (state.wallet >= window.FFH.ECONOMY.TUITION_GOAL) {
     game.transitionTo('WIN');
+  } else if (state.currentShift >= 7) { // 7 Days Max
+    game.transitionTo('LOSE');
   } else {
     // Advance to the next shift immediately so the Shop/Hub sees the correct shift
     state.currentShift++;
@@ -19984,37 +19986,21 @@ window.FFH.setupScene = function(canvasContainerId) {
   dirLight.shadow.mapSize.height = 1024;
   scene.add(dirLight);
   
-  // 1. Isometric Room Diorama Camera (Zoomed-out framing with dedicated space for top goal & bottom instruction cards)
+  // 1. Unified Main Camera: High Bird's-Eye View (Orthographic Isometric)
   const aspect = width / height;
-  const d = 3.6; // Clean zoomed-out framing
-  const warehouseCamera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
-  warehouseCamera.position.set(8, 7.2, 8);
-  warehouseCamera.lookAt(0, 0.85, 0);
+  const d = 12.0; // View volume size
+  const mainCamera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
   
-  // 2. Street-level third-person camera. near/far kept tight (0.3 .. 1600)
-  // rather than 0.1 .. 5000 — the ink outline pass Sobel-tests the depth
-  // buffer, and a 50000:1 depth range leaves too little precision at street
-  // scale for depth edges to register at all.
-  const streetCamera = new THREE.PerspectiveCamera(55, aspect, 0.5, 400);
-  streetCamera.position.set(0, 2.5, 4);
-  streetCamera.lookAt(0, 1.3, -2);
+  // Set default top-down isometric angle
+  mainCamera.position.set(15, 20, 15);
+  mainCamera.lookAt(0, 0, 0);
 
-  // 3. Title Screen Camera (Isometric view matching diorama rooms)
-  const titleCamera = warehouseCamera;
-
-  // 4. City Exploration Camera (Isometric Orthographic View)
-  const cityD = 12.0; // View volume size
-  const cityCamera = new THREE.OrthographicCamera(-cityD * aspect, cityD * aspect, cityD, -cityD, 1, 1000);
-  
   // Expose
   return {
     renderer,
     scene,
-    warehouseCamera,
-    streetCamera,
-    titleCamera,
-    cityCamera,
-    currentCamera: titleCamera
+    mainCamera,
+    currentCamera: mainCamera
   };
 };
 
@@ -21551,7 +21537,7 @@ window.FFH.UI = class {
         pointer-events: auto;
       ">
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:900; letter-spacing: 0.5px;">
-          <span style="color:#222;">STUDENT SUBLET STATUS</span>
+          <span style="color:#222;">DAY ${s.currentShift} / 7 — STUDENT SUBLET STATUS</span>
           <span>${strikeDots.join(' ')}</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
@@ -21712,7 +21698,7 @@ window.FFH.UI = class {
           ">⚙️</button>
           <div>
             <div style="font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Lübeck Altstadt</div>
-            <div style="font-size: 10px; color: #76C8B8; font-weight: 700;">Shift #${s.currentShift} Ready</div>
+            <div style="font-size: 10px; color: #76C8B8; font-weight: 700;">Day ${s.currentShift} / 7</div>
           </div>
         </div>
 
@@ -21969,21 +21955,26 @@ window.FFH.PickPhase = class {
     this.timeRemaining = this.shift.pickTimeLimit || 25;
     this.pickDuration = this.timeRemaining;
 
-    // Clear previous phase meshes, keeping lights
-    while (this.game.scene.children.length > 2) {
-      const obj = this.game.scene.children[this.game.scene.children.length - 1];
-      this.game.scene.remove(obj);
-    }
-
     state.activeOrder = this.buildOrder(this.shift);
+    
+    // Position shelves and bag in the city world space relative to the player
+    const playerPos = this.game.phases.CITY_EXPLORATION.playerPos;
+    this.shelfWorldPos = new THREE.Vector3(playerPos.x, playerPos.y, playerPos.z - 1.5);
+    
     this.buildShelf(this.shift, state.activeOrder);
 
     // Paper bag the picked items drop into
     const bagGeo = new THREE.BoxGeometry(0.8, 1.0, 0.6);
     const bagMat = window.FFH.createCelMaterial(0xD2B48C);
     this.bagMesh = new THREE.Mesh(bagGeo, bagMat);
-    this.bagMesh.position.set(0, 0.1, 2.0);
+    
+    // Position shelves and bag in the city world space relative to the player
+    const playerPos = this.game.phases.CITY_EXPLORATION.playerPos;
+    this.bagMesh.position.set(playerPos.x, playerPos.y + 0.1, playerPos.z + 1.5);
     this.game.scene.add(this.bagMesh);
+    
+    // Also position the shelf Group (built below) correctly
+    this.shelfWorldPos = new THREE.Vector3(playerPos.x + 1.0, playerPos.y, playerPos.z - 2.0);
 
     // Audio-Leads-Manifest: Setup reveal timing and speak first item
     const firstUnpacked = state.activeOrder[0];
@@ -22012,9 +22003,35 @@ window.FFH.PickPhase = class {
         this.game.ui.showTutorialBanner("The item icon is hidden for 1.5s. Guess early based on the audio for a 2.0x early pick bonus!", 8000);
       }, 1000);
     }
+    // Setup camera target for the shelf
+    this.startCamPos = new THREE.Vector3().copy(this.game.cameras.mainCamera.position);
+    this.endCamTarget = this.shelfWorldPos.clone();
+    // Offset for isometric view of the shelf
+    this.endCamPos = this.endCamTarget.clone().add(new THREE.Vector3(8, 12, 8)); 
+    
+    this.isTransitioning = true;
+    this.transitionTime = 0;
   }
 
   update(delta) {
+    // Camera transition
+    if (this.isTransitioning) {
+      this.transitionTime += delta * 2.0;
+      if (this.transitionTime >= 1.0) {
+        this.transitionTime = 1.0;
+        this.isTransitioning = false;
+      }
+      const t = this.transitionTime < 0.5 ? 2 * this.transitionTime * this.transitionTime : -1 + (4 - 2 * this.transitionTime) * this.transitionTime;
+      this.game.cameras.mainCamera.position.lerpVectors(this.startCamPos, this.endCamPos, t);
+      
+      const startTarget = this.game.phases.CITY_EXPLORATION.playerPos.clone();
+      const currentTarget = new THREE.Vector3().lerpVectors(startTarget, this.endCamTarget, t);
+      this.game.cameras.mainCamera.lookAt(currentTarget);
+    } else {
+      this.game.cameras.mainCamera.position.lerp(this.endCamPos, 0.1);
+      this.game.cameras.mainCamera.lookAt(this.endCamTarget);
+    }
+
     if (this.timeRemaining > 0) {
       this.timeRemaining = Math.max(0, this.timeRemaining - delta);
       
@@ -22176,8 +22193,14 @@ window.FFH.PickPhase = class {
       
       this.shelfGroup.add(plank, tagRail);
       this.tagRails.push(tagRail);
-
     }
+
+    if (this.shelfWorldPos) {
+      this.shelfGroup.position.copy(this.shelfWorldPos);
+    }
+    
+    // Rotate slightly so it's facing the isometric camera beautifully
+    this.shelfGroup.rotation.y = Math.PI / 4; 
 
     this.game.scene.add(this.shelfGroup);
 
@@ -22476,79 +22499,127 @@ window.FFH.ShopPhase = class {
   }
 
   enter() {
-    while (this.game.scene.children.length > 2) {
-      const obj = this.game.scene.children[this.game.scene.children.length - 1];
-      this.game.scene.remove(obj);
-    }
-
-    this.game.currentCamera = this.game.cameras.warehouseCamera;
-    this.game.currentCamera.position.set(2.8, 2.8, 3.5);
-    this.game.currentCamera.lookAt(0, 0.4, 0);
-
-    this.game.setupTitleDiorama();
+    this.isTransitioning = true;
+    this.transitionTime = 0;
     
-    // Show top HUD and exit button only
-    this.game.ui.showRoomHubUI();
-    this.game.ui.spawnFloatingText("TAP OBJECTS TO UPGRADE", window.innerWidth/2, window.innerHeight - 100, '#ECC238');
+    // Zoom in on the Bike Shop (which is the Späti in townLayout currently? Let's just zoom on player for now)
+    this.startCamPos = new THREE.Vector3().copy(this.game.cameras.mainCamera.position);
+    this.endCamTarget = this.game.phases.CITY_EXPLORATION.playerPos.clone();
+    this.endCamPos = this.endCamTarget.clone().add(new THREE.Vector3(8, 12, 8));
 
-    window.addEventListener('pointerdown', this.onTap);
+    // Render HTML Shop UI
+    this.game.ui.showRoomHubUI(); // Just clear & show header
+    this.renderShopUI();
   }
 
-  onTap(e) {
-    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return; // Ignore UI clicks
-
-    const rect = this.game.renderer.domElement.getBoundingClientRect();
-    this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-    this.raycaster.setFromCamera(this.mouse, this.game.currentCamera);
-    
-    if (this.game.titleRoom) {
-      const intersects = this.raycaster.intersectObjects(this.game.titleRoom.children, true);
-      if (intersects.length > 0) {
-        let target = intersects[0].object;
-        while (target && !target.userData.upgradeId) {
-          target = target.parent;
-        }
-        if (target && target.userData.upgradeId) {
-          this.buyUpgrade(target.userData.upgradeId);
-        }
+  update(delta) {
+    if (this.isTransitioning) {
+      this.transitionTime += delta * 2.0;
+      if (this.transitionTime >= 1.0) {
+        this.transitionTime = 1.0;
+        this.isTransitioning = false;
       }
+      const t = this.transitionTime < 0.5 ? 2 * this.transitionTime * this.transitionTime : -1 + (4 - 2 * this.transitionTime) * this.transitionTime;
+      this.game.cameras.mainCamera.position.lerpVectors(this.startCamPos, this.endCamPos, t);
+      
+      const startTarget = this.game.phases.CITY_EXPLORATION.playerPos.clone();
+      const currentTarget = new THREE.Vector3().lerpVectors(startTarget, this.endCamTarget, t);
+      this.game.cameras.mainCamera.lookAt(currentTarget);
+    } else {
+      this.game.cameras.mainCamera.position.lerp(this.endCamPos, 0.1);
+      this.game.cameras.mainCamera.lookAt(this.endCamTarget);
     }
   }
 
-  buyUpgrade(upgradeId) {
+  renderShopUI() {
+    const existing = document.getElementById('shop-ui-overlay');
+    if (existing) existing.remove();
+
+    const box = document.createElement('div');
+    box.id = 'shop-ui-overlay';
+    box.style.cssText = `
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%; max-width: 400px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 3px solid #222;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    `;
+
+    const title = document.createElement('h2');
+    title.textContent = "Bike & Gear Shop";
+    title.style.margin = "0 0 10px 0";
+    title.style.textAlign = "center";
+    box.appendChild(title);
+
     const state = this.game.state;
-    const upgrade = window.FFH.shopUpgrades.find(u => u.id === upgradeId);
-    if (!upgrade) return;
-
-    const affordable = state.wallet >= upgrade.cost;
-    const alreadyOwned = state.upgrades[upgradeId];
-
-    if (alreadyOwned) {
-      this.game.ui.spawnFloatingText("ALREADY OWNED", window.innerWidth/2, window.innerHeight/2, '#AAAAAA');
-      return;
-    }
-
-    if (affordable) {
-      state.wallet = window.FFH.round2(state.wallet - upgrade.cost);
-      state.upgrades[upgradeId] = true;
-      this.game.sfx.playSfx('success');
-      this.game.ui.spawnFloatingText(`BOUGHT ${upgrade.nameEn}!`, window.innerWidth/2, window.innerHeight/2, '#2A9D8F');
+    window.FFH.shopUpgrades.forEach(upg => {
+      const isOwned = state.upgrades[upg.id];
+      const isAffordable = state.wallet >= upg.cost;
       
-      // Re-render the room diorama immediately with the new furnishings visible
-      this.game.setupTitleDiorama();
-      this.game.ui.showRoomHubUI(); // Update wallet text
-    } else {
-      this.game.sfx.playSfx('error');
-      this.game.ui.spawnFloatingText(`NEED ${upgrade.cost}€`, window.innerWidth/2, window.innerHeight/2, '#E63946');
-    }
+      const row = document.createElement('div');
+      row.style.cssText = `
+        display: flex; justify-content: space-between; align-items: center;
+        background: ${isOwned ? '#E0E0E0' : '#F8F9FA'};
+        padding: 10px; border-radius: 8px; border: 2px solid #333;
+      `;
+
+      const info = document.createElement('div');
+      info.innerHTML = `<strong>${upg.name}</strong><br><span style="font-size:12px;color:#555">${upg.desc}</span>`;
+      
+      const btn = document.createElement('button');
+      btn.textContent = isOwned ? "OWNED" : `€${upg.cost.toFixed(2)}`;
+      btn.style.cssText = `
+        padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 2px solid #222;
+        background: ${isOwned ? '#B0B0B0' : (isAffordable ? '#2EC4B6' : '#FF6B6B')};
+        color: ${isOwned ? '#555' : '#FFF'};
+        cursor: ${isOwned ? 'default' : 'pointer'};
+      `;
+
+      if (!isOwned) {
+        btn.onclick = () => {
+          if (isAffordable) {
+            state.wallet = window.FFH.round2(state.wallet - upg.cost);
+            state.upgrades[upg.id] = true;
+            this.game.sfx.playSfx('success');
+            this.renderShopUI();
+            this.game.ui.updatePersistentHUD(state);
+          } else {
+            this.game.sfx.playSfx('error');
+          }
+        };
+      }
+
+      row.appendChild(info);
+      row.appendChild(btn);
+      box.appendChild(row);
+    });
+
+    const exitBtn = document.createElement('button');
+    exitBtn.textContent = "Leave Shop";
+    exitBtn.style.cssText = `
+      margin-top: 10px; padding: 12px; background: #FF9F1C; color: #FFF;
+      font-weight: bold; border: 2px solid #222; border-radius: 8px;
+    `;
+    exitBtn.onclick = () => {
+      this.game.transitionTo('CITY_EXPLORATION');
+    };
+    box.appendChild(exitBtn);
+
+    document.getElementById('hud').appendChild(box);
   }
 
   exit() {
-    window.removeEventListener('pointerdown', this.onTap);
+    const existing = document.getElementById('shop-ui-overlay');
+    if (existing) existing.remove();
     this.game.ui.clear();
-    this.game.clearTitleDiorama();
   }
 };
 
@@ -23115,15 +23186,9 @@ window.FFH.CityExplorationPhase = class {
     
     if (dragDist > 8) {
       this.isDraggingCamera = true;
-      const deltaX = e.clientX - this.lastPointerX;
-      
-      // Orbit Camera Around Player
-      this.playerHeading += deltaX * 0.005;
-      
+      // Removed orbit logic for fixed bird's-eye view.
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
-      
-      this.updateCamera();
     }
   }
 
@@ -23531,12 +23596,17 @@ window.FFH.CityExplorationPhase = class {
     const cam = this.game.currentCamera;
     if (!cam) return;
 
-    const camX = this.playerPos.x + Math.sin(this.playerHeading) * this.camDistance;
-    const camY = this.playerPos.y + this.camHeight;
-    const camZ = this.playerPos.z + Math.cos(this.playerHeading) * this.camDistance;
+    // Fixed High Isometric Bird's-Eye Offset
+    const offsetX = 15;
+    const offsetY = 20;
+    const offsetZ = 15;
+
+    const camX = this.playerPos.x + offsetX;
+    const camY = this.playerPos.y + offsetY;
+    const camZ = this.playerPos.z + offsetZ;
 
     const targetLookX = this.playerPos.x;
-    const targetLookY = this.playerPos.y + this.camTargetPitch;
+    const targetLookY = this.playerPos.y;
     const targetLookZ = this.playerPos.z;
 
     if (snap) {
@@ -23622,91 +23692,127 @@ window.FFH.CityExplorationPhase = class {
 
 
 /* --- FILE: src/phases/dialoguePhase.js --- */
-// 3D Interior Diorama Conversation & Narrative Phase
+// 3D Cinematic In-World Conversation Phase
 window.FFH = window.FFH || {};
 
 window.FFH.DialoguePhase = class {
   constructor(game) {
     this.game = game;
-    this.roomGroup = null;
     this.npcGroup = null;
-    this.camera = null;
     this.targetNpcKey = null;
     this.dialogueData = null;
+    this.transitionTime = 0;
+    this.isTransitioning = false;
+    this.startCamPos = new THREE.Vector3();
+    this.startCamTarget = new THREE.Vector3();
+    this.endCamPos = new THREE.Vector3();
+    this.endCamTarget = new THREE.Vector3();
   }
 
   enter(params = {}) {
-    // Clear previous scene objects (like city) so we only see the room diorama
-    while (this.game.scene.children.length > 0) {
-      const obj = this.game.scene.children[this.game.scene.children.length - 1];
-      this.game.scene.remove(obj);
-    }
-    
-    // Add ambient lighting for the room since we cleared the scene
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
-    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
-    dirLight.position.set(5, 8, 3);
-    dirLight.castShadow = true;
-    this.game.scene.add(ambLight, dirLight);
+    // 1. Hide City Explorer UI elements
+    const hud = document.getElementById('hud');
+    if (hud) hud.style.display = 'none';
 
     this.targetNpcKey = params.isDelivery ? 'NPC_DELIVERY_CUSTOMER' : (params.npcKey || 'NPC_RITA');
     const npcEntry = window.FFH.NPC_DATABASE ? window.FFH.NPC_DATABASE[this.targetNpcKey] : null;
 
-    // Restore room diorama rendering for dialogue scenes
-    if (npcEntry && npcEntry.roomLevel !== undefined) {
-      this.roomGroup = window.FFH[`createLevel${npcEntry.roomLevel}Room`]();
-    } else {
-      // Default mappings
-      if (this.targetNpcKey === 'NPC_RITA') this.roomGroup = window.FFH.createLevel1Room();
-      else if (this.targetNpcKey === 'NPC_MATHIAS') this.roomGroup = window.FFH.createLevel2Room();
-      else if (this.targetNpcKey === 'NPC_MARTHA') this.roomGroup = window.FFH.createLevel3Room();
-      else if (this.targetNpcKey === 'NPC_NINA') this.roomGroup = window.FFH.createLevel4Room();
-      else if (this.targetNpcKey === 'NPC_LOKKER') this.roomGroup = window.FFH.createLevel0Room();
-      else if (this.targetNpcKey === 'NPC_DELIVERY_CUSTOMER') this.roomGroup = window.FFH.createLevel3Room();
-      else this.roomGroup = window.FFH.createLevel4Room();
-    }
+    // 2. Spawn NPC in the world relative to player position
+    const cityPhase = this.game.phases.CITY_EXPLORATION;
+    const playerPos = cityPhase.playerPos;
+    const playerHeading = cityPhase.playerHeading;
 
-    this.game.scene.add(this.roomGroup);
-
-    // Also try to add the NPC mesh if possible
     if (window.FFH.createNPCMesh) {
-       this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
-       this.npcGroup.position.set(0.5, 0.05, 0); // Position inside the diorama
-       this.npcGroup.rotation.y = -Math.PI / 4;
-       this.roomGroup.add(this.npcGroup);
+      this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
+      
+      // Place NPC roughly 3.5 units in front of player
+      const npcDist = 3.5;
+      this.npcGroup.position.set(
+        playerPos.x + Math.sin(playerHeading) * npcDist,
+        playerPos.y,
+        playerPos.z + Math.cos(playerHeading) * npcDist
+      );
+      // NPC faces player
+      this.npcGroup.rotation.y = playerHeading + Math.PI;
+      this.game.scene.add(this.npcGroup);
     }
 
-    // 3. Trigger Character Greeting Voice
+    // 3. Setup Cinematic Isometric Zoom-in Lerp
+    this.startCamPos.copy(this.game.cameras.mainCamera.position);
+    this.startCamTarget.copy(this.game.phases.CITY_EXPLORATION.playerPos);
+    
+    // We want the end camera to be a slightly zoomed-in isometric view centered between player and NPC
+    const targetLookAt = playerPos.clone();
+    if (this.npcGroup) {
+      targetLookAt.lerp(this.npcGroup.position, 0.5); // Center between them
+    }
+    
+    // Isometric offset (zoomed in compared to exploration offset 15, 20, 15)
+    const zoomOffset = new THREE.Vector3(8, 12, 8);
+    this.endCamPos.copy(targetLookAt).add(zoomOffset);
+    this.endCamTarget.copy(targetLookAt);
+
+    // We need a smooth transition
+    this.isTransitioning = true;
+    this.transitionTime = 0;
+
+    // 4. Trigger Character Greeting Voice
     if (this.game.speech && npcEntry?.greetingAudio) {
       this.game.speech.speakKey(npcEntry.greetingAudio);
     }
 
-    // 4. Render Visual Dialogue UI
-
-    if (npcEntry && npcEntry.dialogue) {
-      if (params.custom && npcEntry.currentResponse) {
-        this.dialogueData = npcEntry.currentResponse;
-      } else {
-        this.dialogueData = npcEntry.dialogue(this.game.state);
-      }
-      this.game.ui.showDialogueBox(npcEntry, this.dialogueData, (option) => {
-        if (option && option.action) {
-          option.action(this.game);
+    // 5. Render Visual Dialogue UI (slightly delayed for cinematic effect)
+    setTimeout(() => {
+      if (npcEntry && npcEntry.dialogue) {
+        if (params.custom && npcEntry.currentResponse) {
+          this.dialogueData = npcEntry.currentResponse;
+        } else {
+          this.dialogueData = npcEntry.dialogue(this.game.state);
         }
-      });
-    }
+        this.game.ui.showDialogueBox(npcEntry, this.dialogueData, (option) => {
+          if (option && option.action) {
+            option.action(this.game);
+          }
+        });
+      }
+    }, 600);
   }
 
   update(delta) {
-    // Gentle idle breathing / bobbing animation for NPC
+    // Smooth camera transition
+    if (this.isTransitioning) {
+      this.transitionTime += delta * 2.0; // speed
+      if (this.transitionTime >= 1.0) {
+        this.transitionTime = 1.0;
+        this.isTransitioning = false;
+      }
+      
+      const t = this.easeInOutQuad(this.transitionTime);
+      this.game.cameras.mainCamera.position.lerpVectors(this.startCamPos, this.endCamPos, t);
+      
+      // Interpolate look target
+      const currentTarget = new THREE.Vector3().lerpVectors(this.startCamTarget, this.endCamTarget, t);
+      this.game.cameras.mainCamera.lookAt(currentTarget);
+    }
+
+    // Gentle idle breathing for NPC
     if (this.npcGroup) {
       const time = this.game.clock.getElapsedTime();
-      this.npcGroup.position.y = Math.sin(time * 3) * 0.03;
+      const baseY = this.game.phases.CITY_EXPLORATION.playerPos.y;
+      this.npcGroup.position.y = baseY + Math.sin(time * 3) * 0.03;
     }
+  }
+
+  easeInOutQuad(t) {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
   }
 
   exit() {
     this.game.ui.clear();
+    if (this.npcGroup) {
+      this.game.scene.remove(this.npcGroup);
+      this.npcGroup = null;
+    }
   }
 };
 
@@ -23748,22 +23854,12 @@ class GameEngine {
     this.scene = this.sceneData.scene;
     this.renderer = this.sceneData.renderer;
     this.cameras = {
-      warehouseCamera: this.sceneData.warehouseCamera,
-      streetCamera: this.sceneData.streetCamera,
-      titleCamera: this.sceneData.titleCamera,
-      cityCamera: this.sceneData.cityCamera
+      mainCamera: this.sceneData.mainCamera
     };
-    this.currentCamera = this.sceneData.titleCamera;
+    this.currentCamera = this.sceneData.mainCamera;
 
     this.titleDiorama = null;
     this.titleWorld = null;
-
-    // Title camera zoom state - a flat, static diorama (no auto-spin, no
-    // drag-rotate); the only camera control is dolly in/out.
-    this.titleCameraDir = new THREE.Vector3(0, 13, 17).normalize();
-    this.titleCameraDist = Math.hypot(13, 17);
-    this.titleCameraDistMin = 8;
-    this.titleCameraDistMax = 60;
 
     // Core helpers
     this.particles = new window.FFH.ParticleSystem(this.scene);
@@ -23794,46 +23890,8 @@ class GameEngine {
   }
 
   initZoomControls() {
-    const canvas = this.renderer.domElement;
-    this.dioramaZoom = 3.6; // zoomed-out default
-    this.dioramaZoomMin = 2.0;
-    this.dioramaZoomMax = 5.5;
-
-    const applyZoom = (delta) => {
-      this.dioramaZoom = THREE.MathUtils.clamp(
-        this.dioramaZoom + delta,
-        this.dioramaZoomMin,
-        this.dioramaZoomMax
-      );
-      
-      const aspect = 390 / 844;
-      const d = this.dioramaZoom;
-      if (this.cameras && this.cameras.warehouseCamera) {
-        this.cameras.warehouseCamera.left = -d * aspect;
-        this.cameras.warehouseCamera.right = d * aspect;
-        this.cameras.warehouseCamera.top = d;
-        this.cameras.warehouseCamera.bottom = -d;
-        this.cameras.warehouseCamera.updateProjectionMatrix();
-      }
-    };
-
-    canvas.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      applyZoom(e.deltaY * 0.0035);
-    }, { passive: false });
-
-    // Pinch-to-zoom on touch devices
-    let lastPinchDist = null;
-    canvas.addEventListener('touchmove', (e) => {
-      if (e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const dist = Math.hypot(dx, dy);
-        if (lastPinchDist !== null) applyZoom((lastPinchDist - dist) * 0.01);
-        lastPinchDist = dist;
-      }
-    }, { passive: true });
-    canvas.addEventListener('touchend', () => { lastPinchDist = null; });
+    // Zooming is now handled strictly by the camera phases, 
+    // no manual zooming allowed to keep the bird's-eye consistent.
   }
 
   setupTitleDiorama() {
@@ -23885,44 +23943,44 @@ class GameEngine {
 
     if (phaseKey === 'BOOT') {
       this.currentPhase = null;
-      this.currentCamera = this.cameras.titleCamera;
+      this.currentCamera = this.cameras.mainCamera;
       this.setupTitleDiorama();
       this.ui.showBootScreen();
     } else {
       this.clearTitleDiorama();
       if (phaseKey === 'ROOM_HUB') {
         this.currentPhase = null;
-        this.currentCamera = this.cameras.titleCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.setupTitleDiorama();
         this.ui.showRoomHubUI();
       } else if (phaseKey === 'CITY_EXPLORATION') {
         this.currentPhase = this.phases.CITY_EXPLORATION;
-        this.currentCamera = this.cameras.cityCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DIALOGUE') {
         this.currentPhase = this.phases.DIALOGUE;
-        this.currentCamera = this.cameras.titleCamera; // Switch to fixed room diorama camera
+        this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'PICK') {
         this.currentPhase = this.phases.PICK;
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DEBRIEF_RECEIPT') {
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.ui.showShiftSummaryUI();
       } else if (phaseKey === 'SHOP') {
         this.ui.showPersistentHUD(this.state);
         this.sfx.playBgm('shop');
         this.currentPhase = this.phases.SHOP;
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'WIN') {
         this.currentPhase = null;
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.ui.showWinScreen();
       } else if (phaseKey === 'LOSE') {
         this.currentPhase = null;
-        this.currentCamera = this.cameras.warehouseCamera;
+        this.currentCamera = this.cameras.mainCamera;
         this.ui.showLoseScreen();
       }
       if (phaseKey !== 'BOOT' && phaseKey !== 'WIN' && phaseKey !== 'LOSE') {
@@ -23989,7 +24047,7 @@ class GameEngine {
     if (this.titleDiorama && !this.currentPhase) {
       const t = this.clock.getElapsedTime();
       const radius = 28;
-      const cam = this.cameras.titleCamera;
+      const cam = this.cameras.mainCamera;
       if (cam) {
         cam.position.x = 20 + Math.sin(t * 0.04) * radius;
         cam.position.z = 26 + Math.cos(t * 0.04) * radius;

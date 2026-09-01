@@ -444,6 +444,9 @@ window.FFH.CityExplorationPhase = class {
       this.sunLight.color = lightColor;
       this.sunLight.intensity = lightIntensity;
     }
+    if (this.game.sfx) {
+      this.game.sfx.playBgm(this.timeOfDay > 0.8 || this.timeOfDay < 0.25 ? 'night' : 'day');
+    }
   }
 
   exit() {
@@ -559,15 +562,9 @@ window.FFH.CityExplorationPhase = class {
     
     if (dragDist > 8) {
       this.isDraggingCamera = true;
-      const deltaX = e.clientX - this.lastPointerX;
-      
-      // Orbit Camera Around Player
-      this.playerHeading += deltaX * 0.005;
-      
+      // Removed orbit logic for fixed bird's-eye view.
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
-      
-      this.updateCamera();
     }
   }
 
@@ -669,8 +666,16 @@ window.FFH.CityExplorationPhase = class {
       targetNpc = 'NPC_MARTHA';
     } else if (poiData.name.includes('Dark Store') || poiData.name.includes('Kruma')) {
       targetNpc = 'NPC_NINA';
-    } else if (poiData.name.includes('Student Sublet') || poiData.name.includes('Hostel')) {
+    } else if (poiData.name.includes('Student Sublet') || poiData.name.includes('Apartment') || poiData.name.includes('WG')) {
       targetNpc = 'NPC_LOKKER';
+    } else if (poiData.name.includes('Hostel') || poiData.name.includes('Dorm')) {
+      targetNpc = 'NPC_NICO';
+    } else if (poiData.name.includes('Rathaus') || poiData.name.includes('Bürgeramt') || poiData.name.includes('Hospital')) {
+      targetNpc = 'NPC_VOGEL';
+    } else if (poiData.name.includes('Bank') || poiData.name.includes('Sparkasse') || poiData.name.includes('Späti')) {
+      targetNpc = 'NPC_WEBER';
+    } else if (poiData.name.includes('Ausländer') || poiData.name.includes('Office') || poiData.name.includes('Dom')) {
+      targetNpc = 'NPC_LINDEMANN';
     }
 
     if (targetNpc) {
@@ -975,12 +980,17 @@ window.FFH.CityExplorationPhase = class {
     const cam = this.game.currentCamera;
     if (!cam) return;
 
-    const camX = this.playerPos.x + Math.sin(this.playerHeading) * this.camDistance;
-    const camY = this.playerPos.y + this.camHeight;
-    const camZ = this.playerPos.z + Math.cos(this.playerHeading) * this.camDistance;
+    // Fixed High Isometric Bird's-Eye Offset
+    const offsetX = 15;
+    const offsetY = 20;
+    const offsetZ = 15;
+
+    const camX = this.playerPos.x + offsetX;
+    const camY = this.playerPos.y + offsetY;
+    const camZ = this.playerPos.z + offsetZ;
 
     const targetLookX = this.playerPos.x;
-    const targetLookY = this.playerPos.y + this.camTargetPitch;
+    const targetLookY = this.playerPos.y;
     const targetLookZ = this.playerPos.z;
 
     if (snap) {
