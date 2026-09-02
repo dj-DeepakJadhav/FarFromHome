@@ -1,5 +1,5 @@
 # Far From Home: Kruma Express — Design Intent Document
-*Word Count: 442 words (Strict Limit: ≤ 500 words)*
+*Word Count: 446 words (Strict Limit: ≤ 500 words) — recount with `sed '1,3d' DESIGN_INTENT_DOC.md | wc -w`*
 
 ## 1. Game Title and Genre
 **Far From Home: Kruma Express** — Narrative Life & Courier Management Simulation (Fixed Portrait Mobile WebGL, 390×844).
@@ -26,5 +26,5 @@ Three intertwined progression engines drive the experience:
 3. **The 4-Document Dossier Gauntlet**: Your persistent HUD systematically ticks off essential legal milestones (Matriculation ➔ Lease ➔ Anmeldung ➔ Sperrkonto ➔ Residence Permit).
 
 ## 5. Prototype Scope & Technical Feasibility
-- 100% offline, airgapped runtime packaged as a single self-contained `index.html` (~6.1MB uncompressed, ~1.8MB zipped, limit 35MB).
+- 100% offline, airgapped runtime packaged as a single self-contained `index.html` (3.6MB uncompressed, limit 35MB).
 - Rich 3D parametric city generation with stepped-gable Altbau architecture, custom normal+depth Sobel ink outlines, and interactive diorama rooms.

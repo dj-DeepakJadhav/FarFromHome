@@ -31,7 +31,7 @@ Grounded in narrative design principles from industry leaders (Jamie Antonisse, 
 
 ## 4. How We Built It (Tech Stack & Architecture)
 - **Engine**: Three.js r128 (Vendored, zero external CDNs, 100% airgapped offline compliance).
-- **Packaging**: Single unminified `index.html` release build bundled via custom build pipeline (~6.1 MB uncompressed, ~1.8 MB zipped).
+- **Packaging**: Single `index.html` release build bundled via a custom build pipeline (3.6 MB uncompressed). Game source ships unminified and readable; vendored Three.js ships minified as distributed upstream.
 - **Rendering**: Parametric procedural city generator, stepped-gable Altbau meshes, front-facing 2.5D picking shelves & diorama rooms, custom cel-shading light ramps, and a normal+depth Sobel edge ink outline shader.
 - **Narrative Architecture**: English-first typewriter dialogue engine, multi-branching emotional conversation trees, character memory systems, and authentic studio voice sprites.
 
@@ -39,7 +39,7 @@ Grounded in narrative design principles from industry leaders (Jamie Antonisse, 
 
 ## 5. Challenges We Ran Into
 - **Balancing Depth vs. Accessibility**: Ensuring judges can jump in and have fun within the first 15 seconds without language barriers, while still preserving rich German cultural flavor and emotional authenticity.
-- **Strict 35 MB Airgap Budget**: Implementing rich 3D environments, voiced audio, procedural cel-shading, and deep dialogue trees within a lightweight ~6.1 MB single-file build with zero external network calls.
+- **Strict 35 MB Airgap Budget**: Implementing rich 3D environments, voiced audio, procedural cel-shading, and deep dialogue trees within a lightweight 3.6 MB single-file build with zero external network calls. Even the Kenney colour atlas is inlined as a `data:` URI so the running game issues exactly one request: the document itself.
 
 ---
 

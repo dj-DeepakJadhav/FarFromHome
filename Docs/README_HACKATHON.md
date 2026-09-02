@@ -4,10 +4,12 @@
 > **Genre**: Narrative Life & Courier Management Simulation  
 > **Inspiration**: *Nicos Weg* (DW German Learning Series) × *Messenger by Abeto* × *Coffee Talk / Good Pizza, Great Pizza*  
 > **Platform**: Mobile-first WebGL, fixed portrait 390×844  
-> **Packaging**: Single unminified `index.html`, zero CDNs, 100% offline, ≤ 35 MB  
+> **Packaging**: Single `index.html` (game source unminified), zero CDNs, 100% offline, ≤ 35 MB  
 > **Engine**: Three.js r128 (vendored), plain ES6 — zero external build dependencies  
 
-> **This document is the master design authority.** Every tunable number here matches `src/core/economy.js` and `src/data/shifts.js`.
+> **Scope:** this document owns the full design detail (cast, loop, mechanics, narrative framing).
+> It is not the authority on numbers — those live in [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
+> See [`README.md`](README.md) for which document owns what.
 
 ---
 
@@ -18,7 +20,7 @@ You are an international student newly arrived in the historic Hanseatic island 
 To matriculate and secure your permanent residence permit (*Aufenthaltstitel*), you must navigate a realistic web of interdependent real-world requirements:
 1. **Find a Job**: Work as an e-bike courier at **Kruma Express** with Dispatcher **Nina** to earn funds.
 2. **Matriculate at University**: Pay the **€250 Semesterbeitrag** to Registrar **Rita Schneider** at the Universität.
-3. **Find a Permanent Apartment (*Wohnungssuche*)**: Save **€300 Kaution (deposit)** and sign a lease with Caretaker **Hans Lokker** to move out of the temporary hostel.
+3. **Find a Permanent Apartment (*Wohnungssuche*)**: Save the **€30 Kaution (deposit)** and sign a lease with Caretaker **Hans Lokker** to move out of the temporary hostel.
 4. **City Registration (*Anmeldung*)**: Bring your lease to the **Rathaus (Bürgeramt)** to obtain your **Meldebescheinigung** from Bureaucrat **Herr Vogel**.
 5. **Unlock Blocked Account (*Sperrkonto*)**: Present your enrollment certificate and *Meldebescheinigung* to Banker **Frau Weber** to unlock your monthly living funds.
 6. **Foreigners' Registration Office (*Ausländerbehörde*)**: Present all stamped documents to Case Worker **Frau Dr. Lindemann** before Day 28 to receive your Residence Permit (*Aufenthaltstitel*).
@@ -46,7 +48,7 @@ graph TD
     E -->|Save €250| B
     B -->|Issues Immatrikulationsbescheinigung| G[📜 University Enrollment Certificate]
 
-    E -->|Save €300 Kaution| H[🏠 WG Sublet: Hans Lokker]
+    E -->|Save €30 Kaution| H[🏠 WG Sublet: Hans Lokker]
     H -->|Sign Mietvertrag & Obey Ruhezeit| I[📄 Wohnungsgeberbestätigung]
 
     I -->|Take lease & passport| J[🏛️ Rathaus Bürgeramt: Herr Vogel]
@@ -75,7 +77,7 @@ graph TD
 
 ---
 
-## 2. The Unified Core Loop Architecture
+## 3. The Unified Core Loop Architecture
 
 ```text
  ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -111,39 +113,46 @@ graph TD
 
 ---
 
-## 3. The Core Packing Mechanic: Spatial Color Sorting & Audio Cues
+## 4. The Core Packing Mechanic: Spatial Color Sorting & Audio Cues
 
 The packing minigame is designed for **instant arcade flow and tactile rhythm**:
 
-### 3.1 Spatial Color Tiers & English-First Manifest
-The warehouse shelf is structured into **three distinct horizontal tiers**, each color-coded with high visual contrast:
+### 4.1 Spatial Gender Tiers & English-First Manifest
+The warehouse shelf is structured into **three horizontal tiers, sorted purely by
+grammatical gender**, each color-coded with high visual contrast:
 
-| Tier | Category | Color | Symbol | Canonical Items (English First) |
+| Tier | Article | Color | Symbol | Canonical Items (English First) |
 | :--- | :--- | :---: | :---: | :--- |
-| **Bottom** | **Chilled & Drinks** | Blue `#3A86FF` | ▲ | Apple *(der Apfel)*, Cheese *(der Käse)*, Coffee *(der Kaffee)* |
-| **Middle** | **Fresh & Snacks** | Coral `#FF006E` | ● | Milk *(die Milch)*, Banana *(die Banane)*, Carrot *(die Karotte)*, Pizza *(die Pizza)* |
-| **Top** | **Bakery & Dry** | Purple `#8338EC` | ■ | Bread *(das Brot)*, Water *(das Wasser)*, Egg *(das Ei)* |
+| **Bottom** | **der** | Blue `#3A86FF` | ▲ | Apple *(der Apfel)*, Cheese *(der Käse)*, Coffee *(der Kaffee)* |
+| **Middle** | **die** | Pink `#FF006E` | ● | Milk *(die Milch)*, Banana *(die Banane)*, Carrot *(die Karotte)*, Pizza *(die Pizza)* |
+| **Top** | **das** | Purple `#8338EC` | ■ | Bread *(das Brot)*, Water *(das Wasser)*, Egg *(das Ei)* |
+
+> **Do not relabel these rows as food categories.** Earlier drafts called them
+> "Chilled & Drinks", "Fresh & Snacks" and "Bakery & Dry". Those labels were never
+> in the code and they contradict the data — milk is not in the chilled row, and
+> apple, cheese and coffee share the bottom row only because all three are *der*.
+> The mechanic is coherent as gender sorting. The category names broke it.
 
 - Items on the packing manifest display **English first** with subtle German subtitles: `Milk (die Milch)`.
 - When the order audio plays, the character voice announces the item in German (`"Die Milch!"`), providing a rhythmic audio lead.
 - English-speaking judges instantly recognize the item name and color tier in under 0.1 seconds, achieving fast, satisfying combo streaks with zero cognitive friction.
 
-### 3.2 The Rhythm Ramp
+### 4.2 The Rhythm Ramp
 - **Shift 1 (Immediate Cue - Delay 0.0s)**: Audio and icon arrive simultaneously. Pure arcade sorting.
 - **Shift 2 (Anticipation - Delay 1.5s)**: Audio plays first. Tapping the correct color shelf tier before the icon reveals grants a **2.0× Early Speed Multiplier**.
 - **Shift 3+ (Expert Flow - Delay 2.5s)**: Extended audio window for seasoned couriers to maximize streak payouts.
 
 ---
 
-## 4. Deterministic Micro-NLP & Voiced Audio Architecture
+## 5. Deterministic Micro-NLP & Voiced Audio Architecture
 
-### 4.1 100% Offline Symbolic Morphology Engine (`src/core/grammarEngine.js`)
+### 5.1 100% Offline Symbolic Morphology Engine (`src/core/grammarEngine.js`)
 - Dynamically constructs grammatically flawless German requests based on NPC needs:
   - Accusative: *"Ich brauche **den** Käse für die Pizza."*
   - Polite/Formal: *"Könnten Sie mir bitte **das** Mehl bringen?"*
 - Calculates noun cases (*Nominativ*, *Akkusativ*, *Dativ*) and gender agreements deterministically with zero runtime latency.
 
-### 4.2 Pre-Baked Studio Voice Acting Manifest (`src/audio/`)
+### 5.2 Pre-Baked Studio Voice Acting Manifest (`src/audio/`)
 - Eliminates robotic system voices by bundling expressive, character-acted German audio clips:
   - **Oma Martha**: Warm, grandmotherly, encouraging.
   - **Herr Mathias**: Expressive, lively Italian-German restaurant boss.
@@ -155,25 +164,12 @@ The warehouse shelf is structured into **three distinct horizontal tiers**, each
 
 ---
 
-## 5. Economic Tunables & Upgrades (Canon Authority)
+## 6. Economic Tunables & Upgrades
 
-All numbers are codified in `src/core/economy.js` and `src/data/shifts.js`:
-
-```javascript
-window.FFH.ECONOMY = {
-  STARTING_WALLET: 20,           // Starting student funds (€)
-  TUITION_GOAL: 250,             // Win condition: €250 Semesterbeitrag
-  MAX_STRIKES: 3,                // Lose condition: 3 strikes fired
-  
-  ACCURACY_BONUS_PER_ITEM: 2.50, // Base accuracy pay per clean pick
-  EARLY_PICK_MULTIPLIER: 2.0,    // Multiplier for picking before icon reveals
-  STREAK_STEP: 0.14,             // Multiplier gained per consecutive clean pick
-  STREAK_MAX: 2.5,               // Maximum streak multiplier cap
-  
-  MISPICK_INTEGRITY_COST: 8,     // Bag integrity damage per mis-tap
-  FRESHNESS_DECAY_RATE: 0.10     // Freshness loss per second of delivery transit
-};
-```
+> **Numbers live in [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md), not here.**
+> That file is generated from `src/core/economy.js` and `src/data/shop.js`. Quoting
+> tunables in prose is what let four different build sizes and a non-existent
+> `FRESHNESS_DECAY_RATE` circulate across the docs for weeks.
 
 ### The Upgrades Catalog (`src/data/shop.js`):
 1. **E-Bike Conversion Kit (€45)**:
@@ -194,7 +190,7 @@ window.FFH.ECONOMY = {
 
 ---
 
-## 6. Cast & Character Roles
+## 7. Cast & Character Roles
 
 - **Rita Schneider** (University Registrar): Formal, bureaucratic; tracks your €250 tuition deadline and issues your final Student ID.
 - **Mathias Becker** (Hansa Rad Bike Mechanic): Energetic local mechanic who repairs bikes, sells E-Bikes, and cheers your financial progress.
@@ -205,7 +201,7 @@ window.FFH.ECONOMY = {
 
 ---
 
-## 7. Narrative Architecture: Antonisse Paper Prototyping Framework (GDC 2014)
+## 8. Narrative Architecture: Antonisse Paper Prototyping Framework (GDC 2014)
 
 The narrative design is structured around **Jamie Antonisse's GDC Narrative Prototyping Principles**:
 
@@ -220,10 +216,25 @@ The narrative design is structured around **Jamie Antonisse's GDC Narrative Prot
 
 ---
 
-## 8. Technical & Submission Compliance
+## 9. Progression Systems Beyond the Core Loop
+
+Two systems ship on top of the shift loop and are frequently missed by older docs:
+
+- **3-Branch Expat Skill Tree** (`src/data/skillTree.js`, surfaced in `src/ui/hud.js`):
+  *The Courier Hustler* (speed, pick grace, VIP tips), *The Bureaucrat* (legal aid
+  with AStA's Dr. Schmidt, exemptions) and *The Diplomat* (thrift, *Pfand* bonuses,
+  *Stoßlüften* stamina). Funded by `skillPoints` earned through play.
+- **Spaced-Repetition Vocabulary** (`SpacedRepetition` in `src/data/items.js`):
+  a 4-box Leitner system that schedules which nouns reappear, so vocabulary
+  genuinely consolidates across shifts rather than resetting.
+
+---
+
+## 10. Technical & Submission Compliance
 
 - **Orientation**: Fixed Portrait (390×844 responsive scaling).
 - **Runtime**: 100% Offline Single-File `index.html` (Concatenated via `build/assemble.js`).
-- **Dependencies**: Three.js r128 (Inlined / local). Zero external network calls.
-- **Bundle Footprint**: Sub-10MB uncompressed, ~2MB zipped (Well within the 35MB competition limit).
+- **Dependencies**: Three.js r128 (Inlined / local). Zero external network calls,
+  verified in the DevTools Network tab: the document loads and nothing else.
+- **Bundle Footprint**: see [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
 

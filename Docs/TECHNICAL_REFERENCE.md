@@ -2,7 +2,7 @@
 
 > **Architecture Authority**: Plain ES6 + Three.js r128 (Vendored, zero CDNs, 100% offline).  
 > **Viewport Constraint**: Fixed Portrait 390×844 responsive scale.  
-> **Packaging Limit**: Single self-contained `index.html` ≤ 35 MB (Release build ~1.8 MB zipped).
+> **Packaging Limit**: Single self-contained `index.html` ≤ 35 MB. Actual size: [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
 
 ---
 

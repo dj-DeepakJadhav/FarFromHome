@@ -1,5 +1,12 @@
 # Gameplay Video Script & Storyboard (2–3 Minutes)
 
+> ⚠️ **Fix before recording.** Beat 3 greets the *baker* as "Frau Webber", while
+> "Frau Weber" is the *banker* in Beat 5. Those two characters have nearly identical
+> names in the shipped dialogue, and on camera it will read as a mistake. Rename one
+> of them in `src/data/npcDialogue.js` first, then update this script. Same issue
+> with `Nina Lindemann` (dispatcher) vs `Dr. Lindemann` (immigration officer).
+> See [`../TASKS.md`](../TASKS.md).
+
 > **Format**: Vertical Portrait capture (390×844) centered on high-contrast background.  
 > **Duration**: 2:15 – 2:45  
 > **Key Goal**: Demonstrate the core loop, English-first accessible warehouse picking with German atmospheric audio, the €20 ➔ €250 economic progression, 4-document dossier gauntlet, and 100% offline airgap compliance.

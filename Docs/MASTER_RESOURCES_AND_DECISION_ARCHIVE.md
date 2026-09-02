@@ -1,6 +1,7 @@
 # Far From Home: Kruma Express — Master Resources & Design Decision Archive
 
-> **Permanent Living Archive & Decision Rationale Authority**  
+> **Decision rationale reference.** Not authoritative for design, numbers or tasks —
+> see [`README.md`](README.md) for owners.
 > This file tracks every external resource, GDC talk, game reference, research link, and core design decision provided by the director. Whenever doubts arise in the future regarding *why* a feature, system, or mechanic exists, consult this document.
 
 ---
@@ -89,7 +90,7 @@
 Every AI agent (Antigravity, Claude Code, Gemini CLI) MUST follow this rule before modifying game systems or writing code:
 1. **Consult This Resource Archive**: Check why existing systems were engineered before refactoring them.
 2. **Consult [`Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md`](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md)**: Ensure all economic and narrative changes obey canonical German legal constraints.
-3. **Consult [`Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md`](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md)**: Update the living mind map and character interaction matrix with every change.
+3. **Consult `Docs/archive/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md` (archived)**: Update the living mind map and character interaction matrix with every change.
 4. **Verify Build Integrity**: Always run `node build/assemble.js` and `node build/check-size.js` (must remain `< 35 MB` and 100% offline airgapped).
 
 ---
@@ -99,5 +100,5 @@ Every AI agent (Antigravity, Claude Code, Gemini CLI) MUST follow this rule befo
 Every AI agent (Antigravity, Claude Code, Gemini CLI) MUST follow this rule before modifying game systems or writing code:
 1. **Consult This Resource Archive**: Check why existing systems were engineered before refactoring them.
 2. **Consult [`Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md`](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md)**: Ensure all economic and narrative changes obey canonical German legal constraints.
-3. **Consult [`Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md`](file:///c:/DeepakJadhav/Personal/FarFromHome/Docs/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md)**: Update the living mind map and character interaction matrix with every change.
+3. **Consult `Docs/archive/GAME_MIND_MAP_AND_NARRATIVE_DESIGN.md` (archived)**: Update the living mind map and character interaction matrix with every change.
 4. **Verify Build Integrity**: Always run `node build/assemble.js` and `node build/check-size.js` (must remain `< 35 MB` and 100% offline airgapped).
