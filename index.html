@@ -25174,28 +25174,29 @@ function loadFoodModel(key) {
     try {
       if (mtlText) {
         const materials = _mtlLoader.parse(mtlText);
-        materials.preload();
+        // Avoid materials.preload() as it triggers image loader requests for non-existent PNG textures
         _objLoader.setMaterials(materials);
       } else {
         _objLoader.setMaterials(null);
       }
       const object = _objLoader.parse(objText);
+      let meshCount = 0;
       object.traverse((child) => {
         if (child.isMesh) {
+          meshCount++;
           child.castShadow = true;
           child.receiveShadow = true;
-          if (child.material) {
-            if (Array.isArray(child.material)) {
-               child.material.forEach(m => {
-                 m.type = 'MeshLambertMaterial';
-               });
-            } else {
-               child.material.type = 'MeshLambertMaterial';
-            }
+          // Ensure valid solid color material if MTL texture loading fails
+          if (!child.material || (Array.isArray(child.material) && child.material.length === 0)) {
+            child.material = window.FFH.createCelMaterial(0xFFAA44);
           }
         }
       });
-      resolve(object);
+      if (meshCount > 0) {
+        resolve(object);
+      } else {
+        reject(new Error('OBJ parsed 0 meshes'));
+      }
     } catch(e) {
       reject(e);
     }
@@ -25218,7 +25219,7 @@ window.FFH.createItemMesh = function(itemType, genderColorHex) {
   let geometry;
   let placeholderMesh = null;
   
-  // Build procedural placeholder (instant render while GLTF parses)
+  // Build procedural placeholder (instant render while GLTF/OBJ parses)
   switch(itemType) {
     case 'carton': // Milk
       placeholderMesh = new THREE.Group();
@@ -25312,6 +25313,7 @@ window.FFH.createItemMesh = function(itemType, genderColorHex) {
     const promise = loadFoodModel(modelInfo.key);
     if (promise) {
       promise.then((scene) => {
+        if (!scene || !scene.children || scene.children.length === 0) return;
         const kenneyMesh = scene.clone(true);
         kenneyMesh.scale.set(modelInfo.scale, modelInfo.scale, modelInfo.scale);
         kenneyMesh.position.y = modelInfo.y;
@@ -25321,7 +25323,7 @@ window.FFH.createItemMesh = function(itemType, genderColorHex) {
         }
         group.add(kenneyMesh);
       }).catch((err) => {
-        console.warn('Failed to load Kenney model for ' + itemType, err);
+        // Keep procedural placeholderMesh intact if OBJ parsing fails
       });
     }
   }
