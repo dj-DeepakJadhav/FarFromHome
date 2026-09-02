@@ -990,6 +990,59 @@ window.FFH.CityAssetRegistry = {
     return mesh;
   },
 
+  // Helper: Create a medieval stone watchtower with cone roof
+  createMedievalWatchtower() {
+    const group = new THREE.Group();
+    const stoneMat = new THREE.MeshLambertMaterial({ color: 0x5E5A56 });
+    const roofMat = new THREE.MeshLambertMaterial({ color: 0x9B2226 });
+
+    // Tower Body
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, 3.4, 8), stoneMat);
+    tower.position.y = 1.7;
+    tower.castShadow = true;
+    tower.receiveShadow = true;
+    group.add(tower);
+
+    // Overhang Rim
+    const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.75, 0.4, 8), stoneMat);
+    rim.position.y = 3.4;
+    rim.castShadow = true;
+    group.add(rim);
+
+    // Conical Roof
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(1.1, 1.6, 8), roofMat);
+    roof.position.y = 4.3;
+    roof.castShadow = true;
+    group.add(roof);
+
+    return group;
+  },
+
+  // Helper: Create a medieval stone wall segment with battlements
+  createMedievalWallSegment(length = 2.6, height = 2.0) {
+    const group = new THREE.Group();
+    const stoneMat = new THREE.MeshLambertMaterial({ color: 0x5E5A56 });
+    const trimMat = new THREE.MeshLambertMaterial({ color: 0x47423D });
+
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(length, height, 0.45), stoneMat);
+    wall.position.y = height / 2;
+    wall.castShadow = true;
+    wall.receiveShadow = true;
+    group.add(wall);
+
+    const crenCount = Math.max(2, Math.floor(length / 0.5));
+    for (let i = 0; i < crenCount; i++) {
+      if (i % 2 === 0) {
+        const cren = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.35, 0.5), trimMat);
+        const cx = -length / 2 + 0.18 + (i * 0.28);
+        cren.position.set(cx, height + 0.17, 0);
+        cren.castShadow = true;
+        group.add(cren);
+      }
+    }
+    return group;
+  },
+
   // 18. Outer Forest Landscape (Lush green woods and rolling hills replacing barren water)
   createOuterForestLandscape(mapSize, tileScale) {
     const group = new THREE.Group();
@@ -1039,6 +1092,55 @@ window.FFH.CityAssetRegistry = {
       mesh.userData.isOuterScenery = true;
       group.add(mesh);
     });
+
+    // 1b. Medieval City Rampart Walls & Corner Watchtowers surrounding the town perimeter
+    const wallX_West = minCoord - 0.25;
+    const wallX_East = maxCoord + 0.25;
+    const wallZ_North = minCoord - 0.25;
+    const wallZ_South = maxCoord + 0.25;
+
+    // Corner Watchtowers at the 4 outer town corners
+    [
+      { x: wallX_West, z: wallZ_North },
+      { x: wallX_East, z: wallZ_North },
+      { x: wallX_West, z: wallZ_South },
+      { x: wallX_East, z: wallZ_South }
+    ].forEach(pos => {
+      const tower = this.createMedievalWatchtower();
+      tower.position.set(pos.x, 0, pos.z);
+      group.add(tower);
+    });
+
+    // North Medieval Wall segments (leaving bridge gaps at x:2, 10, 20)
+    for (let x = 0; x < mapSize; x++) {
+      if (x === 2 || x === 10 || x === 20) continue; // Bridge entrances
+      const wallSegment = this.createMedievalWallSegment(S, 1.8);
+      wallSegment.position.set(x * S, 0, wallZ_North);
+      group.add(wallSegment);
+    }
+    // South Medieval Wall segments (leaving bridge gaps at x:3, 10, 20)
+    for (let x = 0; x < mapSize; x++) {
+      if (x === 3 || x === 10 || x === 20) continue; // Bridge entrances
+      const wallSegment = this.createMedievalWallSegment(S, 1.8);
+      wallSegment.position.set(x * S, 0, wallZ_South);
+      group.add(wallSegment);
+    }
+    // West Medieval Wall segments (leaving river exits at z:4, 19)
+    for (let z = 0; z < mapSize; z++) {
+      if (z === 4 || z === 19) continue;
+      const wallSegment = this.createMedievalWallSegment(S, 1.8);
+      wallSegment.rotation.y = Math.PI / 2;
+      wallSegment.position.set(wallX_West, 0, z * S);
+      group.add(wallSegment);
+    }
+    // East Medieval Wall segments (leaving river entrances at z:4, 19)
+    for (let z = 0; z < mapSize; z++) {
+      if (z === 4 || z === 19) continue;
+      const wallSegment = this.createMedievalWallSegment(S, 1.8);
+      wallSegment.rotation.y = Math.PI / 2;
+      wallSegment.position.set(wallX_East, 0, z * S);
+      group.add(wallSegment);
+    }
 
     // 2. Rolling Green Hills & Knolls Surrounding All Horizons
     const hillMat1 = new THREE.MeshLambertMaterial({ color: 0x4F772D });
@@ -1452,7 +1554,7 @@ window.FFH.POI_METADATA = {
   'B_HOSPITAL':   { name: 'Krankenhaus Altstadt', tag: 'Medical VIP', desc: 'High-stakes express delivery target for Station 4B night shifts.', action: 'View Delivery Target' }
 };
 
-// Calculate optimal building rotation so front door & gable facade (+Z axis) face inward toward the street network
+// Calculate building rotation with organic pseudo-random variation while guaranteeing doors NEVER face into the medieval outer wall
 function getBuildingRotationTowardsRoad(grid, x, z) {
   const S = window.FFH.MAP_SIZE;
   const isRoad = (gx, gz) => {
@@ -1461,18 +1563,42 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
     return t === 'R_C' || t === 'R_B' || t === 'BR' || t === 'R_R';
   };
 
-  // 1. STRICT BORDER TILES (Outer boundary ring of the city: x <= 1, x >= 22, z <= 1, z >= 22)
-  // Border buildings MUST strictly face inward towards the city center!
-  if (x <= 1) return -Math.PI / 2;   // West border faces East (+X, into city)
-  if (x >= 22) return Math.PI / 2;   // East border faces West (-X, into city)
-  if (z <= 1) return 0;              // North border faces South (+Z, into city)
-  if (z >= 22) return Math.PI;       // South border faces North (-Z, into city)
+  // Deterministic pseudo-random seed based on grid coordinates so layout is 100% stable across reloads
+  const seed = Math.abs(x * 37 + z * 17);
 
-  // 2. INNER BUILDINGS (Non-border tiles): Face nearest road tile or dynamic orientation
-  if (isRoad(x, z + 1)) return 0;            // Door faces South (+Z)
-  if (isRoad(x, z - 1)) return Math.PI;      // Door faces North (-Z)
-  if (isRoad(x + 1, z)) return -Math.PI / 2; // Door faces East (+X)
-  if (isRoad(x - 1, z)) return Math.PI / 2;  // Door faces West (-X)
+  // 1. STRICT BORDER TILES (Outer boundary ring of the city: x <= 1, x >= 22, z <= 1, z >= 22)
+  // Rule: Front door MUST NEVER face directly outward into the medieval city wall!
+  if (x <= 1) {
+    // West border: Forbidden angle is West (Math.PI / 2). Allowed angles: East (-Math.PI/2), South (0), North (Math.PI)
+    const allowed = [-Math.PI / 2, -Math.PI / 2, 0, Math.PI];
+    return allowed[seed % allowed.length];
+  }
+  if (x >= 22) {
+    // East border: Forbidden angle is East (-Math.PI / 2). Allowed angles: West (Math.PI/2), South (0), North (Math.PI)
+    const allowed = [Math.PI / 2, Math.PI / 2, 0, Math.PI];
+    return allowed[seed % allowed.length];
+  }
+  if (z <= 1) {
+    // North border: Forbidden angle is North (Math.PI). Allowed angles: South (0), East (-Math.PI/2), West (Math.PI/2)
+    const allowed = [0, 0, -Math.PI / 2, Math.PI / 2];
+    return allowed[seed % allowed.length];
+  }
+  if (z >= 22) {
+    // South border: Forbidden angle is South (0). Allowed angles: North (Math.PI), East (-Math.PI/2), West (Math.PI/2)
+    const allowed = [Math.PI, Math.PI, -Math.PI / 2, Math.PI / 2];
+    return allowed[seed % allowed.length];
+  }
+
+  // 2. INNER BUILDINGS (Non-border tiles): Dynamic road-facing with organic multi-road choice
+  const roadFacingOptions = [];
+  if (isRoad(x, z + 1)) roadFacingOptions.push(0);            // South (+Z)
+  if (isRoad(x, z - 1)) roadFacingOptions.push(Math.PI);      // North (-Z)
+  if (isRoad(x + 1, z)) roadFacingOptions.push(-Math.PI / 2); // East (+X)
+  if (isRoad(x - 1, z)) roadFacingOptions.push(Math.PI / 2);  // West (-X)
+
+  if (roadFacingOptions.length > 0) {
+    return roadFacingOptions[seed % roadFacingOptions.length];
+  }
 
   // 2-step fallback for inner buildings near courtyards
   if (isRoad(x, z + 2)) return 0;
@@ -1480,13 +1606,14 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
   if (isRoad(x + 2, z)) return -Math.PI / 2;
   if (isRoad(x - 2, z)) return Math.PI / 2;
 
-  // Regional default for inner tiles
+  // Regional default with organic variation
   if (x <= 5) return -Math.PI / 2;
   if (x >= 18) return Math.PI / 2;
   if (z <= 5) return 0;
   if (z >= 18) return Math.PI;
 
-  return 0;
+  const defaultRotations = [0, Math.PI, -Math.PI / 2, Math.PI / 2];
+  return defaultRotations[seed % 4];
 }
 
 // ============================================================================
