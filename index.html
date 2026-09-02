@@ -21791,19 +21791,6 @@ window.FFH.createBakeryRoom = function() {
   sack.scale.set(0.4, 0.5, 0.35);
   sack.position.set(1.0, 0.25, 0.4);
   room.add(sack);
-
-  // Chalkboard Price List
-  const boardMat = window.FFH.createCelMaterial(0x264653);
-  const priceBoard = new THREE.Mesh(boxGeo, boardMat);
-  priceBoard.scale.set(0.8, 0.9, 0.03);
-  priceBoard.position.set(-0.5, 1.8, -1.42);
-  room.add(priceBoard);
-
-// Formal municipal counter, hygiene glass partition, ticket dispenser (Wartemarke), eagle seal
-window.FFH.createRathausRoom = function() {
-  const room = window.FFH.createRoomShell(0x457B9D, 0x1D3557); // Formal steel blue walls, dark granite floor
-  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-
   // Massive Official Stone Counter
   const counter = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x8D99AE));
   counter.scale.set(2.2, 0.9, 0.65);
