@@ -251,14 +251,14 @@ window.FFH.createCitizenBehaviorTree = function () {
       return true;
     };
 
-    if (!agent.targetPos) {
-      // Pick a nearby connected ground tile (within 1 to 3 tiles of agent's current position)
+    if (!agent.path || agent.path.length === 0) {
+      // Pick a nearby connected ground tile (within 1 to 5 tiles)
       const currentGX = Math.max(1, Math.min(M - 2, Math.round(agent.position.x / S)));
       const currentGZ = Math.max(1, Math.min(M - 2, Math.round(agent.position.z / S)));
 
       const nearbyGround = [];
-      for (let dz = -3; dz <= 3; dz++) {
-        for (let dx = -3; dx <= 3; dx++) {
+      for (let dz = -5; dz <= 5; dz++) {
+        for (let dx = -5; dx <= 5; dx++) {
           if (dx === 0 && dz === 0) continue;
           const gz = currentGZ + dz;
           const gx = currentGX + dx;
@@ -270,26 +270,34 @@ window.FFH.createCitizenBehaviorTree = function () {
 
       if (nearbyGround.length > 0) {
         const rand = nearbyGround[Math.floor(Math.random() * nearbyGround.length)];
-        // Add slight variance to prevent NPCs walking in rigid single file
-        agent.targetPos = new THREE.Vector3(
-          rand.x + (Math.random() - 0.5) * (S * 0.35),
-          0.05,
-          rand.z + (Math.random() - 0.5) * (S * 0.35)
-        );
+        const destX = rand.x + (Math.random() - 0.5) * (S * 0.3);
+        const destZ = rand.z + (Math.random() - 0.5) * (S * 0.3);
+
+        agent.path = (window.FFH.findPath)
+          ? window.FFH.findPath(agent.position.x, agent.position.z, destX, destZ)
+          : [{ x: destX, z: destZ }];
       } else {
         return 'FAILURE';
       }
     }
 
-    const dist = Math.hypot(agent.targetPos.x - agent.position.x, agent.targetPos.z - agent.position.z);
-    if (dist < 0.3) {
-      agent.targetPos = null;
+    if (!agent.path || agent.path.length === 0) {
       return 'SUCCESS';
+    }
+
+    const currentTgt = agent.path[0];
+    const dist = Math.hypot(currentTgt.x - agent.position.x, currentTgt.z - agent.position.z);
+
+    if (dist < 0.3) {
+      agent.path.shift();
+      if (agent.path.length === 0) {
+        return 'SUCCESS';
+      }
     } else {
-      // Walk towards target with building box collision and water barrier resolution
-      const dirX = (agent.targetPos.x - agent.position.x) / dist;
-      const dirZ = (agent.targetPos.z - agent.position.z) / dist;
-      const step = agent.speed * delta;
+      // Walk towards waypoint with A* pathing and building box collision
+      const dirX = (currentTgt.x - agent.position.x) / dist;
+      const dirZ = (currentTgt.z - agent.position.z) / dist;
+      const step = Math.min(dist, agent.speed * delta);
 
       const nextX = agent.position.x + dirX * step;
       const nextZ = agent.position.z + dirZ * step;
@@ -300,20 +308,18 @@ window.FFH.createCitizenBehaviorTree = function () {
 
       const distMoved = Math.hypot(resolved.x - agent.position.x, resolved.z - agent.position.z);
       if (distMoved < 0.001) {
-        // Blocked by building wall or water quay! Reset target and wander in a new direction
-        agent.targetPos = null;
+        agent.path = null;
         return 'FAILURE';
       }
 
       agent.position.x = resolved.x;
       agent.position.z = resolved.z;
       agent.mesh.position.copy(agent.position);
-      agent.mesh.position.y = 0.05; // Ground level
+      agent.mesh.position.y = 0.05;
 
       const angle = Math.atan2(dirX, dirZ);
       agent.mesh.rotation.y = THREE.MathUtils.lerp(agent.mesh.rotation.y, angle, delta * 8);
 
-      // Procedural waddle animation for citizens
       agent.walkTime = (agent.walkTime || 0) + delta * 15;
       agent.mesh.position.y = 0.05 + Math.abs(Math.sin(agent.walkTime)) * 0.12;
       agent.mesh.rotation.z = Math.cos(agent.walkTime * 0.5) * 0.15;

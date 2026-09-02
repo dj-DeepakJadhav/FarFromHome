@@ -43,11 +43,11 @@ window.FFH.CityExplorationPhase = class {
     this.pointerDownTime = 0;
     
     // Dynamic Camera Zoom & Atmosphere state (Messenger-style follow to diorama overview)
-    this.camZoom = 1.0;
-    this.targetCamZoom = 1.0;
-    this.minCamZoom = 0.25; // Full view of 24x24 diorama island
-    this.maxCamZoom = 2.2;  // Close Messenger ground follow
-    this.initialCamZoom = 1.0;
+    this.camZoom = 0.85;
+    this.targetCamZoom = 0.85;
+    this.minCamZoom = 0.50; // Balanced bird's-eye isometric view of the city diorama
+    this.maxCamZoom = 1.35; // Intimate Messenger ground follow
+    this.initialCamZoom = 0.85;
     this.initialPinchDist = null;
     this.cameraPanOffset = new THREE.Vector3(0, 0, 0);
     this.isPanningCamera = false;
@@ -735,16 +735,16 @@ window.FFH.CityExplorationPhase = class {
   }
 
   setMoveTarget(targetX, targetZ) {
-    const S = window.FFH.TILE_SCALE || 2.0;
-    const gridX = Math.round(targetX / S);
-    const gridZ = Math.round(targetZ / S);
-    const tile = window.FFH.LUBECK_CITY_GRID[gridZ] ? window.FFH.LUBECK_CITY_GRID[gridZ][gridX] : 'W';
+    const path = (window.FFH.findPath)
+      ? window.FFH.findPath(this.playerPos.x, this.playerPos.z, targetX, targetZ)
+      : [{ x: targetX, z: targetZ }];
 
-    // Don't walk directly into deep water
-    if (tile !== 'W') {
-      this.targetMovePos = new THREE.Vector3(targetX, 0.05, targetZ);
+    if (path && path.length > 0) {
+      this.playerPath = path;
+      const finalTgt = path[path.length - 1];
+      this.targetMovePos = new THREE.Vector3(finalTgt.x, 0.05, finalTgt.z);
       if (this.targetMarker) {
-        this.targetMarker.position.set(targetX, 0.06, targetZ);
+        this.targetMarker.position.set(finalTgt.x, 0.06, finalTgt.z);
         this.targetMarker.visible = true;
       }
     }
@@ -762,12 +762,12 @@ window.FFH.CityExplorationPhase = class {
   }
 
   toggleOverview() {
-    if (this.targetCamZoom < 0.45) {
-      // Return to normal 100% close-up view centered on player
-      this.setZoom(1.0);
+    if (this.targetCamZoom < 0.7) {
+      // Return to ground Messenger follow view
+      this.setZoom(1.15);
     } else {
-      // Zoom out to view entire island diorama centered on player
-      this.setZoom(0.26);
+      // Zoom out to bird's-eye isometric diorama view
+      this.setZoom(0.50);
     }
   }
 
@@ -942,65 +942,54 @@ window.FFH.CityExplorationPhase = class {
       });
     }
 
-    // 4. Click-to-Move Pathing & Collision Handling
-    if (this.targetMovePos) {
-      const dist = Math.hypot(this.targetMovePos.x - this.playerPos.x, this.targetMovePos.z - this.playerPos.z);
-      
-      if (dist > 0.2) {
-        const dirX = ((this.targetMovePos.x - this.playerPos.x) / dist) * this.moveSpeed * delta;
-        const dirZ = ((this.targetMovePos.z - this.playerPos.z) / dist) * this.moveSpeed * delta;
+    // 4. Click-to-Move A* Pathing & Collision Handling
+    if (this.playerPath && this.playerPath.length > 0) {
+      const currentTgt = this.playerPath[0];
+      const dx = currentTgt.x - this.playerPos.x;
+      const dz = currentTgt.z - this.playerPos.z;
+      const dist = Math.hypot(dx, dz);
 
-        const S = window.FFH.TILE_SCALE || 2.0;
-        const maxLimit = (window.FFH.MAP_SIZE - 2) * S;
+      if (dist < 0.25) {
+        this.playerPath.shift();
+        if (this.playerPath.length === 0) {
+          this.targetMovePos = null;
+          if (this.targetMarker) this.targetMarker.visible = false;
+          if (window.FFH.updateCourierWalk && this.courier) {
+            window.FFH.updateCourierWalk(this.courier, delta, 0);
+          }
+          if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
+        }
+      } else {
+        const speed = (this.game.state.upgrades?.ebike ? 7.2 : 4.2);
+        const step = Math.min(dist, speed * delta);
+        const dirX = dx / dist;
+        const dirZ = dz / dist;
 
-        const targetX = THREE.MathUtils.clamp(this.playerPos.x + dirX, S, maxLimit);
-        const targetZ = THREE.MathUtils.clamp(this.playerPos.z + dirZ, S, maxLimit);
-
-        let nextX = this.playerPos.x;
-        let nextZ = this.playerPos.z;
+        const nextX = this.playerPos.x + dirX * step;
+        const nextZ = this.playerPos.z + dirZ * step;
 
         const radius = this.playerRadius || 0.4;
         const resolved = window.FFH.resolveSlidingMovement
-          ? window.FFH.resolveSlidingMovement(this.playerPos.x, this.playerPos.z, targetX, targetZ, radius)
-          : { x: targetX, z: targetZ };
+          ? window.FFH.resolveSlidingMovement(this.playerPos.x, this.playerPos.z, nextX, nextZ, radius)
+          : { x: nextX, z: nextZ };
 
-        nextX = resolved.x;
-        nextZ = resolved.z;
+        this.playerPos.x = resolved.x;
+        this.playerPos.z = resolved.z;
 
-        // Check if movement is negligible after collision resolution
-        const distMoved = Math.hypot(nextX - this.playerPos.x, nextZ - this.playerPos.z);
-        if (distMoved < 0.001) {
-          this.targetMovePos = null;
-          if (this.targetMarker) this.targetMarker.visible = false;
-          if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
-        } else {
-          this.playerPos.x = nextX;
-          this.playerPos.z = nextZ;
-
-          if (this.courier) {
-            this.courier.position.x = this.playerPos.x;
-            this.courier.position.z = this.playerPos.z;
-            const moveAngle = Math.atan2(dirX, dirZ);
-            this.courier.rotation.y = THREE.MathUtils.lerp(this.courier.rotation.y, moveAngle, delta * 14);
-          }
-
-          if (window.FFH.updateCourierWalk && this.courier) {
-            window.FFH.updateCourierWalk(this.courier, delta, 1.0);
-          }
-          if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(1.0);
-
-          // Moving resets idle state
-          this.idleTimer = 0;
-          this.idleDriftAngle = THREE.MathUtils.lerp(this.idleDriftAngle, 0, delta * 5);
+        if (this.courier) {
+          this.courier.position.x = this.playerPos.x;
+          this.courier.position.z = this.playerPos.z;
+          const moveAngle = Math.atan2(dirX, dirZ);
+          this.courier.rotation.y = THREE.MathUtils.lerp(this.courier.rotation.y, moveAngle, delta * 14);
         }
-      } else {
-        // Arrived at destination
-        this.targetMovePos = null;
-        if (this.targetMarker) this.targetMarker.visible = false;
+
         if (window.FFH.updateCourierWalk && this.courier) {
-          window.FFH.updateCourierWalk(this.courier, delta, 0);
+          window.FFH.updateCourierWalk(this.courier, delta, 1.0);
         }
-        if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
+        if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(1.0);
+
+        this.idleTimer = 0;
+        this.idleDriftAngle = THREE.MathUtils.lerp(this.idleDriftAngle, 0, delta * 5);
       }
     } else {
       if (window.FFH.updateCourierWalk && this.courier) {
@@ -1072,19 +1061,16 @@ window.FFH.CityExplorationPhase = class {
         this.navRibbonMat.color.setHex(mainColor);
         this.navRibbonMat.opacity = 0.35 + Math.sin(timeSec * 3) * 0.08; // subtle breathing glow
 
-        // Build 3D Manhattan waypoints on the street grid
-        const waypoints = [];
-        waypoints.push(new THREE.Vector3(this.playerPos.x, 0.28, this.playerPos.z));
+        // Build true A* waypoints on the street grid
+        const aStarPath = window.FFH.findPath
+          ? window.FFH.findPath(this.playerPos.x, this.playerPos.z, targetMesh.position.x, targetMesh.position.z)
+          : [];
 
-        const midX = (Math.abs(this.playerPos.x - targetMesh.position.x) > Math.abs(this.playerPos.z - targetMesh.position.z))
-          ? targetMesh.position.x
-          : this.playerPos.x;
-        const midZ = (midX === targetMesh.position.x)
-          ? this.playerPos.z
-          : targetMesh.position.z;
-
-        waypoints.push(new THREE.Vector3(midX, 0.28, midZ));
-        waypoints.push(new THREE.Vector3(targetMesh.position.x, 0.28, targetMesh.position.z));
+        const waypoints = aStarPath.map(p => new THREE.Vector3(p.x, 0.28, p.z));
+        if (waypoints.length === 0) {
+          waypoints.push(new THREE.Vector3(this.playerPos.x, 0.28, this.playerPos.z));
+          waypoints.push(new THREE.Vector3(targetMesh.position.x, 0.28, targetMesh.position.z));
+        }
 
         // Generate wide ribbon mesh along waypoints (width = 0.65 units)
         const ribbonWidth = 0.65;
@@ -1283,7 +1269,7 @@ window.FFH.CityExplorationPhase = class {
 
     // Messenger-Style Dynamic Distance & Pitch Interpolation
     // Zoom factor: 0.0 (wide diorama overview) to 1.0 (close Messenger ground follow)
-    const zoomFactor = THREE.MathUtils.clamp((this.camZoom - 0.25) / (2.2 - 0.25), 0, 1);
+    const zoomFactor = THREE.MathUtils.clamp((this.camZoom - 0.50) / (1.35 - 0.50), 0, 1);
 
     // Zoomed out: high 50° angle (15, 20, 15). Zoomed in: intimate 22° angle (5, 5, 5)
     const baseOffsetX = THREE.MathUtils.lerp(15.0, 5.0, zoomFactor);

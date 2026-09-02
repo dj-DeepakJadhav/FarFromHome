@@ -9,50 +9,38 @@ function assemble() {
   // Read index.dev.html
   let devHtml = fs.readFileSync(path.join(root, 'index.dev.html'), 'utf-8');
   
-  // Get vendor script contents
-  const threeJsPath = path.join(root, 'vendor', 'three.min.js');
-  if (!fs.existsSync(threeJsPath)) {
-    console.error('CRITICAL: vendor/three.min.js not found! Please run the download command first.');
-    process.exit(1);
-  }
-  const threeJsContent = fs.readFileSync(threeJsPath, 'utf-8');
-
-  const gltfLoaderPath = path.join(root, 'vendor', 'GLTFLoader.js');
-  if (!fs.existsSync(gltfLoaderPath)) {
-    console.error('CRITICAL: vendor/GLTFLoader.js not found!');
-    process.exit(1);
-  }
-  const gltfLoaderContent = fs.readFileSync(gltfLoaderPath, 'utf-8');
-
-  const bvhPath = path.join(root, 'vendor', 'three-mesh-bvh.umd.js');
-  if (!fs.existsSync(bvhPath)) {
-    console.error('CRITICAL: vendor/three-mesh-bvh.umd.js not found!');
-    process.exit(1);
-  }
-  const bvhContent = fs.readFileSync(bvhPath, 'utf-8');
-
-  // Post-processing chain (ink outline pass). Order matters: Pass defines the
-  // base class + FullScreenQuad, EffectComposer depends on all the others.
-  const postFiles = ['Pass.js', 'CopyShader.js', 'ShaderPass.js', 'RenderPass.js', 'MaskPass.js', 'EffectComposer.js'];
-  const postContents = {};
-  for (const pf of postFiles) {
-    const p = path.join(root, 'vendor', pf);
+  // Every vendor library that index.dev.html loads, in dependency order.
+  // This list must match the <script src="vendor/..."> tags that appear BEFORE
+  // the "<!-- Game Source Code -->" marker in index.dev.html: everything from
+  // that marker to </body> is stripped and replaced with the merged src bundle,
+  // so a vendor tag placed after it would be silently dropped from the release.
+  // Order matters twice over: Pass.js defines the base class + FullScreenQuad
+  // that EffectComposer needs, and MTLLoader must precede OBJLoader.
+  const vendorFiles = [
+    'three.min.js',
+    'three-mesh-bvh.umd.js',
+    'GLTFLoader.js',
+    'Pass.js',
+    'CopyShader.js',
+    'ShaderPass.js',
+    'RenderPass.js',
+    'MaskPass.js',
+    'EffectComposer.js',
+    'MTLLoader.js',
+    'OBJLoader.js'
+  ];
+  const vendorContents = {};
+  for (const vf of vendorFiles) {
+    const p = path.join(root, 'vendor', vf);
     if (!fs.existsSync(p)) {
-      console.error(`CRITICAL: vendor/${pf} not found!`);
+      console.error(`CRITICAL: vendor/${vf} not found!`);
       process.exit(1);
     }
-    postContents[pf] = fs.readFileSync(p, 'utf-8');
+    vendorContents[vf] = fs.readFileSync(p, 'utf-8');
   }
 
-  // Script file sequence matching dependency structure
-  const vendorFiles = [
-    'vendor/three.min.js',
-    'vendor/three-mesh-bvh.umd.js',
-    'vendor/GLTFLoader.js',
-    'vendor/MTLLoader.js',
-    'vendor/OBJLoader.js'
-  ];
   const srcFiles = [
+    'src/core/pathfinding.js',
     'src/core/economy.js',
     'src/core/npcBehaviorTree.js',
     'src/data/prologueQuests.js',
@@ -90,6 +78,23 @@ function assemble() {
     'src/main.js'
   ];
   
+  // Guard against dev/release drift. index.dev.html and this list must load the
+  // same modules in the same order, or the game judges play is not the game we
+  // tested in the browser.
+  const missingFromDev = srcFiles.filter(f => !devHtml.includes(`<script src="${f}"></script>`));
+  if (missingFromDev.length) {
+    console.error('CRITICAL: these modules are inlined into the release but have no tag in index.dev.html:');
+    missingFromDev.forEach(f => console.error(`  - ${f}`));
+    process.exit(1);
+  }
+  const devSrcTags = [...devHtml.matchAll(/<script src="(src\/[^"]+)"><\/script>/g)].map(m => m[1]);
+  const missingFromRelease = devSrcTags.filter(f => !srcFiles.includes(f));
+  if (missingFromRelease.length) {
+    console.error('CRITICAL: index.dev.html loads modules that the release build omits:');
+    missingFromRelease.forEach(f => console.error(`  - ${f}`));
+    process.exit(1);
+  }
+
   let mergedSourceCode = '';
   for (const file of srcFiles) {
     console.log(`- Inlining ${file}`);
@@ -104,19 +109,16 @@ function assemble() {
   // Strip old dev script tags and replace with inlined modules
   let outputHtml = devHtml;
   
-  // 1. Replace vendor script tags
-  const vendorTagPattern = /<script src="vendor\/three\.min\.js"><\/script>/;
-  outputHtml = outputHtml.replace(vendorTagPattern, `<script>\n${threeJsContent}\n</script>`);
-
-  const gltfLoaderTagPattern = /<script src="vendor\/GLTFLoader\.js"><\/script>/;
-  outputHtml = outputHtml.replace(gltfLoaderTagPattern, `<script>\n${gltfLoaderContent}\n</script>`);
-
-  const bvhTagPattern = /<script src="vendor\/three-mesh-bvh\.umd\.js"><\/script>/;
-  outputHtml = outputHtml.replace(bvhTagPattern, `<script>\n${bvhContent}\n</script>`);
-
-  for (const pf of postFiles) {
-    const tagPattern = new RegExp('<script src="vendor/' + pf.replace('.', '\\.') + '"></script>');
-    outputHtml = outputHtml.replace(tagPattern, `<script>\n${postContents[pf]}\n</script>`);
+  // 1. Replace each vendor script tag with its inlined contents. A tag that
+  //    fails to match means the release build would silently ship without that
+  //    library, so treat a miss as fatal rather than letting it through.
+  for (const vf of vendorFiles) {
+    const tagPattern = new RegExp('<script src="vendor/' + vf.replace(/\./g, '\\.') + '"></script>');
+    if (!tagPattern.test(outputHtml)) {
+      console.error(`CRITICAL: no <script src="vendor/${vf}"> tag found in index.dev.html before the "Game Source Code" marker.`);
+      process.exit(1);
+    }
+    outputHtml = outputHtml.replace(tagPattern, `<script>\n${vendorContents[vf]}\n</script>`);
   }
 
   // 2. Remove all dev script tags
