@@ -23964,27 +23964,29 @@ window.FFH.CityAssetRegistry = {
     const quayMat = new THREE.MeshLambertMaterial({ color: 0x685D54 });
     const chunkMats = [quayMat, quayMat, grassMat, quayMat, quayMat, quayMat];
 
-    const farWest  = -38.0;
-    const farEast  = 98.0;
-    const farNorth = -38.0;
-    const farSouth = 88.0;
+    const farWest  = -60.0;
+    const farEast  = 120.0;
+    const farNorth = -60.0;
+    const farSouth = 120.0;
 
-    // 1. Terrain Chunks framing the city and leaving open river channels
+    // 1. Full 360-Degree Ground Plains framing the city and preserving open river channels
     const chunks = [
-      // North Forest Landscape (where clouds originate and drift across city)
+      // North Forest & Countryside Plains
       { x: (farWest + farEast) * 0.5, z: (farNorth + minCoord) * 0.5, w: farEast - farWest, d: minCoord - farNorth },
+      // South Countryside Plains (south of southern canal)
+      { x: (farWest + farEast) * 0.5, z: (maxCoord + farSouth) * 0.5, w: farEast - farWest, d: farSouth - maxCoord },
       // West Flank (North of River Exit 1)
       { x: (farWest + minCoord) * 0.5, z: (minCoord + g1_start) * 0.5, w: minCoord - farWest, d: g1_start - minCoord },
       // West Flank (Between River Exit 1 & 2)
       { x: (farWest + minCoord) * 0.5, z: (g1_end + g2_start) * 0.5, w: minCoord - farWest, d: g2_start - g1_end },
       // West Flank (South of River Exit 2)
-      { x: (farWest + minCoord) * 0.5, z: (g2_end + farSouth) * 0.5, w: minCoord - farWest, d: farSouth - g2_end },
+      { x: (farWest + minCoord) * 0.5, z: (g2_end + maxCoord) * 0.5, w: minCoord - farWest, d: maxCoord - g2_end },
       // East Flank (North of River Entrance 1)
       { x: (maxCoord + farEast) * 0.5, z: (minCoord + g1_start) * 0.5, w: farEast - maxCoord, d: g1_start - minCoord },
       // East Flank (Between River Entrance 1 & 2)
       { x: (maxCoord + farEast) * 0.5, z: (g1_end + g2_start) * 0.5, w: farEast - maxCoord, d: g2_start - g1_end },
       // East Flank (South of River Entrance 2)
-      { x: (maxCoord + farEast) * 0.5, z: (g2_end + farSouth) * 0.5, w: farEast - maxCoord, d: farSouth - g2_end }
+      { x: (maxCoord + farEast) * 0.5, z: (g2_end + maxCoord) * 0.5, w: farEast - maxCoord, d: maxCoord - g2_end }
     ];
 
     chunks.forEach(c => {
@@ -23996,38 +23998,105 @@ window.FFH.CityAssetRegistry = {
       group.add(mesh);
     });
 
-    // 2. Rolling Green Hills along the Northern Horizon
-    const hillMat = new THREE.MeshLambertMaterial({ color: 0x4F772D });
+    // 2. Rolling Green Hills & Knolls Surrounding All Horizons
+    const hillMat1 = new THREE.MeshLambertMaterial({ color: 0x4F772D });
+    const hillMat2 = new THREE.MeshLambertMaterial({ color: 0x386641 });
+    const hillMat3 = new THREE.MeshLambertMaterial({ color: 0x2D6A4F });
+
     const hills = [
-      { x: -18, z: -25, r: 8.0, h: 2.2 },
-      { x: 5,   z: -28, r: 9.5, h: 2.8 },
-      { x: 28,  z: -26, r: 8.5, h: 2.4 },
-      { x: 52,  z: -29, r: 10.0, h: 3.0 },
-      { x: 75,  z: -24, r: 8.0, h: 2.2 },
-      { x: -28, z: -15, r: 7.0, h: 2.0 },
-      { x: 86,  z: -12, r: 7.5, h: 2.0 }
+      // Northern Horizon Hills
+      { x: -35, z: -40, r: 12.0, h: 3.5, mat: hillMat1 },
+      { x: -10, z: -45, r: 14.0, h: 4.2, mat: hillMat2 },
+      { x: 20,  z: -42, r: 13.0, h: 3.8, mat: hillMat1 },
+      { x: 50,  z: -46, r: 15.0, h: 4.5, mat: hillMat3 },
+      { x: 80,  z: -41, r: 12.5, h: 3.6, mat: hillMat2 },
+      { x: 105, z: -38, r: 11.0, h: 3.2, mat: hillMat1 },
+      
+      // Eastern Horizon Hills
+      { x: 95,  z: 0,   r: 13.0, h: 4.0, mat: hillMat2 },
+      { x: 100, z: 30,  r: 14.5, h: 4.3, mat: hillMat1 },
+      { x: 95,  z: 60,  r: 13.5, h: 3.9, mat: hillMat3 },
+      { x: 102, z: 90,  r: 12.0, h: 3.5, mat: hillMat2 },
+
+      // Southern Horizon Hills
+      { x: -20, z: 95,  r: 13.0, h: 3.8, mat: hillMat1 },
+      { x: 15,  z: 98,  r: 15.0, h: 4.6, mat: hillMat2 },
+      { x: 50,  z: 96,  r: 14.0, h: 4.1, mat: hillMat3 },
+      { x: 85,  z: 94,  r: 12.5, h: 3.7, mat: hillMat1 },
+
+      // Western Horizon Hills
+      { x: -45, z: -10, r: 12.5, h: 3.6, mat: hillMat3 },
+      { x: -48, z: 25,  r: 14.0, h: 4.2, mat: hillMat1 },
+      { x: -46, z: 65,  r: 13.0, h: 3.8, mat: hillMat2 }
     ];
+
     hills.forEach(h => {
-      const hillGeo = new THREE.SphereGeometry(h.r, 9, 7);
+      const hillGeo = new THREE.SphereGeometry(h.r, 11, 8);
       hillGeo.scale(1, h.h / h.r, 1);
-      const hillMesh = new THREE.Mesh(hillGeo, hillMat);
+      const hillMesh = new THREE.Mesh(hillGeo, h.mat);
       hillMesh.position.set(h.x, 0, h.z);
       hillMesh.receiveShadow = true;
       hillMesh.userData.isOuterScenery = true;
       group.add(hillMesh);
     });
 
-    // 3. Dense Forest Population (Pine & Deciduous Trees)
+    // 3. Countryside Agricultural Meadows & Crop Fields
+    const fieldMat1 = new THREE.MeshLambertMaterial({ color: 0xE9C46A }); // Golden Wheat Field
+    const fieldMat2 = new THREE.MeshLambertMaterial({ color: 0x2A9D8F }); // Clover Pasture
+
+    const fields = [
+      { x: -25, z: -20, w: 22, d: 16, mat: fieldMat1 },
+      { x: 70,  z: -22, w: 26, d: 18, mat: fieldMat2 },
+      { x: 72,  z: 75,  w: 24, d: 20, mat: fieldMat1 },
+      { x: -28, z: 72,  w: 22, d: 18, mat: fieldMat2 }
+    ];
+
+    fields.forEach(f => {
+      const fGeo = new THREE.BoxGeometry(f.w, 0.04, f.d);
+      const fMesh = new THREE.Mesh(fGeo, f.mat);
+      fMesh.position.set(f.x, 0.03, f.z);
+      fMesh.receiveShadow = true;
+      fMesh.userData.isOuterScenery = true;
+      group.add(fMesh);
+    });
+
+    // 4. Dense Forest Groves Across All 4 Quadrants (Pine & Oak Trees)
     const pineHues = [0x1B4332, 0x2D6A4F, 0x1E3F20, 0x283618];
     const oakHues  = [0x40916C, 0x52B788, 0x386641, 0x606C38];
 
-    // Populate North Forest (where clouds drift in)
-    for (let i = 0; i < 75; i++) {
-      const tx = farWest + 4 + Math.random() * (farEast - farWest - 8);
-      const tz = farNorth + 3 + Math.random() * (minCoord - farNorth - 6);
+    // North & South Groves (120 trees)
+    for (let i = 0; i < 120; i++) {
+      const isNorth = Math.random() > 0.45;
+      const tx = farWest + 6 + Math.random() * (farEast - farWest - 12);
+      const tz = isNorth
+        ? farNorth + 5 + Math.random() * (minCoord - farNorth - 10)
+        : maxCoord + 5 + Math.random() * (farSouth - maxCoord - 10);
+
       const isPine = Math.random() > 0.45;
       const tree = isPine 
-        ? this.createPineTree(0.85 + Math.random() * 0.5, pineHues[Math.floor(Math.random() * pineHues.length)])
+        ? this.createPineTree(0.9 + Math.random() * 0.55, pineHues[Math.floor(Math.random() * pineHues.length)])
+        : this.createDeciduousTree(0.9 + Math.random() * 0.5, oakHues[Math.floor(Math.random() * oakHues.length)]);
+      tree.position.set(tx, 0, tz);
+      tree.rotation.y = Math.random() * Math.PI * 2;
+      tree.userData.isOuterScenery = true;
+      group.add(tree);
+    }
+
+    // East & West Flank Groves (70 trees)
+    for (let i = 0; i < 70; i++) {
+      const isWest = Math.random() > 0.5;
+      const tx = isWest
+        ? farWest + 5 + Math.random() * (minCoord - farWest - 10)
+        : maxCoord + 5 + Math.random() * (farEast - maxCoord - 10);
+      let tz = minCoord + 4 + Math.random() * (maxCoord - minCoord - 8);
+
+      // Keep river exit channels open
+      if ((tz > g1_start - 2 && tz < g1_end + 2) || (tz > g2_start - 2 && tz < g2_end + 2)) {
+        continue;
+      }
+      const isPine = Math.random() > 0.5;
+      const tree = isPine 
+        ? this.createPineTree(0.85 + Math.random() * 0.45, pineHues[Math.floor(Math.random() * pineHues.length)])
         : this.createDeciduousTree(0.85 + Math.random() * 0.45, oakHues[Math.floor(Math.random() * oakHues.length)]);
       tree.position.set(tx, 0, tz);
       tree.rotation.y = Math.random() * Math.PI * 2;
@@ -24035,41 +24104,25 @@ window.FFH.CityAssetRegistry = {
       group.add(tree);
     }
 
-    // Populate West & East Flanks
-    for (let i = 0; i < 35; i++) {
-      const isWest = Math.random() > 0.5;
-      const tx = isWest
-        ? farWest + 3 + Math.random() * (minCoord - farWest - 6)
-        : maxCoord + 3 + Math.random() * (farEast - maxCoord - 6);
-      let tz = minCoord + 2 + Math.random() * (farSouth - minCoord - 4);
-      if ((tz > g1_start - 1 && tz < g1_end + 1) || (tz > g2_start - 1 && tz < g2_end + 1)) {
-        continue;
-      }
-      const isPine = Math.random() > 0.5;
-      const tree = isPine 
-        ? this.createPineTree(0.8 + Math.random() * 0.4, pineHues[Math.floor(Math.random() * pineHues.length)])
-        : this.createDeciduousTree(0.8 + Math.random() * 0.4, oakHues[Math.floor(Math.random() * oakHues.length)]);
-      tree.position.set(tx, 0, tz);
-      tree.rotation.y = Math.random() * Math.PI * 2;
-      tree.userData.isOuterScenery = true;
-      group.add(tree);
-    }
+    // 5. Mossy Boulders & Wildflower Glades
+    for (let i = 0; i < 40; i++) {
+      const rx = farWest + 8 + Math.random() * (farEast - farWest - 16);
+      const rz = farNorth + 6 + Math.random() * (farSouth - farNorth - 12);
+      // Skip city interior
+      if (rx > minCoord && rx < maxCoord && rz > minCoord && rz < maxCoord) continue;
 
-    // 4. Mossy Forest Boulders
-    for (let i = 0; i < 28; i++) {
-      const rx = farWest + 5 + Math.random() * (farEast - farWest - 10);
-      const rz = farNorth + 4 + Math.random() * (minCoord - farNorth - 6);
-      const rock = this.createForestRock(0.6 + Math.random() * 0.7);
+      const rock = this.createForestRock(0.6 + Math.random() * 0.75);
       rock.position.set(rx, 0.2, rz);
       rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
       rock.userData.isOuterScenery = true;
       group.add(rock);
     }
 
-    // 5. Wildflower Glades in Forest Clearings
-    for (let i = 0; i < 30; i++) {
-      const fx = farWest + 6 + Math.random() * (farEast - farWest - 12);
-      const fz = farNorth + 4 + Math.random() * (minCoord - farNorth - 6);
+    for (let i = 0; i < 45; i++) {
+      const fx = farWest + 8 + Math.random() * (farEast - farWest - 16);
+      const fz = farNorth + 6 + Math.random() * (farSouth - farNorth - 12);
+      if (fx > minCoord && fx < maxCoord && fz > minCoord && fz < maxCoord) continue;
+
       const flowers = this.createFlowerCluster();
       flowers.position.set(fx, 0.05, fz);
       flowers.userData.isOuterScenery = true;
