@@ -1453,7 +1453,7 @@ window.FFH.POI_METADATA = {
   'B_HOSPITAL':   { name: 'Krankenhaus Altstadt', tag: 'Medical VIP', desc: 'High-stakes express delivery target for Station 4B night shifts.', action: 'View Delivery Target' }
 };
 
-// Calculate optimal building rotation so its front door (+Z axis) faces the nearest road tile
+// Calculate optimal building rotation so its front door (+Z axis) faces the nearest road or inward toward the city
 function getBuildingRotationTowardsRoad(grid, x, z) {
   const S = window.FFH.MAP_SIZE;
   const isRoad = (gx, gz) => {
@@ -1462,17 +1462,23 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
     return t === 'R_C' || t === 'R_B' || t === 'BR' || t === 'R_R';
   };
 
-  // Check 1-step adjacent directions: South (+Z), North (-Z), East (+X), West (-X)
-  if (isRoad(x, z + 1)) return 0;            // Door on +Z faces South (+Z) towards street
-  if (isRoad(x, z - 1)) return Math.PI;      // Door on +Z rotates 180 to face North (-Z)
-  if (isRoad(x + 1, z)) return -Math.PI / 2; // Door rotates -90° to face East (+X)
-  if (isRoad(x - 1, z)) return Math.PI / 2;  // Door rotates +90° to face West (-X)
+  // 1. Check 1-step adjacent internal road tiles FIRST
+  if (z + 1 < S && isRoad(x, z + 1)) return 0;            // Door faces South (+Z) towards street
+  if (z - 1 >= 0 && isRoad(x, z - 1)) return Math.PI;      // Door faces North (-Z) towards street
+  if (x + 1 < S && isRoad(x + 1, z)) return -Math.PI / 2; // Door faces East (+X) towards street
+  if (x - 1 >= 0 && isRoad(x - 1, z)) return Math.PI / 2;  // Door faces West (-X) towards street
 
-  // 2-step fallback if surrounded by grass/garden
-  if (isRoad(x, z + 2)) return 0;
-  if (isRoad(x, z - 2)) return Math.PI;
-  if (isRoad(x + 2, z)) return -Math.PI / 2;
-  if (isRoad(x - 2, z)) return Math.PI / 2;
+  // 2. Check 2-step adjacent internal road tiles SECOND
+  if (z + 2 < S && isRoad(x, z + 2)) return 0;
+  if (z - 2 >= 0 && isRoad(x, z - 2)) return Math.PI;
+  if (x + 2 < S && isRoad(x + 2, z)) return -Math.PI / 2;
+  if (x - 2 >= 0 && isRoad(x - 2, z)) return Math.PI / 2;
+
+  // 3. Strict Edge Boundary Inward-Facing Rules (Guarantees no edge building faces outward into border walls)
+  if (z <= 3) return 0;            // North edge buildings face inward (South)
+  if (z >= 20) return Math.PI;     // South edge buildings face inward (North)
+  if (x <= 3) return -Math.PI / 2; // West edge buildings face inward (East)
+  if (x >= 20) return Math.PI / 2; // East edge buildings face inward (West)
 
   return 0;
 }
