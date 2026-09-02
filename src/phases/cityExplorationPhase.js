@@ -42,11 +42,11 @@ window.FFH.CityExplorationPhase = class {
     this.lastPointerY = 0;
     this.pointerDownTime = 0;
     
-    // Camera Zoom & Inspection Pan state (for full world inspection & debugging)
+    // Dynamic Camera Zoom & Atmosphere state (Messenger-style follow to diorama overview)
     this.camZoom = 1.0;
     this.targetCamZoom = 1.0;
-    this.minCamZoom = 0.22; // Full view of entire 24x24 island diorama
-    this.maxCamZoom = 2.5;  // Close-up
+    this.minCamZoom = 0.25; // Full view of 24x24 diorama island
+    this.maxCamZoom = 2.2;  // Close Messenger ground follow
     this.initialCamZoom = 1.0;
     this.initialPinchDist = null;
     this.cameraPanOffset = new THREE.Vector3(0, 0, 0);
@@ -55,6 +55,12 @@ window.FFH.CityExplorationPhase = class {
     this.panStartY = 0;
     this.initialPanOffset = new THREE.Vector3(0, 0, 0);
     this.debugZoomBar = null;
+    
+    // Idle & Narrative Thought state
+    this.idleTimer = 0;
+    this.idleDriftAngle = 0;
+    this.lastThoughtTime = 0;
+    this.visitedThoughtZones = new Set();
     
     // Double click / double tap detection
     this.lastTapTime = 0;
@@ -1093,6 +1099,10 @@ window.FFH.CityExplorationPhase = class {
             window.FFH.updateCourierWalk(this.courier, delta, 1.0);
           }
           if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(1.0);
+
+          // Moving resets idle state
+          this.idleTimer = 0;
+          this.idleDriftAngle = THREE.MathUtils.lerp(this.idleDriftAngle, 0, delta * 5);
         }
       } else {
         // Arrived at destination
@@ -1108,7 +1118,16 @@ window.FFH.CityExplorationPhase = class {
         window.FFH.updateCourierWalk(this.courier, delta, 0);
       }
       if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
+      
+      // Accumulate idle time for camera drift
+      this.idleTimer += delta;
+      if (this.idleTimer > 3.0) {
+        this.idleDriftAngle += delta * 0.12;
+      }
     }
+
+    // Check contextual location triggers for Wanderer's Thoughts
+    this.updateWandererThoughts(delta);
 
     // Pulse target marker ring
     if (this.targetMarker && this.targetMarker.visible) {
@@ -1310,21 +1329,83 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
+  updateWandererThoughts(delta) {
+    const timeSec = this.game.clock ? this.game.clock.getElapsedTime() : 0;
+    if (timeSec - (this.lastThoughtTime || 0) < 18.0) return; // 18s cooldown between thoughts
+
+    const px = this.playerPos.x;
+    const pz = this.playerPos.z;
+
+    const thoughts = [
+      {
+        id: 'holstentor',
+        condition: () => Math.hypot(px - 18.2, pz - 33.8) < 6.0,
+        text: "Holstentor... built in 1464. I arrived here 562 years later with €20."
+      },
+      {
+        id: 'canal_bridge',
+        condition: () => (pz > 10 && pz < 12) || (pz > 48 && pz < 50),
+        text: "The water is so still today. Back home, the river moved faster."
+      },
+      {
+        id: 'forest_edge',
+        condition: () => px < 8 || px > 54 || pz < 8 || pz > 54,
+        text: "I can hear the forest birds from here... peaceful."
+      },
+      {
+        id: 'bakery',
+        condition: () => Math.hypot(px - 5.2, pz - 18.2) < 5.0,
+        text: "Smells like fresh Franzbrötchen and warm cinnamon..."
+      },
+      {
+        id: 'uni',
+        condition: () => Math.hypot(px - 54.6, pz - 33.8) < 5.0,
+        text: "Universität Lübeck. €250 for tuition... almost there."
+      },
+      {
+        id: 'darkstore',
+        condition: () => Math.hypot(px - 5.2, pz - 46.8) < 5.0,
+        text: "Kruma Express. Dispatcher Nina is probably on her 4th espresso."
+      }
+    ];
+
+    for (const t of thoughts) {
+      if (!this.visitedThoughtZones.has(t.id) && t.condition()) {
+        this.visitedThoughtZones.add(t.id);
+        this.lastThoughtTime = timeSec;
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought(t.text);
+        }
+        break;
+      }
+    }
+  }
+
   updateCamera(snap = false) {
     const cam = this.game.currentCamera;
     if (!cam) return;
 
-    // Smoothly interpolate zoom on the OrthographicCamera
+    // Smoothly interpolate zoom on OrthographicCamera
     this.camZoom = THREE.MathUtils.lerp(this.camZoom || 1.0, this.targetCamZoom || 1.0, 0.15);
     if (Math.abs(cam.zoom - this.camZoom) > 0.001) {
       cam.zoom = this.camZoom;
       cam.updateProjectionMatrix();
     }
 
-    // High Isometric Bird's-Eye Offset
-    const offsetX = 15;
-    const offsetY = 20;
-    const offsetZ = 15;
+    // Messenger-Style Dynamic Distance & Pitch Interpolation
+    // Zoom factor: 0.0 (wide diorama overview) to 1.0 (close Messenger ground follow)
+    const zoomFactor = THREE.MathUtils.clamp((this.camZoom - 0.25) / (2.2 - 0.25), 0, 1);
+
+    // Zoomed out: high 50° angle (15, 20, 15). Zoomed in: intimate 22° angle (5, 5, 5)
+    const baseOffsetX = THREE.MathUtils.lerp(15.0, 5.0, zoomFactor);
+    const baseOffsetY = THREE.MathUtils.lerp(20.0, 5.5, zoomFactor);
+    const baseOffsetZ = THREE.MathUtils.lerp(15.0, 5.0, zoomFactor);
+
+    // Apply idle camera orbital drift when player stands still
+    const drift = this.idleDriftAngle || 0;
+    const offsetX = baseOffsetX * Math.cos(drift) - baseOffsetZ * Math.sin(drift);
+    const offsetZ = baseOffsetX * Math.sin(drift) + baseOffsetZ * Math.cos(drift);
+    const offsetY = baseOffsetY;
 
     const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
     const lookTargetY = this.playerPos.y;
@@ -1337,9 +1418,10 @@ window.FFH.CityExplorationPhase = class {
     if (snap) {
       cam.position.set(camX, camY, camZ);
     } else {
-      cam.position.x = THREE.MathUtils.lerp(cam.position.x, camX, 0.1);
-      cam.position.y = THREE.MathUtils.lerp(cam.position.y, camY, 0.1);
-      cam.position.z = THREE.MathUtils.lerp(cam.position.z, camZ, 0.1);
+      const lerpSpeed = snap ? 1.0 : 0.1;
+      cam.position.x = THREE.MathUtils.lerp(cam.position.x, camX, lerpSpeed);
+      cam.position.y = THREE.MathUtils.lerp(cam.position.y, camY, lerpSpeed);
+      cam.position.z = THREE.MathUtils.lerp(cam.position.z, camZ, lerpSpeed);
     }
 
     cam.lookAt(lookTargetX, lookTargetY, lookTargetZ);

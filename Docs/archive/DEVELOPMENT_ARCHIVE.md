@@ -419,6 +419,18 @@
 - **Packaging & Verification**:
   - Reassembled `index.html` at **6.28 MB** uncompressed. 60 FPS, 0 errors.
 
+### September 2, 2026: Messenger-Style Dynamic Camera Zoom & Atmospheric Narrative Experience
+- **Messenger-Style Continuous Camera Zoom & Dynamic Pitch System (`src/phases/cityExplorationPhase.js`)**:
+  - Expanded camera zoom bounds from `0.25` (full island diorama overview) to `2.2` (intimate ground-level follow).
+  - Implemented dynamic pitch and distance lerping: zoomed in, the camera lowers to a 22° pitch to ground the player in the cozy street-level atmosphere of Lübeck; zoomed out, it smoothly tilts up to a 50° high isometric diorama.
+  - Added smooth spring follow lag and idle orbital camera drift after 3 seconds of standing still.
+- **Wanderer's Internal Monologue & HUD Thought Bubbles (`src/ui/hud.js` & `src/phases/cityExplorationPhase.js`)**:
+  - Implemented `spawnWandererThought` in HUD — soft, translucent, floating thought pills near the bottom of the screen.
+  - Added contextual triggers around key landmarks (Holstentor, Canal bridges, Bakery, Forest edge, Uni, Darkstore) with an 18-second pacing cooldown.
+- **Packaging & Verification**:
+  - Reassembled single-file `index.html` at **3.64 MB** (3,811,805 bytes), well under the 35 MB limit. Tested HTTP server at `http://localhost:8080/`.
+
+
 
 
 
