@@ -659,13 +659,6 @@ window.FFH.CityExplorationPhase = class {
 
   onPointerMove(e) {
     if (this.isPanningCamera) {
-      const dx = e.clientX - this.pointerDownX;
-      const dy = e.clientY - this.pointerDownY;
-      const panScale = (1.0 / (this.camZoom || 1.0)) * 0.04;
-      const worldDx = (dx - dy) * panScale;
-      const worldDz = (-dx - dy) * panScale;
-      this.cameraPanOffset.x = this.initialPanOffset.x - worldDx;
-      this.cameraPanOffset.z = this.initialPanOffset.z - worldDz;
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
       return;
@@ -676,14 +669,6 @@ window.FFH.CityExplorationPhase = class {
     
     if (dragDist > 8) {
       this.isDraggingCamera = true;
-      // If zoomed out, drag also allows inspection panning across the city
-      if (this.targetCamZoom < 0.6) {
-        const dx = e.clientX - this.lastPointerX;
-        const dy = e.clientY - this.lastPointerY;
-        const panScale = (1.0 / (this.camZoom || 1.0)) * 0.035;
-        this.cameraPanOffset.x -= (dx - dy) * panScale;
-        this.cameraPanOffset.z -= (-dx - dy) * panScale;
-      }
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
     }
@@ -702,10 +687,6 @@ window.FFH.CityExplorationPhase = class {
 
     // Tap / Click handling (not a camera drag)
     if (dragDist < 8 && elapsed < 400) {
-      // Re-center camera on courier if user was close-up
-      if (this.cameraPanOffset.lengthSq() > 0.01 && this.targetCamZoom >= 0.7) {
-        this.cameraPanOffset.set(0, 0, 0);
-      }
       this.handleSingleOrDoubleTap(e);
     }
   }
@@ -784,15 +765,9 @@ window.FFH.CityExplorationPhase = class {
     if (this.targetCamZoom < 0.45) {
       // Return to normal 100% close-up view centered on player
       this.setZoom(1.0);
-      this.cameraPanOffset.set(0, 0, 0);
     } else {
-      // Zoom out to view entire 24x24 mainland and island diorama!
+      // Zoom out to view entire island diorama centered on player
       this.setZoom(0.26);
-      // Pan towards world center (11.5 * 2.6 = 29.9)
-      const worldCenterX = 11.5 * (window.FFH.TILE_SCALE || 2.6);
-      const worldCenterZ = 11.5 * (window.FFH.TILE_SCALE || 2.6);
-      this.cameraPanOffset.x = worldCenterX - this.playerPos.x;
-      this.cameraPanOffset.z = worldCenterZ - this.playerPos.z;
     }
   }
 
@@ -803,7 +778,6 @@ window.FFH.CityExplorationPhase = class {
       this.setZoom(this.targetCamZoom * 0.8);
     } else if (e.key === '0') {
       this.setZoom(1.0);
-      this.cameraPanOffset.set(0, 0, 0);
     } else if (e.key === 'o' || e.key === 'O' || e.key === 'm' || e.key === 'M') {
       this.toggleOverview();
     }
