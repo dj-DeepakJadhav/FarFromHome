@@ -657,7 +657,7 @@ window.FFH.CityAssetRegistry = {
       p4.position.set(S * 0.46, balY + 0.04, S * 0.48);
     }
 
-    // Brick Arch Piers & Open Water Archway (allows water to visibly flow right through under the bridge)
+    // Brick Arch Piers along canal banks (center channel remains completely open for water flow)
     const pierMat = this.materials.roofBrick;
     if (isEW) {
       // East-West road: water flows North-South under the bridge
@@ -671,11 +671,7 @@ window.FFH.CityAssetRegistry = {
       abutE.castShadow = true;
       abutE.receiveShadow = true;
 
-      const archGeo = new THREE.CylinderGeometry(S * 0.36, S * 0.36, S * 0.94, 12, 1, false, 0, Math.PI);
-      const arch = new THREE.Mesh(archGeo, pierMat);
-      arch.rotation.z = Math.PI * 0.5;
-      arch.position.y = -0.12;
-      group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, abutW, abutE, arch);
+      group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, abutW, abutE);
     } else {
       // North-South road: water flows East-West under the bridge
       const abutN = new THREE.Mesh(new THREE.BoxGeometry(S * 0.96, 0.75, 0.36), pierMat);
@@ -688,11 +684,7 @@ window.FFH.CityAssetRegistry = {
       abutS.castShadow = true;
       abutS.receiveShadow = true;
 
-      const archGeo = new THREE.CylinderGeometry(S * 0.36, S * 0.36, S * 0.94, 12, 1, false, 0, Math.PI);
-      const arch = new THREE.Mesh(archGeo, pierMat);
-      arch.rotation.x = Math.PI * 0.5;
-      arch.position.y = -0.12;
-      group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, abutN, abutS, arch);
+      group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, abutN, abutS);
     }
     return group;
   },

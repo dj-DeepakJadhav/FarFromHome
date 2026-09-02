@@ -412,6 +412,14 @@
 - **Packaging & Verification**:
   - Reassembled `index.html` at **6.28 MB** uncompressed. 60 FPS, 0 errors.
 
+### September 2, 2026: Bridge Deck Obstruction Removal
+- **Removed Protruding Pier Arch Mesh on Bridges**:
+  - Identified that the under-pier half-cylinder mesh intended for the underside arch was protruding above the cobblestone deck surface due to inverted cylinder bounds.
+  - Removed the protruding cylinder completely, leaving a clean, 100% flat cobblestone walking deck between the stone balustrades with open water flow between the quayside abutments beneath.
+- **Packaging & Verification**:
+  - Reassembled `index.html` at **6.28 MB** uncompressed. 60 FPS, 0 errors.
+
+
 
 
 
