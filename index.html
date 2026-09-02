@@ -18557,10 +18557,10 @@ window.FFH.NPC_DATABASE = {
       if (isFirstMeeting) {
         return {
           speaker: 'Rita Schneider (University Registrar)',
-          en: '*Puts on her wool scarf and packs her briefcase* Guten Abend! You must be the new international applicant. Unfortunately, official admissions office hours ended at 17:00. The registry is closed for the night, so you must return tomorrow morning at 09:00 for your 250€ tuition matriculation.',
+          en: '*Packs her briefcase* Guten Abend! Admissions closed at 17:00. Please come back tomorrow morning at 09:00 for your 250€ tuition matriculation.',
           options: [
             {
-              label: '🌙 "Ah, I explored the town too long! I will return first thing tomorrow morning, Frau Schneider."',
+              label: '🌙 "I will be here tomorrow at 09:00, Frau Schneider."',
               action: (game) => {
                 addRitaMemory('introduced_rita');
                 addRitaMemory('arrived_late_day1');
@@ -18575,9 +18575,9 @@ window.FFH.NPC_DATABASE = {
                 game.ui.updateQuestTracker();
 
                 window.FFH.NPC_DATABASE['NPC_RITA'].currentResponse = {
-                  en: 'Don\'t worry, that is normal on your first day. Take a quiet evening walk, enjoy the glowing street lanterns and the canal reflections, and rest in your WG room. Tomorrow our work begins!',
+                  en: 'Get some rest in your room tonight. Tomorrow our work begins!',
                   options: [
-                    { label: '🌃 "I will enjoy the night view and head back to my room."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🌃 "Have a good evening."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
                     { label: '🏃 "Gute Nacht, Frau Schneider!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
@@ -18585,7 +18585,7 @@ window.FFH.NPC_DATABASE = {
               }
             },
             {
-              label: '🏛️ "Good evening Frau Schneider. What documents should I have ready for tomorrow morning?"',
+              label: '🏛️ "What should I bring tomorrow morning?"',
               action: (game) => {
                 addRitaMemory('introduced_rita');
                 addRitaMemory('arrived_late_day1');
@@ -18600,10 +18600,10 @@ window.FFH.NPC_DATABASE = {
                 game.ui.updateQuestTracker();
 
                 window.FFH.NPC_DATABASE['NPC_RITA'].currentResponse = {
-                  en: 'Have your provisional admission letter and 250.00€ tuition fee ready. For tonight, enjoy the city lights and get a good night\'s sleep in your WG.',
+                  en: 'Just your admission letter and 250€ tuition. Sleep well tonight.',
                   options: [
-                    { label: '🚶 "I will explore the night streets and sleep in my WG."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🌙 "See you tomorrow at 09:00!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🚶 "See you tomorrow morning!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🌙 "Good night, Frau Schneider."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA', custom: true });
@@ -18617,10 +18617,10 @@ window.FFH.NPC_DATABASE = {
       if (state.wallet >= tuitionGoal && !state.isMatriculated) {
         return {
           speaker: 'Rita Schneider (University Registrar)',
-          en: `Look at your balance, you saved up ${state.wallet.toFixed(2)}€! I remember your first nervous day here. Are you ready to pay your 250€ tuition fee so I can stamp your official enrollment certificate?`,
+          en: `You saved ${state.wallet.toFixed(2)}€! Ready to pay your 250€ tuition and get enrolled?`,
           options: [
             {
-              label: '🎓 "Yes, please! Here is the 250.00€ tuition fee."',
+              label: '🎓 "Yes! Here is the 250.00€ tuition fee."',
               action: (game) => {
                 game.state.wallet = window.FFH.round2(game.state.wallet - tuitionGoal);
                 game.state.day = (game.state.day || 1) + 1;
@@ -18637,17 +18637,17 @@ window.FFH.NPC_DATABASE = {
                 game.ui.updateQuestTracker();
 
                 window.FFH.NPC_DATABASE['NPC_RITA'].currentResponse = {
-                  en: '*Takes the wooden stamp and presses down firmly* Done! You are officially enrolled at the University of Lübeck. Take this certificate to Sparkasse Bank or Dr. Lindemann at immigration!',
+                  en: '*Stamps paper firmly* Done! You are officially enrolled at Lübeck.',
                   options: [
-                    { label: '🎉 "Thank you so much, Frau Schneider! This means the world."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🏦 "I will head straight to Sparkasse Bank next."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🎉 "Thank you, Frau Schneider!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🏦 "Heading to Sparkasse Bank next."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA', custom: true });
               }
             },
             {
-              label: '⏳ "I need to hold onto my cash for bicycle gear right now."',
+              label: '⏳ "I need to hold onto my cash for a bit."',
               action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
             }
           ]
@@ -18659,14 +18659,14 @@ window.FFH.NPC_DATABASE = {
 
       // Emotional Conversation
       options.push({
-        label: '❤️ "Frau Schneider, why are you always so patient with us foreign students?"',
+        label: '❤️ "Why are you so kind to foreign students, Frau Schneider?"',
         action: (game) => {
           game.state.npcRelationships['NPC_RITA'] = Math.min(100, game.state.npcRelationships['NPC_RITA'] + 15);
           window.FFH.NPC_DATABASE['NPC_RITA'].currentResponse = {
-            en: 'Ten years ago, my daughter moved to Tokyo for her masters. She didn\'t know a soul and called me in tears over city forms. Every time I stamp a student\'s papers here, I feel like I am sending love across the ocean to her.',
+            en: 'My daughter studied in Tokyo alone. Every time I help a student, I think of her.',
             options: [
-              { label: '🥺 "Your daughter is lucky to have you. Thank you for caring."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA' }) },
-              { label: '🏃 "I will make you proud, Frau Schneider. Back to work!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+              { label: '🥺 "Thank you for looking out for us."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA' }) },
+              { label: '🏃 "Back to work!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
             ]
           };
           game.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA', custom: true });
@@ -18676,7 +18676,7 @@ window.FFH.NPC_DATABASE = {
       // Practical legal advice
       if (!state.storyFlags.receivedAstaGrant) {
         options.push({
-          label: '⚖️ "Is there any legal protection if I run into trouble with immigration?"',
+          label: '⚖️ "Is there legal help if immigration questions me?"',
           action: (game) => {
             game.state.storyFlags.receivedAstaGrant = true;
             game.state.disposition = game.state.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
@@ -18687,10 +18687,10 @@ window.FFH.NPC_DATABASE = {
             game.ui.updateQuestTracker();
 
             window.FFH.NPC_DATABASE['NPC_RITA'].currentResponse = {
-              en: 'Under §16b of the Residence Act, the student union (AStA) provides free legal representation. Dr. Schmidt and I have co-signed your emergency paperwork. If any audit questions come up, this waiver protects you.',
+              en: 'Under §16b, the student union protects you. I have co-signed your defense waiver.',
               options: [
-                { label: '📑 "Having legal support gives me huge peace of mind."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA' }) },
-                { label: '🏃 "Thank you, Frau Schneider. See you soon!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                { label: '📑 "Thank you, this helps a lot."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA' }) },
+                { label: '🏃 "See you soon, Frau Schneider."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
               ]
             };
             game.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA', custom: true });
@@ -18698,24 +18698,24 @@ window.FFH.NPC_DATABASE = {
         });
       } else {
         options.push({
-          label: '🚪 "I should get going. Have a wonderful day!"',
+          label: '🚪 "Have a great day, Frau Schneider!"',
           action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
         });
       }
 
       // Contextual Memory Callback in Greetings
-      let greetingEn = `Welcome back! You currently have ${state.wallet.toFixed(2)}€. You only need ${remaining}€ more to cover tuition. Keep your head up and ride carefully on those wet cobblestones!`;
+      let greetingEn = `Welcome back! You have ${state.wallet.toFixed(2)}€. You need ${remaining}€ more for tuition.`;
       
       if (memories.includes('chose_hustler_start')) {
-        greetingEn = `*Smiles warmly as she spots your delivery helmet* Back from another Kruma route? You have ${state.wallet.toFixed(2)}€ saved. Only ${remaining}€ left to tuition freedom!`;
+        greetingEn = `*Smiles* Back from a shift? ${state.wallet.toFixed(2)}€ saved so far. ${remaining}€ to go!`;
       } else if (memories.includes('chose_diplomat_start')) {
-        greetingEn = `*Looks up with a kind smile* Good to see you again. Did you get to try Oma Martha's fresh cinnamon rolls yet? You are at ${state.wallet.toFixed(2)}€ toward tuition.`;
+        greetingEn = `Good to see you again! You have ${state.wallet.toFixed(2)}€ saved.`;
       }
       
       if (state.wallet >= 200 && state.wallet < tuitionGoal) {
-        greetingEn = `*Smiles warmly as she looks up from her desk* Look at how close you are, ${state.wallet.toFixed(2)}€! Just one or two more courier runs and we can make your enrollment official.`;
+        greetingEn = `Look how close you are: ${state.wallet.toFixed(2)}€! Just one more shift!`;
       } else if (state.isMatriculated) {
-        greetingEn = `*Beams with pride* Our official student! Make sure to take your matriculation certificate over to Herr Vogel at the Bürgeramt or Frau Weber at Sparkasse next.`;
+        greetingEn = `Our official student! Take your certificate to Bürgeramt or Sparkasse next.`;
       }
 
       return {
@@ -18752,19 +18752,19 @@ window.FFH.NPC_DATABASE = {
       if (isFirstMeeting) {
         return {
           speaker: 'Herr Mathias Becker',
-          en: 'Moin! I am Mathias Becker. Thirty years ago I arrived from Naples with empty pockets and greasy bike wrenches, and today I bake the crispiest stone-oven pizza in northern Germany. If you respect my terrace and ride hard, you always have a friend here. What brings you by?',
+          en: 'Moin! I came from Naples thirty years ago with empty pockets. If you work hard, you always have a friend here. What brings you by?',
           options: [
             {
-              label: '🇮🇹 "Pleased to meet you, Mathias! How did you survive those first cold years in Germany?"',
+              label: '🇮🇹 "How did you survive those first cold years in Germany?"',
               action: (game) => {
                 addMathiasMemory('introduced_mathias');
                 addMathiasMemory('asked_backstory');
                 game.state.npcRelationships['NPC_MATHIAS'] = Math.min(100, (game.state.npcRelationships['NPC_MATHIAS'] || 50) + 20);
                 window.FFH.NPC_DATABASE['NPC_MATHIAS'].currentResponse = {
-                  en: 'In 1994, I got off the train in minus ten degrees with no German, fifty Marks, and an old wrench! I washed dishes at night and fixed bike chains during the day. Look at me now, with my own stone oven. Never let this cold weather freeze your spirit, kid.',
+                  en: 'I washed dishes at night and fixed bike chains by day! Never let the cold weather beat you, kid.',
                   options: [
-                    { label: '🔧 "That gives me real courage, Mathias. Thank you."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_MATHIAS' }) },
-                    { label: '🍕 "Can I buy a fresh slice to keep warm?"', action: (g) => {
+                    { label: '🔧 "Thanks for the encouragement, Mathias."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_MATHIAS' }) },
+                    { label: '🍕 "Can I buy a hot slice to warm up?"', action: (g) => {
                       if (g.state.wallet >= 8) {
                         g.state.wallet = window.FFH.round2(g.state.wallet - 8);
                         g.state.freshness = Math.min(100, (g.state.freshness || 100) + 20);
@@ -18779,15 +18779,15 @@ window.FFH.NPC_DATABASE = {
               }
             },
             {
-              label: '🍕 "Good day, Herr Becker. Just looking for a warm place between courier routes."',
+              label: '🍕 "Just looking for a warm place between courier routes."',
               action: (game) => {
                 addMathiasMemory('introduced_mathias');
                 game.state.npcRelationships['NPC_MATHIAS'] = Math.min(100, (game.state.npcRelationships['NPC_MATHIAS'] || 50) + 10);
                 window.FFH.NPC_DATABASE['NPC_MATHIAS'].currentResponse = {
-                  en: 'Fair enough! Step inside near the wood oven. Nothing cures Baltic frostbite like hot tomato sauce and melted mozzarella.',
+                  en: 'Step near the stone oven. Nothing beats Baltic frostbite like hot pizza.',
                   options: [
-                    { label: '🤝 "Thank you, Mathias."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🚲 "Back to my delivery bike."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🍕 "Thank you, Herr Becker."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🚲 "Back to the street."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_MATHIAS', custom: true });
@@ -18909,18 +18909,18 @@ window.FFH.NPC_DATABASE = {
       if (isFirstMeeting) {
         return {
           speaker: 'Martha Webber (Oma)',
-          en: 'Oh hello, my dear! I am Martha Webber, but all the students and neighbors call me Oma Martha. My family has been baking Franzbrötchen and sourdough in this alley since 1952. You look shivering from that Baltic chill. Come close to the warm oven!',
+          en: 'Hello dear! I am Oma Martha. Come warm up by the oven! You look freezing.',
           options: [
             {
-              label: '🥐 "Pleased to meet you, Oma Martha! Frau Schneider at the university told me to visit you."',
+              label: '🥐 "Frau Schneider at the university told me to visit you."',
               action: (game) => {
                 addMarthaMemory('introduced_martha');
                 addMarthaMemory('mentioned_rita');
                 game.state.npcRelationships['NPC_MARTHA'] = Math.min(100, (game.state.npcRelationships['NPC_MARTHA'] || 50) + 20);
                 window.FFH.NPC_DATABASE['NPC_MARTHA'].currentResponse = {
-                  en: '*Beams with delight* Rita is an angel! She always looks out for newcomers. As long as my oven is burning, you will never go hungry in this town, child.',
+                  en: 'Rita is wonderful! As long as my oven burns, you will not go hungry here.',
                   options: [
-                    { label: '🥺 "That means so much to me, Oma Martha."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🥺 "Thank you so much, Oma Martha."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
                     { label: '🍞 "Can I look at your fresh bread?"', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_MARTHA' }) }
                   ]
                 };
@@ -18928,19 +18928,136 @@ window.FFH.NPC_DATABASE = {
               }
             },
             {
-              label: '🚲 "Hello Oma Martha. I am working courier shifts to pay for my university tuition."',
+              label: '🚲 "I am doing courier shifts to save for tuition."',
               action: (game) => {
                 addMarthaMemory('introduced_martha');
                 addMarthaMemory('mentioned_courier');
                 game.state.npcRelationships['NPC_MARTHA'] = Math.min(100, (game.state.npcRelationships['NPC_MARTHA'] || 50) + 15);
                 window.FFH.NPC_DATABASE['NPC_MARTHA'].currentResponse = {
-                  en: 'Hard work builds a noble character! Just make sure you wear warm gloves on that bike. The sea wind on the bridges will freeze your fingers before you even notice.',
+                  en: 'Hard work builds good character! Just remember warm gloves on the bridges.',
                   options: [
-                    { label: '🧤 "I will bundle up, thank you Oma Martha!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🏃 "Back to my delivery route."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🧤 "I will bundle up, thank you!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🏃 "Back to my route."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_MARTHA', custom: true });
+              }
+            }
+          ]
+        };
+      }
+
+      const options = [];
+
+      // Favor for Caretaker Lokker: Croissant
+      if (!state.storyFlags.hasBakeryCroissant && !state.hasApartment) {
+        options.push({
+          label: '🥐 "Can I buy a fresh butter croissant for Herr Lokker? (2€)"',
+          action: (game) => {
+            if (game.state.wallet < 2) {
+              game.ui.spawnFloatingText('Need 2€ for croissant!', window.innerWidth / 2, window.innerHeight / 2, '#FF6B6B');
+              return;
+            }
+            game.state.wallet = window.FFH.round2(game.state.wallet - 2);
+            game.state.storyFlags.hasBakeryCroissant = true;
+            addMarthaMemory('bought_croissant_for_lokker');
+            game.state.npcRelationships['NPC_MARTHA'] = Math.min(100, game.state.npcRelationships['NPC_MARTHA'] + 15);
+            game.sfx.playSfx('success');
+            game.ui.spawnFloatingText('🥐 Fresh Butter Croissant in bag!', window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+            
+            window.FFH.NPC_DATABASE['NPC_MARTHA'].currentResponse = {
+              en: 'How sweet! Hans Lokker is strict, but warm butter softens him right up.',
+              options: [
+                { label: '🏃 "I will deliver it to Herr Lokker now."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                { label: '🏠 "Hope this helps with my room lease."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+              ]
+            };
+            game.transitionTo('DIALOGUE', { npcKey: 'NPC_MARTHA', custom: true });
+          }
+        });
+      } else {
+        const canBuyBread = state.wallet >= 3;
+        options.push({
+          label: canBuyBread ? '🍞 "One fresh sourdough loaf, please! (3€)"' : '🚪 "See you soon, Oma Martha!"',
+          action: (game) => {
+            if (canBuyBread) {
+              game.state.wallet = window.FFH.round2(game.state.wallet - 3);
+              game.state.freshness = Math.min(100, (game.state.freshness || 100) + 10);
+              game.sfx.playSfx('register');
+              game.ui.spawnFloatingText('🍞 Sourdough Bread! Freshness +10', window.innerWidth / 2, window.innerHeight / 2, '#4CAF50');
+            }
+            game.transitionTo('CITY_EXPLORATION');
+          }
+        });
+      }
+
+      // Memory reactive greeting
+      let marthaGreeting = 'Hello dear! Fresh bread just came out of the oven.';
+      if (memories.includes('saved_helga')) {
+        marthaGreeting = 'Our neighborhood angel! Frau Helga is feeling so much better.';
+      } else if (memories.includes('bought_croissant_for_lokker')) {
+        marthaGreeting = 'Did Hans Lokker smile when he saw my warm croissant?';
+      }
+
+      return {
+        speaker: 'Martha Webber (Oma)',
+        en: marthaGreeting,
+        options: options
+      };
+    }
+  },
+
+  // 4. NINA LINDEMANN (Kruma Dispatch Lead & Fast Hustler)
+  'NPC_NINA': {
+    id: 'NPC_NINA',
+    name: 'Nina Lindemann',
+    title: 'Kruma Dispatch Lead',
+    building: 'B_DARKSTORE',
+    greetingAudio: 'guten_tag',
+    avatarColor: '#2A9D8F',
+    personality: {
+      type: 'Pragmatic, Loyal & Street-Smart',
+      likes: 'Speedy deliveries, accurate order picking, e-bike upgrades, couriers supporting each other.',
+      dislikes: 'Slow pacing, damaged groceries, unfair customer tips.'
+    },
+    dialogue: (state) => {
+      const memories = state.npcMemory['NPC_NINA'] || [];
+      const isFirstMeeting = !memories.includes('introduced_nina');
+
+      const addNinaMemory = (tag, delta = 0) => {
+        if (window.FFH.NPCMemoryManager) window.FFH.NPCMemoryManager.recordEncounter('NPC_NINA', tag, delta, state);
+      };
+      addNinaMemory('met_nina');
+
+      // First time meeting Nina
+      if (isFirstMeeting) {
+        return {
+          speaker: 'Nina Lindemann (Dispatch Lead)',
+          en: 'Moin! I am Nina from Kruma Express. Fast deliveries, cold wind, instant pay. Ready for a shift?',
+          options: [
+            {
+              label: '🚴 "Ready for my first standard shift, Nina."',
+              action: (game) => {
+                addNinaMemory('introduced_nina');
+                addNinaMemory('first_shift_standard');
+                game.state.hasJob = true;
+                game.state.isVipRush = false;
+                game.sfx.playSfx('success');
+                game.ui.spawnFloatingText('🚴 Standard Shift Started! Ride safely!', window.innerWidth / 2, window.innerHeight / 2, '#2A9D8F');
+                game.transitionTo('PICK');
+              }
+            },
+            {
+              label: '🔥 "Give me the high-paying VIP Express rush!"',
+              action: (game) => {
+                addNinaMemory('introduced_nina');
+                addNinaMemory('first_shift_vip');
+                game.state.hasJob = true;
+                game.state.isVipRush = true;
+                game.state.npcRelationships['NPC_NINA'] = Math.min(100, (game.state.npcRelationships['NPC_NINA'] || 50) + 15);
+                game.sfx.playSfx('success');
+                game.ui.spawnFloatingText('🔥 VIP Express Rush! 2.5x Tips active!', window.innerWidth / 2, window.innerHeight / 2, '#FF006E');
+                game.transitionTo('PICK');
               }
             }
           ]
@@ -19193,10 +19310,10 @@ window.FFH.NPC_DATABASE = {
       if (isFirstMeeting) {
         return {
           speaker: 'Herr Hans Lokker (Caretaker)',
-          en: '*Pulls out a silver pocket watch and clicks it shut* Ten seconds past the hour. I am Hans Lokker, building caretaker of this WG dormitory. In this house, there is one absolute rule that cannot be broken: Mülltrennung! Blue bin for paper, yellow bag for plastic packaging, black bin for household rest. Never mix them up!',
+          en: '*Clicks pocket watch shut* I am Hans Lokker, caretaker. Rule number one: Mülltrennung! Blue for paper, yellow for plastic, black for rest. Never mix them up!',
           options: [
             {
-              label: '🗑️ "Understood, Herr Lokker! Blue for paper, yellow for plastic, black for rest."',
+              label: '🗑️ "Understood, Herr Lokker: Blue, yellow, and black."',
               action: (game) => {
                 addLokkerMemory('introduced_lokker');
                 addLokkerMemory('learned_muelltrennung');
@@ -19207,17 +19324,17 @@ window.FFH.NPC_DATABASE = {
                 }
 
                 window.FFH.NPC_DATABASE['NPC_LOKKER'].currentResponse = {
-                  en: '*Nods with stern satisfaction* Good. Take a walk around the neighborhood, get your bearings, and see how Lübeck breathes. But keep an eye on the clock: the university registry across the bridge will close by evening!',
+                  en: 'Good. Explore the town first, but remember the university closes by evening!',
                   options: [
-                    { label: '🚶 "I will explore the town streets and head towards the university!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🏠 "Thank you, Herr Lokker. I will keep the bins clean."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🚶 "I will explore the town and head to uni!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🏠 "Thank you, Herr Lokker."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_LOKKER', custom: true });
               }
             },
             {
-              label: '🏠 "Good day, Herr Lokker. What do I need to prepare for my student room lease?"',
+              label: '🏠 "What do I need for my student lease?"',
               action: (game) => {
                 addLokkerMemory('introduced_lokker');
                 addLokkerMemory('asked_about_room');
@@ -19228,10 +19345,10 @@ window.FFH.NPC_DATABASE = {
                 }
 
                 window.FFH.NPC_DATABASE['NPC_LOKKER'].currentResponse = {
-                  en: 'For student couriers, I require a 30€ security deposit downpayment. Once paid, I sign your Wohnungsgeberbestätigung. But first, sort your trash properly and explore the town. Head to the university before it gets dark!',
+                  en: 'A 30€ deposit downpayment. Sort your trash properly and visit the university before dark.',
                   options: [
-                    { label: '🚶 "I will explore the town and head over to the university!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🏃 "I will return with the 30€ deposit shortly."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🚶 "Heading out to explore now!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🏃 "I will bring the 30€ deposit soon."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_LOKKER', custom: true });
@@ -19249,15 +19366,15 @@ window.FFH.NPC_DATABASE = {
         if (state.storyFlags.hasBakeryCroissant && !state.storyFlags.bribedLokker) {
           options.push({
             label: state.wallet >= 30 
-              ? '🥐 "Herr Lokker, I brought you a warm croissant from Oma Martha and the 30€ deposit."'
-              : '🥐 "Herr Lokker, I brought Oma Martha\'s fresh croissant (Need 30€ deposit)"',
+              ? '🥐 "Here is a warm croissant from Oma Martha and the 30€ deposit."'
+              : '🥐 "I brought Oma Martha\'s fresh croissant (Need 30€ deposit)"',
             action: (game) => {
               if (game.state.wallet < 30) {
                 window.FFH.NPC_DATABASE['NPC_LOKKER'].currentResponse = {
-                  en: '*Sniffs the warm pastry* Martha\'s baking is a masterpiece, but house rules require at least a 30.00€ Kaution downpayment before I can hand over the signed lease confirmation. Come back when you have the 30€.',
+                  en: 'Smells delicious! But house rules require a 30€ deposit for the signed lease. Come back with the 30€.',
                   options: [
-                    { label: '🚲 "I will run a couple of courier shifts right now."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🏃 "I will be back with the money shortly, Herr Lokker."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🚲 "I will run some shifts right now."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🏃 "Be right back, Herr Lokker."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_LOKKER', custom: true });
@@ -19278,14 +19395,14 @@ window.FFH.NPC_DATABASE = {
               } else {
                 game.sfx.playSfx('success');
               }
-              game.ui.spawnFloatingText('🏠 Lease Signed! Landlord Confirmation Granted! (-30€, +1 Day)', window.innerWidth / 2, window.innerHeight / 2, '#4CAF50');
+              game.ui.spawnFloatingText('🏠 Lease Signed! (-30€, +1 Day)', window.innerWidth / 2, window.innerHeight / 2, '#4CAF50');
               game.ui.updateQuestTracker();
 
               window.FFH.NPC_DATABASE['NPC_LOKKER'].currentResponse = {
-                en: '*Sniffs the butter aroma with genuine delight* ...A warm croissant from Martha AND the 30€ deposit?! You have manners, culture, and discipline. Here is your signed Wohnungsgeberbestätigung for the Bürgeramt!',
+                en: 'Here is your signed tenancy confirmation! Take this to Bürgeramt for your Anmeldung.',
                 options: [
-                  { label: '📜 "Thank you very much, Herr Lokker! I will keep the hallway quiet."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                  { label: '🏛️ "I will take this straight to Herr Vogel at the Bürgeramt."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                  { label: '📜 "Thank you, Herr Lokker!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                  { label: '🚪 "Have a good day."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                 ]
               };
               game.transitionTo('DIALOGUE', { npcKey: 'NPC_LOKKER', custom: true });
@@ -19356,22 +19473,19 @@ window.FFH.NPC_DATABASE = {
       } else {
         // Already housed: Dorm room entry or conversation
         options.push({
-          label: '🏠 "Step into my room (Buy gear, practice vocabulary)"',
+          label: '🏠 "Step into my room (Gear & Vocabulary)"',
           action: (game) => { game.transitionTo('SHOP'); }
         });
         options.push({
-          label: '🚪 "Just heading out for my next delivery shift, Herr Lokker."',
+          label: '🚪 "Heading out for delivery, Herr Lokker."',
           action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
         });
       }
 
       // Memory reactive & slightly forgetful humorous greeting
-      let lokkerGreeting = state.semester === 'WINTER'
-        ? 'Good day. It is freezing outside! Keep your radiator on Level 3, wipe slush off your tires, and shock-ventilate (Stoßlüften) twice daily to prevent mold!'
-        : 'Good day. Summer heat is here! Keep the heavy entrance door locked, don\'t leave wet river towels in the hallway, and respect the 22:00 Ruhezeit!';
-      
+      let lokkerGreeting = 'Good day. Keep the building quiet after 22:00 and sort your bins properly!';
       if (memories.includes('bribed_with_croissant')) {
-        lokkerGreeting = '*Subtly dusts croissant crumbs off his cardigan and straightens his mustache* Hmph! Have you done your morning Stoßlüften airing? Your room is in order, but remember, the quiet hours begin at 22:00!';
+        lokkerGreeting = '*Nods approvingly* The polite student! Keep Room 4 tidy and respect quiet hours.';
       } else if (state.storyFlags.tookSchwarzarbeit || (state.zollRisk || 0) > 0) {
         lokkerGreeting = '*Sniffs sharply* You smell of wood-smoke, garlic, and pizzeria dough past 22:00 Ruhezeit! Doing late-night shifts with Mathias again? Keep your shoes outside, obey house rules, and don\'t bring the Zoll down on my building!';
       } else if (memories.includes('promised_ruhezeit')) {
@@ -19389,7 +19503,7 @@ window.FFH.NPC_DATABASE = {
   // 6. NICO (Senior Expat Roommate & Veteran Student)
   'NPC_NICO': {
     id: 'NPC_NICO',
-    name: 'Nico (Hostel & Dorm Buddy)',
+    name: 'Nico (Flatmate)',
     title: 'Senior International Student',
     building: 'B_HOSTEL',
     greetingAudio: 'guten_tag',
@@ -19411,11 +19525,11 @@ window.FFH.NPC_DATABASE = {
       // First Meeting Introduction (Dropping luggage in WG & Learning Mülltrennung)
       if (isFirstMeeting) {
         return {
-          speaker: 'Nico (Flatmate & Fellow Student)',
-          en: 'Hey! You must be the new roommate moving into Room 4. Put that heavy suitcase down on the rug! I am Nico from Brazil, 3rd semester computer science. You look completely frozen from that Baltic wind. Here, take half a mug of warm instant coffee.',
+          speaker: 'Nico (Flatmate)',
+          en: 'Hey! Welcome to Room 4. Put your heavy suitcase down! Here, take some warm coffee.',
           options: [
             {
-              label: '☕ "Thanks Nico! I just walked from the station. Where can I drop my luggage?"',
+              label: '☕ "Thanks Nico! Where can I drop my bags?"',
               action: (game) => {
                 addNicoMemory('introduced_nico');
                 addNicoMemory('shared_coffee');
@@ -19428,28 +19542,28 @@ window.FFH.NPC_DATABASE = {
                 }
 
                 window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
-                  en: 'Room 4 is right down the hall! Drop your coat on the bed. In this house, Caretaker Lokker is obsessed with one big rule: Mülltrennung (Waste Sorting). Blue bin for paper, yellow bag for plastic packaging, black bin for household rest. Never mix them up!',
+                  en: 'Room 4 is right down the hall. Just remember: Lokker is strict about Mülltrennung (Waste Sorting). Blue for paper, yellow for plastic, black for rest.',
                   options: [
                     { 
-                      label: '🗑️ "Got it: Blue for paper, yellow for plastic, black for rest."', 
+                      label: '🗑️ "Got it: Blue, yellow, and black."', 
                       action: (g) => {
                         window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
-                          en: 'Awesome! Go take a stroll, explore the historic streets of Lübeck and cross the bridges. Later on, head across the bridge to the University Campus to register with Rita Schneider before the office closes!',
+                          en: 'Nice! Go take a stroll and explore Lübeck. Later, head across the bridge to University Admissions before it closes!',
                           options: [
-                            { label: '🚶 "I will explore the town and then visit the university!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') },
-                            { label: '🚪 "Thanks for the coffee, Nico! See you tonight."', action: (g2) => g2.transitionTo('CITY_EXPLORATION') }
+                            { label: '🚶 "Heading out to explore!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') },
+                            { label: '🚪 "See you tonight, Nico."', action: (g2) => g2.transitionTo('CITY_EXPLORATION') }
                           ]
                         };
                         g.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', custom: true });
                       }
                     },
                     { 
-                      label: '🤝 "Thanks Nico! You just saved me from a landlord disaster."', 
+                      label: '🤝 "Thanks Nico! You saved me from a landlord disaster."', 
                       action: (g) => {
                         window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
-                          en: 'Happy to help! Take some time to explore the cobblestone alleys and get some fresh air. Then head to the University Admissions desk to check in with Rita.',
+                          en: 'Glad to help! Take a walk around the city, then head over to Rita at the university.',
                           options: [
-                            { label: '🚶 "Heading out to explore the town!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') },
+                            { label: '🚶 "Time to explore the town!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') },
                             { label: '🏃 "Catch you later, Nico!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') }
                           ]
                         };
@@ -19462,7 +19576,7 @@ window.FFH.NPC_DATABASE = {
               }
             },
             {
-              label: '🎒 "Pleased to meet you, Nico! What is the most important house rule here?"',
+              label: '🎒 "What is the most important house rule here?"',
               action: (game) => {
                 addNicoMemory('introduced_nico');
                 addNicoMemory('asked_house_rules');
@@ -19475,16 +19589,10 @@ window.FFH.NPC_DATABASE = {
                 }
 
                 window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
-                  en: 'Set your bags down in Room 4! The number one rule is Mülltrennung (Trash Sorting). Blue bin for paper, yellow bag for plastic packaging, black bin for household rest. Follow that and Lokker will leave you alone!',
+                  en: 'Mülltrennung (Waste Sorting). Blue for paper, yellow for plastic, black for rest. Follow that and you will be fine!',
                   options: [
-                    { 
-                      label: '🚶 "Understood! I will explore the city first and then find Rita at the university."', 
-                      action: (g) => g.transitionTo('CITY_EXPLORATION') 
-                    },
-                    { 
-                      label: '☕ "Thanks for the warm coffee and guidance, Nico."', 
-                      action: (g) => g.transitionTo('CITY_EXPLORATION') 
-                    }
+                    { label: '🚶 "I will explore the town and visit the university."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '☕ "Thanks for the coffee, Nico!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', custom: true });
@@ -19593,11 +19701,11 @@ window.FFH.NPC_DATABASE = {
               }
             },
             {
-              label: '🏃 "Hello Herr Vogel. Just checking what documents are required."',
+              label: '🏃 "Hello, checking what documents are required?"',
               action: (game) => {
                 addVogelMemory('introduced_vogel');
                 window.FFH.NPC_DATABASE['NPC_VOGEL'].currentResponse = {
-                  en: 'You require exactly two things: your national passport and the Wohnungsgeberbestätigung form signed by your landlord, Hans Lokker.',
+                  en: 'You need your national passport and the Wohnungsgeberbestätigung form signed by Hans Lokker.',
                   options: [
                     { label: '📜 "Understood. Thank you, Herr Vogel."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
                     { label: '🏠 "I will find Herr Lokker now."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
@@ -19614,10 +19722,10 @@ window.FFH.NPC_DATABASE = {
       if (!state.hasAnmeldung && (state.hasApartment || state.storyFlags.landlordConfirmationSigned)) {
         return {
           speaker: 'Herr Vogel (Bürgeramt)',
-          en: 'Ticket B-104? Please step forward. I see you have your passport and the landlord confirmation from Herr Lokker. Shall we register your municipal address?',
+          en: 'Ticket B-104? I see you have your passport and the landlord confirmation. Shall we register your address?',
           options: [
             {
-              label: '📑 "Yes, please! Here are my passport and the signed lease form."',
+              label: '📑 "Here are my passport and the signed lease form."',
               action: (game) => {
                 game.state.hasAnmeldung = true;
                 game.state.day = (game.state.day || 1) + 1;
@@ -19631,21 +19739,21 @@ window.FFH.NPC_DATABASE = {
                 } else {
                   game.sfx.playSfx('success');
                 }
-                game.ui.spawnFloatingText('📑 Registration Complete! Meldebescheinigung Granted! (+1 Day)', window.innerWidth / 2, window.innerHeight / 2, '#1D3557');
+                game.ui.spawnFloatingText('📑 Registration Complete! (+1 Day)', window.innerWidth / 2, window.innerHeight / 2, '#1D3557');
                 game.ui.updateQuestTracker();
 
                 window.FFH.NPC_DATABASE['NPC_VOGEL'].currentResponse = {
-                  en: '*Applies the double circular city seal with satisfying force* Impeccable. You are officially registered in Lübeck! Take this certificate to Sparkasse Bank to unfreeze your blocked account.',
+                  en: '*Stamps document firmly* You are officially registered in Lübeck! Take this to Sparkasse Bank.',
                   options: [
-                    { label: '🏦 "Thank you, Herr Vogel! I will head to the bank."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '📜 "I appreciate your thoroughness."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🏦 "Thank you, Herr Vogel!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '📜 "Heading to the bank now."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_VOGEL', custom: true });
               }
             },
             {
-              label: '🚪 "I will come back in a moment."',
+              label: '🚪 "I will come back shortly."',
               action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
             }
           ]
@@ -19655,12 +19763,12 @@ window.FFH.NPC_DATABASE = {
       const options = [];
 
       options.push({
-        label: '📜 "Herr Vogel, why is paperwork so meticulous in Germany?"',
+        label: '📜 "Why is paperwork so strict in Germany, Herr Vogel?"',
         action: (game) => {
           window.FFH.NPC_DATABASE['NPC_VOGEL'].currentResponse = {
-            en: 'Standardized forms ensure equality under the law! A clear stamp prevents arbitrary rulings by officials. Once your paper carries the city seal, your rights are protected against anyone.',
+            en: 'Standard forms ensure everyone is treated equally. Once stamped, your rights are protected.',
             options: [
-              { label: '🏛️ "That makes a lot of sense. Thank you."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_VOGEL' }) },
+              { label: '🏛️ "That makes sense. Thank you."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_VOGEL' }) },
               { label: '🚪 "Good day, Herr Vogel."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
             ]
           };
@@ -19669,14 +19777,14 @@ window.FFH.NPC_DATABASE = {
       });
 
       options.push({
-        label: '🚪 "Goodbye, Herr Vogel!" (Leave)',
+        label: '🚪 "Goodbye, Herr Vogel!"',
         action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
       });
 
       // Memory reactive greeting
       let statusMsgEn = state.hasAnmeldung ?
-        'Your registration certificate is in order in Akte B-104. Next, activate your blocked account at Sparkasse Bank.' :
-        'Without a signed confirmation (Wohnungsgeberbestätigung) from Hans Lokker, I cannot register your address. Please bring the signed form.';
+        'Your registration is filed. Next, activate your bank account at Sparkasse.' :
+        'To register your address, I need the signed lease (Wohnungsgeberbestätigung) from Hans Lokker.';
 
       if (memories.includes('polite_to_vogel')) {
         statusMsgEn = `*Straightens his desk blotter neatly* Ah, our courteous applicant. ${statusMsgEn}`;
@@ -19716,35 +19824,35 @@ window.FFH.NPC_DATABASE = {
       if (isFirstMeeting) {
         return {
           speaker: 'Frau Weber (Sparkasse Advisor)',
-          en: 'Guten Tag. I am Frau Weber, senior advisor here at Sparkasse Lübeck. Under German banking compliance regulations, foreign student blocked accounts (Sperrkonto) can only be unlocked once you present both your university matriculation and municipal registration certificate. How may I assist your financial setup today?',
+          en: 'Guten Tag! To unfreeze your Sperrkonto account, I need both your matriculation and city registration.',
           options: [
             {
-              label: '🏦 "Good day Frau Weber. I am organizing my student documents to unlock my funds."',
+              label: '🏦 "I am gathering those documents right now."',
               action: (game) => {
                 addWeberMemory('introduced_weber');
                 addWeberMemory('discussed_sperrkonto');
                 game.state.npcRelationships['NPC_WEBER'] = Math.min(100, (game.state.npcRelationships['NPC_WEBER'] || 50) + 15);
                 window.FFH.NPC_DATABASE['NPC_WEBER'].currentResponse = {
-                  en: 'Very good. Once Rita Schneider stamps your matriculation and Herr Vogel registers your address, visit my desk and I will immediately disburse your 50€ monthly allowance.',
+                  en: 'Great. Once Rita and Herr Vogel stamp your papers, I will disburse your 50€ monthly allowance.',
                   options: [
-                    { label: '💳 "Understood. Thank you, Frau Weber."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🏃 "I will gather the certificates now."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '💳 "Understood. Thank you!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🏃 "I will get those stamps."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_WEBER', custom: true });
               }
             },
             {
-              label: '💡 "Hello Frau Weber! What is the smartest way for a student courier to manage money?"',
+              label: '💡 "What is the best financial tip for a student courier?"',
               action: (game) => {
                 addWeberMemory('introduced_weber');
                 addWeberMemory('asked_financial_advice');
                 game.state.npcRelationships['NPC_WEBER'] = Math.min(100, (game.state.npcRelationships['NPC_WEBER'] || 50) + 20);
                 window.FFH.NPC_DATABASE['NPC_WEBER'].currentResponse = {
-                  en: 'Reinvest your early courier earnings into tools that multiply your stamina! An E-Bike conversion or Thermal Bag pays for itself in three shifts through speed bonuses and zero damaged goods.',
+                  en: 'Reinvest your wages into bike upgrades like the E-Bike and Thermal Bag. They pay for themselves quickly!',
                   options: [
-                    { label: '📈 "Very practical advice, Frau Weber."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🚲 "Back to the delivery bike."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '📈 "Practical advice, thank you."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🚲 "Back to work!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_WEBER', custom: true });
@@ -19758,10 +19866,10 @@ window.FFH.NPC_DATABASE = {
       if (!state.isSperrkontoUnlocked && state.hasAnmeldung && state.isMatriculated) {
         return {
           speaker: 'Frau Weber (Sparkasse Bank)',
-          en: 'Good day! You brought both your university enrollment and city registration certificate. Shall we activate your checking account and unfreeze your monthly allowance?',
+          en: 'You brought both certificates! Ready to activate your checking account and release your 50€ allowance?',
           options: [
             {
-              label: '💳 "Yes, please! Activate my account and release the first 50€ allowance."',
+              label: '💳 "Yes, please! Activate my account."',
               action: (game) => {
                 game.state.isSperrkontoUnlocked = true;
                 game.state.day = (game.state.day || 1) + 1;
@@ -19777,10 +19885,10 @@ window.FFH.NPC_DATABASE = {
                 game.ui.updateQuestTracker();
 
                 window.FFH.NPC_DATABASE['NPC_WEBER'].currentResponse = {
-                  en: 'Wonderful! Your debit card is active and the first 50.00€ has been disbursed to your balance. All four of your core documents are now complete for your visa hearing with Dr. Lindemann!',
+                  en: 'Your account is active and 50.00€ is disbursed! You now have all four documents for Dr. Lindemann.',
                   options: [
-                    { label: '🏛️ "I will head straight to the Ausländerbehörde!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🎉 "Thank you so much, Frau Weber!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🏛️ "Heading to immigration now!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🎉 "Thank you, Frau Weber!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_WEBER', custom: true });
@@ -19797,13 +19905,13 @@ window.FFH.NPC_DATABASE = {
       const options = [];
 
       options.push({
-        label: '💳 "Frau Weber, what is the best financial advice for a student courier?"',
+        label: '💳 "Any financial advice for a courier?"',
         action: (game) => {
           window.FFH.NPC_DATABASE['NPC_WEBER'].currentResponse = {
-            en: 'Reinvest your early wages into tools that multiply your stamina! An E-Bike conversion kit or Thermal Bag pays for itself in just three shifts through speed bonuses and zero crushed groceries.',
+            en: 'Invest in bike upgrades! They save stamina and increase your earnings.',
             options: [
-              { label: '📈 "Very sound advice. Thank you!"', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_WEBER' }) },
-              { label: '🚪 "Good day, Frau Weber."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+              { label: '📈 "Good advice, thanks!"', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_WEBER' }) },
+              { label: '🚪 "Good day."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
             ]
           };
           game.transitionTo('DIALOGUE', { npcKey: 'NPC_WEBER', custom: true });
@@ -19811,13 +19919,13 @@ window.FFH.NPC_DATABASE = {
       });
 
       options.push({
-        label: '🚪 "Goodbye, Frau Weber!" (Leave)',
+        label: '🚪 "Goodbye, Frau Weber!"',
         action: (game) => { game.transitionTo('CITY_EXPLORATION'); }
       });
 
       let statusMsgEn = state.isSperrkontoUnlocked ? 
-        'Your German checking account is active with regular disbursements.' :
-        'To unfreeze your Sperrkonto funds, I need your university enrollment certificate and city registration from the Bürgeramt.';
+        'Your German checking account is active and funded.' :
+        'To activate your account, bring your university enrollment and city registration.';
 
       if (memories.includes('asked_financial_advice')) {
         statusMsgEn = `*Smiles with professional warmth* Good to see you again. Have you invested in any bicycle upgrades yet? ${statusMsgEn}`;
@@ -19857,34 +19965,34 @@ window.FFH.NPC_DATABASE = {
       if (isFirstMeeting) {
         return {
           speaker: 'Dr. Lindemann (Immigration Director)',
-          en: 'Guten Tag. I am Dr. Lindemann, director of the Lübeck Immigration Authority (Ausländerbehörde). You are residing here on a temporary 28-day student entry visa. To convert this into a legal Residence Permit (Aufenthaltstitel §16b), you must submit four verified certificates before your deadline expires: University Matriculation, Housing Lease, City Registration, and an Unfrozen Bank Account. Are you aware of your legal responsibilities?',
+          en: 'Guten Tag. To receive your Residence Permit (§16b), you must submit 4 documents before your visa expires: Matriculation, Lease, City Registration, and Bank Account.',
           options: [
             {
-              label: '🇩🇪 "Yes, Dr. Lindemann. I understand my deadlines and will complete every requirement."',
+              label: '🇩🇪 "I will complete all 4 documents on time, Dr. Lindemann."',
               action: (game) => {
                 addLindemannMemory('introduced_lindemann');
                 addLindemannMemory('vowed_discipline');
                 game.state.npcRelationships['NPC_LINDEMANN'] = Math.min(100, (game.state.npcRelationships['NPC_LINDEMANN'] || 50) + 15);
                 window.FFH.NPC_DATABASE['NPC_LINDEMANN'].currentResponse = {
-                  en: 'Good. Discipline and punctuality are the cornerstones of this republic. Return when your dossier is complete.',
+                  en: 'Good. Punctuality is respected here. Return when your dossier is ready.',
                   options: [
-                    { label: '🏃 "I will gather the four documents right away."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🏛️ "Thank you for the clarity, Dr. Lindemann."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🏃 "I will gather them right away."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🏛️ "Thank you, Dr. Lindemann."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_LINDEMANN', custom: true });
               }
             },
             {
-              label: '🤝 "Pleased to meet you, Dr. Lindemann. I arrived with 20€ and am working hard to build a life here."',
+              label: '🤝 "I arrived with 20€ and am working hard to build a life here."',
               action: (game) => {
                 addLindemannMemory('introduced_lindemann');
                 addLindemannMemory('mentioned_struggle');
                 game.state.npcRelationships['NPC_LINDEMANN'] = Math.min(100, (game.state.npcRelationships['NPC_LINDEMANN'] || 50) + 10);
                 window.FFH.NPC_DATABASE['NPC_LINDEMANN'].currentResponse = {
-                  en: 'Hard work is respected here. But the law is clear: clear your tuition and register your residence before time runs out.',
+                  en: 'Hard work is respected. Clear your tuition and submit your papers before time runs out.',
                   options: [
-                    { label: '🚲 "Back to my delivery shifts."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🚲 "Back to my shifts."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
                     { label: '🚪 "Good day, Dr. Lindemann."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
@@ -20032,7 +20140,7 @@ window.FFH.NPC_DATABASE = {
         // Spotless legal path
         return {
           speaker: 'Dr. Lindemann (Immigration Director)',
-          en: 'Inspecting your completed immigration dossier: University Matriculation? 250€ verified by Rita Schneider. Rental Confirmation? Signed by Hans Lokker. Municipal Registration? Stamped by Herr Vogel. Bank Account? Unfrozen by Frau Weber. You navigated the entire German administrative maze with flawless integrity. Are you ready to receive your permanent Residence Permit?',
+          en: '*Reviews your complete file* Your dossier is flawless. Matriculation, Lease, City Registration, and Bank Account are all verified. Ready for your official Residence Permit?',
           options: [
             {
               label: '🎓 "Yes! I submit my completed dossier for the official Aufenthaltstitel!"',

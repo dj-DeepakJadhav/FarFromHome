@@ -18,10 +18,14 @@ tunnel_url.txt
 .claude/
 .gemini/
 
-# Working Draft Documents & Reference Media (User Request)
+# Working Draft Reference Media (User Request)
 Docs/*.jpg
 Docs/*.jpeg
 Docs/*.png
 Docs/*.html
-Docs/THE_IMMIGRANT_ODYSSEY_COMPLETE_STORY.md
-Docs/ONE_PAGE_DESIGN_DOCUMENT.md
+Docs/archive/*.html
+
+# Note: ONE_PAGE_DESIGN_DOCUMENT.md is deliberately NOT ignored. It is an
+# authoritative design document (see Docs/README.md) and must be versioned.
+# THE_IMMIGRANT_ODYSSEY_COMPLETE_STORY.md now lives in Docs/archive/ and is
+# tracked there for history.
