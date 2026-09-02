@@ -27528,29 +27528,38 @@ window.FFH.CityExplorationPhase = class {
     this.birds = birds || [];
     this.game.scene.add(this.worldGroup);
 
-    // 3.2 Compute static geometry bounds tree for sliding collision
+    // 3.2 Compute static geometry bounds tree for sliding collision (solid city obstacles only)
     if (window.MeshBVH && window.MeshBVH.StaticGeometryGenerator) {
-      // Temporarily hide dynamic objects from worldGroup so they aren't merged
-      const hidden = [];
-      this.worldGroup.traverse((c) => {
-        if (c.userData.speed !== undefined || c.userData.baseX !== undefined || c.userData.centerX !== undefined) {
-          if (c.visible) {
-            c.visible = false;
-            hidden.push(c);
+      try {
+        const obstacleGroup = new THREE.Group();
+        if (this.interactiveMeshes && this.interactiveMeshes.length > 0) {
+          this.interactiveMeshes.forEach(grp => {
+            grp.traverse(child => {
+              if (child.isMesh && child.geometry && child.geometry.index) {
+                const m = new THREE.Mesh(child.geometry.clone());
+                child.getWorldPosition(m.position);
+                child.getWorldQuaternion(m.quaternion);
+                child.getWorldScale(m.scale);
+                obstacleGroup.add(m);
+              }
+            });
+          });
+        }
+
+        if (obstacleGroup.children.length > 0) {
+          const generator = new window.MeshBVH.StaticGeometryGenerator(obstacleGroup);
+          generator.attributes = ['position'];
+          const genResult = generator.generate();
+          const mergedGeometry = (genResult && genResult.geometry) ? genResult.geometry : genResult;
+          if (mergedGeometry && typeof mergedGeometry.computeBoundsTree === 'function') {
+            mergedGeometry.computeBoundsTree();
+            this.colliderMesh = new THREE.Mesh(mergedGeometry);
           }
         }
-      });
-      const generator = new window.MeshBVH.StaticGeometryGenerator(this.worldGroup);
-      generator.attributes = ['position'];
-      const genResult = generator.generate();
-      const mergedGeometry = (genResult && genResult.geometry) ? genResult.geometry : genResult;
-      if (mergedGeometry && typeof mergedGeometry.computeBoundsTree === 'function') {
-        mergedGeometry.computeBoundsTree();
-        this.colliderMesh = new THREE.Mesh(mergedGeometry);
+      } catch (err) {
+        console.warn('BVH collider generation skipped (using AABB collision fallback):', err);
+        this.colliderMesh = null;
       }
-      
-      // Restore dynamic objects
-      hidden.forEach(c => c.visible = true);
     }
 
     // Spawn 10 Roaming Citizens using the Behavior Tree

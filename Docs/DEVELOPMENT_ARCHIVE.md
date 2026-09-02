@@ -393,6 +393,14 @@
 - **Packaging & Verification**:
   - Reassembled `index.html` at **6.28 MB** uncompressed. 60 FPS, 0 errors.
 
+### September 2, 2026: StaticGeometryGenerator Attribute Compatibility & Obstacle Scoping Fix
+- **Fixed `All geometries must have compatible attributes; make sure index attribute exists among all geometries`**:
+  - Previously, `StaticGeometryGenerator` was fed the entire `this.worldGroup`, which contained a mix of indexed geometries (boxes, cylinders) and non-indexed geometries (`PlaneGeometry` wings on birds, butterflies, water plane), causing `mergeBufferGeometries` to throw an attribute mismatch exception.
+  - Scoped `StaticGeometryGenerator` strictly to solid city obstacle meshes inside `this.interactiveMeshes` that share compatible indexed geometries, wrapped with safe fallback to the existing 2D AABB grid collision system.
+- **Packaging & Verification**:
+  - Reassembled `index.html` at **6.28 MB** uncompressed. Verified clean transition into city exploration with 0 console errors.
+
+
 
 
 
