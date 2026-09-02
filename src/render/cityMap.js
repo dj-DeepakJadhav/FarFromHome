@@ -591,7 +591,7 @@ window.FFH.CityAssetRegistry = {
     return group;
   },
 
-  // 15. 3D Arched Hanseatic Bridge with Stone Balustrades (Brücke - 100% Pedestrian & Bike, Zero Car Roads)
+  // 15. 3D Arched Hanseatic Bridge with Extra-Height Stone Balustrades (Brücke - 100% Pedestrian & Bike, Zero Car Roads)
   createArchedBridge(isEW = true) {
     const group = new THREE.Group();
     const S = window.FFH.TILE_SCALE || 2.6;
@@ -602,33 +602,163 @@ window.FFH.CityAssetRegistry = {
     deck.position.y = 0.06;
     deck.receiveShadow = true;
 
-    // Twin Stone Balustrades / Railings along the water-facing flanks only!
+    // Extra-Height Stone Balustrades / Parapets along the water-facing flanks (increased height per request)
     const balustradeMat = new THREE.MeshLambertMaterial({ color: 0xEDE5D8 });
+    const capMat = new THREE.MeshLambertMaterial({ color: 0xF7F3EB });
+    const balHeight = 0.72; // Extra height (up from 0.42)
+    const balThickness = 0.16;
+    const balY = 0.44;
+
     const balGeo = isEW 
-      ? new THREE.BoxGeometry(S, 0.42, 0.12)
-      : new THREE.BoxGeometry(0.12, 0.42, S);
+      ? new THREE.BoxGeometry(S, balHeight, balThickness)
+      : new THREE.BoxGeometry(balThickness, balHeight, S);
 
     const bal1 = new THREE.Mesh(balGeo, balustradeMat);
     const bal2 = new THREE.Mesh(balGeo, balustradeMat);
 
     if (isEW) {
       // East-West bridge: railings protect the North (-Z) and South (+Z) water edges
-      bal1.position.set(0, 0.42, -S * 0.46);
-      bal2.position.set(0, 0.42, S * 0.46);
+      bal1.position.set(0, balY, -S * 0.46);
+      bal2.position.set(0, balY, S * 0.46);
     } else {
       // North-South bridge: railings protect the West (-X) and East (+X) water edges
-      bal1.position.set(-S * 0.46, 0.42, 0);
-      bal2.position.set(S * 0.46, 0.42, 0);
+      bal1.position.set(-S * 0.46, balY, 0);
+      bal2.position.set(S * 0.46, balY, 0);
     }
     bal1.castShadow = true;
     bal2.castShadow = true;
+
+    // Decorative Coping Stone Caps on the top of each balustrade
+    const capGeo = isEW
+      ? new THREE.BoxGeometry(S * 1.01, 0.09, balThickness + 0.06)
+      : new THREE.BoxGeometry(balThickness + 0.06, 0.09, S * 1.01);
+    const cap1 = new THREE.Mesh(capGeo, capMat);
+    const cap2 = new THREE.Mesh(capGeo, capMat);
+    cap1.position.set(bal1.position.x, balY + balHeight * 0.5 + 0.04, bal1.position.z);
+    cap2.position.set(bal2.position.x, balY + balHeight * 0.5 + 0.04, bal2.position.z);
+    cap1.castShadow = true;
+    cap2.castShadow = true;
+
+    // Decorative Stone Corner Plinths on the bridge ends
+    const postGeo = new THREE.BoxGeometry(0.24, balHeight + 0.12, 0.24);
+    const p1 = new THREE.Mesh(postGeo, capMat);
+    const p2 = new THREE.Mesh(postGeo, capMat);
+    const p3 = new THREE.Mesh(postGeo, capMat);
+    const p4 = new THREE.Mesh(postGeo, capMat);
+    if (isEW) {
+      p1.position.set(-S * 0.48, balY + 0.04, -S * 0.46);
+      p2.position.set(S * 0.48, balY + 0.04, -S * 0.46);
+      p3.position.set(-S * 0.48, balY + 0.04, S * 0.46);
+      p4.position.set(S * 0.48, balY + 0.04, S * 0.46);
+    } else {
+      p1.position.set(-S * 0.46, balY + 0.04, -S * 0.48);
+      p2.position.set(-S * 0.46, balY + 0.04, S * 0.48);
+      p3.position.set(S * 0.46, balY + 0.04, -S * 0.48);
+      p4.position.set(S * 0.46, balY + 0.04, S * 0.48);
+    }
 
     // Brick Arch Piers dipping into the water
     const pierMat = this.materials.roofBrick;
     const pier1 = new THREE.Mesh(new THREE.BoxGeometry(S * 0.9, 0.5, S * 0.9), pierMat);
     pier1.position.y = -0.3;
 
-    group.add(deck, bal1, bal2, pier1);
+    group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, pier1);
+    return group;
+  },
+
+  // 15B. Matching Perimeter Stone Border Wall Around Whole Playable Map
+  createWorldPerimeterBorder(mapSize, tileScale) {
+    const group = new THREE.Group();
+    const S = tileScale || 2.6;
+    const totalSize = mapSize * S;
+    const halfS = S * 0.5;
+    const minCoord = -halfS;
+    const maxCoord = (mapSize - 1) * S + halfS;
+    const center = minCoord + totalSize * 0.5;
+
+    const wallHeight = 0.72; // Matching extra-height bridge balustrade
+    const wallThickness = 0.22;
+    const wallY = wallHeight * 0.5;
+
+    const stoneMat = new THREE.MeshLambertMaterial({ color: 0xEDE5D8 });
+    const capMat = new THREE.MeshLambertMaterial({ color: 0xF7F3EB });
+
+    // North Wall & South Wall (spanning along X)
+    const ewWallGeo = new THREE.BoxGeometry(totalSize, wallHeight, wallThickness);
+    const ewCapGeo = new THREE.BoxGeometry(totalSize + 0.1, 0.09, wallThickness + 0.08);
+
+    const northWall = new THREE.Mesh(ewWallGeo, stoneMat);
+    northWall.position.set(center, wallY, minCoord);
+    northWall.castShadow = true;
+    northWall.receiveShadow = true;
+
+    const northCap = new THREE.Mesh(ewCapGeo, capMat);
+    northCap.position.set(center, wallHeight + 0.04, minCoord);
+    northCap.castShadow = true;
+
+    const southWall = new THREE.Mesh(ewWallGeo, stoneMat);
+    southWall.position.set(center, wallY, maxCoord);
+    southWall.castShadow = true;
+    southWall.receiveShadow = true;
+
+    const southCap = new THREE.Mesh(ewCapGeo, capMat);
+    southCap.position.set(center, wallHeight + 0.04, maxCoord);
+    southCap.castShadow = true;
+
+    // West Wall & East Wall (spanning along Z)
+    const nsWallGeo = new THREE.BoxGeometry(wallThickness, wallHeight, totalSize);
+    const nsCapGeo = new THREE.BoxGeometry(wallThickness + 0.08, 0.09, totalSize + 0.1);
+
+    const westWall = new THREE.Mesh(nsWallGeo, stoneMat);
+    westWall.position.set(minCoord, wallY, center);
+    westWall.castShadow = true;
+    westWall.receiveShadow = true;
+
+    const westCap = new THREE.Mesh(nsCapGeo, capMat);
+    westCap.position.set(minCoord, wallHeight + 0.04, center);
+    westCap.castShadow = true;
+
+    const eastWall = new THREE.Mesh(nsWallGeo, stoneMat);
+    eastWall.position.set(maxCoord, wallY, center);
+    eastWall.castShadow = true;
+    eastWall.receiveShadow = true;
+
+    const eastCap = new THREE.Mesh(nsCapGeo, capMat);
+    eastCap.position.set(maxCoord, wallHeight + 0.04, center);
+    eastCap.castShadow = true;
+
+    group.add(northWall, northCap, southWall, southCap, westWall, westCap, eastWall, eastCap);
+
+    // 4 Grand Corner Stone Pilasters
+    const cornerGeo = new THREE.BoxGeometry(0.38, wallHeight + 0.18, 0.38);
+    const corners = [
+      [minCoord, minCoord],
+      [maxCoord, minCoord],
+      [minCoord, maxCoord],
+      [maxCoord, maxCoord]
+    ];
+    corners.forEach(([cx, cz]) => {
+      const cMesh = new THREE.Mesh(cornerGeo, capMat);
+      cMesh.position.set(cx, (wallHeight + 0.18) * 0.5, cz);
+      cMesh.castShadow = true;
+      group.add(cMesh);
+    });
+
+    // Periodic Decorative Pilasters every 4 tiles along the walls
+    const postGeo = new THREE.BoxGeometry(0.28, wallHeight + 0.10, 0.28);
+    for (let i = 4; i < mapSize; i += 4) {
+      const coord = minCoord + i * S;
+      const pN = new THREE.Mesh(postGeo, capMat);
+      pN.position.set(coord, (wallHeight + 0.10) * 0.5, minCoord);
+      const pS = new THREE.Mesh(postGeo, capMat);
+      pS.position.set(coord, (wallHeight + 0.10) * 0.5, maxCoord);
+      const pW = new THREE.Mesh(postGeo, capMat);
+      pW.position.set(minCoord, (wallHeight + 0.10) * 0.5, coord);
+      const pE = new THREE.Mesh(postGeo, capMat);
+      pE.position.set(maxCoord, (wallHeight + 0.10) * 0.5, coord);
+      group.add(pN, pS, pW, pE);
+    }
+
     return group;
   },
 
@@ -968,21 +1098,21 @@ window.FFH.TILE_SCALE = 2.6;
 
 window.FFH.LUBECK_CITY_GRID = [
   // Row 0: North Mainland Border
-  ['G','G','A1','G','T','G','G','G','G','G','R_C','R_C','G','G','G','G','G','G','T','G','A2','G','G','G'],
+  ['G','G','A1','G','T','G','G','G','G','G','R_C','G','G','G','G','G','G','G','T','G','A2','G','G','G'],
   // Row 1: North Mainland (ZOB approach & East Garden)
-  ['G','A2','R_C','R_C','R_C','G','G','G','G','T','R_C','R_C','T','G','G','G','G','G','G','T','G','T','G','G'],
+  ['G','A2','R_C','R_C','R_C','G','G','G','G','T','R_C','T','G','G','G','G','G','G','G','T','G','T','G','G'],
   // Row 2: North Mainland (ZOB & East Garden)
-  ['G','G','B_ZOB','G','R_C','G','G','G','G','G','R_C','R_C','G','G','G','G','G','G','G','G','T','G','G','G'],
+  ['G','G','B_ZOB','G','R_C','G','G','G','G','G','R_C','G','G','G','G','G','G','G','G','G','T','G','G','G'],
   // Row 3: North Mainland Approach to North Bridge
-  ['A1','G','R_C','G','R_C','G','G','G','G','G','R_B','R_B','G','G','G','G','G','G','G','G','A3','G','T','G'],
-  // Row 4: NORTH CANAL LOOP & NORTH BRIDGE
-  ['G','G','R_C','G','G','W','W','W','W','W','BR','BR','W','W','W','W','W','W','W','G','R_C','G','G','G'],
+  ['A1','G','R_C','G','R_C','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','A3','G','T','G'],
+  // Row 4: NORTH CANAL LOOP & NORTH BRIDGE (Single 1-Tile Bridge at x:10)
+  ['G','G','R_C','G','G','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','G','R_C','G','G','G'],
   // Row 5: Island North Apex
   ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','W','W','G','G','R_C','T','G','G'],
   // Row 6: Island North (UNI)
   ['G','G','R_C','G','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','G','W','W','G','G','R_C','G','A4','G'],
-  // Row 7: West-North Bridge (Bakery) & East BurgTor Bridge
-  ['A2','G','B_BAKERY','R_C','R_B','BR','BR','R_B','R_C','R_C','R_C','R_C','R_C','R_B','B_BURGTOR','R_B','BR','BR','R_B','R_C','R_C','G','T','G'],
+  // Row 7: West-North Bridge (Bakery x:5) & East BurgTor Bridge (x:17)
+  ['A2','G','B_BAKERY','R_C','R_B','BR','R_C','R_B','R_C','R_C','R_C','R_C','R_C','R_B','B_BURGTOR','R_B','R_C','BR','R_B','R_C','R_C','G','T','G'],
   // Row 8: West Mainland & Upper Island Core
   ['G','T','R_C','G','G','W','G','G','R_C','G','A1','G','R_C','G','G','G','W','W','G','G','R_C','G','G','G'],
   // Row 9: West Mainland & Island Market Center (Rathaus & Pizza)
@@ -993,8 +1123,8 @@ window.FFH.LUBECK_CITY_GRID = [
   ['G','T','R_C','G','G','W','G','G','R_C','G','A2','G','R_C','G','G','G','W','W','G','G','R_C','G','T','G'],
   // Row 12: West Mainland (Garden) & Island Kino
   ['G','G','R_C','T','G','W','G','G','R_C','G','B_KINO','G','R_C','G','G','G','W','W','G','G','R_C','G','G','G'],
-  // Row 13: West-South HolstenTor Bridge & East Church Bridge
-  ['G','T','R_C','G','R_B','BR','BR','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','BR','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
+  // Row 13: West-South HolstenTor Bridge (Single Bridge at x:5) & East Church Bridge (x:17)
+  ['G','T','R_C','G','R_B','BR','R_C','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','R_C','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
   // Row 14: West Mainland (Garden) & Lower Island Core
   ['G','T','G','T','G','W','G','G','R_C','G','A3','G','R_C','G','G','G','W','W','G','G','R_C','G','A2','G'],
   // Row 15: West Mainland (Garden) & Lower Island
@@ -1005,10 +1135,10 @@ window.FFH.LUBECK_CITY_GRID = [
   ['G','G','R_C','G','G','W','G','G','R_C','G','B_DOM','G','R_C','G','G','G','W','W','G','G','R_C','G','A3','G'],
   // Row 18: West Mainland (Kruma Darkstore #104)
   ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','W','W','G','G','R_C','T','G','G'],
-  // Row 19: SOUTH CANAL LOOP & SOUTH BRIDGE
-  ['G','T','R_C','G','G','W','W','W','W','W','BR','BR','W','W','W','W','W','W','W','G','R_C','G','G','G'],
+  // Row 19: SOUTH CANAL LOOP & SOUTH BRIDGE (Single 1-Tile Bridge at x:10)
+  ['G','T','R_C','G','G','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','G','R_C','G','G','G'],
   // Row 20: South Mainland Approach to South Bridge
-  ['G','G','R_C','G','G','G','G','G','G','G','R_B','R_B','G','G','G','G','G','G','G','G','R_C','G','A4','G'],
+  ['G','G','R_C','G','G','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','R_C','G','A4','G'],
   // Row 21: South Mainland Villas & Promenade
   ['G','A1','R_C','R_C','R_C','G','G','G','T','R_C','R_C','R_C','T','G','G','G','G','R_C','R_C','R_C','R_C','G','T','G'],
   // Row 22: South Mainland Parkland
@@ -1283,6 +1413,9 @@ window.FFH.buildLubeckCityWorld = function() {
     birds.push(bird);
     worldGroup.add(bird);
   }
+
+  // Add matching perimeter stone border wall around the whole playable map
+  worldGroup.add(registry.createWorldPerimeterBorder(window.FFH.MAP_SIZE, window.FFH.TILE_SCALE));
 
   return { worldGroup, interactiveMeshes, waterMat, clouds, butterflies, birds };
 };

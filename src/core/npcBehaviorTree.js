@@ -236,23 +236,43 @@ window.FFH.createCitizenBehaviorTree = function () {
   const wander = new ActionNode((agent, delta, game) => {
     agent.mesh.visible = true;
     agent.isAtHome = false;
-    
+
+    const S = window.FFH.TILE_SCALE || 2.6;
+    const grid = window.FFH.LUBECK_CITY_GRID;
+    const M = window.FFH.MAP_SIZE;
+
+    // Helper: is a grid tile walkable ground (cobblestone, promenade, bridge, park lawn - strictly NO water)
+    const isGroundTile = (gx, gz) => {
+      if (gx < 1 || gx >= M - 1 || gz < 1 || gz >= M - 1) return false;
+      const type = grid[gz][gx];
+      return (type === 'R_C' || type === 'R_B' || type === 'BR' || type === 'G');
+    };
+
     if (!agent.targetPos) {
-      // Pick a random road tile from window.FFH.LUBECK_CITY_GRID
-      const roadTiles = [];
-      const S = window.FFH.TILE_SCALE || 2.0;
-      for (let z = 1; z < window.FFH.MAP_SIZE - 1; z++) {
-        for (let x = 1; x < window.FFH.MAP_SIZE - 1; x++) {
-          const type = window.FFH.LUBECK_CITY_GRID[z][x];
-          if (type === 'R_C' || type === 'R_B' || type === 'BR') {
-            roadTiles.push({ x: x * S, z: z * S });
+      // Pick a nearby connected ground tile (within 1 to 3 tiles of agent's current position)
+      const currentGX = Math.max(1, Math.min(M - 2, Math.round(agent.position.x / S)));
+      const currentGZ = Math.max(1, Math.min(M - 2, Math.round(agent.position.z / S)));
+
+      const nearbyGround = [];
+      for (let dz = -3; dz <= 3; dz++) {
+        for (let dx = -3; dx <= 3; dx++) {
+          if (dx === 0 && dz === 0) continue;
+          const gz = currentGZ + dz;
+          const gx = currentGX + dx;
+          if (isGroundTile(gx, gz)) {
+            nearbyGround.push({ x: gx * S, z: gz * S });
           }
         }
       }
-      if (roadTiles.length > 0) {
-        const rand = roadTiles[Math.floor(Math.random() * roadTiles.length)];
-        // Add tiny variance to prevent stacking
-        agent.targetPos = new THREE.Vector3(rand.x + (Math.random() - 0.5) * 0.6, 0.05, rand.z + (Math.random() - 0.5) * 0.6);
+
+      if (nearbyGround.length > 0) {
+        const rand = nearbyGround[Math.floor(Math.random() * nearbyGround.length)];
+        // Add slight variance to prevent NPCs walking in rigid single file
+        agent.targetPos = new THREE.Vector3(
+          rand.x + (Math.random() - 0.5) * (S * 0.4),
+          0.05,
+          rand.z + (Math.random() - 0.5) * (S * 0.4)
+        );
       } else {
         return 'FAILURE';
       }
@@ -263,17 +283,33 @@ window.FFH.createCitizenBehaviorTree = function () {
       agent.targetPos = null;
       return 'SUCCESS';
     } else {
-      // Walk towards target
+      // Walk towards target with strict water barrier check
       const dirX = (agent.targetPos.x - agent.position.x) / dist;
       const dirZ = (agent.targetPos.z - agent.position.z) / dist;
-      agent.position.x += dirX * agent.speed * delta;
-      agent.position.z += dirZ * agent.speed * delta;
+      const step = agent.speed * delta;
+
+      const nextX = agent.position.x + dirX * step;
+      const nextZ = agent.position.z + dirZ * step;
+
+      // Strict Water Barrier Check: Test next position and surrounding clearance
+      const testGX = Math.round(nextX / S);
+      const testGZ = Math.round(nextZ / S);
+
+      if (!isGroundTile(testGX, testGZ)) {
+        // Water barrier reached or leaving ground! Halt immediately and pick a new safe ground path
+        agent.targetPos = null;
+        return 'FAILURE';
+      }
+
+      agent.position.x = nextX;
+      agent.position.z = nextZ;
       agent.mesh.position.copy(agent.position);
-      agent.mesh.position.y = 0.05; // Reset base height
+      agent.mesh.position.y = 0.05; // Ground level
+
       const angle = Math.atan2(dirX, dirZ);
       agent.mesh.rotation.y = THREE.MathUtils.lerp(agent.mesh.rotation.y, angle, delta * 8);
 
-      // Procedural waddle animation for monolithic meshes
+      // Procedural waddle animation for citizens
       agent.walkTime = (agent.walkTime || 0) + delta * 15;
       agent.mesh.position.y = 0.05 + Math.abs(Math.sin(agent.walkTime)) * 0.12;
       agent.mesh.rotation.z = Math.cos(agent.walkTime * 0.5) * 0.15;

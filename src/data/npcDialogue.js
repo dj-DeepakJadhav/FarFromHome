@@ -29,45 +29,45 @@ window.FFH.NPC_DATABASE = {
       if (isFirstMeeting) {
         return {
           speaker: 'Rita Schneider (University Registrar)',
-          en: 'Guten Tag! I am Rita Schneider, head of student enrollment here at the university. Take a deep breath. I know how overwhelming it is when you first land in Germany with a heavy suitcase and no German. To keep your student visa safe, we have to clear your 250€ tuition fee and find you a registered room. How are you holding up?',
+          en: 'Guten Tag! Welcome to the University of Lübeck. I am Rita Schneider, head of student enrollment. I see your provisional admission dossier here. To officially stamp your Immatrikulationsbescheinigung (Enrollment Certificate), we need to clear your 250€ semester tuition fee. How are you situated financially?',
           options: [
             {
               label: '🚴 "Nice to meet you, Frau Schneider. I only have 20€ left, so I must start courier shifts immediately."',
               action: (game) => {
                 addRitaMemory('introduced_rita');
                 addRitaMemory('chose_hustler_start');
-                game.state.questStep = 1;
+                if (game.state.questStep === 1) game.state.questStep = 2;
                 game.state.disposition = game.state.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
                 game.state.disposition.hustler += 20;
                 game.state.npcRelationships['NPC_RITA'] += 10;
                 game.ui.updateQuestTracker();
                 
                 window.FFH.NPC_DATABASE['NPC_RITA'].currentResponse = {
-                  en: 'I admire your work ethic! Kruma Express warehouse on North Road is hiring riders. But please, secure a room with Hans Lokker at the WG Dorm first so you have a warm bed tonight.',
+                  en: 'I admire your work ethic! Kruma Express warehouse on South Street hires student riders with instant daily pay. Ride safely, earn your tuition, and come right back to my desk!',
                   options: [
-                    { label: '🏃 "Thank you, Frau Schneider. I will find Herr Lokker now."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '📦 "Can I also drop off my first parcel right now?"', action: (g) => g.transitionTo('PICK') }
+                    { label: '📦 "Heading to Kruma to check out the courier shifts!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🍕 "I might also ask Mathias at Pizzeria Vesuvio for tips."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA', custom: true });
               }
             },
             {
-              label: '🤝 "Hello Frau Schneider. I want to introduce myself to neighbors and understand how things work here first."',
+              label: '🤝 "Hello Frau Schneider. I just dropped my bags at the WG. What documents do I need to prepare?"',
               action: (game) => {
                 addRitaMemory('introduced_rita');
                 addRitaMemory('chose_diplomat_start');
-                game.state.questStep = 1;
+                if (game.state.questStep === 1) game.state.questStep = 2;
                 game.state.disposition = game.state.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
                 game.state.disposition.diplomat += 20;
                 game.state.npcRelationships['NPC_RITA'] += 15;
                 game.ui.updateQuestTracker();
 
                 window.FFH.NPC_DATABASE['NPC_RITA'].currentResponse = {
-                  en: 'That warmth will take you far here. Pop into Bakery Hansa and say hello to Grandma Martha. She knows everyone on the island and always looks out for new students.',
+                  en: 'Good, having a roof over your head is step one! Next you will need your signed lease from Herr Lokker, your city registration (Anmeldung) from Herr Vogel at City Hall, and 250€ tuition.',
                   options: [
-                    { label: '🥐 "I will stop by the bakery to meet Oma Martha."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🏠 "I should also check in with Herr Lokker about housing."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { label: '🥐 "Understood. I will explore the neighborhood and start saving."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
+                    { label: '🏛️ "Thank you Frau Schneider, I will get to work!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_RITA', custom: true });
@@ -862,39 +862,83 @@ window.FFH.NPC_DATABASE = {
       };
       addNicoMemory('met_nico');
 
-      // First Meeting Introduction
+      // First Meeting Introduction (Dropping luggage in WG & Learning 3 House Rules)
       if (isFirstMeeting) {
         return {
-          speaker: 'Nico (Hostel Roommate)',
-          en: 'Hey friend! I am Nico from Brazil, finishing my third semester in computer engineering. When I first landed here, I didn\'t even know what Pfand bottle deposits or Anmeldung meant! International students have to stick together in this freezing city. Here, have half a mug of warm instant coffee.',
+          speaker: 'Nico (Flatmate & Fellow Student)',
+          en: 'Hey! You must be the new roommate moving into Room 4. Put that heavy suitcase down on the rug! I am Nico from Brazil, 3rd semester computer science. You look completely frozen from that Baltic wind. Here, take half a mug of warm instant coffee.',
           options: [
             {
-              label: '☕ "Thanks Nico! It is great to meet a fellow student who understands the struggle."',
+              label: '☕ "Thanks Nico! I just walked from the station. Where can I drop my luggage?"',
               action: (game) => {
                 addNicoMemory('introduced_nico');
                 addNicoMemory('shared_coffee');
+                addNicoMemory('dropped_luggage');
                 game.state.npcRelationships['NPC_NICO'] = Math.min(100, (game.state.npcRelationships['NPC_NICO'] || 50) + 20);
+                if (game.state.questStep === 0) {
+                  game.state.questStep = 1;
+                  game.ui.spawnFloatingText('🧳 Luggage Dropped! +1 Quest Step', window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+                  game.ui.updateQuestTracker();
+                }
+
                 window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
-                  en: 'Anytime! Rule number one of student life in Germany: never throw away plastic or glass bottles with the recycling arrow. That is pure cash for discounter groceries!',
+                  en: 'Room 4 is right down the hall! Drop your coat on the bed. Before you head to the university for registration, remember our 3 golden house rules: 1) Ruhezeit: strict silence after 22:00. 2) Mülltrennung: sort plastic into yellow and paper into blue. 3) Stoßlüften: open windows wide for 5 minutes twice a day!',
                   options: [
-                    { label: '🍾 "I will remember that! Let\'s collect some bottles."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO' }) },
-                    { label: '🏃 "Thanks Nico, see you around the hostel!"', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { 
+                      label: '📝 "Got it: 22:00 quiet hours, sort trash, and shock-ventilate windows."', 
+                      action: (g) => {
+                        window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
+                          en: 'Perfect! Now that your bags are stored and you know the house rules, head across the bridge to the University Campus. Rita Schneider at the admissions office is expecting you to start your enrollment.',
+                          options: [
+                            { label: '🏛️ "On my way to the university campus to meet Rita!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') },
+                            { label: '🚪 "Thanks Nico, see you tonight!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') }
+                          ]
+                        };
+                        g.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', custom: true });
+                      }
+                    },
+                    { 
+                      label: '🤝 "Thanks Nico! You just saved me from a landlord disaster."', 
+                      action: (g) => {
+                        window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
+                          en: 'That is what roommates are for! Go see Rita at the university admissions desk now. She will check your documents and tell you what is needed for your student visa.',
+                          options: [
+                            { label: '🏛️ "Heading to the university campus now!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') },
+                            { label: '🏃 "Catch you later, Nico!"', action: (g2) => g2.transitionTo('CITY_EXPLORATION') }
+                          ]
+                        };
+                        g.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', custom: true });
+                      }
+                    }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', custom: true });
               }
             },
             {
-              label: '🚲 "Nice to meet you, Nico! I am running courier shifts to hit my tuition target."',
+              label: '🎒 "Pleased to meet you, Nico! What do I need to know about living here?"',
               action: (game) => {
                 addNicoMemory('introduced_nico');
-                addNicoMemory('talked_courier_grind');
+                addNicoMemory('asked_house_rules');
+                addNicoMemory('dropped_luggage');
                 game.state.npcRelationships['NPC_NICO'] = Math.min(100, (game.state.npcRelationships['NPC_NICO'] || 50) + 15);
+                if (game.state.questStep === 0) {
+                  game.state.questStep = 1;
+                  game.ui.spawnFloatingText('🧳 Luggage Dropped! +1 Quest Step', window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+                  game.ui.updateQuestTracker();
+                }
+
                 window.FFH.NPC_DATABASE['NPC_NICO'].currentResponse = {
-                  en: 'Respect! The delivery grind is real. Make sure to keep your thermal bag clean and watch out for tram tracks in the rain.',
+                  en: 'Set your bags down in Room 4 first! In this WG, Caretaker Lokker has 3 non-negotiables: 1) Ruhezeit: zero loud noise past 22:00. 2) Mülltrennung: separate paper and plastic. 3) Stoßlüften: 5-minute window airing daily. Follow these 3 and you will have peace!',
                   options: [
-                    { label: '🧤 "Thanks for the heads up, buddy."', action: (g) => g.transitionTo('CITY_EXPLORATION') },
-                    { label: '🚪 "Back to the road."', action: (g) => g.transitionTo('CITY_EXPLORATION') }
+                    { 
+                      label: '🏛️ "Understood! Now I will head to the university to meet Rita."', 
+                      action: (g) => g.transitionTo('CITY_EXPLORATION') 
+                    },
+                    { 
+                      label: '☕ "Thanks for the warm coffee and guidance, Nico."', 
+                      action: (g) => g.transitionTo('CITY_EXPLORATION') 
+                    }
                   ]
                 };
                 game.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', custom: true });

@@ -4,17 +4,17 @@ window.FFH = window.FFH || {};
 window.FFH.prologueQuests = [
   {
     id: 'quest-0-arrival',
-    targetPoi: 'B_UNI',
-    title: 'Kapitel 1: Das 28-Tage-Visum (Chapter 1: The 28-Day Visa)',
-    prompt: 'Find Rita Schneider at the University to inspect your enrollment status.',
-    completionMessage: 'Rita needs your 250.00€ Semesterbeitrag! Go find work.'
+    targetPoi: 'B_WG',
+    title: 'Kapitel 1: Ankunft & WG-Zimmer (Chapter 1: Arrival & Dropping Luggage)',
+    prompt: 'Walk South from the train station to your Student WG Dorm to drop your heavy luggage and meet your flatmate.',
+    completionMessage: 'Luggage dropped off! Nico taught you the 3 golden house rules.'
   },
   {
-    id: 'quest-1-hostel-dilemma',
-    targetPoi: 'B_WG',
-    title: 'Kapitel 2: Die Hausordnung (Chapter 2: The House Rules)',
-    prompt: 'Meet Caretaker Hans Lokker at the WG Dorm to negotiate your student room.',
-    completionMessage: 'Lokker demands strict 22:00 quiet hours and clean trash sorting.'
+    id: 'quest-1-uni-registration',
+    targetPoi: 'B_UNI',
+    title: 'Kapitel 2: Die Einschreibung (Chapter 2: University Enrollment)',
+    prompt: 'Cross the bridge to the University Campus and meet Rita Schneider to begin your student registration.',
+    completionMessage: 'Rita needs your 250.00€ Semesterbeitrag! Go find work.'
   },
   {
     id: 'quest-2-pizzeria-hustle',

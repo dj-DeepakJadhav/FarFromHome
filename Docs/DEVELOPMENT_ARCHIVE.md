@@ -337,6 +337,21 @@
 - **Packaging & Verification**:
   - Reassembled `index.html` at **6.26 MB** uncompressed. 0 syntax errors, 0 warnings.
 
+### September 2, 2026: Single Clean Bridges, Extra-Height Parapets, Map Border Wall & Water-Safe NPC AI
+- **Single Bridge at HolstenTor**:
+  - Eliminated the awkward secondary bridge segment on dry land by configuring the bridge strictly at water column $x=5$ and smooth cobblestone street at $x=6$ connecting directly to HolstenTor.
+  - Standardized all 6 bridges across the world as clean single-tile crossings with parallel river-flank balustrades and zero barriers across the walkway.
+- **Extra-Height Bridge Balustrades**:
+  - Increased parapet height from `0.42` to `0.72` with decorative stone coping caps (`0xF7F3EB`) and four corner stone plinths for grand Hanseatic masonry profile.
+- **Perimeter Stone Border Wall Around Playable World**:
+  - Built matching continuous stone retaining wall and coping stone border (`createWorldPerimeterBorder`) around the entire 24×24 perimeter ($L = 62.4$ units), featuring four corner pilasters and periodic wall piers to cleanly frame the diorama.
+- **Water-Safe NPC Roaming AI**:
+  - Rewrote NPC `wander` ActionNode in `npcBehaviorTree.js` to pick targets only on connected ground tiles (`R_C`, `R_B`, `BR`, `G`).
+  - Added strict per-frame water boundary check: NPCs will halt immediately and redirect if their path approaches water (`W`), preventing them from walking or jumping into canals.
+- **Packaging & Verification**:
+  - Rebuilt single-file `index.html` at **6.26 MB** uncompressed. Verified 60 FPS, 0 syntax errors.
+
+
 
 
 

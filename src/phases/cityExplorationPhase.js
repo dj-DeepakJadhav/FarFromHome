@@ -21,8 +21,8 @@ window.FFH.CityExplorationPhase = class {
     this.sunLight = null;
     
     // Player position & Click-to-Move Target
-    // Dedicated Road Spawn: Cobblestone road right beside your Student WG Room on West Mainland (x: 3, z: 10)
-    this.playerPos = new THREE.Vector3(7.8, 0.05, 26.0);
+    // Dedicated Station Spawn: Cobblestone road right outside ZOB & Hauptbahnhof on North Mainland (x: 4, z: 2)
+    this.playerPos = new THREE.Vector3(10.4, 0.05, 5.2);
     this.targetMovePos = null;
     this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
