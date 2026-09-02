@@ -1006,10 +1006,10 @@ window.FFH.CityAssetRegistry = {
     const quayMat = new THREE.MeshLambertMaterial({ color: 0x685D54 });
     const chunkMats = [quayMat, quayMat, grassMat, quayMat, quayMat, quayMat];
 
-    const farWest  = -60.0;
-    const farEast  = 120.0;
-    const farNorth = -60.0;
-    const farSouth = 120.0;
+    const farWest  = -120.0;
+    const farEast  = 180.0;
+    const farNorth = -120.0;
+    const farSouth = 180.0;
 
     // 1. Full 360-Degree Ground Plains framing the city and preserving open river channels
     const chunks = [
@@ -1453,7 +1453,7 @@ window.FFH.POI_METADATA = {
   'B_HOSPITAL':   { name: 'Krankenhaus Altstadt', tag: 'Medical VIP', desc: 'High-stakes express delivery target for Station 4B night shifts.', action: 'View Delivery Target' }
 };
 
-// Calculate optimal building rotation so front door & gable facade (+Z axis) face the nearest street and canal
+// Calculate optimal building rotation so front door & gable facade (+Z axis) face inward toward the street network
 function getBuildingRotationTowardsRoad(grid, x, z) {
   const S = window.FFH.MAP_SIZE;
   const isRoad = (gx, gz) => {
@@ -1462,37 +1462,17 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
     return t === 'R_C' || t === 'R_B' || t === 'BR' || t === 'R_R';
   };
 
-  // 1. North Mainland (Rows 0-4): Facades must face SOUTH (0) toward the street and North Canal
-  if (z <= 4) {
-    if (isRoad(x, z + 1) || isRoad(x, z + 2)) return 0;
-    if (isRoad(x + 1, z)) return -Math.PI / 2;
-    if (isRoad(x - 1, z)) return Math.PI / 2;
-    return 0; // Default face South (down/left toward canal)
-  }
+  // 1. West Flank (Columns 0-4): MUST face EAST (-Math.PI / 2 / Right into the street and island)!
+  if (x <= 4) return -Math.PI / 2;
 
-  // 2. South Mainland (Rows 19-23): Facades must face NORTH (Math.PI) toward the street and South Canal
-  if (z >= 19) {
-    if (isRoad(x, z - 1) || isRoad(x, z - 2)) return Math.PI;
-    if (isRoad(x + 1, z)) return -Math.PI / 2;
-    if (isRoad(x - 1, z)) return Math.PI / 2;
-    return Math.PI; // Default face North
-  }
+  // 2. East Flank (Columns 19-23): MUST face WEST (Math.PI / 2 / Left into the street and island)!
+  if (x >= 19) return Math.PI / 2;
 
-  // 3. West Flank (Columns 0-4): Facades must face EAST (-Math.PI / 2) toward island core
-  if (x <= 4) {
-    if (isRoad(x + 1, z) || isRoad(x + 2, z)) return -Math.PI / 2;
-    if (isRoad(x, z + 1)) return 0;
-    if (isRoad(x, z - 1)) return Math.PI;
-    return -Math.PI / 2;
-  }
+  // 3. North Mainland (Rows 0-4): MUST face SOUTH (0 / Down into the street and canal)!
+  if (z <= 4) return 0;
 
-  // 4. East Flank (Columns 19-23): Facades must face WEST (Math.PI / 2) toward island core
-  if (x >= 19) {
-    if (isRoad(x - 1, z) || isRoad(x - 2, z)) return Math.PI / 2;
-    if (isRoad(x, z + 1)) return 0;
-    if (isRoad(x, z - 1)) return Math.PI;
-    return Math.PI / 2;
-  }
+  // 4. South Mainland (Rows 19-23): MUST face NORTH (Math.PI / Up into the street and canal)!
+  if (z >= 19) return Math.PI;
 
   // 5. Central Island Core: Check 4 adjacent directions
   if (isRoad(x, z + 1)) return 0;            // Door faces South (+Z)
@@ -1616,8 +1596,8 @@ window.FFH.buildLubeckCityWorld = function() {
   registry.initMaterials();
   window.FFH.initBuildingColliders();
 
-  // Single continuous Water Base Plane (spanning across city and surrounding forest landscape)
-  const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(140, 140);
+  // Single continuous Water Base Plane (spanning 300x300 across city and surrounding forest landscape)
+  const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(300, 300);
   worldGroup.add(waterMesh);
 
   const platformDepth = 1.0; // 1.0 unit downward solid thickness so water interacts with ground

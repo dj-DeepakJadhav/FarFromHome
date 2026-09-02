@@ -1700,18 +1700,18 @@ window.FFH.UI = class {
       <div id="city-poi-card" style="
         display: none;
         box-sizing: border-box;
-        width: 100%;
+        width: calc(100% - 24px);
         background: #FFFFFF;
+        border: 2px solid #264653;
         border-top: 3px solid #E76F51;
-        border-bottom: 3px solid #264653;
-        border-radius: 12px;
+        border-radius: 16px;
         padding: 14px 16px;
         pointer-events: auto;
         animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        z-index: 100;
-        margin-bottom: 6px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+        z-index: 1000;
+        margin: 0 auto 12px auto;
         display: flex;
         flex-direction: column;
         gap: 8px;
