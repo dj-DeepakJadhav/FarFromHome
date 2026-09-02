@@ -1384,57 +1384,55 @@ window.FFH.createSeamlessWaterPlane = function(width = 110, height = 110) {
 //     Central Island: UNI (north tip), BurgTor (NE gate), HolstenTor (west gate), Kino (center), Dom (south tip)
 //     East Mainland: Church (St. Mary's), East Garden (top-right)
 window.FFH.MAP_SIZE = 24;
-window.FFH.TILE_SCALE = 2.6;
-
 window.FFH.LUBECK_CITY_GRID = [
   // Row 0: North Mainland Border (Spaced Townhouses & ZOB Hub)
-  ['A1','G','R_C','A3','T','G','G','A4','R_C','G','R_C','A3','G','G','A5','R_C','G','T','G','A1','R_C','G','A3','G'],
+  ['A1','G','R_C','A3','T','G','G','G','R_C','G','R_C','A3','G','G','A5','R_C','G','T','G','G','R_C','G','A3','G'],
   // Row 1: North Mainland Promenade
-  ['G','A2','R_C','R_C','R_C','G','R_C','R_C','R_C','T','R_C','T','G','R_C','R_C','R_C','A2','R_C','R_C','T','R_C','T','G','G'],
+  ['G','G','R_C','R_C','R_C','G','R_C','R_C','R_C','T','R_C','T','G','R_C','R_C','R_C','A2','R_C','R_C','T','R_C','T','G','G'],
   // Row 2: North Mainland (ZOB & Student Square)
-  ['G','G','B_ZOB','G','R_C','G','R_C','A3','G','G','R_C','G','A2','R_C','G','G','B_BANK','G','G','G','R_C','T','G','G'],
+  ['G','G','B_ZOB','G','R_C','G','R_C','A3','G','G','R_C','G','G','R_C','G','G','B_BANK','G','G','G','R_C','T','G','G'],
   // Row 3: North Mainland Approach to North Bridges
-  ['A1','G','R_C','G','R_C','G','R_C','G','G','G','R_B','G','G','R_C','G','A3','R_C','G','G','G','R_C','A3','T','G'],
+  ['G','G','R_C','G','R_C','G','R_C','G','G','G','R_B','G','G','R_C','G','G','R_C','G','G','G','R_C','A3','T','G'],
   // Row 4: NORTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
   ['W','W','BR','W','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
   // Row 5: Island North Apex & North Mainland Connection
-  ['G','T','R_C','A1','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','G','W','A1','G','R_C','T','G','G'],
+  ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','G','W','A1','G','R_C','T','G','G'],
   // Row 6: Island North (University Registry)
-  ['A5','G','R_C','G','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','G','G','W','G','G','R_C','G','A4','G'],
+  ['A5','G','R_C','G','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
   // Row 7: West-North Bridge (Bakery x:5) & East BurgTor Bridge (x:17)
   ['G','G','B_BAKERY','R_C','R_B','BR','R_C','R_B','R_C','R_C','R_C','R_C','R_C','R_B','B_BURGTOR','R_B','R_C','BR','R_B','R_C','R_C','G','T','G'],
   // Row 8: West Mainland & Upper Island Core
-  ['A1','T','R_C','G','G','W','A2','G','R_C','G','A1','G','R_C','G','G','G','G','W','G','G','R_C','A2','G','G'],
+  ['G','T','R_C','G','G','W','A2','G','R_C','G','A1','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
   // Row 9: West Mainland & Island Market Center (Rathaus & Pizza)
   ['G','G','R_C','G','G','W','G','G','R_C','B_RATHAUS','R_C','B_PIZZA','R_C','G','G','G','G','W','G','G','R_C','T','G','G'],
   // Row 10: West Mainland (Student WG Room) & East Civic District (Ausländerbehörde)
   ['A1','G','B_WG','R_C','R_C','W','G','G','R_C','R_C','R_C','R_C','R_C','G','B_AUSLAENDER','G','R_C','W','G','G','R_C','G','A1','G'],
   // Row 11: West Mainland & Island Kino Avenue
-  ['G','T','R_C','A2','G','W','G','G','R_C','G','A2','G','R_C','G','G','G','G','W','G','G','R_C','G','T','G'],
+  ['G','T','R_C','G','G','W','G','G','R_C','G','A2','G','R_C','G','G','G','G','W','G','G','R_C','G','T','G'],
   // Row 12: West Mainland (Bike Shop) & Island Kino
-  ['G','G','B_BIKESHOP','R_C','G','W','G','G','R_C','G','B_KINO','G','R_C','G','A4','G','G','W','G','G','R_C','G','G','G'],
+  ['G','G','B_BIKESHOP','R_C','G','W','G','G','R_C','G','B_KINO','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
   // Row 13: West-South HolstenTor Bridge (x:5) & East Church Bridge (x:17)
-  ['A1','T','R_C','G','R_B','BR','R_C','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','R_C','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
+  ['G','T','R_C','G','R_B','BR','R_C','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','R_C','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
   // Row 14: West Mainland & Lower Island Core
-  ['G','T','R_C','G','G','W','G','G','R_C','G','A3','G','R_C','G','G','A2','G','W','G','G','R_C','G','A2','G'],
+  ['G','T','R_C','G','G','W','G','G','R_C','G','A3','G','R_C','G','G','A2','G','W','G','G','R_C','G','G','G'],
   // Row 15: West Mainland Promenade & Island South
-  ['G','G','R_C','G','G','W','A2','G','R_C','R_C','R_C','R_C','R_C','G','G','G','G','W','G','G','R_C','T','G','G'],
+  ['G','G','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','G','W','G','G','R_C','T','G','G'],
   // Row 16: West Mainland Road to Darkstore
   ['G','A3','R_C','G','G','W','G','G','R_C','G','A4','G','R_C','G','G','G','G','W','G','G','R_C','G','A4','G'],
   // Row 17: Island South Tip (Dom zu Lübeck)
-  ['G','G','R_C','G','G','W','G','G','R_C','G','B_DOM','G','R_C','G','A3','G','G','W','G','G','R_C','G','G','G'],
+  ['G','G','R_C','G','G','W','G','G','R_C','G','B_DOM','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
   // Row 18: West Mainland (Kruma Darkstore #104)
-  ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','G','W','G','G','R_C','T','A2','G'],
+  ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','G','W','G','G','R_C','T','G','G'],
   // Row 19: SOUTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
   ['W','W','W','BR','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
   // Row 20: South Mainland Approach to South Bridge
-  ['G','G','R_C','R_C','G','G','G','G','A4','G','R_B','G','G','G','G','A3','G','G','G','G','R_C','G','A4','G'],
+  ['G','G','R_C','R_C','G','G','G','G','A4','G','R_B','G','G','G','G','A3','G','G','G','G','R_C','G','G','G'],
   // Row 21: South Mainland Villas & Promenade
-  ['G','A1','R_C','R_C','R_C','G','R_C','R_C','T','R_C','R_C','R_C','T','R_C','R_C','G','R_C','R_C','R_C','R_C','R_C','G','T','G'],
+  ['G','G','R_C','R_C','R_C','G','R_C','R_C','T','R_C','R_C','R_C','T','R_C','R_C','G','R_C','R_C','R_C','R_C','R_C','G','T','G'],
   // Row 22: South Mainland Parkland & Altbaus
-  ['G','G','T','G','R_C','T','A2','G','G','G','R_C','R_C','G','A3','G','G','T','G','R_C','G','T','G','G','G'],
+  ['G','G','T','G','R_C','T','A2','G','G','G','R_C','R_C','G','G','G','G','T','G','R_C','G','T','G','G','G'],
   // Row 23: South Mainland Border
-  ['A2','G','G','G','A2','G','G','G','G','A4','G','G','A1','G','G','G','G','G','A3','G','G','G','G','G']
+  ['A2','G','G','G','A2','G','G','G','G','G','G','G','A1','G','G','G','G','G','A3','G','G','G','G','G']
 ];
 
 window.FFH.POI_METADATA = {
@@ -1462,23 +1460,30 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
     return t === 'R_C' || t === 'R_B' || t === 'BR' || t === 'R_R';
   };
 
-  // 1. West Flank (Columns 0-4): MUST face EAST (-Math.PI / 2 / Right into the street and island)!
-  if (x <= 4) return -Math.PI / 2;
+  // 1. STRICT BORDER TILES (Outer boundary ring of the city: x <= 1, x >= 22, z <= 1, z >= 22)
+  // Border buildings MUST strictly face inward towards the city center!
+  if (x <= 1) return -Math.PI / 2;   // West border faces East (+X, into city)
+  if (x >= 22) return Math.PI / 2;   // East border faces West (-X, into city)
+  if (z <= 1) return 0;              // North border faces South (+Z, into city)
+  if (z >= 22) return Math.PI;       // South border faces North (-Z, into city)
 
-  // 2. East Flank (Columns 19-23): MUST face WEST (Math.PI / 2 / Left into the street and island)!
-  if (x >= 19) return Math.PI / 2;
-
-  // 3. North Mainland (Rows 0-4): MUST face SOUTH (0 / Down into the street and canal)!
-  if (z <= 4) return 0;
-
-  // 4. South Mainland (Rows 19-23): MUST face NORTH (Math.PI / Up into the street and canal)!
-  if (z >= 19) return Math.PI;
-
-  // 5. Central Island Core: Check 4 adjacent directions
+  // 2. INNER BUILDINGS (Non-border tiles): Face nearest road tile or dynamic orientation
   if (isRoad(x, z + 1)) return 0;            // Door faces South (+Z)
   if (isRoad(x, z - 1)) return Math.PI;      // Door faces North (-Z)
   if (isRoad(x + 1, z)) return -Math.PI / 2; // Door faces East (+X)
   if (isRoad(x - 1, z)) return Math.PI / 2;  // Door faces West (-X)
+
+  // 2-step fallback for inner buildings near courtyards
+  if (isRoad(x, z + 2)) return 0;
+  if (isRoad(x, z - 2)) return Math.PI;
+  if (isRoad(x + 2, z)) return -Math.PI / 2;
+  if (isRoad(x - 2, z)) return Math.PI / 2;
+
+  // Regional default for inner tiles
+  if (x <= 5) return -Math.PI / 2;
+  if (x >= 18) return Math.PI / 2;
+  if (z <= 5) return 0;
+  if (z >= 18) return Math.PI;
 
   return 0;
 }
