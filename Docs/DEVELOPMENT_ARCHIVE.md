@@ -364,6 +364,16 @@
 - **Packaging & Verification**:
   - Reassembled `index.html` at **6.27 MB** uncompressed (strictly `< 35 MB`). 0 syntax errors, 0 warnings.
 
+### September 2, 2026: Multi-Material Safe Disposal & MeshBVHLib Detection Fix
+- **Fixed `obj.material.dispose is not a function` Error**:
+  - When ground tiles switched to multi-materials (`[quayMat, quayMat, groundMat, ...]`), `obj.material` became an Array.
+  - In `clearTitleDiorama()` (`src/main.js`), added defensive checking for `Array.isArray(obj.material)` and `typeof m.dispose === 'function'` to safely dispose both single and multi-material assets when transitioning from the title screen.
+- **Enabled `MeshBVHLib` Detection**:
+  - `vendor/three-mesh-bvh.umd.js` defines `window.MeshBVHLib`. Updated `src/main.js` initialization to check `window.MeshBVH || window.MeshBVHLib` so spatial acceleration bounds trees, raycasting, and sliding collisions are fully active.
+- **Packaging & Verification**:
+  - Reassembled `index.html` at **6.27 MB** uncompressed. Verified clean transition from title diorama to game world with 0 uncaught exceptions.
+
+
 
 
 

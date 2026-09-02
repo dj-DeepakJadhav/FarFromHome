@@ -28828,11 +28828,13 @@ class GameEngine {
   }
 
   init() {
-    // Install three-mesh-bvh
-    if (window.MeshBVH) {
-      THREE.BufferGeometry.prototype.computeBoundsTree = window.MeshBVH.computeBoundsTree;
-      THREE.BufferGeometry.prototype.disposeBoundsTree = window.MeshBVH.disposeBoundsTree;
-      THREE.Mesh.prototype.raycast = window.MeshBVH.acceleratedRaycast;
+    // Install three-mesh-bvh (support both MeshBVH and MeshBVHLib global names)
+    const BVH = window.MeshBVH || window.MeshBVHLib;
+    if (BVH) {
+      window.MeshBVH = BVH;
+      THREE.BufferGeometry.prototype.computeBoundsTree = BVH.computeBoundsTree;
+      THREE.BufferGeometry.prototype.disposeBoundsTree = BVH.disposeBoundsTree;
+      THREE.Mesh.prototype.raycast = BVH.acceleratedRaycast;
     } else {
       console.warn('MeshBVH not found, sliding collision will fallback or fail.');
     }
@@ -28923,8 +28925,18 @@ class GameEngine {
     if (this.titleDiorama) {
       this.scene.remove(this.titleDiorama);
       this.titleDiorama.traverse((obj) => {
-        if (obj.geometry) obj.geometry.dispose();
-        if (obj.material) obj.material.dispose();
+        if (obj.geometry && typeof obj.geometry.dispose === 'function') {
+          obj.geometry.dispose();
+        }
+        if (obj.material) {
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach(m => {
+              if (m && typeof m.dispose === 'function') m.dispose();
+            });
+          } else if (typeof obj.material.dispose === 'function') {
+            obj.material.dispose();
+          }
+        }
       });
       this.titleDiorama = null;
       this.titleWorld = null;
