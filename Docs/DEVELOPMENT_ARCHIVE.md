@@ -351,6 +351,20 @@
 - **Packaging & Verification**:
   - Rebuilt single-file `index.html` at **6.26 MB** uncompressed. Verified 60 FPS, 0 syntax errors.
 
+### September 2, 2026: Downward Ground Platform Depth (Quayside Embankments) & Right-to-Left River Flow
+- **Downward Ground Platform Depth & Visible Water Interaction**:
+  - Replaced thin ground slabs with a solid `1.0`-unit thick downward foundation platform (`platformDepth = 1.0`).
+  - Added multi-material quayside masonry (`quayMat`, `#685D54`) to the vertical sides of all land tiles.
+  - Positioned the stylized cel water plane at $Y = -0.22$, so the city quayside rises $0.22$ units above the water while the stone foundations plunge $0.78$ units deep under the surface, creating clearly visible quayside riverbanks where water laps against solid ground.
+- **Two Water Entrances on Right & Two Exits on Left (Right-to-Left Continuous River Flow)**:
+  - Configured North Canal (Row 4) and South Canal (Row 19) to span all the way from the East border ($x=23$, water entrances on right) to the West border ($x=0$, water exits on left).
+  - Configured outer perimeter stone wall (`createWorldPerimeterBorder`) with dedicated empty water-gate openings at Row 4 and Row 19 on both East and West flanks, framed by grand stone portal piers.
+  - Set water shader flow velocity to `uFlowX: -0.32`, creating a continuous, unmistakable cel-shaded current flowing from right to left through the city.
+  - Preserved continuous pedestrian and courier road loops by adding connecting historic arched bridges (`BR`) at the mainland crossings ($x=2$ on Row 4, $x=3$ on Row 19, and $x=20$ on both canals).
+- **Packaging & Verification**:
+  - Reassembled `index.html` at **6.27 MB** uncompressed (strictly `< 35 MB`). 0 syntax errors, 0 warnings.
+
+
 
 
 

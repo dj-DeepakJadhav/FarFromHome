@@ -6,15 +6,15 @@ window.FFH.prologueQuests = [
     id: 'quest-0-arrival',
     targetPoi: 'B_WG',
     title: 'Kapitel 1: Ankunft & WG-Zimmer (Chapter 1: Arrival & Dropping Luggage)',
-    prompt: 'Walk South from the train station to your Student WG Dorm to drop your heavy luggage and meet your flatmate.',
-    completionMessage: 'Luggage dropped off! Nico taught you the 3 golden house rules.'
+    prompt: 'Walk South from the train station to your Student WG Dorm to drop your heavy luggage, meet Nico, and learn about Mülltrennung.',
+    completionMessage: 'Luggage dropped off! Nico taught you Mülltrennung and suggested exploring the town before heading to the university.'
   },
   {
     id: 'quest-1-uni-registration',
     targetPoi: 'B_UNI',
     title: 'Kapitel 2: Die Einschreibung (Chapter 2: University Enrollment)',
-    prompt: 'Cross the bridge to the University Campus and meet Rita Schneider to begin your student registration.',
-    completionMessage: 'Rita needs your 250.00€ Semesterbeitrag! Go find work.'
+    prompt: 'Explore the city streets and cross the bridge to the University Campus to meet Rita Schneider.',
+    completionMessage: 'The office closed at 17:00! Enjoy the night streets and rest in your WG room until tomorrow.'
   },
   {
     id: 'quest-2-pizzeria-hustle',

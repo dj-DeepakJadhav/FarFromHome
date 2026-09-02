@@ -185,6 +185,21 @@ window.FFH.ShopPhase = class {
         box-shadow: 0 3px 0 #A30046;
         margin-top: 4px;
       ">⭐ Open Expat Skill Tree (${state.skillPoints || 0} SP Available)</button>
+      <button id="btn-sleep-morning" style="
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid #264653;
+        border-radius: 8px;
+        background: #2EC4B6;
+        color: #FFFFFF;
+        font-weight: 900;
+        font-size: 13px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 3px 0 #1A7A70;
+        margin-top: 4px;
+      ">🛏️ Sleep Until Morning (Start Next Day)</button>
       <button id="btn-leave-shop" style="
         width: 100%;
         padding: 10px 14px;
@@ -330,6 +345,23 @@ window.FFH.ShopPhase = class {
     if (skillsBtn) {
       skillsBtn.onclick = () => {
         this.game.ui.showSkillTreeModal();
+      };
+    }
+
+    const sleepBtn = box.querySelector('#btn-sleep-morning');
+    if (sleepBtn) {
+      sleepBtn.onclick = () => {
+        state.day = (state.day || 1) + 1;
+        state.freshness = 100;
+        this.game.sfx.playSfx('success');
+        this.game.ui.spawnFloatingText(`☀️ Tag ${state.day}: Guten Morgen! Fresh morning start.`, window.innerWidth / 2, window.innerHeight / 2, '#FFB703');
+        
+        // Reset daylight cycle to morning
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.updateAtmosphericTime) {
+          this.game.phases.CITY_EXPLORATION.updateAtmosphericTime(0.35);
+        }
+        this.game.ui.updatePersistentHUD(state);
+        this.game.transitionTo('CITY_EXPLORATION');
       };
     }
 

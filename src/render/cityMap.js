@@ -657,10 +657,10 @@ window.FFH.CityAssetRegistry = {
       p4.position.set(S * 0.46, balY + 0.04, S * 0.48);
     }
 
-    // Brick Arch Piers dipping into the water
+    // Brick Arch Piers dipping deep into the water channel
     const pierMat = this.materials.roofBrick;
-    const pier1 = new THREE.Mesh(new THREE.BoxGeometry(S * 0.9, 0.5, S * 0.9), pierMat);
-    pier1.position.y = -0.3;
+    const pier1 = new THREE.Mesh(new THREE.BoxGeometry(S * 0.92, 0.75, S * 0.92), pierMat);
+    pier1.position.y = -0.375;
 
     group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, pier1);
     return group;
@@ -705,29 +705,60 @@ window.FFH.CityAssetRegistry = {
     southCap.position.set(center, wallHeight + 0.04, maxCoord);
     southCap.castShadow = true;
 
-    // West Wall & East Wall (spanning along Z)
-    const nsWallGeo = new THREE.BoxGeometry(wallThickness, wallHeight, totalSize);
-    const nsCapGeo = new THREE.BoxGeometry(wallThickness + 0.08, 0.09, totalSize + 0.1);
+    // West Wall & East Wall: segmented to leave 2 empty water entrances on the right (East) and 2 empty water exits on the left (West) at Row 4 and Row 19!
+    const g1_start = 3.5 * S;
+    const g1_end   = 4.5 * S;
+    const g2_start = 18.5 * S;
+    const g2_end   = 19.5 * S;
 
-    const westWall = new THREE.Mesh(nsWallGeo, stoneMat);
-    westWall.position.set(minCoord, wallY, center);
-    westWall.castShadow = true;
-    westWall.receiveShadow = true;
+    const segments = [
+      { start: minCoord, end: g1_start }, // North segment
+      { start: g1_end,   end: g2_start }, // Middle segment between the 2 canals
+      { start: g2_end,   end: maxCoord }  // South segment
+    ];
 
-    const westCap = new THREE.Mesh(nsCapGeo, capMat);
-    westCap.position.set(minCoord, wallHeight + 0.04, center);
-    westCap.castShadow = true;
+    segments.forEach(seg => {
+      const segLen = seg.end - seg.start;
+      const segCenterZ = (seg.start + seg.end) * 0.5;
 
-    const eastWall = new THREE.Mesh(nsWallGeo, stoneMat);
-    eastWall.position.set(maxCoord, wallY, center);
-    eastWall.castShadow = true;
-    eastWall.receiveShadow = true;
+      const segWallGeo = new THREE.BoxGeometry(wallThickness, wallHeight, segLen);
+      const segCapGeo = new THREE.BoxGeometry(wallThickness + 0.08, 0.09, segLen + 0.02);
 
-    const eastCap = new THREE.Mesh(nsCapGeo, capMat);
-    eastCap.position.set(maxCoord, wallHeight + 0.04, center);
-    eastCap.castShadow = true;
+      // West wall segment (with 2 empty water exits on left)
+      const wWall = new THREE.Mesh(segWallGeo, stoneMat);
+      wWall.position.set(minCoord, wallY, segCenterZ);
+      wWall.castShadow = true;
+      wWall.receiveShadow = true;
+      const wCap = new THREE.Mesh(segCapGeo, capMat);
+      wCap.position.set(minCoord, wallHeight + 0.04, segCenterZ);
+      wCap.castShadow = true;
 
-    group.add(northWall, northCap, southWall, southCap, westWall, westCap, eastWall, eastCap);
+      // East wall segment (with 2 empty water entrances on right)
+      const eWall = new THREE.Mesh(segWallGeo, stoneMat);
+      eWall.position.set(maxCoord, wallY, segCenterZ);
+      eWall.castShadow = true;
+      eWall.receiveShadow = true;
+      const eCap = new THREE.Mesh(segCapGeo, capMat);
+      eCap.position.set(maxCoord, wallHeight + 0.04, segCenterZ);
+      eCap.castShadow = true;
+
+      group.add(wWall, wCap, eWall, eCap);
+    });
+
+    // 4 Grand Water-Gate Portal Piers flanking each empty water entrance/exit on West and East
+    const gatePillarGeo = new THREE.BoxGeometry(0.34, wallHeight + 0.22, 0.34);
+    const gateZPositions = [g1_start, g1_end, g2_start, g2_end];
+    gateZPositions.forEach(gz => {
+      const wp = new THREE.Mesh(gatePillarGeo, capMat);
+      wp.position.set(minCoord, (wallHeight + 0.22) * 0.5, gz);
+      wp.castShadow = true;
+      const ep = new THREE.Mesh(gatePillarGeo, capMat);
+      ep.position.set(maxCoord, (wallHeight + 0.22) * 0.5, gz);
+      ep.castShadow = true;
+      group.add(wp, ep);
+    });
+
+    group.add(northWall, northCap, southWall, southCap);
 
     // 4 Grand Corner Stone Pilasters
     const cornerGeo = new THREE.BoxGeometry(0.38, wallHeight + 0.18, 0.38);
@@ -924,8 +955,8 @@ window.FFH.createSeamlessWaterPlane = function(width = 110, height = 110) {
       uSmoothness:     { value: 0.46 },
       uEdgeThreshold:  { value: 0.09 },
       uEdgeSoftness:   { value: 0.08 },
-      uFlowX:          { value: 0.06 },
-      uFlowZ:          { value: -0.18 },
+      uFlowX:          { value: -0.32 }, // Flows from RIGHT (+X) to LEFT (-X)
+      uFlowZ:          { value: -0.04 },
       uCellSpeed:      { value: 0.55 },
       uNoiseScale:     { value: 0.85 },
       uNoiseFlowSpeed: { value: 0.12 },
@@ -1080,7 +1111,7 @@ window.FFH.createSeamlessWaterPlane = function(width = 110, height = 110) {
 
   const waterMesh = new THREE.Mesh(waterGeo, waterMat);
   waterMesh.rotation.x = -Math.PI / 2;
-  waterMesh.position.set(31.2, -0.10, 31.2);
+  waterMesh.position.set(31.2, -0.22, 31.2);
   waterMesh.receiveShadow = true;
   return { waterMesh, waterMat };
 };
@@ -1105,8 +1136,8 @@ window.FFH.LUBECK_CITY_GRID = [
   ['G','G','B_ZOB','G','R_C','G','G','G','G','G','R_C','G','G','G','G','G','G','G','G','G','T','G','G','G'],
   // Row 3: North Mainland Approach to North Bridge
   ['A1','G','R_C','G','R_C','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','A3','G','T','G'],
-  // Row 4: NORTH CANAL LOOP & NORTH BRIDGE (Single 1-Tile Bridge at x:10)
-  ['G','G','R_C','G','G','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','G','R_C','G','G','G'],
+  // Row 4: NORTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
+  ['W','W','BR','W','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
   // Row 5: Island North Apex
   ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','W','W','G','G','R_C','T','G','G'],
   // Row 6: Island North (UNI)
@@ -1135,10 +1166,10 @@ window.FFH.LUBECK_CITY_GRID = [
   ['G','G','R_C','G','G','W','G','G','R_C','G','B_DOM','G','R_C','G','G','G','W','W','G','G','R_C','G','A3','G'],
   // Row 18: West Mainland (Kruma Darkstore #104)
   ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','W','W','G','G','R_C','T','G','G'],
-  // Row 19: SOUTH CANAL LOOP & SOUTH BRIDGE (Single 1-Tile Bridge at x:10)
-  ['G','T','R_C','G','G','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','G','R_C','G','G','G'],
-  // Row 20: South Mainland Approach to South Bridge
-  ['G','G','R_C','G','G','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','R_C','G','A4','G'],
+  // Row 19: SOUTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
+  ['W','W','W','BR','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
+  // Row 20: South Mainland Approach to South Bridge & Crossings
+  ['G','G','R_C','R_C','G','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','R_C','G','A4','G'],
   // Row 21: South Mainland Villas & Promenade
   ['G','A1','R_C','R_C','R_C','G','G','G','T','R_C','R_C','R_C','T','G','G','G','G','R_C','R_C','R_C','R_C','G','T','G'],
   // Row 22: South Mainland Parkland
@@ -1194,8 +1225,11 @@ window.FFH.buildLubeckCityWorld = function() {
   const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(110, 110);
   worldGroup.add(waterMesh);
 
-  const tileGeo = new THREE.BoxGeometry(S, 0.35, S);
+  const platformDepth = 1.0; // 1.0 unit downward solid thickness so water interacts with ground
+  const tileGeo = new THREE.BoxGeometry(S, platformDepth, S);
   const curbMat = new THREE.MeshLambertMaterial({ color: 0x7D8A9D });
+  // Hanseatic weathered quayside masonry for the vertical platform sides dipping into water
+  const quayMat = new THREE.MeshLambertMaterial({ color: 0x685D54 });
 
   for (let z = 0; z < window.FFH.MAP_SIZE; z++) {
     for (let x = 0; x < window.FFH.MAP_SIZE; x++) {
@@ -1241,8 +1275,10 @@ window.FFH.buildLubeckCityWorld = function() {
       }
 
       if (type !== 'BR' && type !== 'R_R') {
-        const base = new THREE.Mesh(tileGeo, groundMat);
-        base.position.y = -0.05;
+        // Multi-material: Top face (+Y, index 2) has street/grass; vertical sides have quayside stone
+        const tileMats = [quayMat, quayMat, groundMat, quayMat, quayMat, quayMat];
+        const base = new THREE.Mesh(tileGeo, tileMats);
+        base.position.y = -platformDepth * 0.5; // Top surface at Y=0.0, base extends down to Y=-1.0
         base.rotation.y = roadRotation;
         base.receiveShadow = true;
         tileGroup.add(base);
