@@ -2,7 +2,28 @@
 // Styled with pastel colors, clean Kenney low-poly aesthetic, and cel shader materials
 window.FFH = window.FFH || {};
 
-// Helper: build standard room shell (floor + baseboards + 2 corner walls)
+// Helper: create cute low-poly potted indoor plant
+window.FFH.createIndoorPlant = function() {
+  const group = new THREE.Group();
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.1, 0.22, 10), window.FFH.createCelMaterial(0xE76F51));
+  pot.position.y = 0.11;
+  pot.castShadow = true;
+  group.add(pot);
+
+  const leafMat = window.FFH.createCelMaterial(0x2A9D8F);
+  for (let i = 0; i < 5; i++) {
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.12, 7, 5), leafMat);
+    const angle = (i / 5) * Math.PI * 2;
+    leaf.scale.set(1.2, 0.4, 0.8);
+    leaf.position.set(Math.cos(angle) * 0.08, 0.24 + (i % 2) * 0.05, Math.sin(angle) * 0.08);
+    leaf.rotation.set(0.2, angle, 0.3);
+    leaf.castShadow = true;
+    group.add(leaf);
+  }
+  return group;
+};
+
+// Helper: build standard room shell (floor + baseboards + crown molding + warm lighting)
 window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB5) {
   const room = new THREE.Group();
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -15,8 +36,16 @@ window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB
   floor.receiveShadow = true;
   room.add(floor);
 
-  // Wooden Edge Trim / Baseboards
-  const trimMat = window.FFH.createCelMaterial(0xF7EDE2);
+  // Woven Center Area Rug
+  const rugMat = window.FFH.createCelMaterial(0xF7EDE2);
+  const rug = new THREE.Mesh(boxGeo, rugMat);
+  rug.scale.set(1.9, 0.02, 1.5);
+  rug.position.set(0, 0.01, 0.1);
+  rug.receiveShadow = true;
+  room.add(rug);
+
+  // Baseboards / Trim
+  const trimMat = window.FFH.createCelMaterial(0xD4A373);
   const trim1 = new THREE.Mesh(boxGeo, trimMat);
   trim1.scale.set(3.2, 0.08, 0.05);
   trim1.position.set(0, 0.04, -1.45);
@@ -24,6 +53,15 @@ window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB
   trim2.scale.set(0.05, 0.08, 3.2);
   trim2.position.set(-1.45, 0.04, 0);
   room.add(trim1, trim2);
+
+  // Crown Molding along Wall Tops
+  const crown1 = new THREE.Mesh(boxGeo, trimMat);
+  crown1.scale.set(3.2, 0.08, 0.06);
+  crown1.position.set(0, 2.52, -1.45);
+  const crown2 = new THREE.Mesh(boxGeo, trimMat);
+  crown2.scale.set(0.06, 0.08, 3.2);
+  crown2.position.set(-1.45, 2.52, 0);
+  room.add(crown1, crown2);
 
   // Back Wall
   const wallMat = window.FFH.createCelMaterial(wallColor);
@@ -39,6 +77,11 @@ window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB
   leftWall.position.set(-1.5, 1.25, 0);
   leftWall.receiveShadow = true;
   room.add(leftWall);
+
+  // Warm Cozy Interior Point Light (creates depth and soft volumetric illumination)
+  const warmLight = new THREE.PointLight(0xFFEAA7, 1.25, 7.0);
+  warmLight.position.set(0.3, 2.2, 0.3);
+  room.add(warmLight);
 
   return room;
 };
@@ -269,48 +312,6 @@ window.FFH.createBakeryRoom = function() {
   priceBoard.position.set(-0.5, 1.8, -1.42);
   room.add(priceBoard);
 
-  return room;
-};
-
-// 5. HANS LOKKER'S SUBLET APARTMENT OFFICE (Hans Lokker)
-// Key rack, quiet-hours clock on wall, recycling sorting bins (Ruhezeit enforcer)
-window.FFH.createWGRoom = function() {
-  const room = window.FFH.createRoomShell(0x588157, 0x3A5A40); // Olive green wall, dark forest green floor
-  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-
-  // Caretaker Wooden Desk
-  const desk = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x606C38));
-  desk.scale.set(1.6, 0.8, 0.65);
-  desk.position.set(-0.4, 0.4, -0.6);
-  room.add(desk);
-
-  // Master Key Rack on Wall
-  const keyRackMat = window.FFH.createCelMaterial(0xDDA15E);
-  const keyRack = new THREE.Mesh(boxGeo, keyRackMat);
-  keyRack.scale.set(0.7, 0.4, 0.04);
-  keyRack.position.set(-0.4, 1.7, -1.42);
-  room.add(keyRack);
-
-  // Wall Clock (Strict 22:00 Ruhezeit indicator)
-  const clockMat = window.FFH.createCelMaterial(0xFFFFFF);
-  const clock = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.04, 16), clockMat);
-  clock.rotation.x = Math.PI / 2;
-  clock.position.set(0.6, 1.85, -1.42);
-  room.add(clock);
-
-  // German Recycling Sorting Bins (Paper, Bio, Plastic, Glass)
-  const binColors = [0x2A9D8F, 0xE76F51, 0xFFD166]; // Blue (Paper), Brown (Bio), Yellow (Plastik)
-  binColors.forEach((col, idx) => {
-    const bin = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(col));
-    bin.scale.set(0.28, 0.45, 0.3);
-    bin.position.set(0.6 + (idx * 0.32), 0.22, 0.6);
-    room.add(bin);
-  });
-
-  return room;
-};
-
-// 6. RATHAUS BÜRGERAMT (Herr Vogel - Peak Bureaucrat)
 // Formal municipal counter, hygiene glass partition, ticket dispenser (Wartemarke), eagle seal
 window.FFH.createRathausRoom = function() {
   const room = window.FFH.createRoomShell(0x457B9D, 0x1D3557); // Formal steel blue walls, dark granite floor

@@ -21489,7 +21489,28 @@ window.FFH.createInkRenderer = function (renderer, scene, camera) {
 // Styled with pastel colors, clean Kenney low-poly aesthetic, and cel shader materials
 window.FFH = window.FFH || {};
 
-// Helper: build standard room shell (floor + baseboards + 2 corner walls)
+// Helper: create cute low-poly potted indoor plant
+window.FFH.createIndoorPlant = function() {
+  const group = new THREE.Group();
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.1, 0.22, 10), window.FFH.createCelMaterial(0xE76F51));
+  pot.position.y = 0.11;
+  pot.castShadow = true;
+  group.add(pot);
+
+  const leafMat = window.FFH.createCelMaterial(0x2A9D8F);
+  for (let i = 0; i < 5; i++) {
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.12, 7, 5), leafMat);
+    const angle = (i / 5) * Math.PI * 2;
+    leaf.scale.set(1.2, 0.4, 0.8);
+    leaf.position.set(Math.cos(angle) * 0.08, 0.24 + (i % 2) * 0.05, Math.sin(angle) * 0.08);
+    leaf.rotation.set(0.2, angle, 0.3);
+    leaf.castShadow = true;
+    group.add(leaf);
+  }
+  return group;
+};
+
+// Helper: build standard room shell (floor + baseboards + crown molding + warm lighting)
 window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB5) {
   const room = new THREE.Group();
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -21502,8 +21523,16 @@ window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB
   floor.receiveShadow = true;
   room.add(floor);
 
-  // Wooden Edge Trim / Baseboards
-  const trimMat = window.FFH.createCelMaterial(0xF7EDE2);
+  // Woven Center Area Rug
+  const rugMat = window.FFH.createCelMaterial(0xF7EDE2);
+  const rug = new THREE.Mesh(boxGeo, rugMat);
+  rug.scale.set(1.9, 0.02, 1.5);
+  rug.position.set(0, 0.01, 0.1);
+  rug.receiveShadow = true;
+  room.add(rug);
+
+  // Baseboards / Trim
+  const trimMat = window.FFH.createCelMaterial(0xD4A373);
   const trim1 = new THREE.Mesh(boxGeo, trimMat);
   trim1.scale.set(3.2, 0.08, 0.05);
   trim1.position.set(0, 0.04, -1.45);
@@ -21511,6 +21540,15 @@ window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB
   trim2.scale.set(0.05, 0.08, 3.2);
   trim2.position.set(-1.45, 0.04, 0);
   room.add(trim1, trim2);
+
+  // Crown Molding along Wall Tops
+  const crown1 = new THREE.Mesh(boxGeo, trimMat);
+  crown1.scale.set(3.2, 0.08, 0.06);
+  crown1.position.set(0, 2.52, -1.45);
+  const crown2 = new THREE.Mesh(boxGeo, trimMat);
+  crown2.scale.set(0.06, 0.08, 3.2);
+  crown2.position.set(-1.45, 2.52, 0);
+  room.add(crown1, crown2);
 
   // Back Wall
   const wallMat = window.FFH.createCelMaterial(wallColor);
@@ -21526,6 +21564,11 @@ window.FFH.createRoomShell = function(wallColor = 0xE8A598, floorColor = 0x489FB
   leftWall.position.set(-1.5, 1.25, 0);
   leftWall.receiveShadow = true;
   room.add(leftWall);
+
+  // Warm Cozy Interior Point Light (creates depth and soft volumetric illumination)
+  const warmLight = new THREE.PointLight(0xFFEAA7, 1.25, 7.0);
+  warmLight.position.set(0.3, 2.2, 0.3);
+  room.add(warmLight);
 
   return room;
 };
@@ -21756,48 +21799,6 @@ window.FFH.createBakeryRoom = function() {
   priceBoard.position.set(-0.5, 1.8, -1.42);
   room.add(priceBoard);
 
-  return room;
-};
-
-// 5. HANS LOKKER'S SUBLET APARTMENT OFFICE (Hans Lokker)
-// Key rack, quiet-hours clock on wall, recycling sorting bins (Ruhezeit enforcer)
-window.FFH.createWGRoom = function() {
-  const room = window.FFH.createRoomShell(0x588157, 0x3A5A40); // Olive green wall, dark forest green floor
-  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-
-  // Caretaker Wooden Desk
-  const desk = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x606C38));
-  desk.scale.set(1.6, 0.8, 0.65);
-  desk.position.set(-0.4, 0.4, -0.6);
-  room.add(desk);
-
-  // Master Key Rack on Wall
-  const keyRackMat = window.FFH.createCelMaterial(0xDDA15E);
-  const keyRack = new THREE.Mesh(boxGeo, keyRackMat);
-  keyRack.scale.set(0.7, 0.4, 0.04);
-  keyRack.position.set(-0.4, 1.7, -1.42);
-  room.add(keyRack);
-
-  // Wall Clock (Strict 22:00 Ruhezeit indicator)
-  const clockMat = window.FFH.createCelMaterial(0xFFFFFF);
-  const clock = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.04, 16), clockMat);
-  clock.rotation.x = Math.PI / 2;
-  clock.position.set(0.6, 1.85, -1.42);
-  room.add(clock);
-
-  // German Recycling Sorting Bins (Paper, Bio, Plastic, Glass)
-  const binColors = [0x2A9D8F, 0xE76F51, 0xFFD166]; // Blue (Paper), Brown (Bio), Yellow (Plastik)
-  binColors.forEach((col, idx) => {
-    const bin = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(col));
-    bin.scale.set(0.28, 0.45, 0.3);
-    bin.position.set(0.6 + (idx * 0.32), 0.22, 0.6);
-    room.add(bin);
-  });
-
-  return room;
-};
-
-// 6. RATHAUS BÜRGERAMT (Herr Vogel - Peak Bureaucrat)
 // Formal municipal counter, hygiene glass partition, ticket dispenser (Wartemarke), eagle seal
 window.FFH.createRathausRoom = function() {
   const room = window.FFH.createRoomShell(0x457B9D, 0x1D3557); // Formal steel blue walls, dark granite floor
@@ -24345,54 +24346,54 @@ window.FFH.MAP_SIZE = 24;
 window.FFH.TILE_SCALE = 2.6;
 
 window.FFH.LUBECK_CITY_GRID = [
-  // Row 0: North Mainland Border
-  ['G','G','A1','G','T','G','G','G','G','G','R_C','G','G','G','G','G','G','G','T','G','R_C','A2','G','G'],
-  // Row 1: North Mainland (ZOB approach & East Garden)
-  ['G','A2','R_C','R_C','R_C','G','G','G','G','T','R_C','T','G','G','G','G','G','G','G','T','R_C','T','G','G'],
-  // Row 2: North Mainland (ZOB & East Garden)
-  ['G','G','B_ZOB','G','R_C','G','G','G','G','G','R_C','G','G','G','G','G','G','G','G','G','R_C','T','G','G'],
-  // Row 3: North Mainland Approach to North Bridge
-  ['A1','G','R_C','G','R_C','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','R_C','A3','T','G'],
+  // Row 0: North Mainland Border (Townhouses & ZOB Hub)
+  ['A1','A2','R_C','A3','T','G','A1','A4','R_C','A2','R_C','A3','G','A1','A5','R_C','A2','T','G','A1','R_C','A2','A3','G'],
+  // Row 1: North Mainland Promenade
+  ['A4','A2','R_C','R_C','R_C','A1','R_C','R_C','R_C','T','R_C','T','A4','R_C','R_C','R_C','A2','R_C','R_C','T','R_C','T','A5','G'],
+  // Row 2: North Mainland (ZOB & Student Square)
+  ['A3','G','B_ZOB','G','R_C','A2','R_C','A3','G','A1','R_C','G','A2','R_C','A4','G','B_BANK','G','A3','G','R_C','T','A1','G'],
+  // Row 3: North Mainland Approach to North Bridges
+  ['A1','G','R_C','G','R_C','A4','R_C','G','A2','G','R_B','G','A1','R_C','G','A3','R_C','G','A4','G','R_C','A3','T','G'],
   // Row 4: NORTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
   ['W','W','BR','W','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
-  // Row 5: Island North Apex
-  ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','G','W','G','G','R_C','T','G','G'],
-  // Row 6: Island North (UNI)
-  ['G','G','R_C','G','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','G','G','W','G','G','R_C','G','A4','G'],
+  // Row 5: Island North Apex & North Mainland Connection
+  ['A2','T','R_C','A1','G','W','A3','G','R_C','R_C','R_C','R_C','R_C','R_C','G','A2','G','W','A1','G','R_C','T','A4','G'],
+  // Row 6: Island North (University Registry)
+  ['A5','G','R_C','A3','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','A4','G','W','G','A2','R_C','G','A4','G'],
   // Row 7: West-North Bridge (Bakery x:5) & East BurgTor Bridge (x:17)
-  ['A2','G','B_BAKERY','R_C','R_B','BR','R_C','R_B','R_C','R_C','R_C','R_C','R_C','R_B','B_BURGTOR','R_B','R_C','BR','R_B','R_C','R_C','G','T','G'],
+  ['A2','G','B_BAKERY','R_C','R_B','BR','R_C','R_B','R_C','R_C','R_C','R_C','R_C','R_B','B_BURGTOR','R_B','R_C','BR','R_B','R_C','R_C','A3','T','G'],
   // Row 8: West Mainland & Upper Island Core
-  ['G','T','R_C','G','G','W','G','G','R_C','G','A1','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
+  ['A1','T','R_C','A4','G','W','A2','G','R_C','G','A1','G','R_C','G','A3','G','G','W','A5','G','R_C','A2','G','G'],
   // Row 9: West Mainland & Island Market Center (Rathaus & Pizza)
-  ['G','G','R_C','G','G','W','G','G','R_C','B_RATHAUS','R_C','B_PIZZA','R_C','G','G','G','G','W','G','G','R_C','T','G','G'],
-  // Row 10: West Mainland (Student WG Room)
-  ['A1','G','B_WG','R_C','R_C','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','G','W','G','G','R_C','G','A1','G'],
+  ['A3','G','R_C','G','G','W','G','G','R_C','B_RATHAUS','R_C','B_PIZZA','R_C','G','G','A1','G','W','G','G','R_C','T','A3','G'],
+  // Row 10: West Mainland (Student WG Room) & East Civic District (Ausländerbehörde)
+  ['A1','G','B_WG','R_C','R_C','W','A4','G','R_C','R_C','R_C','R_C','R_C','G','B_AUSLAENDER','G','R_C','W','A2','G','R_C','G','A1','G'],
   // Row 11: West Mainland & Island Kino Avenue
-  ['G','T','R_C','G','G','W','G','G','R_C','G','A2','G','R_C','G','G','G','G','W','G','G','R_C','G','T','G'],
-  // Row 12: West Mainland (Garden) & Island Kino
-  ['G','G','R_C','T','G','W','G','G','R_C','G','B_KINO','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
-  // Row 13: West-South HolstenTor Bridge (Single Bridge at x:5) & East Church Bridge (x:17)
-  ['G','T','R_C','G','R_B','BR','R_C','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','R_C','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
-  // Row 14: West Mainland (Garden) & Lower Island Core
-  ['G','T','G','T','G','W','G','G','R_C','G','A3','G','R_C','G','G','G','G','W','G','G','R_C','G','A2','G'],
-  // Row 15: West Mainland (Garden) & Lower Island
-  ['G','G','T','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','G','W','G','G','R_C','T','G','G'],
+  ['A4','T','R_C','A2','G','W','G','G','R_C','G','A2','G','R_C','G','G','A3','G','W','G','G','R_C','A5','T','G'],
+  // Row 12: West Mainland (Bike Shop) & Island Kino
+  ['A2','G','B_BIKESHOP','R_C','G','W','A1','G','R_C','G','B_KINO','G','R_C','G','A4','G','G','W','A3','G','R_C','G','A2','G'],
+  // Row 13: West-South HolstenTor Bridge (x:5) & East Church Bridge (x:17)
+  ['A1','T','R_C','G','R_B','BR','R_C','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','R_C','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
+  // Row 14: West Mainland & Lower Island Core
+  ['A3','T','R_C','A4','G','W','G','G','R_C','G','A3','G','R_C','G','G','A2','G','W','A4','G','R_C','G','A2','G'],
+  // Row 15: West Mainland Promenade & Island South
+  ['A5','G','R_C','G','G','W','A2','G','R_C','R_C','R_C','R_C','R_C','G','A1','G','G','W','G','A3','R_C','T','A1','G'],
   // Row 16: West Mainland Road to Darkstore
-  ['G','A3','R_C','G','G','W','G','G','R_C','G','A4','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
+  ['G','A3','R_C','A1','G','W','G','G','R_C','G','A4','G','R_C','G','G','A5','G','W','A2','G','R_C','G','A4','G'],
   // Row 17: Island South Tip (Dom zu Lübeck)
-  ['G','G','R_C','G','G','W','G','G','R_C','G','B_DOM','G','R_C','G','G','G','G','W','G','G','R_C','G','A3','G'],
+  ['A2','G','R_C','G','G','W','A1','G','R_C','G','B_DOM','G','R_C','G','A3','G','G','W','G','G','R_C','G','A3','G'],
   // Row 18: West Mainland (Kruma Darkstore #104)
-  ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','G','W','G','G','R_C','T','G','G'],
+  ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','G','W','A1','G','R_C','T','A2','G'],
   // Row 19: SOUTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
   ['W','W','W','BR','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
-  // Row 20: South Mainland Approach to South Bridge & Crossings
-  ['G','G','R_C','R_C','G','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','R_C','G','A4','G'],
+  // Row 20: South Mainland Approach to South Bridge
+  ['A1','G','R_C','R_C','G','A2','G','G','A4','G','R_B','G','A1','G','G','A3','G','G','A2','G','R_C','G','A4','G'],
   // Row 21: South Mainland Villas & Promenade
-  ['G','A1','R_C','R_C','R_C','G','G','G','T','R_C','R_C','R_C','T','G','G','G','G','R_C','R_C','R_C','R_C','G','T','G'],
-  // Row 22: South Mainland Parkland
-  ['G','G','T','G','R_C','T','G','G','G','G','R_C','R_C','G','G','G','G','T','G','R_C','G','T','G','G','G'],
+  ['A3','A1','R_C','R_C','R_C','A5','R_C','R_C','T','R_C','R_C','R_C','T','R_C','R_C','A2','R_C','R_C','R_C','R_C','R_C','G','T','G'],
+  // Row 22: South Mainland Parkland & Altbaus
+  ['G','A4','T','G','R_C','T','A2','G','A1','G','R_C','R_C','G','A3','G','G','T','A4','R_C','G','T','A2','G','G'],
   // Row 23: South Mainland Border
-  ['G','G','G','G','A2','G','G','G','G','G','G','G','G','G','G','G','G','G','A3','G','G','G','G','G']
+  ['A2','G','A1','G','A2','G','A3','G','G','A4','G','G','A1','G','G','A2','G','G','A3','G','A1','G','G','G']
 ];
 
 window.FFH.POI_METADATA = {
