@@ -7,7 +7,9 @@
 > - [Forum Topics & Q&A](https://mhcp-game-prototype.devpost.com/forum_topics)
 >
 > **Master Game Design Authority**: `Docs/README_HACKATHON.md`  
-> **Master Execution Plan**: `Docs/ONE_WEEK_MASTER_PLAN.md`  
+> **Task List**: `Docs/TASKS.md`  
+> **Canonical Numbers**: `Docs/CANONICAL_NUMBERS.md`  
+> **Documentation Map**: `Docs/README.md`  
 > **Submission Deliverables Folder**: `Docs/submission/`
 
 Every AI agent (Antigravity, Claude Code, Gemini CLI, subagents) working in this repository **MUST STRICTLY ENFORCE** the following hard rules at all times.
@@ -16,7 +18,7 @@ Every AI agent (Antigravity, Claude Code, Gemini CLI, subagents) working in this
 
 ## 1. Technical & Packaging Hard Constraints (Non-Negotiable)
 
-1. **Strict 35 MB Limit**: The final uncompressed submission zip must be `≤ 35 MB`. The single-file `index.html` must remain lightweight (currently ~5.7 MB uncompressed, ~1.8 MB zipped).
+1. **Strict 35 MB Limit**: The final uncompressed submission zip must be `≤ 35 MB`. Never quote a size from memory — run `node build/check-size.js` and see [`Docs/CANONICAL_NUMBERS.md`](Docs/CANONICAL_NUMBERS.md).
 2. **100% Offline Airgap**:
    - **Zero external network requests.** No CDNs, no Google Fonts, no remote audio or image assets, no external API calls.
    - All Three.js libraries and vendor code must live in `vendor/` or be inlined.
