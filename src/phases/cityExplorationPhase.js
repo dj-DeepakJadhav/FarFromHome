@@ -98,39 +98,10 @@ window.FFH.CityExplorationPhase = class {
     this.birds = birds || [];
     this.game.scene.add(this.worldGroup);
 
-    // 3.2 Compute static geometry bounds tree for sliding collision (solid city obstacles only)
-    if (window.MeshBVH && window.MeshBVH.StaticGeometryGenerator) {
-      try {
-        const obstacleGroup = new THREE.Group();
-        if (this.interactiveMeshes && this.interactiveMeshes.length > 0) {
-          this.interactiveMeshes.forEach(grp => {
-            grp.traverse(child => {
-              if (child.isMesh && child.geometry && child.geometry.index) {
-                const m = new THREE.Mesh(child.geometry.clone());
-                child.getWorldPosition(m.position);
-                child.getWorldQuaternion(m.quaternion);
-                child.getWorldScale(m.scale);
-                obstacleGroup.add(m);
-              }
-            });
-          });
-        }
-
-        if (obstacleGroup.children.length > 0) {
-          const generator = new window.MeshBVH.StaticGeometryGenerator(obstacleGroup);
-          generator.attributes = ['position'];
-          const genResult = generator.generate();
-          const mergedGeometry = (genResult && genResult.geometry) ? genResult.geometry : genResult;
-          if (mergedGeometry && typeof mergedGeometry.computeBoundsTree === 'function') {
-            mergedGeometry.computeBoundsTree();
-            this.colliderMesh = new THREE.Mesh(mergedGeometry);
-          }
-        }
-      } catch (err) {
-        console.warn('BVH collider generation skipped (using AABB collision fallback):', err);
-        this.colliderMesh = null;
-      }
-    }
+    // 3.2 Initialize unified building box colliders (guarantees zero clipping through buildings)
+    this.buildingColliders = (window.FFH.buildingColliders && window.FFH.buildingColliders.length > 0)
+      ? window.FFH.buildingColliders
+      : (window.FFH.initBuildingColliders ? window.FFH.initBuildingColliders() : []);
 
     // Spawn 10 Roaming Citizens using the Behavior Tree
     this.roamingCitizens = [];
@@ -965,8 +936,11 @@ window.FFH.CityExplorationPhase = class {
   }
 
   checkBuildingCollision(posX, posZ) {
+    if (window.FFH.checkBuildingCollision) {
+      return window.FFH.checkBuildingCollision(posX, posZ, this.playerRadius);
+    }
     const r = this.playerRadius;
-    for (const b of this.buildingColliders) {
+    for (const b of (this.buildingColliders || [])) {
       if (posX + r > b.minX && posX - r < b.maxX &&
           posZ + r > b.minZ && posZ - r < b.maxZ) {
         return true;
@@ -1090,61 +1064,13 @@ window.FFH.CityExplorationPhase = class {
         let nextX = this.playerPos.x;
         let nextZ = this.playerPos.z;
 
-        if (this.colliderMesh) {
-          const radius = this.playerRadius || 0.4;
-          const playerHeight = radius + 0.1; // Float slightly above floor to ignore flat ground collisions
-          
-          const targetPos = new THREE.Vector3(targetX, playerHeight, targetZ);
-          const tempBox = new THREE.Box3();
-          const tempMat = new THREE.Matrix4();
-          const tempVec = new THREE.Vector3();
+        const radius = this.playerRadius || 0.4;
+        const resolved = window.FFH.resolveSlidingMovement
+          ? window.FFH.resolveSlidingMovement(this.playerPos.x, this.playerPos.z, targetX, targetZ, radius)
+          : { x: targetX, z: targetZ };
 
-          tempMat.copy(this.colliderMesh.matrixWorld).invert();
-          tempVec.copy(targetPos).applyMatrix4(tempMat);
-
-          this.colliderMesh.geometry.boundsTree.shapecast({
-            intersectsBounds: box => {
-              tempBox.copy(box).expandByScalar(radius);
-              return tempBox.containsPoint(tempVec);
-            },
-            intersectsTriangle: tri => {
-              const closestPoint = new THREE.Vector3();
-              tri.closestPointToPoint(tempVec, closestPoint);
-              const dist = closestPoint.distanceTo(tempVec);
-              if (dist < radius) {
-                const dir = new THREE.Vector3().subVectors(tempVec, closestPoint).normalize();
-                // We only want to push horizontally to avoid climbing walls
-                dir.y = 0;
-                if (dir.lengthSq() > 0.0001) {
-                  dir.normalize();
-                  const diff = radius - dist;
-                  tempVec.addScaledVector(dir, diff);
-                }
-              }
-            }
-          });
-
-          targetPos.copy(tempVec).applyMatrix4(this.colliderMesh.matrixWorld);
-          
-          // Only update if we didn't get pushed all the way back
-          nextX = targetPos.x;
-          nextZ = targetPos.z;
-        } else {
-          // Fallback to old AABB collision
-          const gridX = Math.round(targetX / S);
-          const curGridZ = Math.round(this.playerPos.z / S);
-          const tileX = window.FFH.LUBECK_CITY_GRID[curGridZ] ? window.FFH.LUBECK_CITY_GRID[curGridZ][gridX] : 'W';
-          if (tileX !== 'W' && !this.checkBuildingCollision(targetX, this.playerPos.z)) {
-            nextX = targetX;
-          }
-
-          const curGridX = Math.round(nextX / S);
-          const gridZ = Math.round(targetZ / S);
-          const tileZ = window.FFH.LUBECK_CITY_GRID[gridZ] ? window.FFH.LUBECK_CITY_GRID[gridZ][curGridX] : 'W';
-          if (tileZ !== 'W' && !this.checkBuildingCollision(nextX, targetZ)) {
-            nextZ = targetZ;
-          }
-        }
+        nextX = resolved.x;
+        nextZ = resolved.z;
 
         // Check if movement is negligible after collision resolution
         const distMoved = Math.hypot(nextX - this.playerPos.x, nextZ - this.playerPos.z);

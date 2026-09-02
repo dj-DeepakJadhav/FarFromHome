@@ -400,6 +400,19 @@
 - **Packaging & Verification**:
   - Reassembled `index.html` at **6.28 MB** uncompressed. Verified clean transition into city exploration with 0 console errors.
 
+### September 2, 2026: Bridge Alignment Audits & Unified Building Box Colliders
+- **Complete Bridge System Overhaul & Alignment**:
+  - Fixed North Canal bridge at $x=20$ (Row 4): connected column 20 with continuous cobblestone promenade through Rows 0–3, eliminating the dead-end into an Altbau building wall.
+  - Fixed East Canal moats (Row 7 and Row 13): aligned column 17 as a uniform 1-tile wide river channel flanked by island quayside (`G`), eliminating the disconnected road tile in the water.
+  - Re-engineered bridge piers (`createArchedBridge`): replaced solid brick block with open barrel-vault archways and flanking bank abutments, allowing the stylized water waves and current to visibly flow right through under all bridges.
+- **Unified Building Box Collider System (`window.FFH.checkBuildingCollision` & `resolveSlidingMovement`)**:
+  - Implemented zero-cost 2D AABB box colliders for all buildings, landmarks, and urban trees (`window.FFH.initBuildingColliders()`).
+  - Added specialized split-tower colliders for Holstentor (`B_HOLSTEN_NORTH` & `B_HOLSTEN_SOUTH`) leaving the central archway open so the player and NPCs can walk straight through the historic gate!
+  - Integrated `resolveSlidingMovement` into both player movement (`CityExplorationPhase.update`) and roaming citizen AI (`npcBehaviorTree.wander`), guaranteeing 100% that neither the player nor NPCs ever clip through building walls.
+- **Packaging & Verification**:
+  - Reassembled `index.html` at **6.28 MB** uncompressed. 60 FPS, 0 errors.
+
+
 
 
 

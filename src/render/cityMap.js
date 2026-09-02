@@ -657,12 +657,43 @@ window.FFH.CityAssetRegistry = {
       p4.position.set(S * 0.46, balY + 0.04, S * 0.48);
     }
 
-    // Brick Arch Piers dipping deep into the water channel
+    // Brick Arch Piers & Open Water Archway (allows water to visibly flow right through under the bridge)
     const pierMat = this.materials.roofBrick;
-    const pier1 = new THREE.Mesh(new THREE.BoxGeometry(S * 0.92, 0.75, S * 0.92), pierMat);
-    pier1.position.y = -0.375;
+    if (isEW) {
+      // East-West road: water flows North-South under the bridge
+      const abutW = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.75, S * 0.96), pierMat);
+      abutW.position.set(-S * 0.42, -0.375, 0);
+      abutW.castShadow = true;
+      abutW.receiveShadow = true;
 
-    group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, pier1);
+      const abutE = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.75, S * 0.96), pierMat);
+      abutE.position.set(S * 0.42, -0.375, 0);
+      abutE.castShadow = true;
+      abutE.receiveShadow = true;
+
+      const archGeo = new THREE.CylinderGeometry(S * 0.36, S * 0.36, S * 0.94, 12, 1, false, 0, Math.PI);
+      const arch = new THREE.Mesh(archGeo, pierMat);
+      arch.rotation.z = Math.PI * 0.5;
+      arch.position.y = -0.12;
+      group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, abutW, abutE, arch);
+    } else {
+      // North-South road: water flows East-West under the bridge
+      const abutN = new THREE.Mesh(new THREE.BoxGeometry(S * 0.96, 0.75, 0.36), pierMat);
+      abutN.position.set(0, -0.375, -S * 0.42);
+      abutN.castShadow = true;
+      abutN.receiveShadow = true;
+
+      const abutS = new THREE.Mesh(new THREE.BoxGeometry(S * 0.96, 0.75, 0.36), pierMat);
+      abutS.position.set(0, -0.375, S * 0.42);
+      abutS.castShadow = true;
+      abutS.receiveShadow = true;
+
+      const archGeo = new THREE.CylinderGeometry(S * 0.36, S * 0.36, S * 0.94, 12, 1, false, 0, Math.PI);
+      const arch = new THREE.Mesh(archGeo, pierMat);
+      arch.rotation.x = Math.PI * 0.5;
+      arch.position.y = -0.12;
+      group.add(deck, bal1, bal2, cap1, cap2, p1, p2, p3, p4, abutN, abutS, arch);
+    }
     return group;
   },
 
@@ -1312,43 +1343,43 @@ window.FFH.TILE_SCALE = 2.6;
 
 window.FFH.LUBECK_CITY_GRID = [
   // Row 0: North Mainland Border
-  ['G','G','A1','G','T','G','G','G','G','G','R_C','G','G','G','G','G','G','G','T','G','A2','G','G','G'],
+  ['G','G','A1','G','T','G','G','G','G','G','R_C','G','G','G','G','G','G','G','T','G','R_C','A2','G','G'],
   // Row 1: North Mainland (ZOB approach & East Garden)
-  ['G','A2','R_C','R_C','R_C','G','G','G','G','T','R_C','T','G','G','G','G','G','G','G','T','G','T','G','G'],
+  ['G','A2','R_C','R_C','R_C','G','G','G','G','T','R_C','T','G','G','G','G','G','G','G','T','R_C','T','G','G'],
   // Row 2: North Mainland (ZOB & East Garden)
-  ['G','G','B_ZOB','G','R_C','G','G','G','G','G','R_C','G','G','G','G','G','G','G','G','G','T','G','G','G'],
+  ['G','G','B_ZOB','G','R_C','G','G','G','G','G','R_C','G','G','G','G','G','G','G','G','G','R_C','T','G','G'],
   // Row 3: North Mainland Approach to North Bridge
-  ['A1','G','R_C','G','R_C','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','A3','G','T','G'],
+  ['A1','G','R_C','G','R_C','G','G','G','G','G','R_B','G','G','G','G','G','G','G','G','G','R_C','A3','T','G'],
   // Row 4: NORTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
   ['W','W','BR','W','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
   // Row 5: Island North Apex
-  ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','W','W','G','G','R_C','T','G','G'],
+  ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','G','W','G','G','R_C','T','G','G'],
   // Row 6: Island North (UNI)
-  ['G','G','R_C','G','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','G','W','W','G','G','R_C','G','A4','G'],
+  ['G','G','R_C','G','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','G','G','W','G','G','R_C','G','A4','G'],
   // Row 7: West-North Bridge (Bakery x:5) & East BurgTor Bridge (x:17)
   ['A2','G','B_BAKERY','R_C','R_B','BR','R_C','R_B','R_C','R_C','R_C','R_C','R_C','R_B','B_BURGTOR','R_B','R_C','BR','R_B','R_C','R_C','G','T','G'],
   // Row 8: West Mainland & Upper Island Core
-  ['G','T','R_C','G','G','W','G','G','R_C','G','A1','G','R_C','G','G','G','W','W','G','G','R_C','G','G','G'],
+  ['G','T','R_C','G','G','W','G','G','R_C','G','A1','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
   // Row 9: West Mainland & Island Market Center (Rathaus & Pizza)
-  ['G','G','R_C','G','G','W','G','G','R_C','B_RATHAUS','R_C','B_PIZZA','R_C','G','G','G','W','W','G','G','R_C','T','G','G'],
+  ['G','G','R_C','G','G','W','G','G','R_C','B_RATHAUS','R_C','B_PIZZA','R_C','G','G','G','G','W','G','G','R_C','T','G','G'],
   // Row 10: West Mainland (Student WG Room)
-  ['A1','G','B_WG','R_C','R_C','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','W','W','G','G','R_C','G','A1','G'],
+  ['A1','G','B_WG','R_C','R_C','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','G','W','G','G','R_C','G','A1','G'],
   // Row 11: West Mainland & Island Kino Avenue
-  ['G','T','R_C','G','G','W','G','G','R_C','G','A2','G','R_C','G','G','G','W','W','G','G','R_C','G','T','G'],
+  ['G','T','R_C','G','G','W','G','G','R_C','G','A2','G','R_C','G','G','G','G','W','G','G','R_C','G','T','G'],
   // Row 12: West Mainland (Garden) & Island Kino
-  ['G','G','R_C','T','G','W','G','G','R_C','G','B_KINO','G','R_C','G','G','G','W','W','G','G','R_C','G','G','G'],
+  ['G','G','R_C','T','G','W','G','G','R_C','G','B_KINO','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
   // Row 13: West-South HolstenTor Bridge (Single Bridge at x:5) & East Church Bridge (x:17)
   ['G','T','R_C','G','R_B','BR','R_C','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','R_C','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
   // Row 14: West Mainland (Garden) & Lower Island Core
-  ['G','T','G','T','G','W','G','G','R_C','G','A3','G','R_C','G','G','G','W','W','G','G','R_C','G','A2','G'],
+  ['G','T','G','T','G','W','G','G','R_C','G','A3','G','R_C','G','G','G','G','W','G','G','R_C','G','A2','G'],
   // Row 15: West Mainland (Garden) & Lower Island
-  ['G','G','T','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','W','W','G','G','R_C','T','G','G'],
+  ['G','G','T','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','G','G','G','G','W','G','G','R_C','T','G','G'],
   // Row 16: West Mainland Road to Darkstore
-  ['G','A3','R_C','G','G','W','G','G','R_C','G','A4','G','R_C','G','G','G','W','W','G','G','R_C','G','G','G'],
+  ['G','A3','R_C','G','G','W','G','G','R_C','G','A4','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
   // Row 17: Island South Tip (Dom zu Lübeck)
-  ['G','G','R_C','G','G','W','G','G','R_C','G','B_DOM','G','R_C','G','G','G','W','W','G','G','R_C','G','A3','G'],
+  ['G','G','R_C','G','G','W','G','G','R_C','G','B_DOM','G','R_C','G','G','G','G','W','G','G','R_C','G','A3','G'],
   // Row 18: West Mainland (Kruma Darkstore #104)
-  ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','W','W','G','G','R_C','T','G','G'],
+  ['A4','G','B_DARKSTORE','R_C','R_C','W','G','G','G','R_C','R_C','G','G','G','G','G','G','W','G','G','R_C','T','G','G'],
   // Row 19: SOUTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
   ['W','W','W','BR','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
   // Row 20: South Mainland Approach to South Bridge & Crossings
@@ -1394,6 +1425,108 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
   return 0;
 }
 
+// ============================================================================
+// UNIFIED BUILDING BOX COLLIDER & SLIDING RESOLVER (Zero-cost collision)
+// ============================================================================
+window.FFH.buildingColliders = [];
+
+window.FFH.initBuildingColliders = function() {
+  const colliders = [];
+  const S = window.FFH.TILE_SCALE || 2.6;
+  const grid = window.FFH.LUBECK_CITY_GRID;
+  if (!grid) return colliders;
+
+  for (let z = 0; z < window.FFH.MAP_SIZE; z++) {
+    for (let x = 0; x < window.FFH.MAP_SIZE; x++) {
+      const type = grid[z][x];
+      const posX = x * S;
+      const posZ = z * S;
+
+      if (type === 'B_HOLSTEN') {
+        // Holstentor has twin conical towers flanking the north and south of the street
+        // Leaving the center archway open for the player and NPCs to walk through!
+        colliders.push({
+          id: 'B_HOLSTEN_NORTH',
+          minX: posX - 1.1, maxX: posX + 1.1,
+          minZ: posZ - 2.1, maxZ: posZ - 0.55
+        });
+        colliders.push({
+          id: 'B_HOLSTEN_SOUTH',
+          minX: posX - 1.1, maxX: posX + 1.1,
+          minZ: posZ + 0.55, maxZ: posZ + 2.1
+        });
+      } else if (type === 'B_MARIEN' || type === 'B_DOM') {
+        // Massive Gothic Cathedrals
+        colliders.push({
+          id: type,
+          minX: posX - 1.25, maxX: posX + 1.25,
+          minZ: posZ - 1.35, maxZ: posZ + 1.35
+        });
+      } else if (type.startsWith('B_') || type.startsWith('A')) {
+        // Standard Townhouses, Shops, City Hall, Cinema, Darkstore, WG
+        colliders.push({
+          id: type + '_' + x + '_' + z,
+          minX: posX - 1.08, maxX: posX + 1.08,
+          minZ: posZ - 1.08, maxZ: posZ + 1.08
+        });
+      } else if (type === 'T') {
+        // Urban Trees
+        colliders.push({
+          id: 'TREE_' + x + '_' + z,
+          minX: posX - 0.35, maxX: posX + 0.35,
+          minZ: posZ - 0.35, maxZ: posZ + 0.35
+        });
+      }
+    }
+  }
+
+  window.FFH.buildingColliders = colliders;
+  return colliders;
+};
+
+window.FFH.checkBuildingCollision = function(posX, posZ, radius = 0.35) {
+  const colliders = window.FFH.buildingColliders;
+  if (!colliders || colliders.length === 0) return false;
+
+  for (let i = 0; i < colliders.length; i++) {
+    const b = colliders[i];
+    if (posX + radius > b.minX && posX - radius < b.maxX &&
+        posZ + radius > b.minZ && posZ - radius < b.maxZ) {
+      return true;
+    }
+  }
+  return false;
+};
+
+window.FFH.resolveSlidingMovement = function(curX, curZ, nextX, nextZ, radius = 0.35) {
+  const S = window.FFH.TILE_SCALE || 2.6;
+  const grid = window.FFH.LUBECK_CITY_GRID;
+  const isWalkable = (x, z) => {
+    const gx = Math.round(x / S);
+    const gz = Math.round(z / S);
+    if (!grid || !grid[gz] || !grid[gz][gx]) return false;
+    const t = grid[gz][gx];
+    return t !== 'W';
+  };
+
+  let resolvedX = curX;
+  let resolvedZ = curZ;
+
+  // Try X alone
+  if (isWalkable(nextX, curZ) && !window.FFH.checkBuildingCollision(nextX, curZ, radius)) {
+    resolvedX = nextX;
+  }
+
+  // Try Z alone
+  if (isWalkable(resolvedX, nextZ) && !window.FFH.checkBuildingCollision(resolvedX, nextZ, radius)) {
+    resolvedZ = nextZ;
+  } else if (isWalkable(curX, nextZ) && !window.FFH.checkBuildingCollision(curX, nextZ, radius)) {
+    resolvedZ = nextZ;
+  }
+
+  return { x: resolvedX, z: resolvedZ };
+};
+
 window.FFH.buildLubeckCityWorld = function() {
   const worldGroup = new THREE.Group();
   const interactiveMeshes = [];
@@ -1401,8 +1534,9 @@ window.FFH.buildLubeckCityWorld = function() {
   const registry = window.FFH.CityAssetRegistry;
   const S = window.FFH.TILE_SCALE;
 
-  // Initialize procedural textures
+  // Initialize procedural textures and box colliders
   registry.initMaterials();
+  window.FFH.initBuildingColliders();
 
   // Single continuous Water Base Plane (spanning across city and surrounding forest landscape)
   const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(140, 140);

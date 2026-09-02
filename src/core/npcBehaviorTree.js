@@ -241,11 +241,14 @@ window.FFH.createCitizenBehaviorTree = function () {
     const grid = window.FFH.LUBECK_CITY_GRID;
     const M = window.FFH.MAP_SIZE;
 
-    // Helper: is a grid tile walkable ground (cobblestone, promenade, bridge, park lawn - strictly NO water)
+    // Helper: is a grid tile walkable ground (strictly NO water and NO buildings)
     const isGroundTile = (gx, gz) => {
       if (gx < 1 || gx >= M - 1 || gz < 1 || gz >= M - 1) return false;
       const type = grid[gz][gx];
-      return (type === 'R_C' || type === 'R_B' || type === 'BR' || type === 'G');
+      const isWalkableType = (type === 'R_C' || type === 'R_B' || type === 'BR' || type === 'G');
+      if (!isWalkableType) return false;
+      if (window.FFH.checkBuildingCollision && window.FFH.checkBuildingCollision(gx * S, gz * S, 0.4)) return false;
+      return true;
     };
 
     if (!agent.targetPos) {
@@ -269,9 +272,9 @@ window.FFH.createCitizenBehaviorTree = function () {
         const rand = nearbyGround[Math.floor(Math.random() * nearbyGround.length)];
         // Add slight variance to prevent NPCs walking in rigid single file
         agent.targetPos = new THREE.Vector3(
-          rand.x + (Math.random() - 0.5) * (S * 0.4),
+          rand.x + (Math.random() - 0.5) * (S * 0.35),
           0.05,
-          rand.z + (Math.random() - 0.5) * (S * 0.4)
+          rand.z + (Math.random() - 0.5) * (S * 0.35)
         );
       } else {
         return 'FAILURE';
@@ -283,7 +286,7 @@ window.FFH.createCitizenBehaviorTree = function () {
       agent.targetPos = null;
       return 'SUCCESS';
     } else {
-      // Walk towards target with strict water barrier check
+      // Walk towards target with building box collision and water barrier resolution
       const dirX = (agent.targetPos.x - agent.position.x) / dist;
       const dirZ = (agent.targetPos.z - agent.position.z) / dist;
       const step = agent.speed * delta;
@@ -291,18 +294,19 @@ window.FFH.createCitizenBehaviorTree = function () {
       const nextX = agent.position.x + dirX * step;
       const nextZ = agent.position.z + dirZ * step;
 
-      // Strict Water Barrier Check: Test next position and surrounding clearance
-      const testGX = Math.round(nextX / S);
-      const testGZ = Math.round(nextZ / S);
+      const resolved = window.FFH.resolveSlidingMovement
+        ? window.FFH.resolveSlidingMovement(agent.position.x, agent.position.z, nextX, nextZ, 0.32)
+        : { x: nextX, z: nextZ };
 
-      if (!isGroundTile(testGX, testGZ)) {
-        // Water barrier reached or leaving ground! Halt immediately and pick a new safe ground path
+      const distMoved = Math.hypot(resolved.x - agent.position.x, resolved.z - agent.position.z);
+      if (distMoved < 0.001) {
+        // Blocked by building wall or water quay! Reset target and wander in a new direction
         agent.targetPos = null;
         return 'FAILURE';
       }
 
-      agent.position.x = nextX;
-      agent.position.z = nextZ;
+      agent.position.x = resolved.x;
+      agent.position.z = resolved.z;
       agent.mesh.position.copy(agent.position);
       agent.mesh.position.y = 0.05; // Ground level
 
