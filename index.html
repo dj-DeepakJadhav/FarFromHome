@@ -29095,9 +29095,8 @@ window.FFH.CityExplorationPhase = class {
     dom.addEventListener('contextmenu', this.onContextMenu);
     window.addEventListener('keydown', this.onKeyDown);
     
-    // Initialize Minimap Data & Debug Zoom UI
+    // Initialize Minimap Data
     this.setupMinimap();
-    this.setupDebugZoomUI();
 
     if (this.game.state.currentShift === 1) {
       if (this.game.state.activeDelivery) {
@@ -29421,7 +29420,6 @@ window.FFH.CityExplorationPhase = class {
       dom.removeEventListener('contextmenu', this.onContextMenu);
     }
     window.removeEventListener('keydown', this.onKeyDown);
-    this.removeDebugZoomUI();
 
     // Reset camera zoom to 1.0 upon leaving exploration
     if (this.game.currentCamera) {
@@ -29555,7 +29553,7 @@ window.FFH.CityExplorationPhase = class {
   }
 
   onPointerDown(e) {
-    if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#debug-zoom-bar') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
+    if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
     
     this.pointerDownX = e.clientX;
     this.pointerDownY = e.clientY;
@@ -29726,92 +29724,9 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
-  setupDebugZoomUI() {
-    this.removeDebugZoomUI();
-
-    const bar = document.createElement('div');
-    bar.id = 'debug-zoom-bar';
-    bar.style.cssText = `
-      position: fixed;
-      bottom: 84px;
-      right: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.94);
-      border: 2px solid #264653;
-      border-radius: 14px;
-      padding: 6px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-      z-index: 999;
-      pointer-events: auto;
-      user-select: none;
-      backdrop-filter: blur(4px);
-    `;
-
-    bar.innerHTML = `
-      <button id="btn-zoom-in" title="Zoom In (+ or Scroll Up)" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #264653;background:#E9ECEF;font-size:16px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#264653;touch-action:manipulation;">🔍+</button>
-      <button id="btn-zoom-reset" title="Reset 100% (0)" style="width:40px;height:24px;border-radius:6px;border:1.5px solid #264653;background:#FFF;font-size:11px;font-weight:700;cursor:pointer;color:#264653;display:flex;align-items:center;justify-content:center;touch-action:manipulation;">100%</button>
-      <button id="btn-zoom-out" title="Zoom Out (- or Scroll Down)" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #264653;background:#E9ECEF;font-size:16px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#264653;touch-action:manipulation;">🔍−</button>
-      <button id="btn-zoom-world" title="Toggle Full World Overview (O or M)" style="width:36px;height:36px;border-radius:8px;border:1.5px solid #2A9D8F;background:#2A9D8F;color:#FFF;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;">🗺️</button>
-    `;
-
-    document.body.appendChild(bar);
-    this.debugZoomBar = bar;
-
-    const btnIn = bar.querySelector('#btn-zoom-in');
-    const btnOut = bar.querySelector('#btn-zoom-out');
-    const btnReset = bar.querySelector('#btn-zoom-reset');
-    const btnWorld = bar.querySelector('#btn-zoom-world');
-
-    btnIn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.setZoom(this.targetCamZoom * 1.3);
-    });
-
-    btnOut.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.setZoom(this.targetCamZoom * 0.75);
-    });
-
-    btnReset.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.setZoom(1.0);
-      this.cameraPanOffset.set(0, 0, 0);
-    });
-
-    btnWorld.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.toggleOverview();
-    });
-  }
-
-  updateZoomUI() {
-    if (!this.debugZoomBar) return;
-    const lbl = this.debugZoomBar.querySelector('#btn-zoom-reset');
-    if (lbl) {
-      const pct = Math.round(this.targetCamZoom * 100);
-      lbl.textContent = `${pct}%`;
-    }
-    const btnWorld = this.debugZoomBar.querySelector('#btn-zoom-world');
-    if (btnWorld) {
-      if (this.targetCamZoom < 0.45) {
-        btnWorld.style.background = '#E76F51';
-        btnWorld.title = 'Exit Overview (Focus Courier)';
-      } else {
-        btnWorld.style.background = '#2A9D8F';
-        btnWorld.title = 'Toggle Full World Overview (O)';
-      }
-    }
-  }
-
-  removeDebugZoomUI() {
-    if (this.debugZoomBar && this.debugZoomBar.parentNode) {
-      this.debugZoomBar.parentNode.removeChild(this.debugZoomBar);
-    }
-    this.debugZoomBar = null;
-  }
+  setupDebugZoomUI() {}
+  updateZoomUI() {}
+  removeDebugZoomUI() {}
 
   handlePOIAction(action, poiData) {
     if (!poiData) return;
