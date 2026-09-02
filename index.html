@@ -27309,9 +27309,12 @@ window.FFH.CityExplorationPhase = class {
       });
       const generator = new window.MeshBVH.StaticGeometryGenerator(this.worldGroup);
       generator.attributes = ['position'];
-      const mergedGeometry = generator.generate().geometry;
-      mergedGeometry.computeBoundsTree();
-      this.colliderMesh = new THREE.Mesh(mergedGeometry);
+      const genResult = generator.generate();
+      const mergedGeometry = (genResult && genResult.geometry) ? genResult.geometry : genResult;
+      if (mergedGeometry && typeof mergedGeometry.computeBoundsTree === 'function') {
+        mergedGeometry.computeBoundsTree();
+        this.colliderMesh = new THREE.Mesh(mergedGeometry);
+      }
       
       // Restore dynamic objects
       hidden.forEach(c => c.visible = true);

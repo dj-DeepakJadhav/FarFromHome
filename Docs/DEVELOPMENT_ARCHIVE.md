@@ -373,6 +373,14 @@
 - **Packaging & Verification**:
   - Reassembled `index.html` at **6.27 MB** uncompressed. Verified clean transition from title diorama to game world with 0 uncaught exceptions.
 
+### September 2, 2026: StaticGeometryGenerator.generate() Return Type Fix
+- **Fixed `Cannot read properties of undefined (reading 'computeBoundsTree')` Error**:
+  - In `src/phases/cityExplorationPhase.js` line 115, `generator.generate()` returns a `THREE.BufferGeometry` instance directly (not an object with `.geometry`). Accessing `.geometry` evaluated to `undefined`.
+  - Added robust resolution: `const mergedGeometry = (genResult && genResult.geometry) ? genResult.geometry : genResult;` with defensive check before calling `.computeBoundsTree()`.
+- **Packaging & Verification**:
+  - Rebuilt single-file `index.html` at **6.27 MB** uncompressed. Verified 0 console errors on entering exploration phase.
+
+
 
 
 
