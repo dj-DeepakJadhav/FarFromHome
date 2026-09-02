@@ -380,6 +380,20 @@
 - **Packaging & Verification**:
   - Rebuilt single-file `index.html` at **6.27 MB** uncompressed. Verified 0 console errors on entering exploration phase.
 
+### September 2, 2026: Outer Forest Landscape & Dynamic City-to-Forest Bird Flight AI
+- **Outer Forest & Countryside Landscape (`createOuterForestLandscape`)**:
+  - Replaced the barren blue water behind the northern and flanking city perimeter with a lush Hanseatic countryside landscape.
+  - Implemented 7 continuous grass terrain chunks with quayside riverbanks that perfectly preserve the open flowing water channels at Row 4 and Row 19.
+  - Added rolling green hillocks on the northern horizon (`#4F772D`) to provide natural elevation from where clouds drift into town.
+  - Populated the landscape with 110+ procedural pines, European oaks, birch trees, mossy stone boulders, and wildflower clearings.
+  - Tagged scenery meshes with `isOuterScenery` to keep tap-to-move restricted strictly to playable city streets.
+- **Dynamic City-to-Forest Bird Flight AI**:
+  - Replaced static circular birds with 12 soaring birds navigating 4 authored scenic loops between the outer forest canopy and iconic city landmarks (Burgtor, Holstentor, Dom Cathedral, Marienkirche spires, Rathaus market square).
+  - Implemented smooth waypoint interpolation, banking into turns, pitch control, and adaptive wing motion (energetic flapping while climbing spires vs peaceful gliding when descending toward the woods).
+- **Packaging & Verification**:
+  - Reassembled `index.html` at **6.28 MB** uncompressed. 60 FPS, 0 errors.
+
+
 
 
 

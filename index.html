@@ -22565,22 +22565,205 @@ window.FFH.CityAssetRegistry = {
     return group;
   },
 
-  createBird() {
+  // 17. Forest & Countryside Foliage / Nature Assets
+  createPineTree(scale = 1.0, foliageColor = 0x1B4332) {
     const group = new THREE.Group();
-    const wingMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF, side: THREE.DoubleSide });
-    const bodyMat = new THREE.MeshLambertMaterial({ color: 0xDDDDDD });
+    const trunkMat = this.materials.trunk || new THREE.MeshLambertMaterial({ color: 0x5C4033 });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.19, 1.4, 6), trunkMat);
+    trunk.position.y = 0.7;
+    trunk.castShadow = true;
+    group.add(trunk);
+
+    const foliageMat = new THREE.MeshLambertMaterial({ color: foliageColor });
+    for (let i = 0; i < 3; i++) {
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.85 - i * 0.18, 1.05, 7), foliageMat);
+      cone.position.y = 1.15 + i * 0.6;
+      cone.castShadow = true;
+      group.add(cone);
+    }
+    group.scale.set(scale, scale, scale);
+    return group;
+  },
+
+  createDeciduousTree(scale = 1.0, foliageColor = 0x40916C) {
+    const group = new THREE.Group();
+    const trunkMat = this.materials.trunk || new THREE.MeshLambertMaterial({ color: 0x5C4033 });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.22, 1.2, 6), trunkMat);
+    trunk.position.y = 0.6;
+    trunk.castShadow = true;
+    group.add(trunk);
+
+    const foliageMat = new THREE.MeshLambertMaterial({ color: foliageColor });
+    const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(0.92, 1), foliageMat);
+    foliage.position.y = 1.65;
+    foliage.castShadow = true;
+    group.add(foliage);
+
+    group.scale.set(scale, scale, scale);
+    return group;
+  },
+
+  createForestRock(scale = 1.0) {
+    const rockMat = new THREE.MeshLambertMaterial({ color: 0x6C757D });
+    const geo = new THREE.DodecahedronGeometry((scale || 0.6) * 0.8, 0);
+    geo.scale(1.25, 0.65, 1.0);
+    const mesh = new THREE.Mesh(geo, rockMat);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return mesh;
+  },
+
+  // 18. Outer Forest Landscape (Lush green woods and rolling hills replacing barren water)
+  createOuterForestLandscape(mapSize, tileScale) {
+    const group = new THREE.Group();
+    const S = tileScale || 2.6;
+    const minCoord = -S * 0.5; // -1.3
+    const maxCoord = (mapSize - 1) * S + S * 0.5; // 61.1
+    const g1_start = 3.5 * S; // 9.1
+    const g1_end   = 4.5 * S; // 11.7
+    const g2_start = 18.5 * S; // 48.1
+    const g2_end   = 19.5 * S; // 50.7
+
+    const platformDepth = 1.0;
+    const grassMat = this.materials.grass;
+    const quayMat = new THREE.MeshLambertMaterial({ color: 0x685D54 });
+    const chunkMats = [quayMat, quayMat, grassMat, quayMat, quayMat, quayMat];
+
+    const farWest  = -38.0;
+    const farEast  = 98.0;
+    const farNorth = -38.0;
+    const farSouth = 88.0;
+
+    // 1. Terrain Chunks framing the city and leaving open river channels
+    const chunks = [
+      // North Forest Landscape (where clouds originate and drift across city)
+      { x: (farWest + farEast) * 0.5, z: (farNorth + minCoord) * 0.5, w: farEast - farWest, d: minCoord - farNorth },
+      // West Flank (North of River Exit 1)
+      { x: (farWest + minCoord) * 0.5, z: (minCoord + g1_start) * 0.5, w: minCoord - farWest, d: g1_start - minCoord },
+      // West Flank (Between River Exit 1 & 2)
+      { x: (farWest + minCoord) * 0.5, z: (g1_end + g2_start) * 0.5, w: minCoord - farWest, d: g2_start - g1_end },
+      // West Flank (South of River Exit 2)
+      { x: (farWest + minCoord) * 0.5, z: (g2_end + farSouth) * 0.5, w: minCoord - farWest, d: farSouth - g2_end },
+      // East Flank (North of River Entrance 1)
+      { x: (maxCoord + farEast) * 0.5, z: (minCoord + g1_start) * 0.5, w: farEast - maxCoord, d: g1_start - minCoord },
+      // East Flank (Between River Entrance 1 & 2)
+      { x: (maxCoord + farEast) * 0.5, z: (g1_end + g2_start) * 0.5, w: farEast - maxCoord, d: g2_start - g1_end },
+      // East Flank (South of River Entrance 2)
+      { x: (maxCoord + farEast) * 0.5, z: (g2_end + farSouth) * 0.5, w: farEast - maxCoord, d: farSouth - g2_end }
+    ];
+
+    chunks.forEach(c => {
+      const geo = new THREE.BoxGeometry(c.w, platformDepth, c.d);
+      const mesh = new THREE.Mesh(geo, chunkMats);
+      mesh.position.set(c.x, -platformDepth * 0.5, c.z);
+      mesh.receiveShadow = true;
+      mesh.userData.isOuterScenery = true;
+      group.add(mesh);
+    });
+
+    // 2. Rolling Green Hills along the Northern Horizon
+    const hillMat = new THREE.MeshLambertMaterial({ color: 0x4F772D });
+    const hills = [
+      { x: -18, z: -25, r: 8.0, h: 2.2 },
+      { x: 5,   z: -28, r: 9.5, h: 2.8 },
+      { x: 28,  z: -26, r: 8.5, h: 2.4 },
+      { x: 52,  z: -29, r: 10.0, h: 3.0 },
+      { x: 75,  z: -24, r: 8.0, h: 2.2 },
+      { x: -28, z: -15, r: 7.0, h: 2.0 },
+      { x: 86,  z: -12, r: 7.5, h: 2.0 }
+    ];
+    hills.forEach(h => {
+      const hillGeo = new THREE.SphereGeometry(h.r, 9, 7);
+      hillGeo.scale(1, h.h / h.r, 1);
+      const hillMesh = new THREE.Mesh(hillGeo, hillMat);
+      hillMesh.position.set(h.x, 0, h.z);
+      hillMesh.receiveShadow = true;
+      hillMesh.userData.isOuterScenery = true;
+      group.add(hillMesh);
+    });
+
+    // 3. Dense Forest Population (Pine & Deciduous Trees)
+    const pineHues = [0x1B4332, 0x2D6A4F, 0x1E3F20, 0x283618];
+    const oakHues  = [0x40916C, 0x52B788, 0x386641, 0x606C38];
+
+    // Populate North Forest (where clouds drift in)
+    for (let i = 0; i < 75; i++) {
+      const tx = farWest + 4 + Math.random() * (farEast - farWest - 8);
+      const tz = farNorth + 3 + Math.random() * (minCoord - farNorth - 6);
+      const isPine = Math.random() > 0.45;
+      const tree = isPine 
+        ? this.createPineTree(0.85 + Math.random() * 0.5, pineHues[Math.floor(Math.random() * pineHues.length)])
+        : this.createDeciduousTree(0.85 + Math.random() * 0.45, oakHues[Math.floor(Math.random() * oakHues.length)]);
+      tree.position.set(tx, 0, tz);
+      tree.rotation.y = Math.random() * Math.PI * 2;
+      tree.userData.isOuterScenery = true;
+      group.add(tree);
+    }
+
+    // Populate West & East Flanks
+    for (let i = 0; i < 35; i++) {
+      const isWest = Math.random() > 0.5;
+      const tx = isWest
+        ? farWest + 3 + Math.random() * (minCoord - farWest - 6)
+        : maxCoord + 3 + Math.random() * (farEast - maxCoord - 6);
+      let tz = minCoord + 2 + Math.random() * (farSouth - minCoord - 4);
+      if ((tz > g1_start - 1 && tz < g1_end + 1) || (tz > g2_start - 1 && tz < g2_end + 1)) {
+        continue;
+      }
+      const isPine = Math.random() > 0.5;
+      const tree = isPine 
+        ? this.createPineTree(0.8 + Math.random() * 0.4, pineHues[Math.floor(Math.random() * pineHues.length)])
+        : this.createDeciduousTree(0.8 + Math.random() * 0.4, oakHues[Math.floor(Math.random() * oakHues.length)]);
+      tree.position.set(tx, 0, tz);
+      tree.rotation.y = Math.random() * Math.PI * 2;
+      tree.userData.isOuterScenery = true;
+      group.add(tree);
+    }
+
+    // 4. Mossy Forest Boulders
+    for (let i = 0; i < 28; i++) {
+      const rx = farWest + 5 + Math.random() * (farEast - farWest - 10);
+      const rz = farNorth + 4 + Math.random() * (minCoord - farNorth - 6);
+      const rock = this.createForestRock(0.6 + Math.random() * 0.7);
+      rock.position.set(rx, 0.2, rz);
+      rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+      rock.userData.isOuterScenery = true;
+      group.add(rock);
+    }
+
+    // 5. Wildflower Glades in Forest Clearings
+    for (let i = 0; i < 30; i++) {
+      const fx = farWest + 6 + Math.random() * (farEast - farWest - 12);
+      const fz = farNorth + 4 + Math.random() * (minCoord - farNorth - 6);
+      const flowers = this.createFlowerCluster();
+      flowers.position.set(fx, 0.05, fz);
+      flowers.userData.isOuterScenery = true;
+      group.add(flowers);
+    }
+
+    return group;
+  },
+
+  // 19. Soaring Hanseatic City & Forest Birds
+  createBird(colorHex = 0xFFFFFF) {
+    const group = new THREE.Group();
+    const wingMat = new THREE.MeshLambertMaterial({ color: colorHex, side: THREE.DoubleSide });
+    const bodyMat = new THREE.MeshLambertMaterial({ color: colorHex === 0xFFFFFF ? 0xDDDDDD : colorHex });
     
-    const body = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.25, 5), bodyMat);
+    const body = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.28, 5), bodyMat);
     body.rotation.x = Math.PI / 2;
+    body.castShadow = true;
     group.add(body);
     
-    const leftWing = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 0.1), wingMat);
-    leftWing.position.set(-0.125, 0, 0);
+    const leftWing = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.12), wingMat);
+    leftWing.position.set(-0.14, 0.01, 0);
     leftWing.name = "leftWing";
+    leftWing.castShadow = true;
     
-    const rightWing = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 0.1), wingMat);
-    rightWing.position.set(0.125, 0, 0);
+    const rightWing = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.12), wingMat);
+    rightWing.position.set(0.14, 0.01, 0);
     rightWing.name = "rightWing";
+    rightWing.castShadow = true;
     
     group.add(leftWing, rightWing);
     return group;
@@ -22867,8 +23050,8 @@ window.FFH.buildLubeckCityWorld = function() {
   // Initialize procedural textures
   registry.initMaterials();
 
-  // Single continuous Water Base Plane
-  const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(110, 110);
+  // Single continuous Water Base Plane (spanning across city and surrounding forest landscape)
+  const { waterMesh, waterMat } = window.FFH.createSeamlessWaterPlane(140, 140);
   worldGroup.add(waterMesh);
 
   const platformDepth = 1.0; // 1.0 unit downward solid thickness so water interacts with ground
@@ -23075,26 +23258,76 @@ window.FFH.buildLubeckCityWorld = function() {
     worldGroup.add(bf);
   }
 
-  // Spawning soaring Birds
+  // 4 Scenic Flight Loops connecting Outer Forest to City Spires & Landmarks
+  const FLIGHT_LOOPS = [
+    // Loop 1: Northern Forest to Altstadt Spire & Back
+    [
+      { x: -18, y: 10.5, z: -26 }, // Deep Forest North-West
+      { x: 16,  y: 11.5, z: -20 }, // North Forest Ridge
+      { x: 44,  y: 9.8,  z: 18 },  // Burgtor Citadel
+      { x: 52,  y: 13.0, z: 34 },  // St. Mary's Spire
+      { x: 26,  y: 8.8,  z: 28 },  // Island Center (Kino)
+      { x: 8,   y: 9.2,  z: 8 }    // ZOB Parkland
+    ],
+    // Loop 2: Eastern Forest River to Island Moat & Dom
+    [
+      { x: 78,  y: 9.5,  z: 10.4 }, // East Forest River Entrance
+      { x: 45,  y: 8.8,  z: 22 },   // East Island Moat
+      { x: 26,  y: 12.0, z: 44 },   // Dom zu Lübeck
+      { x: 13,  y: 9.5,  z: 34 },   // Holstentor Gateway
+      { x: -22, y: 9.2,  z: 10.4 }, // West Forest Canal
+      { x: 10,  y: 11.0, z: -24 }   // North Forest Pine Canopy
+    ],
+    // Loop 3: Market Square to North Forest Meadow
+    [
+      { x: 38,  y: 11.0, z: -22 }, // North Forest Meadow
+      { x: 26,  y: 9.6,  z: 16 },  // University Campus
+      { x: 23,  y: 8.6,  z: 23 },  // Rathaus Square
+      { x: 13,  y: 9.2,  z: 34 },  // Holstentor Bridge
+      { x: -18, y: 10.2, z: -12 }  // West Forest Grove
+    ],
+    // Loop 4: Southern Woodlands to Harbor & Dom Spire
+    [
+      { x: -18, y: 9.2,  z: 68 },  // South-West Forest
+      { x: 8,   y: 8.6,  z: 47 },  // Darkstore Quay
+      { x: 26,  y: 9.2,  z: 50 },  // South Bridge
+      { x: 76,  y: 10.0, z: 48 },  // South-East Woodland
+      { x: 26,  y: 12.0, z: 44 }   // Dom Cathedral Spire
+    ]
+  ];
+
+  const birdColors = [0xFFFFFF, 0xF0F4F8, 0xC5CED6, 0x3D4043, 0xFFFFFF, 0xDFE5EB];
   const birds = [];
-  for (let b = 0; b < 6; b++) {
-    const bird = registry.createBird();
-    // Soaring high above town
+
+  for (let b = 0; b < 12; b++) {
+    const loop = FLIGHT_LOOPS[b % FLIGHT_LOOPS.length];
+    const color = birdColors[b % birdColors.length];
+    const bird = registry.createBird(color);
+
+    const startWpIdx = Math.floor(Math.random() * loop.length);
+    const startPos = loop[startWpIdx];
     bird.position.set(
-      Math.random() * 40,
-      8.0 + Math.random() * 4.0,
-      Math.random() * 40
+      startPos.x + (Math.random() - 0.5) * 3,
+      startPos.y + (Math.random() - 0.5) * 1.5,
+      startPos.z + (Math.random() - 0.5) * 3
     );
+
+    const scale = 0.9 + Math.random() * 0.4;
+    bird.scale.set(scale, scale, scale);
+
     bird.userData = {
-      centerX: 20 + (Math.random() - 0.5) * 10,
-      centerZ: 20 + (Math.random() - 0.5) * 10,
-      radius: 6 + Math.random() * 8,
-      angle: Math.random() * Math.PI * 2,
-      speed: 0.5 + Math.random() * 0.5
+      loop: loop,
+      currentWp: (startWpIdx + 1) % loop.length,
+      speed: 4.8 + Math.random() * 2.2,
+      seed: Math.random() * 100
     };
+
     birds.push(bird);
     worldGroup.add(bird);
   }
+
+  // Add outer forest and countryside landscape (where clouds originate and birds roam)
+  worldGroup.add(registry.createOuterForestLandscape(window.FFH.MAP_SIZE, window.FFH.TILE_SCALE));
 
   // Add matching perimeter stone border wall around the whole playable map
   worldGroup.add(registry.createWorldPerimeterBorder(window.FFH.MAP_SIZE, window.FFH.TILE_SCALE));
@@ -27359,7 +27592,7 @@ window.FFH.CityExplorationPhase = class {
     // Extract ground meshes for tap-to-move raycasting
     this.groundMeshes = [];
     this.worldGroup.traverse(child => {
-      if (child.isMesh && child.position.y < 0.1) {
+      if (child.isMesh && child.position.y < 0.1 && !child.userData.isOuterScenery) {
         this.groundMeshes.push(child);
       }
     });
@@ -28201,21 +28434,55 @@ window.FFH.CityExplorationPhase = class {
       });
     }
 
-    // Animate Birds
+    // Animate Birds soaring dynamically between outer forest and historic city landmarks
     if (this.birds) {
       this.birds.forEach(bird => {
-        bird.userData.angle += delta * bird.userData.speed * 0.4;
-        const x = bird.userData.centerX + Math.cos(bird.userData.angle) * bird.userData.radius;
-        const z = bird.userData.centerZ + Math.sin(bird.userData.angle) * bird.userData.radius;
-        bird.position.x = x;
-        bird.position.z = z;
-        bird.rotation.y = -bird.userData.angle;
-        
-        const leftWing = bird.getObjectByName('leftWing');
-        const rightWing = bird.getObjectByName('rightWing');
-        if (leftWing && rightWing) {
-          leftWing.rotation.z = Math.sin(timeSec * 14) * 0.5;
-          rightWing.rotation.z = -Math.sin(timeSec * 14) * 0.5;
+        const loop = bird.userData.loop;
+        if (!loop || loop.length === 0) return;
+
+        const target = loop[bird.userData.currentWp];
+        const dx = target.x - bird.position.x;
+        const dy = target.y - bird.position.y;
+        const dz = target.z - bird.position.z;
+        const dist = Math.hypot(dx, dy, dz);
+
+        if (dist < 2.5) {
+          bird.userData.currentWp = (bird.userData.currentWp + 1) % loop.length;
+        } else {
+          const dirX = dx / dist;
+          const dirY = dy / dist;
+          const dirZ = dz / dist;
+          const step = (bird.userData.speed || 5.0) * delta;
+
+          bird.position.x += dirX * step;
+          bird.position.y += dirY * step;
+          bird.position.z += dirZ * step;
+
+          // Smoothly rotate to face flight heading
+          const targetAngle = Math.atan2(dirX, dirZ);
+          bird.rotation.y = THREE.MathUtils.lerp(bird.rotation.y, targetAngle, delta * 3.5);
+
+          // Bank into turns
+          const angleDiff = THREE.MathUtils.euclideanModulo(targetAngle - bird.rotation.y + Math.PI, Math.PI * 2) - Math.PI;
+          bird.rotation.z = THREE.MathUtils.lerp(bird.rotation.z, -angleDiff * 1.6, delta * 4);
+
+          // Subtle pitch based on climb or descent
+          bird.rotation.x = THREE.MathUtils.lerp(bird.rotation.x, -dirY * 0.7, delta * 4);
+
+          // Dynamic wing flapping: energetic climb vs peaceful gliding
+          const leftWing = bird.getObjectByName('leftWing');
+          const rightWing = bird.getObjectByName('rightWing');
+          if (leftWing && rightWing) {
+            if (dirY > 0.04) {
+              const flap = Math.sin(timeSec * 11 + bird.userData.seed) * 0.65;
+              leftWing.rotation.z = flap;
+              rightWing.rotation.z = -flap;
+            } else {
+              const glide = Math.sin(timeSec * 3 + bird.userData.seed) * 0.14;
+              leftWing.rotation.z = glide;
+              rightWing.rotation.z = -glide;
+            }
+          }
         }
       });
     }

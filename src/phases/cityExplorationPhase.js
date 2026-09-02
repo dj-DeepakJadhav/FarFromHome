@@ -162,7 +162,7 @@ window.FFH.CityExplorationPhase = class {
     // Extract ground meshes for tap-to-move raycasting
     this.groundMeshes = [];
     this.worldGroup.traverse(child => {
-      if (child.isMesh && child.position.y < 0.1) {
+      if (child.isMesh && child.position.y < 0.1 && !child.userData.isOuterScenery) {
         this.groundMeshes.push(child);
       }
     });
@@ -1004,21 +1004,55 @@ window.FFH.CityExplorationPhase = class {
       });
     }
 
-    // Animate Birds
+    // Animate Birds soaring dynamically between outer forest and historic city landmarks
     if (this.birds) {
       this.birds.forEach(bird => {
-        bird.userData.angle += delta * bird.userData.speed * 0.4;
-        const x = bird.userData.centerX + Math.cos(bird.userData.angle) * bird.userData.radius;
-        const z = bird.userData.centerZ + Math.sin(bird.userData.angle) * bird.userData.radius;
-        bird.position.x = x;
-        bird.position.z = z;
-        bird.rotation.y = -bird.userData.angle;
-        
-        const leftWing = bird.getObjectByName('leftWing');
-        const rightWing = bird.getObjectByName('rightWing');
-        if (leftWing && rightWing) {
-          leftWing.rotation.z = Math.sin(timeSec * 14) * 0.5;
-          rightWing.rotation.z = -Math.sin(timeSec * 14) * 0.5;
+        const loop = bird.userData.loop;
+        if (!loop || loop.length === 0) return;
+
+        const target = loop[bird.userData.currentWp];
+        const dx = target.x - bird.position.x;
+        const dy = target.y - bird.position.y;
+        const dz = target.z - bird.position.z;
+        const dist = Math.hypot(dx, dy, dz);
+
+        if (dist < 2.5) {
+          bird.userData.currentWp = (bird.userData.currentWp + 1) % loop.length;
+        } else {
+          const dirX = dx / dist;
+          const dirY = dy / dist;
+          const dirZ = dz / dist;
+          const step = (bird.userData.speed || 5.0) * delta;
+
+          bird.position.x += dirX * step;
+          bird.position.y += dirY * step;
+          bird.position.z += dirZ * step;
+
+          // Smoothly rotate to face flight heading
+          const targetAngle = Math.atan2(dirX, dirZ);
+          bird.rotation.y = THREE.MathUtils.lerp(bird.rotation.y, targetAngle, delta * 3.5);
+
+          // Bank into turns
+          const angleDiff = THREE.MathUtils.euclideanModulo(targetAngle - bird.rotation.y + Math.PI, Math.PI * 2) - Math.PI;
+          bird.rotation.z = THREE.MathUtils.lerp(bird.rotation.z, -angleDiff * 1.6, delta * 4);
+
+          // Subtle pitch based on climb or descent
+          bird.rotation.x = THREE.MathUtils.lerp(bird.rotation.x, -dirY * 0.7, delta * 4);
+
+          // Dynamic wing flapping: energetic climb vs peaceful gliding
+          const leftWing = bird.getObjectByName('leftWing');
+          const rightWing = bird.getObjectByName('rightWing');
+          if (leftWing && rightWing) {
+            if (dirY > 0.04) {
+              const flap = Math.sin(timeSec * 11 + bird.userData.seed) * 0.65;
+              leftWing.rotation.z = flap;
+              rightWing.rotation.z = -flap;
+            } else {
+              const glide = Math.sin(timeSec * 3 + bird.userData.seed) * 0.14;
+              leftWing.rotation.z = glide;
+              rightWing.rotation.z = -glide;
+            }
+          }
         }
       });
     }
