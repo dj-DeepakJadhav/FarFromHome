@@ -30359,65 +30359,25 @@ window.FFH.CityExplorationPhase = class {
           waypoints.push(new THREE.Vector3(targetMesh.position.x, 0.28, targetMesh.position.z));
         }
 
-        // Generate wide ribbon mesh along waypoints (width = 0.65 units)
-        const ribbonWidth = 0.65;
-        const positions = [];
-        const indices = [];
+        // Hide full-screen ground ribbon mesh to eliminate screen clutter
+        if (this.navRibbonMesh) this.navRibbonMesh.visible = false;
 
-        // Build segments
-        let vertCount = 0;
-        for (let i = 0; i < waypoints.length - 1; i++) {
-          const p1 = waypoints[i];
-          const p2 = waypoints[i + 1];
-          const dir = new THREE.Vector3().subVectors(p2, p1);
-          const len = dir.length();
-          if (len < 0.05) continue;
-          dir.normalize();
-
-          // Normal perpendicular on horizontal XZ plane
-          const perp = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(ribbonWidth / 2);
-
-          const v0 = new THREE.Vector3().addVectors(p1, perp);
-          const v1 = new THREE.Vector3().subVectors(p1, perp);
-          const v2 = new THREE.Vector3().addVectors(p2, perp);
-          const v3 = new THREE.Vector3().subVectors(p2, perp);
-
-          positions.push(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            v2.x, v2.y, v2.z,
-            v3.x, v3.y, v3.z
-          );
-
-          indices.push(
-            vertCount, vertCount + 1, vertCount + 2,
-            vertCount + 1, vertCount + 3, vertCount + 2
-          );
-          vertCount += 4;
-        }
-
-        if (positions.length > 0) {
-          this.navRibbonGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-          this.navRibbonGeo.setIndex(indices);
-          this.navRibbonGeo.computeVertexNormals();
-        }
-
-        // Place and animate moving chevrons along the path
+        // Place and animate short 3-4 directional guide chevrons right ahead of courier
         const totalDist = waypoints.reduce((acc, p, idx) => {
           if (idx === 0) return 0;
           return acc + p.distanceTo(waypoints[idx - 1]);
         }, 0);
 
-        const chevronSpacing = 1.3;
-        const speed = 2.4; // speed of moving markers along trail
+        const maxVisibleDist = 4.8; // Limit trail to 4.8 meters ahead of player
+        const maxChevrons = 4;
+        const chevronSpacing = 1.2;
+        const speed = 2.2; // speed of moving markers along trail
         const offset = (timeSec * speed) % chevronSpacing;
         let poolIdx = 0;
 
         let curDist = offset;
-        while (curDist < totalDist && poolIdx < this.navChevronPool.length) {
-          // Find position and forward direction at curDist along waypoints
+        while (curDist < Math.min(totalDist, maxVisibleDist) && poolIdx < maxChevrons && poolIdx < this.navChevronPool.length) {
           let remaining = curDist;
-          let segmentFound = false;
 
           for (let i = 0; i < waypoints.length - 1; i++) {
             const p1 = waypoints[i];
@@ -30427,18 +30387,20 @@ window.FFH.CityExplorationPhase = class {
             if (remaining <= segLen) {
               const t = remaining / segLen;
               const pos = new THREE.Vector3().lerpVectors(p1, p2, t);
-              pos.y = 0.32; // float visibly over ribbon
+              pos.y = 0.16; // float neatly right above street surface
               const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
 
               const chevron = this.navChevronPool[poolIdx];
               chevron.position.copy(pos);
               chevron.rotation.y = Math.atan2(-dir.z, dir.x) - Math.PI / 2;
               chevron.material.color.setHex(chevronColor);
-              chevron.material.opacity = 0.85 + Math.sin(timeSec * 8 + poolIdx) * 0.15;
-              chevron.visible = true;
+
+              // Smooth fade out as distance from player increases
+              const fade = Math.max(0, 1.0 - (curDist / maxVisibleDist));
+              chevron.material.opacity = fade * 0.9;
+              chevron.visible = (fade > 0.05);
 
               poolIdx++;
-              segmentFound = true;
               break;
             }
             remaining -= segLen;
