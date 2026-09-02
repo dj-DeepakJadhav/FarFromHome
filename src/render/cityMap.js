@@ -591,21 +591,19 @@ window.FFH.CityAssetRegistry = {
     return group;
   },
 
-  // 15. 3D Arched Hanseatic Bridge with Stone Balustrades (Brücke)
-  createArchedBridge(roadRotation = 0) {
+  // 15. 3D Arched Hanseatic Bridge with Stone Balustrades (Brücke - 100% Pedestrian & Bike, Zero Car Roads)
+  createArchedBridge(isEW = true) {
     const group = new THREE.Group();
     const S = window.FFH.TILE_SCALE || 2.6;
 
-    // Bridge Road Deck
+    // Bridge Deck: Historic Cobblestone (Zero asphalt, zero car lane markings)
     const deckGeo = new THREE.BoxGeometry(S, 0.38, S);
-    const deck = new THREE.Mesh(deckGeo, this.materials.bikeLane);
+    const deck = new THREE.Mesh(deckGeo, this.materials.cobble);
     deck.position.y = 0.06;
-    deck.rotation.y = roadRotation;
     deck.receiveShadow = true;
 
-    // Twin Stone Balustrades / Railings along the road edges
+    // Twin Stone Balustrades / Railings along the water-facing flanks only!
     const balustradeMat = new THREE.MeshLambertMaterial({ color: 0xEDE5D8 });
-    const isEW = Math.abs(roadRotation) > 0.1; // If rotated 90 deg, bridge runs East-West
     const balGeo = isEW 
       ? new THREE.BoxGeometry(S, 0.42, 0.12)
       : new THREE.BoxGeometry(0.12, 0.42, S);
@@ -614,9 +612,11 @@ window.FFH.CityAssetRegistry = {
     const bal2 = new THREE.Mesh(balGeo, balustradeMat);
 
     if (isEW) {
+      // East-West bridge: railings protect the North (-Z) and South (+Z) water edges
       bal1.position.set(0, 0.42, -S * 0.46);
       bal2.position.set(0, 0.42, S * 0.46);
     } else {
+      // North-South bridge: railings protect the West (-X) and East (+X) water edges
       bal1.position.set(-S * 0.46, 0.42, 0);
       bal2.position.set(S * 0.46, 0.42, 0);
     }
@@ -1096,19 +1096,14 @@ window.FFH.buildLubeckCityWorld = function() {
         groundMat = registry.materials.cobble;
       } else if (type === 'R_B') {
         groundMat = registry.materials.bikeLane;
-        // Directional alignment: East-West roads rotate 90 deg so car lanes & Radweg flow continuously
-        if ((roadE || roadW) && !(roadN && roadS)) {
-          roadRotation = Math.PI / 2;
-        } else {
-          roadRotation = 0;
-        }
+        roadRotation = 0;
       } else if (type === 'BR') {
-        if ((roadE || roadW) && !(roadN && roadS)) {
-          roadRotation = Math.PI / 2;
-        } else {
-          roadRotation = 0;
-        }
-        tileGroup.add(registry.createArchedBridge(roadRotation));
+        const grid = window.FFH.LUBECK_CITY_GRID;
+        const M = window.FFH.MAP_SIZE;
+        const isWaterN = (z > 0 && grid[z - 1][x] === 'W');
+        const isWaterS = (z < M - 1 && grid[z + 1][x] === 'W');
+        const isEW = (isWaterN || isWaterS);
+        tileGroup.add(registry.createArchedBridge(isEW));
       } else if (type === 'R_R') {
         tileGroup.add(registry.createRoundabout());
       } else if (type === 'G') {

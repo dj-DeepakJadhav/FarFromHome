@@ -327,5 +327,16 @@
 - **Packaging & Verification**:
   - Rebuilt `index.html` cleanly at **6.26 MB** uncompressed, well under 35 MB.
 
+### September 2, 2026: 100% Car-Free World (Zero Asphalt, Zero Highway Markings, Historic Paving Everywhere)
+- **Eliminated All Asphalt & Car Markings**:
+  - Completely purged modern two-car asphalt carriageways, dashed yellow/white highway dividers, and vehicle road markings from the entire world generation pipeline.
+  - Replaced `createGermanRoadTextures()` with **Historic European Paved Stone Promenade & Cycle Paving (`Pflasterstein Promenade`)**: staggered sandstone/granite pavers, deep mortar relief, soft bevel highlights, and tactile tangent-space normal maps.
+- **Arched Historic Bridges (Cobblestone Decks & River-Flank Balustrades)**:
+  - Bridge decks now use authentic historic cobblestone paving (`this.materials.cobble`), matching real Hanseatic bridges (Puppenbrücke, Holstenbrücke).
+  - Fixed balustrade alignment: Stone railings now sit strictly along water-facing flanks (North/South for East-West bridges, West/East for North-South bridges), leaving the pedestrian/bike walkway 100% unobstructed across multi-tile spans.
+- **Packaging & Verification**:
+  - Reassembled `index.html` at **6.26 MB** uncompressed. 0 syntax errors, 0 warnings.
+
+
 
 

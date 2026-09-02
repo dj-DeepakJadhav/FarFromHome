@@ -178,7 +178,7 @@ window.FFH.ProceduralTextures = (function() {
     return { diffuse: _cache.cobble, normal: _cache.cobbleNormal };
   }
 
-  // 2. German Urban Street Hierarchy: Car Carriageway, Dedicated Bike Lane (Radweg) & Sidewalk
+  // 2. Historic European Pedestrian Promenade & Cycle Paving (Zero Cars, Zero Asphalt, Zero Highway Markings)
   function createGermanRoadTextures() {
     if (_cache.germanRoad && _cache.germanRoadNormal) {
       return { diffuse: _cache.germanRoad, normal: _cache.germanRoadNormal };
@@ -188,90 +188,64 @@ window.FFH.ProceduralTextures = (function() {
     const { canvas: diffCanvas, ctx: diffCtx } = makeCanvas(size, size);
     const { canvas: heightCanvas, ctx: heightCtx } = makeCanvas(size, size);
 
-    // 1. Sidewalk (Gehweg): outer 20% on left (x: 0 to 100)
-    const swWidth = 100;
-    diffCtx.fillStyle = '#9AA5B4';
-    diffCtx.fillRect(0, 0, swWidth, size);
-    heightCtx.fillStyle = '#B0B0B0';
-    heightCtx.fillRect(0, 0, swWidth, size);
+    // Deep mortar base
+    diffCtx.fillStyle = '#5A6270';
+    diffCtx.fillRect(0, 0, size, size);
+    heightCtx.fillStyle = '#1A1A1A';
+    heightCtx.fillRect(0, 0, size, size);
 
-    // Sidewalk flagstone tile joints
-    diffCtx.strokeStyle = '#7D8896';
-    diffCtx.lineWidth = 2;
-    for (let y = 0; y < size; y += 40) {
-      diffCtx.beginPath();
-      diffCtx.moveTo(0, y);
-      diffCtx.lineTo(swWidth, y);
-      diffCtx.stroke();
-    }
+    // Staggered paving flagstones (Pflasterstein Promenade)
+    const rows = 8;
+    const rowH = size / rows;
+    const slabW = 64;
+    const slabH = rowH - 4;
 
-    // Raised Stone Curb (Bordstein): x: 96 to 108
-    diffCtx.fillStyle = '#6E7887';
-    diffCtx.fillRect(96, 0, 12, size);
-    diffCtx.fillStyle = '#E5ECF4'; // Top highlight
-    diffCtx.fillRect(96, 0, 3, size);
+    const slabHues = [
+      '#8F9AA8', '#9BA6B5', '#A5B0BF', '#8691A0',
+      '#939EA8', '#A0ABC0', '#8D97A5', '#98A3B2'
+    ];
 
-    heightCtx.fillStyle = '#FFFFFF'; // Highest height point
-    heightCtx.fillRect(96, 0, 12, size);
+    let seed = 129;
+    for (let r = 0; r < rows; r++) {
+      const y = r * rowH + 2;
+      const rowOffset = (r % 2 === 0) ? 0 : slabW * 0.5;
 
-    // 2. Bicycle Lane (Radweg in German Terracotta Red): x: 108 to 220
-    const bikeX = 108;
-    const bikeW = 112;
-    diffCtx.fillStyle = '#B84A39'; // Authentic German Radweg red
-    diffCtx.fillRect(bikeX, 0, bikeW, size);
-    heightCtx.fillStyle = '#757575';
-    heightCtx.fillRect(bikeX, 0, bikeW, size);
+      for (let x = -slabW; x < size + slabW; x += slabW) {
+        seed++;
+        const slabX = x + rowOffset + 2;
+        const w = slabW - 4;
+        const h = slabH;
 
-    // White bicycle lane border separator
-    diffCtx.fillStyle = '#FFFFFF';
-    diffCtx.fillRect(bikeX + bikeW - 5, 0, 5, size);
-    heightCtx.fillStyle = '#999999';
-    heightCtx.fillRect(bikeX + bikeW - 5, 0, 5, size);
+        // Diffuse flagstone
+        const colorIdx = Math.floor(pseudoRandom(seed) * slabHues.length);
+        diffCtx.fillStyle = slabHues[colorIdx];
+        diffCtx.beginPath();
+        diffCtx.roundRect(slabX, y, w, h, 3);
+        diffCtx.fill();
 
-    // Occasional crisp bicycle stencil (one per repeat block, not cluttered)
-    const bikeY = size * 0.5;
-    const bx = bikeX + bikeW * 0.5;
-    diffCtx.strokeStyle = '#FFFFFF';
-    diffCtx.lineWidth = 3.5;
-    diffCtx.beginPath();
-    diffCtx.arc(bx - 14, bikeY, 8, 0, Math.PI * 2);
-    diffCtx.arc(bx + 14, bikeY, 8, 0, Math.PI * 2);
-    diffCtx.stroke();
-    diffCtx.beginPath();
-    diffCtx.moveTo(bx - 14, bikeY);
-    diffCtx.lineTo(bx - 2, bikeY);
-    diffCtx.lineTo(bx + 8, bikeY - 12);
-    diffCtx.lineTo(bx - 6, bikeY - 12);
-    diffCtx.closePath();
-    diffCtx.stroke();
+        // Subtle stone bevel highlight
+        diffCtx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+        diffCtx.lineWidth = 1.2;
+        diffCtx.strokeRect(slabX + 1, y + 1, w - 2, h - 2);
 
-    // 3. Two-Way Car Carriageway (Fahrbahn): x: 220 to 512
-    const roadX = 220;
-    const roadW = size - roadX;
-    diffCtx.fillStyle = '#323741'; // Dark asphalt
-    diffCtx.fillRect(roadX, 0, roadW, size);
-    heightCtx.fillStyle = '#606060';
-    heightCtx.fillRect(roadX, 0, roadW, size);
+        // Heightmap flagstone body (raised stone surface with soft bevel)
+        const radGrad = heightCtx.createRadialGradient(
+          slabX + w * 0.5, y + h * 0.5, 2,
+          slabX + w * 0.5, y + h * 0.5, Math.max(w, h) * 0.6
+        );
+        radGrad.addColorStop(0, '#E0E0E0');
+        radGrad.addColorStop(0.8, '#C4C4C4');
+        radGrad.addColorStop(1, '#606060');
 
-    // Asphalt aggregate noise
-    diffCtx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-    for (let i = 0; i < 300; i++) {
-      diffCtx.fillRect(roadX + Math.random() * roadW, Math.random() * size, 2, 2);
-    }
-
-    // Dashed center yellow divider line between car lanes
-    const carDividerX = roadX + roadW * 0.5;
-    diffCtx.fillStyle = '#F4A261';
-    heightCtx.fillStyle = '#888888';
-    const dashLen = 38;
-    const gapLen = 26;
-    for (let y = 0; y < size; y += dashLen + gapLen) {
-      diffCtx.fillRect(carDividerX - 3, y, 6, dashLen);
-      heightCtx.fillRect(carDividerX - 3, y, 6, dashLen);
+        heightCtx.fillStyle = radGrad;
+        heightCtx.beginPath();
+        heightCtx.roundRect(slabX, y, w, h, 3);
+        heightCtx.fill();
+      }
     }
 
     _cache.germanRoad = setupTexture(diffCanvas, 1, 1);
-    _cache.germanRoadNormal = createNormalMapFromHeight(heightCanvas, 2.8, 1, 1);
+    _cache.germanRoadNormal = createNormalMapFromHeight(heightCanvas, 2.5, 1, 1);
     return { diffuse: _cache.germanRoad, normal: _cache.germanRoadNormal };
   }
 
