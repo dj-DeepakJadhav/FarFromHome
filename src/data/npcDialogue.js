@@ -2,6 +2,15 @@
 window.FFH = window.FFH || {};
 
 window.FFH.NPC_DATABASE = {
+  'NPC_PIZZERIA_OWNER': {
+    id: 'NPC_PIZZERIA_OWNER',
+    name: 'Pizzeria Owner',
+    title: 'Owner, Pizzeria',
+    building: 'B_PIZZA',
+    avatarColor: '#E63946',
+    modelKey: 'NPC_CHAR_B',
+    dialogue: (state) => ({ speaker: 'Pizzeria Owner', text: 'We are closed.', options: [] })
+  },
   // 1. RITA SCHNEIDER (University Registrar & Student Services)
   'NPC_RITA': {
     id: 'NPC_RITA',

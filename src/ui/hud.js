@@ -185,50 +185,110 @@ window.FFH.UI = class {
   }
 
   spawnWandererThought(text) {
-    const existing = document.getElementById('ffh-wanderer-thought');
+    this.showThoughtBubble(text, 3800);
+  }
+
+  showThoughtBubble(text, duration = 4000) {
+    const existing = document.getElementById('ffh-thought-bubble');
     if (existing) existing.remove();
 
     const el = document.createElement('div');
-    el.id = 'ffh-wanderer-thought';
-    el.innerHTML = `<span style="opacity:0.7; margin-right:6px;">💭</span><em>${text}</em>`;
+    el.id = 'ffh-thought-bubble';
+    el.innerHTML = `<span style="opacity:0.8; margin-right:4px;">💭</span><em>${text}</em>`;
+    
+    // Position directly over player character head in 3D screen space if in CITY_EXPLORATION
+    let screenX = window.innerWidth / 2;
+    let screenY = window.innerHeight * 0.45;
+    
+    if (this.game && this.game.currentPhase === this.game.phases.CITY_EXPLORATION) {
+      const cityPhase = this.game.phases.CITY_EXPLORATION;
+      const cam = this.game.cameras.mainCamera;
+      if (cityPhase && cityPhase.playerPos && cam) {
+        const headPos = cityPhase.playerPos.clone();
+        headPos.y += 1.8; // Height offset above player head
+        headPos.project(cam);
+        screenX = (headPos.x * 0.5 + 0.5) * window.innerWidth;
+        screenY = (-headPos.y * 0.5 + 0.5) * window.innerHeight;
+      }
+    }
+
     el.style.cssText = `
       position: fixed;
-      bottom: 95px;
-      left: 50%;
-      transform: translateX(-50%) translateY(10px);
-      background: rgba(18, 24, 38, 0.85);
+      left: ${screenX}px;
+      top: ${screenY}px;
+      transform: translate(-50%, -100%) scale(0.9);
+      background: rgba(18, 24, 38, 0.92);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      padding: 8px 18px;
-      color: #E2E8F0;
+      border: 2px solid #FFD166;
+      border-radius: 16px;
+      padding: 8px 14px;
+      color: #FFFFFF;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 700;
       letter-spacing: 0.2px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
       pointer-events: none;
-      z-index: 8888;
+      z-index: 99999;
       opacity: 0;
-      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-      max-width: 85vw;
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+      max-width: 280px;
       text-align: center;
     `;
     document.body.appendChild(el);
 
     requestAnimationFrame(() => {
       el.style.opacity = '1';
-      el.style.transform = 'translateX(-50%) translateY(0)';
+      el.style.transform = 'translate(-50%, -120%) scale(1.0)';
     });
 
     setTimeout(() => {
       if (el.parentNode) {
         el.style.opacity = '0';
-        el.style.transform = 'translateX(-50%) translateY(-10px)';
-        setTimeout(() => el.remove(), 500);
+        el.style.transform = 'translate(-50%, -100%) scale(0.9)';
+        setTimeout(() => el.remove(), 350);
       }
-    }, 3800);
+    }, duration);
+  }
+
+  showCompassUI(direction) {
+    let compass = document.getElementById('ffh-compass-ui');
+    if (!compass) {
+      compass = document.createElement('div');
+      compass.id = 'ffh-compass-ui';
+      compass.style.cssText = `
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        width: 44px;
+        height: 44px;
+        background: rgba(18, 24, 38, 0.85);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #ECC238;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        pointer-events: none;
+        z-index: 8000;
+        transition: transform 0.2s ease-out;
+      `;
+      compass.innerHTML = '🧭';
+      document.body.appendChild(compass);
+    }
+    compass.style.display = 'flex';
+  }
+
+  hideCompassUI() {
+    const compass = document.getElementById('ffh-compass-ui');
+    if (compass) {
+      compass.style.display = 'none';
+    }
   }
 
   triggerStampMoment(docTitle, docEmoji = '📜') {
@@ -476,10 +536,62 @@ window.FFH.UI = class {
         this.clear();
         this.game.clearTitleDiorama();
 
-        // Boot into continuous city exploration, then launch story scene act_one
+        // 1. Boot into city exploration phase
         this.game.transitionTo('CITY_EXPLORATION');
-        if (this.game.storyRunner) {
-          this.game.storyRunner.startScene('act_one');
+        
+        const cityPhase = this.game.phases.CITY_EXPLORATION;
+        if (cityPhase) {
+          // 2. Lock inputs during start sequence
+          cityPhase.inputDisabled = true;
+          
+          // 3. Start high zoomed-out overview position showing city diorama first
+          cityPhase.camZoom = 0.52;
+          cityPhase.targetCamZoom = 0.52;
+          // Extract current angle from mainCamera relative to player spawn (10.4, 5.2)
+          const cam = this.game.cameras.mainCamera;
+          const dx = cam.position.x - 10.4;
+          const dz = cam.position.z - 5.2;
+          cityPhase.camCurrentAngle = Math.atan2(dx, dz);
+          cityPhase.updateCamera(true);
+
+          // 4. Smoothly pan & spin camera into close back-facing 3rd-person position over 3 seconds
+          const startAngle = cityPhase.camCurrentAngle;
+          let targetAngle = (Math.PI / 4) + Math.PI; // back-facing view
+          
+          // Normalize targetAngle to take the shortest rotation path
+          while (targetAngle - startAngle > Math.PI) targetAngle -= Math.PI * 2;
+          while (targetAngle - startAngle < -Math.PI) targetAngle += Math.PI * 2;
+
+          const startTime = Date.now();
+          const duration = 3000;
+
+          // Perform smooth animation tick loop
+          const animLoop = () => {
+            const elapsed = Date.now() - startTime;
+            const t = Math.min(1.0, elapsed / duration);
+            
+            // Smooth easeInOutCubic easing for ultra-smooth camera flight
+            const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+            cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
+            cityPhase.updateCamera(true);
+
+            if (t < 1.0) {
+              requestAnimationFrame(animLoop);
+            } else {
+              // 5. Camera has settled close to character back view — enable inputs & hold angle
+              cityPhase.cameraHoldTimer = 4.0;
+              cityPhase.inputDisabled = false;
+              
+              if (this.game.storyRunner) {
+                this.game.storyRunner.startScene('act_one');
+              }
+            }
+          };
+
+          requestAnimationFrame(animLoop);
         }
       });
     }
@@ -1569,18 +1681,133 @@ window.FFH.UI = class {
 
     // Objective is exclusively driven by game.state.activeObjective (set by storyRunner).
     // If nothing is set the tracker is hidden — player roams freely until story sets the next goal.
+    // The header bar starts hidden in a new game until the player's first interaction.
+    const showHeader = (s.firstObjectiveRevealed || s.shift_no > 0);
+
     const objectiveText = s.activeObjective || '';
+
+    this.refreshStats = (state) => {
+      const s = state;
+      const bodyEl = document.getElementById('stat-val-body');
+      const heartEl = document.getElementById('stat-val-heart');
+      
+      if (bodyEl) {
+        bodyEl.textContent = `⚡${s.body !== undefined ? s.body : 100}`;
+        bodyEl.style.color = (s.body !== undefined && s.body < 30) ? '#E63946' : '#2A9D8F';
+        // Flash red on change
+        bodyEl.animate([{ color: '#FF0000', transform: 'scale(1.3)' }, { color: bodyEl.style.color, transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
+      }
+      
+      if (heartEl) {
+        heartEl.textContent = `❤️${s.heart !== undefined ? s.heart : 50}`;
+        heartEl.style.color = (s.heart !== undefined && s.heart < 30) ? '#E63946' : '#FF006E';
+        heartEl.animate([{ color: '#FF0000', transform: 'scale(1.3)' }, { color: heartEl.style.color, transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
+      }
+      
+      const walletEl = document.getElementById('stat-val-wallet');
+      if (walletEl && s.wallet !== undefined) {
+        walletEl.textContent = `${s.wallet.toFixed(2)}€`;
+      }
+    };
+
+    this.playObjectiveRevealSequence = (isBootSequence = false) => {
+      const headerBar = document.getElementById('city-header-bar');
+      const questTracker = document.getElementById('city-quest-tracker');
+      const questText = document.getElementById('city-quest-text');
+      
+      const fadeElements = [
+        document.getElementById('hud-day-box'),
+        document.getElementById('hud-docs-box'),
+        document.getElementById('hud-stats-box'),
+        document.getElementById('hud-wallet-box'),
+        document.getElementById('archetype-badge')
+      ].filter(Boolean);
+      
+      if (headerBar) {
+        if (isBootSequence) {
+          headerBar.style.display = 'flex';
+          headerBar.animate([
+            { transform: 'translateY(-20px)', opacity: 0 },
+            { transform: 'translateY(0)', opacity: 1 }
+          ], { duration: 600, easing: 'ease-out' });
+        }
+
+        const startTyping = () => {
+          const textToType = this.game.state.activeObjective || '';
+          if (questText) {
+            questText.innerHTML = '';
+            let i = 0;
+            const typeChar = () => {
+              if (i < textToType.length) {
+                questText.innerHTML += textToType.charAt(i);
+                if (this.game.sfx && i % 3 === 0) this.game.sfx.playSfx('click');
+                i++;
+                setTimeout(typeChar, 30);
+              } else {
+                onTypingFinished();
+              }
+            };
+            typeChar();
+          } else {
+            onTypingFinished();
+          }
+        };
+
+        if (isBootSequence) {
+          setTimeout(startTyping, 600);
+        } else {
+          startTyping();
+        }
+
+        const onTypingFinished = () => {
+          this.game.state.isTypingObjective = false;
+          if (questTracker) {
+            questTracker.style.transition = 'box-shadow 0.3s ease, transform 0.3s ease';
+            questTracker.style.boxShadow = '0 0 15px 4px #2EC4B6';
+            questTracker.style.transform = 'scale(1.02)';
+            if (this.game.sfx) this.game.sfx.playSfx('bell');
+            
+            setTimeout(() => {
+              questTracker.style.boxShadow = 'none';
+              questTracker.style.transform = 'none';
+            }, 800);
+          }
+
+          if (this.game.currentPhase && this.game.currentPhase.revealCompass) {
+            this.game.currentPhase.revealCompass();
+          }
+
+          if (isBootSequence) {
+            fadeElements.forEach((el, index) => {
+              setTimeout(() => {
+                el.style.opacity = 1;
+                el.animate([
+                  { transform: 'translateY(-5px)', opacity: 0 },
+                  { transform: 'translateY(0)', opacity: 1 }
+                ], { duration: 400, easing: 'ease-out' });
+              }, index * 250);
+            });
+            setTimeout(() => {
+              s.firstObjectiveRevealed = true;
+            }, fadeElements.length * 250 + 500);
+          }
+        };
+      }
+    };
+    
+    // Alias for backward compatibility with cityExplorationPhase.js
+    this.triggerFirstObjectiveReveal = () => this.playObjectiveRevealSequence(true);
 
     explorerDiv.innerHTML = `
       <!-- Top Title & Unified Sleek Objective Header -->
       <div id="city-header-bar" style="
+        display: ${showHeader ? 'flex' : 'none'};
         box-sizing: border-box;
         width: 100%;
         background: #FFFFFF;
         border: 2.5px solid #264653;
         border-radius: 12px;
         padding: 8px 12px;
-        display: flex;
         flex-direction: column;
         gap: 6px;
         color: #264653;
@@ -1589,74 +1816,79 @@ window.FFH.UI = class {
         z-index: 100;
       ">
         <!-- Row 1: Day Clock, Wallet, and Dossier Tracker (4 Slots) -->
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 6px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 4px; overflow: visible;">
           <!-- Day Counter -->
-          <div style="
+          <div id="hud-day-box" style="
             background: #264653;
             color: #FFFFFF;
             border-radius: 8px;
-            padding: 4px 8px;
+            padding: 4px 6px;
             font-size: 11px;
             font-weight: 900;
             font-family: monospace;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             white-space: nowrap;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           ">
             <span>📅</span>
             <span>DAY ${s.day || 1}/28</span>
           </div>
 
           <!-- 4-Slot Dossier Tracker -->
-          <div style="
+          <div id="hud-docs-box" style="
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             background: #F0F4F8;
             border: 1.5px solid #264653;
             border-radius: 8px;
-            padding: 4px 6px;
+            padding: 4px 5px;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           " title="Dossier: Uni, WG Lease, Anmeldung, Bank">
-            <span style="font-size: 10px; font-weight: 900; color: #1D3557; margin-right: 2px;">DOCS:</span>
+            <span style="font-size: 9px; font-weight: 900; color: #1D3557; margin-right: 1px;">DOCS:</span>
             <!-- Slot 1: Matriculation -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.isMatriculated ? '#2A9D8F' : '#999'}; background: ${s.isMatriculated ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="University Matriculation">${s.isMatriculated ? '🎓' : ''}</span>
+            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${s.isMatriculated ? '#2A9D8F' : '#999'}; background: ${s.isMatriculated ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="University Matriculation">${s.isMatriculated ? '🎓' : ''}</span>
             <!-- Slot 2: Lease -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
+            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
             <!-- Slot 3: Anmeldung -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#999'}; background: ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${(s.hasAnmeldung || s.has_anmeldung) ? '📑' : ''}</span>
+            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#999'}; background: ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${(s.hasAnmeldung || s.has_anmeldung) ? '📑' : ''}</span>
             <!-- Slot 4: Sperrkonto Bank -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#999'}; background: ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${(s.isSperrkontoUnlocked || s.has_konto) ? '💳' : ''}</span>
+            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#999'}; background: ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${(s.isSperrkontoUnlocked || s.has_konto) ? '💳' : ''}</span>
           </div>
 
           <!-- Body & Heart Meters -->
-          <div style="
-            display: flex;
+          <div id="hud-stats-box" style="
+            display: ${(s.actOneStarted || s.shift_no >= 0) ? 'flex' : 'none'};
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             background: #F8F9FA;
             border: 1.5px solid #264653;
             border-radius: 8px;
-            padding: 3px 6px;
+            padding: 3px 5px;
             font-size: 10px;
             font-weight: 900;
             font-family: monospace;
+            white-space: nowrap;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           " title="Body Stamina & Heart Morale">
-            <span style="color: ${s.body < 30 ? '#E63946' : '#2A9D8F'};">⚡${s.body !== undefined ? s.body : 100}</span>
-            <span style="color: #666;">|</span>
-            <span style="color: ${s.heart < 30 ? '#E63946' : '#FF006E'};">❤️${s.heart !== undefined ? s.heart : 50}</span>
+            <span id="stat-val-body" style="color: ${s.body < 30 ? '#E63946' : '#2A9D8F'}; transition: color 0.3s ease;">⚡${s.body !== undefined ? s.body : 100}</span>
+            <span style="color: #666; margin: 0 1px;">|</span>
+            <span id="stat-val-heart" style="color: ${s.heart < 30 ? '#E63946' : '#FF006E'}; transition: color 0.3s ease;">❤️${s.heart !== undefined ? s.heart : 50}</span>
           </div>
 
           <!-- Wallet Balance -->
-          <div style="
+          <div id="hud-wallet-box" style="
             background: #F8F9FA;
             border: 2px solid #264653;
             border-radius: 8px;
-            padding: 4px 8px;
+            padding: 4px 6px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             white-space: nowrap;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           ">
             <span style="font-size: 12px;">💶</span>
             <div style="font-size: 11.5px; font-weight: 900; color: #E76F51; font-family: monospace;">
@@ -1666,7 +1898,7 @@ window.FFH.UI = class {
         </div>
 
         <!-- Row 2: Objective Tracker & Personality Archetype Badge -->
-        <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
+        <div style="display: flex; gap: 6px; align-items: stretch; width: 100%;">
           <div id="city-quest-tracker" style="
             box-sizing: border-box;
             flex: 1;
@@ -1680,9 +1912,11 @@ window.FFH.UI = class {
             display: flex;
             align-items: center;
             gap: 6px;
+            opacity: ${s.activeObjective ? 1 : 0};
+            transition: opacity 0.3s ease;
           ">
             <span style="font-size: 13px; flex-shrink: 0;">🎯</span>
-            <span id="city-quest-text" style="line-height: 1.3;">${objectiveText}</span>
+            <span id="city-quest-text" style="line-height: 1.3;">${(s.firstObjectiveRevealed && !s.isTypingObjective) ? objectiveText : ''}</span>
           </div>
 
           <!-- Cumulative Archetype Badge -->
@@ -1698,15 +1932,17 @@ window.FFH.UI = class {
             letter-spacing: 0.5px;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
             white-space: nowrap;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           ">
             ${(() => {
               const d = s.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
               if (d.hustler >= d.bureaucrat && d.hustler >= d.diplomat && d.hustler > 0) return '⚡ Hustler';
               if (d.bureaucrat >= d.hustler && d.bureaucrat >= d.diplomat && d.bureaucrat > 0) return '📑 Bureaucrat';
               if (d.diplomat >= d.hustler && d.diplomat >= d.bureaucrat && d.diplomat > 0) return '🤝 Diplomat';
-              return '🌱 Expat';
+              return '👤 Profile';
             })()}
           </div>
         </div>
@@ -1718,29 +1954,9 @@ window.FFH.UI = class {
         </div>
       </div>
 
-      <!-- TEST NPCS BUTTON -->
-      <button id="btn-test-npc" style="
-        pointer-events: auto;
-        position: absolute;
-        bottom: 25px;
-        right: 15px;
-        background: #FF00FF;
-        color: #FFF;
-        border: 2px solid #000;
-        border-radius: 8px;
-        padding: 8px 12px;
-        font-weight: 900;
-        font-size: 11px;
-        cursor: pointer;
-        box-shadow: 0 4px 0 #880088;
-        z-index: 9999;
-      ">
-        🧪 TEST NPCS
-      </button>
-
-      <!-- Slide-over POI Card (Hidden initially) -->
+      <!-- Slide-over POI Card (Hidden permanently) -->
       <div id="city-poi-card" style="
-        display: none;
+        display: none !important;
         box-sizing: border-box;
         width: calc(100% - 24px);
         background: #FFFFFF;
@@ -1754,7 +1970,6 @@ window.FFH.UI = class {
         box-shadow: 0 12px 32px rgba(0,0,0,0.35);
         z-index: 1000;
         margin: 0 auto 12px auto;
-        display: flex;
         flex-direction: column;
         gap: 8px;
       ">
@@ -1825,24 +2040,9 @@ window.FFH.UI = class {
   }
 
   showPOICard(poiData) {
+    // Disabled — no POI location card popups ever appear
     const card = document.getElementById('city-poi-card');
-    if (!card || !poiData) return;
-
-    this.currentActivePOI = poiData;
-    document.getElementById('poi-card-title').textContent = poiData.name;
-    document.getElementById('poi-card-tag').textContent = poiData.tag || 'District POI';
-    document.getElementById('poi-card-desc').textContent = poiData.desc;
-    
-    const actionBtn = document.getElementById('btn-poi-action');
-    actionBtn.textContent = poiData.action || 'Enter Location';
-    
-    actionBtn.onclick = () => {
-      if (this.poiCallback) {
-        this.poiCallback(poiData.action, poiData);
-      }
-    };
-
-    card.style.display = 'block';
+    if (card) card.style.display = 'none';
   }
 
   showDialogueBox(npcEntry, dialogueData, onOptionChosen) {
@@ -1955,6 +2155,7 @@ window.FFH.UI = class {
         ">${dialogueData.actionIntro}</div>
         ` : ''}
 
+        ${englishText ? `
         <!-- Natural Dialogue Bubble -->
         <div style="
           background: #F4F7F6;
@@ -1970,6 +2171,7 @@ window.FFH.UI = class {
             font-weight: 700;
           "></div>
         </div>
+        ` : ''}
 
         <!-- Natural Conversation Choices inline in scroll stream with smooth fade-in -->
         <div id="dialogue-options-container" style="
@@ -2004,51 +2206,58 @@ window.FFH.UI = class {
         optionsContainer.style.transform = 'translateY(0)';
       }
       // Check if user needs to scroll to see options
-      if (scrollStream.scrollHeight > scrollStream.clientHeight + 15) {
+      if (scrollStream && scrollStream.scrollHeight > scrollStream.clientHeight + 15) {
         if (scrollIndicator) scrollIndicator.style.display = 'flex';
       }
     };
 
-    scrollStream.addEventListener('scroll', () => {
-      const isNearBottom = scrollStream.scrollHeight - scrollStream.scrollTop - scrollStream.clientHeight < 25;
-      if (isNearBottom) {
-        if (scrollIndicator) scrollIndicator.style.display = 'none';
-        if (optionsContainer) {
-          optionsContainer.style.opacity = '1';
-          optionsContainer.style.transform = 'translateY(0)';
+    if (scrollStream) {
+      scrollStream.addEventListener('scroll', () => {
+        const isNearBottom = scrollStream.scrollHeight - scrollStream.scrollTop - scrollStream.clientHeight < 25;
+        if (isNearBottom) {
+          if (scrollIndicator) scrollIndicator.style.display = 'none';
+          if (optionsContainer) {
+            optionsContainer.style.opacity = '1';
+            optionsContainer.style.transform = 'translateY(0)';
+          }
         }
-      }
-    });
+      });
+    }
 
-    box._typewriterTimer = setInterval(() => {
-      if (charIndex < fullSpeech.length) {
-        textTarget.textContent += fullSpeech[charIndex];
-        if (charIndex % 4 === 0 && this.game && this.game.speech) {
-          this.game.speech.playTalkBlip(npcId);
+    if (textTarget) {
+      box._typewriterTimer = setInterval(() => {
+        if (charIndex < fullSpeech.length) {
+          textTarget.textContent += fullSpeech[charIndex];
+          if (charIndex % 4 === 0 && this.game && this.game.speech) {
+            this.game.speech.playTalkBlip(npcId);
+          }
+          charIndex++;
+        } else {
+          clearInterval(box._typewriterTimer);
+          revealOptions();
+          if (scrollStream) {
+            scrollStream.scrollTop = scrollStream.scrollHeight;
+          }
         }
-        charIndex++;
-      } else {
-        clearInterval(box._typewriterTimer);
-        revealOptions();
-        if (scrollStream) {
-          scrollStream.scrollTop = scrollStream.scrollHeight;
-        }
-      }
-    }, 8);
+      }, 8);
 
-    // Clicking anywhere on dialogue skips typewriter to end immediately
-    box.addEventListener('click', (e) => {
-      if (e.target.closest('.dialogue-opt-btn')) return;
-      if (charIndex < fullSpeech.length) {
-        clearInterval(box._typewriterTimer);
-        textTarget.textContent = fullSpeech;
-        charIndex = fullSpeech.length;
-        revealOptions();
-        if (scrollStream) {
-          scrollStream.scrollTop = scrollStream.scrollHeight;
+      // Clicking anywhere on dialogue skips typewriter to end immediately
+      box.addEventListener('click', (e) => {
+        if (e.target.closest('.dialogue-opt-btn')) return;
+        if (charIndex < fullSpeech.length) {
+          clearInterval(box._typewriterTimer);
+          textTarget.textContent = fullSpeech;
+          charIndex = fullSpeech.length;
+          revealOptions();
+          if (scrollStream) {
+            scrollStream.scrollTop = scrollStream.scrollHeight;
+          }
         }
-      }
-    });
+      });
+    } else {
+      // If there's no dialogue text at all, just reveal options instantly
+      revealOptions();
+    }
 
     const buttons = box.querySelectorAll('.dialogue-opt-btn');
     buttons.forEach(btn => {
@@ -2379,57 +2588,56 @@ window.FFH.UI = class {
     div.id = 'story-overlay-container';
     div.style.cssText = `
       position: absolute;
-      top: 0;
+      bottom: 0;
       left: 0;
       right: 0;
-      bottom: 0;
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.88) 100%);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
       z-index: 9500;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
-      padding: 20px 18px 24px 18px;
-      box-sizing: border-box;
       pointer-events: auto;
-      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     `;
 
     const proseHtml = (overlayData.prose || []).map(p => `
       <p style="
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 13.5px;
-        line-height: 1.55;
-        color: #F8FAFC;
-        margin: 0 0 10px 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #1D3557;
+        margin: 0 0 12px 0;
         font-weight: 500;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
       ">${p}</p>
     `).join('');
 
     const choicesHtml = (overlayData.choices || []).map((ch, idx) => `
       <button class="btn-story-choice" data-idx="${ch.idx !== undefined ? ch.idx : idx}" style="
         width: 100%;
-        background: rgba(255, 255, 255, 0.14);
-        border: 1.5px solid rgba(255, 255, 255, 0.35);
-        color: #FFFFFF;
+        background: #FFFFFF;
+        color: #1D3557;
+        border: 2px solid #264653;
+        border-left: 5px solid ${idx === 0 ? '#2EC4B6' : '#E76F51'};
         border-radius: 12px;
         padding: 12px 14px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 13px;
-        font-weight: 700;
+        font-weight: 800;
         cursor: pointer;
         text-align: left;
         line-height: 1.35;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-        transition: all 0.12s ease-in-out;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
         display: flex;
         justify-content: space-between;
         align-items: center;
       ">
         <span>${ch.label}</span>
-        <span style="opacity: 0.8; margin-left: 8px;">➔</span>
       </button>
     `).join('');
 
@@ -2442,16 +2650,13 @@ window.FFH.UI = class {
         flex-direction: column;
         gap: 12px;
       ">
+        ${overlayData.prose && overlayData.prose.length ? `
         <div style="
-          background: rgba(18, 24, 38, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 16px;
-          padding: 14px 16px;
-          max-height: 48vh;
-          overflow-y: auto;
+          margin-bottom: 4px;
         ">
           ${proseHtml}
         </div>
+        ` : ''}
 
         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
           ${choicesHtml}

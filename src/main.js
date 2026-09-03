@@ -254,13 +254,15 @@ class GameEngine {
     // Render loop - gently pan the title camera around the city on the boot screen
     if (this.titleDiorama && !this.currentPhase) {
       const t = this.clock.getElapsedTime();
-      const radius = 28;
+      const radius = 12; // Adjusted for 0.52 zoom
       const cam = this.cameras.mainCamera;
       if (cam) {
-        cam.position.x = 20 + Math.sin(t * 0.04) * radius;
-        cam.position.z = 26 + Math.cos(t * 0.04) * radius;
-        cam.position.y = 16 + Math.sin(t * 0.025) * 3;
-        cam.lookAt(20, 1, 14);
+        cam.zoom = 0.52;
+        cam.updateProjectionMatrix();
+        cam.position.x = 10.4 + Math.sin(t * 0.04) * radius;
+        cam.position.z = 5.2 + Math.cos(t * 0.04) * radius;
+        cam.position.y = 14 + Math.sin(t * 0.025) * 1.5;
+        cam.lookAt(10.4, 0.05, 5.2);
       }
       // Animate water on title screen too
       if (this.titleWaterMat && this.titleWaterMat.uniforms && this.titleWaterMat.uniforms.time) {

@@ -34,7 +34,7 @@ window.FFH.setupScene = function(canvasContainerId) {
   // 1. Unified Main Camera: High Bird's-Eye View (Orthographic Isometric)
   const aspect = width / height;
   const d = 12.0; // View volume size
-  const mainCamera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+  const mainCamera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, -100, 1000);
   
   // Set default top-down isometric angle
   mainCamera.position.set(15, 20, 15);

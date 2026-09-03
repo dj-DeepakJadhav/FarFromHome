@@ -17661,63 +17661,36 @@ window.FFH.storyData = {
         "time": "18:00",
         "light": "dusk_cold",
         "weather": "wind_baltic_hard",
-        "camera": "wide_establishing_low"
+        "camera": "single_close"
       },
       "cast": [],
       "props": [
-        "coach_bus",
-        "timetable_board",
         "suitcase_heavy",
-        "jacket_thin"
+        "jacket_thin",
+        "city_map"
       ],
       "audio": [
-        "bus_doors_hiss",
         "wind_gust_loop",
         "tram_bell_distant"
       ],
       "prose": [
-        "Luebeck. Six in the evening, already dark.",
-        "The coach doors hiss shut behind you and it pulls away. Nobody else got off.",
-        "Twenty euros in your jacket pocket. A visa that stops working in twenty-eight days. A slip of paper with a room number on it: 4.",
-        "The board says the number 2 bus goes south. Two euros ninety. The map says the same trip is twenty-five minutes on foot."
+        "Luebeck. Six in the evening , already dark.",
+        "Twenty euros in your jacket pocket. A visa that stops working in twenty-eight days. A slip of paper with a room number on it: 4."
       ],
       "choices": [
         {
-          "label": "Take the bus. Two ninety.",
-          "gate": null,
-          "to": "wg_door",
-          "effects": [
-            {
-              "var": "wallet",
-              "expr": "wallet - 2.9"
-            }
-          ],
-          "prose": [
-            "You sit directly on top of the heater and let the old town slide past the glass. Red brick. Seven spires. Water on both sides of everything.",
-            "It looks like a postcard that was addressed to somebody else."
-          ]
+          "label": "Take the scenic river path (Longer)",
+          "to": "wg_door_scenic"
         },
         {
-          "label": "Walk. Keep the two ninety.",
-          "gate": null,
-          "to": "wg_door",
-          "effects": [
-            {
-              "var": "body",
-              "expr": "body - 6"
-            }
-          ],
-          "prose": [
-            "Twenty-five minutes becomes forty, because you take the wrong bridge and have to come back over it.",
-            "The wind off the Baltic finds every seam in your jacket. By the end you cannot feel your ears.",
-            "You keep two euros ninety. Years from now you still will not know if that was the right call."
-          ]
+          "label": "Take the fast street path (Direct)",
+          "to": "wg_door_fast"
         }
       ],
       "effects": [],
       "beat": "arrival / hope + first cold",
       "origin": "story.ink",
-      "econ_note": "wallet -2.90 (bus) | body -6 (walk)",
+      "econ_note": "body -5 (walk) | body -6 (walk)",
       "mode": "overlay",
       "duration_s": 10,
       "duration_source": "authored",
@@ -17733,13 +17706,31 @@ window.FFH.storyData = {
       "critical_path_index": 0
     },
     {
+      "id": "wg_door_scenic",
+      "act": "I",
+      "stage": { "loc": "B_WG", "time": "19:30", "light": "night_lantern", "camera": "doorway_two_shot" },
+      "effects": [{ "var": "body", "expr": "body - 6" }],
+      "prose": [],
+      "choices": [],
+      "next": "wg_door"
+    },
+    {
+      "id": "wg_door_fast",
+      "act": "I",
+      "stage": { "loc": "B_WG", "time": "19:30", "light": "night_lantern", "camera": "doorway_two_shot" },
+      "effects": [{ "var": "body", "expr": "body - 5" }],
+      "prose": [],
+      "choices": [],
+      "next": "wg_door"
+    },
+    {
       "id": "wg_door",
       "act": "I",
       "threads": 1,
       "stage": {
         "loc": "B_WG",
-        "time": "18:40",
-        "light": "interior_warm_lamp",
+        "time": "19:30",
+        "light": "night_lantern",
         "camera": "doorway_two_shot"
       },
       "cast": [
@@ -17973,7 +17964,7 @@ window.FFH.storyData = {
       "prose": [
         "Nico looks at the paper slip in your hand, then at the clock.",
         "Nico: One more thing and then I'll leave you alone. Lokker wants thirty euros deposit by Friday. That's not a suggestion, that's just how the building works.",
-        "Nico: Kruma Express, behind the Holstentor. Night manifest. They're short of people basically always."
+        "Nico: You'll need to find work tonight. Around the old market, near the Holstentor — there is always something for somebody willing to start now."
       ],
       "choices": [
         {
@@ -17986,7 +17977,7 @@ window.FFH.storyData = {
           ]
         },
         {
-          "label": "\"Behind the Holstentor. Got it.\"",
+          "label": "\"Around the old market. Got it.\"",
           "to": "uni_closed",
           "effects": [
             {
@@ -18000,9 +17991,8 @@ window.FFH.storyData = {
         }
       ],
       "effects": [],
-      "beat": "MOTIVATES the first shift tonight, and routes you past the locked door",
+      "beat": "MOTIVATES finding work tonight — player must discover Kruma Express themselves via pizzeria and bakery",
       "origin": "new",
-      "mode": "overlay",
       "duration_s": 6,
       "duration_source": "authored",
       "unlocks": {
@@ -18050,7 +18040,7 @@ window.FFH.storyData = {
         {
           "label": "\"I know. I've only just arrived. I only wanted to see where it was.\"",
           "gate": null,
-          "to": "shift_1_teach",
+          "to": "pizzeria_job",
           "effects": [
             {
               "var": "heart",
@@ -18066,7 +18056,7 @@ window.FFH.storyData = {
         {
           "label": "\"Please. Two minutes. I've come a very long way.\"",
           "gate": null,
-          "to": "shift_1_teach",
+          "to": "pizzeria_job",
           "effects": [
             {
               "var": "heart",
@@ -18081,16 +18071,164 @@ window.FFH.storyData = {
         }
       ],
       "effects": [],
-      "beat": "first defeat / the locked door",
+      "beat": "first defeat / the locked door — player now searches for work: pizzeria then bakery then Kruma",
       "origin": "story.ink",
       "econ_note": "heart +3 / -3",
-      "divert": "shift_1_teach",
+      "divert": "pizzeria_job",
       "mode": "blocking",
       "duration_s": 7,
       "duration_source": "authored",
       "unlocks": {},
       "cumulative_s": 43,
       "critical_path_index": 5
+    },
+    {
+      "id": "pizzeria_job",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_PIZZA",
+        "time": "19:35",
+        "light": "interior_warm_red",
+        "camera": "counter_low_across"
+      },
+      "cast": [
+        "NPC_PIZZERIA_OWNER"
+      ],
+      "props": [
+        "pizza_counter",
+        "help_wanted_sign",
+        "flour_bags"
+      ],
+      "audio": [
+        "kitchen_clatter",
+        "oven_whoosh"
+      ],
+      "prose": [
+        "The pizzeria shutter is half up. Hot air and garlic come out from under it.",
+        "You duck inside. A man in a flour-dusted apron doesn't look up.",
+        "Pizzeria Owner: We're closed.",
+        "You: I'm looking for work. Any work.",
+        "He looks up for the first time. Assesses. Looks back down.",
+        "Pizzeria Owner: Nobody to train tonight. Come back in two weeks. Or don't."
+      ],
+      "choices": [
+        {
+          "label": "\"Two weeks is too late. Thank you anyway.\"",
+          "gate": null,
+          "to": "bakery_job",
+          "effects": [],
+          "prose": [
+            "He nods once and goes back to the dough.",
+            "Outside the air is cold again. The flour smell stays with you for half a block."
+          ]
+        },
+        {
+          "label": "\"Can I leave my number?\"",
+          "gate": null,
+          "to": "bakery_job",
+          "effects": [],
+          "prose": [
+            "He points at a corkboard on the wall without looking up. Already full of numbers.",
+            "You write yours at the bottom, where nobody will look."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "REJECTION 1: pizzeria — too late, no one to train, try elsewhere",
+      "origin": "new",
+      "econ_note": "no economy change",
+      "mode": "blocking",
+      "duration_s": 9,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 52,
+      "critical_path_index": 6
+    },
+    {
+      "id": "bakery_job",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_BAKERY",
+        "time": "19:50",
+        "light": "interior_warm_bakery",
+        "camera": "counter_close_warm"
+      },
+      "cast": [
+        "NPC_MARTHA"
+      ],
+      "props": [
+        "bakery_counter",
+        "bread_loaves",
+        "pastry_tray",
+        "closed_sign"
+      ],
+      "audio": [
+        "bakery_warm_hum",
+        "oven_low",
+        "bread_rustle"
+      ],
+      "prose": [
+        "The bakery window is still lit. An older woman is stacking bread trays behind the glass.",
+        "You knock. She looks up, looks at the time, looks at you — and unlocks the door anyway.",
+        "Martha: We're closed for selling. But you don't look like you're buying.",
+        "You: I'm looking for work. Anything.",
+        "Martha: Do you speak German? Even a little?",
+        "You explain. She listens properly, which is more than the pizzeria did.",
+        "Martha: Our orders go to German customers. It would not work, not tonight.",
+        "She pauses. Picks up a small Franzbroetchen from the tray and puts it on the counter in front of you.",
+        "Martha: But. There is a place around the Holstentor. Kruma Express. Dark store. Night deliveries. They sort by ear, not by words — you hear the article and you find the shelf. Nina runs it. Tell her Martha sent you."
+      ],
+      "choices": [
+        {
+          "label": "\"Kruma Express. I'll find it. Thank you, Martha.\"",
+          "gate": null,
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "r_martha",
+              "expr": "r_martha + 2"
+            }
+          ],
+          "prose": [
+            "She locks the door again as you leave. You eat the Franzbroetchen on the walk over.",
+            "It is the second best thing you have eaten today, after the coffee."
+          ]
+        },
+        {
+          "label": "[Take the Franzbroetchen and go.]",
+          "gate": null,
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "r_martha",
+              "expr": "r_martha + 1"
+            }
+          ],
+          "prose": [
+            "She nods. You don't need to say anything.",
+            "You eat it before you have even turned the corner."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "REJECTION 2 / DISCOVERY: bakery — language barrier, but Martha gives the Kruma lead and a Franzbroetchen",
+      "origin": "new",
+      "econ_note": "r_martha +1 or +2; free Franzbroetchen (body +2 implied)",
+      "sets_note": "first meeting with Martha — she remembers this",
+      "mode": "blocking",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [],
+        "teaches": {
+          "subject": "kruma_express_discovery",
+          "mode": "ORGANIC"
+        }
+      },
+      "cumulative_s": 66,
+      "critical_path_index": 7
     },
     {
       "id": "shift_1_teach",
@@ -19290,7 +19428,7 @@ window.FFH.storyData = {
             }
           ],
           "prose": [
-            "He stops. Wipes his hands. Looks at you properly, which nobody has done since the coach.",
+            "He stops. Wipes his hands. Looks at you properly, which nobody has done since you arrived.",
             "Herr Mathias Becker: Ah. Kaution. Lokker."
           ]
         },
@@ -23084,9 +23222,13 @@ window.FFH.StoryRunner = class {
     }
 
     this.checkHealthState();
-
     if (this.game.ui && this.game.ui.updatePersistentHUD) {
       this.game.ui.updatePersistentHUD(state);
+    }
+    
+    if (this.game.currentPhase === 'CITY_EXPLORATION' && this.game.ui && this.game.ui.refreshStats) {
+      // Refresh the stats visibly in the HUD without a full DOM teardown
+      this.game.ui.refreshStats(state);
     }
   }
 
@@ -23221,6 +23363,7 @@ window.FFH.StoryRunner = class {
         'B_MARIEN':     { x: 57.2, z: 33.8 },  // row13,col22 — keep
         'B_DOM':        { x: 26.0, z: 44.2 },  // row17,col10
         'B_DARKSTORE':  { x:  7.8, z: 46.8 },  // row18,col3 R_C (east of Darkstore)
+        'LM_ALTSTADT':  { x: 20.8, z: 18.2 },
         'LM_CANAL':     { x: 20.8, z: 31.2 },
         'LM_MARKTPLATZ':{ x: 26.0, z: 23.4 }
       };
@@ -23250,7 +23393,8 @@ window.FFH.StoryRunner = class {
   }
 
   renderScene(scene) {
-    const mode = scene.mode || 'overlay';
+    const hasCast = scene.cast && scene.cast.length > 0;
+    const mode = scene.mode || (hasCast ? 'blocking' : 'overlay');
     const s = this.game.state;
 
     // Direct stage, camera, and environmental audio
@@ -23273,32 +23417,55 @@ window.FFH.StoryRunner = class {
   }
 
   handleOverlayScene(scene, choices) {
-    // If in DIALOGUE phase, transition to CITY_EXPLORATION first so the live 3D world is visible
     if (this.game.currentPhase !== 'CITY_EXPLORATION') {
-      this.game.transitionTo('CITY_EXPLORATION');
+      const wasDialogue = this.game.currentPhase === 'DIALOGUE';
+      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: wasDialogue });
     }
 
     const rawProse = scene.prose || [];
     const processedProse = rawProse.map(p => this.interpolate(p));
 
-    const overlayData = {
-      sceneId: scene.id,
-      beat: scene.beat,
-      stage: scene.stage,
-      prose: processedProse,
-      choices: choices.map((ch, idx) => ({
-        idx: idx,
-        label: this.interpolate(ch.label),
-        original: ch
-      }))
-    };
-
-    if (this.game.ui && this.game.ui.showStoryOverlay) {
-      this.game.ui.showStoryOverlay(overlayData, (choiceIndex) => {
-        const choice = choices[choiceIndex];
-        this.selectChoice(choice);
+    let delay = 0;
+    if (processedProse.length) {
+      processedProse.forEach((line) => {
+        setTimeout(() => {
+          if (this.game.ui && this.game.ui.showThoughtBubble) {
+            this.game.ui.showThoughtBubble(line, 2800);
+          }
+        }, delay);
+        delay += 3000;
       });
     }
+
+    // Show clean choice buttons overlay after thoughts finish
+    setTimeout(() => {
+      if (choices && choices.length && this.game.ui && this.game.ui.showStoryOverlay) {
+        const overlayData = {
+          sceneId: scene.id,
+          beat: scene.beat,
+          stage: scene.stage,
+          prose: [], // No dark modal box; prose rendered above player head
+          choices: choices.map((ch, idx) => ({
+            idx: idx,
+            label: this.interpolate(ch.label),
+            original: ch
+          }))
+        };
+        this.game.ui.showStoryOverlay(overlayData, (choiceIndex) => {
+          const choice = choices[choiceIndex];
+          if (scene.id === 'act_one') {
+            this.game.state.actOneChoiceDone = true;
+          }
+          this.selectChoice(choice);
+        });
+      } else {
+        // Scene has no choices; it concludes automatically.
+        if (scene.id === 'act_one') {
+          this.game.state.actOneChoiceDone = true;
+        }
+        this.selectChoice({ next: scene.next || scene.divert });
+      }
+    }, delay);
   }
 
   handleBlockingScene(scene, choices) {
@@ -23314,7 +23481,8 @@ window.FFH.StoryRunner = class {
       else if (npcKey === 'NPC_NINA') speaker = 'Nina Lindemann';
       else if (npcKey === 'NPC_LOKKER') speaker = 'Herr Hans Lokker';
       else if (npcKey === 'NPC_VOGEL') speaker = 'Herr Vogel';
-      else if (npcKey === 'NPC_MARTHA') speaker = 'Martha Webber';
+      else if (npcKey === 'NPC_MARTHA') speaker = 'Martha';
+      else if (npcKey === 'NPC_PIZZERIA_OWNER') speaker = 'Pizzeria Owner';
       else if (npcKey === 'NPC_MATHIAS') speaker = 'Mathias Becker';
       else if (npcKey === 'NPC_LINDEMANN') speaker = 'Dr. Lindemann';
     }
@@ -23404,9 +23572,9 @@ window.FFH.StoryRunner = class {
       this.applyEffects(choice.effects);
     }
 
-    let target = choice.to;
+    let target = choice.to || choice.next;
     if (typeof target === 'object' && target !== null) {
-      target = target.then || target.to;
+      target = target.then || target.to || target.next;
     }
 
     if (!target && this.currentScene && this.currentScene.divert) {
@@ -23423,6 +23591,10 @@ window.FFH.StoryRunner = class {
       }
     }
 
+    if (this.currentSceneId === 'act_one') {
+      this.game.state.actOneStarted = true;
+    }
+
     if (target) {
       // --- Exploration Handshake ---
       // If the target scene is at a DIFFERENT map location from the current one,
@@ -23435,26 +23607,40 @@ window.FFH.StoryRunner = class {
       if (TRAVEL_REQUIRED) {
         const objectiveMap = {
           'wg_door':          '🏠 Find Room 4 — Student WG (south)',
+          'wg_door_scenic':   '🏠 Find Room 4 — Student WG (south)',
+          'wg_door_fast':     '🏠 Find Room 4 — Student WG (south)',
           'nico_sends_kruma': '🎓 Check out Lübeck University (east across the bridge)',
           'uni_closed':       '🎓 Check out Lübeck University (east across the bridge)',
-          'shift_1_teach':    '📦 Report for your first shift — Kruma Express (south)',
+          'pizzeria_job':     '🍕 Try the pizzeria near the market — ask about work',
+          'bakery_job':       '🥐 Try the bakery — ask about work',
+          'shift_1_teach':    '📦 Kruma Express — Nina is expecting you (behind the Holstentor)',
         };
         const objective = objectiveMap[target] || `Go to ${targetLoc}`;
+        console.log(`[StoryRunner] TRAVEL_REQUIRED to scene '${target}' at '${targetLoc}'. Setting objective: ${objective}`);
 
         this.pendingStoryTarget = { sceneId: target, poi: targetLoc, objective };
         this.game.state.activeObjective = objective;
+        this.game.state.isTypingObjective = true;
 
         if (this.game.ui && this.game.ui.hideDialogueBox) {
           this.game.ui.hideDialogueBox();
         }
         console.log(`StoryRunner: Travel required to ${targetLoc} for scene "${target}". Entering city exploration.`);
-        this.game.transitionTo('CITY_EXPLORATION');
+        this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.game.currentPhase === 'DIALOGUE' });
+
+        if (this.game.ui && this.game.ui.playObjectiveRevealSequence) {
+          // Only automatically play the sequence if the tutorial reveal has already happened.
+          // If it hasn't, cityExplorationPhase will trigger it on the very first screen tap.
+          if (this.game.state.firstObjectiveRevealed) {
+            this.game.ui.playObjectiveRevealSequence(false);
+          }
+        }
       } else {
         this.startScene(target);
       }
     } else {
       console.log('StoryRunner: Flow reached leaf or hub. Transitioning to city exploration.');
-      this.game.transitionTo('CITY_EXPLORATION');
+      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.game.currentPhase === 'DIALOGUE' });
     }
   }
 };
@@ -23966,6 +24152,15 @@ window.FFH.NPC_GLB_MAPPING = {"NPC_RITA":"character-female-a","NPC_MARTHA":"char
 window.FFH = window.FFH || {};
 
 window.FFH.NPC_DATABASE = {
+  'NPC_PIZZERIA_OWNER': {
+    id: 'NPC_PIZZERIA_OWNER',
+    name: 'Pizzeria Owner',
+    title: 'Owner, Pizzeria',
+    building: 'B_PIZZA',
+    avatarColor: '#E63946',
+    modelKey: 'NPC_CHAR_B',
+    dialogue: (state) => ({ speaker: 'Pizzeria Owner', text: 'We are closed.', options: [] })
+  },
   // 1. RITA SCHNEIDER (University Registrar & Student Services)
   'NPC_RITA': {
     id: 'NPC_RITA',
@@ -30995,7 +31190,7 @@ window.FFH.setupScene = function(canvasContainerId) {
   // 1. Unified Main Camera: High Bird's-Eye View (Orthographic Isometric)
   const aspect = width / height;
   const d = 12.0; // View volume size
-  const mainCamera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+  const mainCamera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, -100, 1000);
   
   // Set default top-down isometric angle
   mainCamera.position.set(15, 20, 15);
@@ -31725,50 +31920,110 @@ window.FFH.UI = class {
   }
 
   spawnWandererThought(text) {
-    const existing = document.getElementById('ffh-wanderer-thought');
+    this.showThoughtBubble(text, 3800);
+  }
+
+  showThoughtBubble(text, duration = 4000) {
+    const existing = document.getElementById('ffh-thought-bubble');
     if (existing) existing.remove();
 
     const el = document.createElement('div');
-    el.id = 'ffh-wanderer-thought';
-    el.innerHTML = `<span style="opacity:0.7; margin-right:6px;">💭</span><em>${text}</em>`;
+    el.id = 'ffh-thought-bubble';
+    el.innerHTML = `<span style="opacity:0.8; margin-right:4px;">💭</span><em>${text}</em>`;
+    
+    // Position directly over player character head in 3D screen space if in CITY_EXPLORATION
+    let screenX = window.innerWidth / 2;
+    let screenY = window.innerHeight * 0.45;
+    
+    if (this.game && this.game.currentPhase === this.game.phases.CITY_EXPLORATION) {
+      const cityPhase = this.game.phases.CITY_EXPLORATION;
+      const cam = this.game.cameras.mainCamera;
+      if (cityPhase && cityPhase.playerPos && cam) {
+        const headPos = cityPhase.playerPos.clone();
+        headPos.y += 1.8; // Height offset above player head
+        headPos.project(cam);
+        screenX = (headPos.x * 0.5 + 0.5) * window.innerWidth;
+        screenY = (-headPos.y * 0.5 + 0.5) * window.innerHeight;
+      }
+    }
+
     el.style.cssText = `
       position: fixed;
-      bottom: 95px;
-      left: 50%;
-      transform: translateX(-50%) translateY(10px);
-      background: rgba(18, 24, 38, 0.85);
+      left: ${screenX}px;
+      top: ${screenY}px;
+      transform: translate(-50%, -100%) scale(0.9);
+      background: rgba(18, 24, 38, 0.92);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      padding: 8px 18px;
-      color: #E2E8F0;
+      border: 2px solid #FFD166;
+      border-radius: 16px;
+      padding: 8px 14px;
+      color: #FFFFFF;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 700;
       letter-spacing: 0.2px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
       pointer-events: none;
-      z-index: 8888;
+      z-index: 99999;
       opacity: 0;
-      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-      max-width: 85vw;
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+      max-width: 280px;
       text-align: center;
     `;
     document.body.appendChild(el);
 
     requestAnimationFrame(() => {
       el.style.opacity = '1';
-      el.style.transform = 'translateX(-50%) translateY(0)';
+      el.style.transform = 'translate(-50%, -120%) scale(1.0)';
     });
 
     setTimeout(() => {
       if (el.parentNode) {
         el.style.opacity = '0';
-        el.style.transform = 'translateX(-50%) translateY(-10px)';
-        setTimeout(() => el.remove(), 500);
+        el.style.transform = 'translate(-50%, -100%) scale(0.9)';
+        setTimeout(() => el.remove(), 350);
       }
-    }, 3800);
+    }, duration);
+  }
+
+  showCompassUI(direction) {
+    let compass = document.getElementById('ffh-compass-ui');
+    if (!compass) {
+      compass = document.createElement('div');
+      compass.id = 'ffh-compass-ui';
+      compass.style.cssText = `
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        width: 44px;
+        height: 44px;
+        background: rgba(18, 24, 38, 0.85);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #ECC238;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        pointer-events: none;
+        z-index: 8000;
+        transition: transform 0.2s ease-out;
+      `;
+      compass.innerHTML = '🧭';
+      document.body.appendChild(compass);
+    }
+    compass.style.display = 'flex';
+  }
+
+  hideCompassUI() {
+    const compass = document.getElementById('ffh-compass-ui');
+    if (compass) {
+      compass.style.display = 'none';
+    }
   }
 
   triggerStampMoment(docTitle, docEmoji = '📜') {
@@ -32016,10 +32271,62 @@ window.FFH.UI = class {
         this.clear();
         this.game.clearTitleDiorama();
 
-        // Boot into continuous city exploration, then launch story scene act_one
+        // 1. Boot into city exploration phase
         this.game.transitionTo('CITY_EXPLORATION');
-        if (this.game.storyRunner) {
-          this.game.storyRunner.startScene('act_one');
+        
+        const cityPhase = this.game.phases.CITY_EXPLORATION;
+        if (cityPhase) {
+          // 2. Lock inputs during start sequence
+          cityPhase.inputDisabled = true;
+          
+          // 3. Start high zoomed-out overview position showing city diorama first
+          cityPhase.camZoom = 0.52;
+          cityPhase.targetCamZoom = 0.52;
+          // Extract current angle from mainCamera relative to player spawn (10.4, 5.2)
+          const cam = this.game.cameras.mainCamera;
+          const dx = cam.position.x - 10.4;
+          const dz = cam.position.z - 5.2;
+          cityPhase.camCurrentAngle = Math.atan2(dx, dz);
+          cityPhase.updateCamera(true);
+
+          // 4. Smoothly pan & spin camera into close back-facing 3rd-person position over 3 seconds
+          const startAngle = cityPhase.camCurrentAngle;
+          let targetAngle = (Math.PI / 4) + Math.PI; // back-facing view
+          
+          // Normalize targetAngle to take the shortest rotation path
+          while (targetAngle - startAngle > Math.PI) targetAngle -= Math.PI * 2;
+          while (targetAngle - startAngle < -Math.PI) targetAngle += Math.PI * 2;
+
+          const startTime = Date.now();
+          const duration = 3000;
+
+          // Perform smooth animation tick loop
+          const animLoop = () => {
+            const elapsed = Date.now() - startTime;
+            const t = Math.min(1.0, elapsed / duration);
+            
+            // Smooth easeInOutCubic easing for ultra-smooth camera flight
+            const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+            cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
+            cityPhase.updateCamera(true);
+
+            if (t < 1.0) {
+              requestAnimationFrame(animLoop);
+            } else {
+              // 5. Camera has settled close to character back view — enable inputs & hold angle
+              cityPhase.cameraHoldTimer = 4.0;
+              cityPhase.inputDisabled = false;
+              
+              if (this.game.storyRunner) {
+                this.game.storyRunner.startScene('act_one');
+              }
+            }
+          };
+
+          requestAnimationFrame(animLoop);
         }
       });
     }
@@ -33109,18 +33416,133 @@ window.FFH.UI = class {
 
     // Objective is exclusively driven by game.state.activeObjective (set by storyRunner).
     // If nothing is set the tracker is hidden — player roams freely until story sets the next goal.
+    // The header bar starts hidden in a new game until the player's first interaction.
+    const showHeader = (s.firstObjectiveRevealed || s.shift_no > 0);
+
     const objectiveText = s.activeObjective || '';
+
+    this.refreshStats = (state) => {
+      const s = state;
+      const bodyEl = document.getElementById('stat-val-body');
+      const heartEl = document.getElementById('stat-val-heart');
+      
+      if (bodyEl) {
+        bodyEl.textContent = `⚡${s.body !== undefined ? s.body : 100}`;
+        bodyEl.style.color = (s.body !== undefined && s.body < 30) ? '#E63946' : '#2A9D8F';
+        // Flash red on change
+        bodyEl.animate([{ color: '#FF0000', transform: 'scale(1.3)' }, { color: bodyEl.style.color, transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
+      }
+      
+      if (heartEl) {
+        heartEl.textContent = `❤️${s.heart !== undefined ? s.heart : 50}`;
+        heartEl.style.color = (s.heart !== undefined && s.heart < 30) ? '#E63946' : '#FF006E';
+        heartEl.animate([{ color: '#FF0000', transform: 'scale(1.3)' }, { color: heartEl.style.color, transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
+      }
+      
+      const walletEl = document.getElementById('stat-val-wallet');
+      if (walletEl && s.wallet !== undefined) {
+        walletEl.textContent = `${s.wallet.toFixed(2)}€`;
+      }
+    };
+
+    this.playObjectiveRevealSequence = (isBootSequence = false) => {
+      const headerBar = document.getElementById('city-header-bar');
+      const questTracker = document.getElementById('city-quest-tracker');
+      const questText = document.getElementById('city-quest-text');
+      
+      const fadeElements = [
+        document.getElementById('hud-day-box'),
+        document.getElementById('hud-docs-box'),
+        document.getElementById('hud-stats-box'),
+        document.getElementById('hud-wallet-box'),
+        document.getElementById('archetype-badge')
+      ].filter(Boolean);
+      
+      if (headerBar) {
+        if (isBootSequence) {
+          headerBar.style.display = 'flex';
+          headerBar.animate([
+            { transform: 'translateY(-20px)', opacity: 0 },
+            { transform: 'translateY(0)', opacity: 1 }
+          ], { duration: 600, easing: 'ease-out' });
+        }
+
+        const startTyping = () => {
+          const textToType = this.game.state.activeObjective || '';
+          if (questText) {
+            questText.innerHTML = '';
+            let i = 0;
+            const typeChar = () => {
+              if (i < textToType.length) {
+                questText.innerHTML += textToType.charAt(i);
+                if (this.game.sfx && i % 3 === 0) this.game.sfx.playSfx('click');
+                i++;
+                setTimeout(typeChar, 30);
+              } else {
+                onTypingFinished();
+              }
+            };
+            typeChar();
+          } else {
+            onTypingFinished();
+          }
+        };
+
+        if (isBootSequence) {
+          setTimeout(startTyping, 600);
+        } else {
+          startTyping();
+        }
+
+        const onTypingFinished = () => {
+          this.game.state.isTypingObjective = false;
+          if (questTracker) {
+            questTracker.style.transition = 'box-shadow 0.3s ease, transform 0.3s ease';
+            questTracker.style.boxShadow = '0 0 15px 4px #2EC4B6';
+            questTracker.style.transform = 'scale(1.02)';
+            if (this.game.sfx) this.game.sfx.playSfx('bell');
+            
+            setTimeout(() => {
+              questTracker.style.boxShadow = 'none';
+              questTracker.style.transform = 'none';
+            }, 800);
+          }
+
+          if (this.game.currentPhase && this.game.currentPhase.revealCompass) {
+            this.game.currentPhase.revealCompass();
+          }
+
+          if (isBootSequence) {
+            fadeElements.forEach((el, index) => {
+              setTimeout(() => {
+                el.style.opacity = 1;
+                el.animate([
+                  { transform: 'translateY(-5px)', opacity: 0 },
+                  { transform: 'translateY(0)', opacity: 1 }
+                ], { duration: 400, easing: 'ease-out' });
+              }, index * 250);
+            });
+            setTimeout(() => {
+              s.firstObjectiveRevealed = true;
+            }, fadeElements.length * 250 + 500);
+          }
+        };
+      }
+    };
+    
+    // Alias for backward compatibility with cityExplorationPhase.js
+    this.triggerFirstObjectiveReveal = () => this.playObjectiveRevealSequence(true);
 
     explorerDiv.innerHTML = `
       <!-- Top Title & Unified Sleek Objective Header -->
       <div id="city-header-bar" style="
+        display: ${showHeader ? 'flex' : 'none'};
         box-sizing: border-box;
         width: 100%;
         background: #FFFFFF;
         border: 2.5px solid #264653;
         border-radius: 12px;
         padding: 8px 12px;
-        display: flex;
         flex-direction: column;
         gap: 6px;
         color: #264653;
@@ -33129,74 +33551,79 @@ window.FFH.UI = class {
         z-index: 100;
       ">
         <!-- Row 1: Day Clock, Wallet, and Dossier Tracker (4 Slots) -->
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 6px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 4px; overflow: visible;">
           <!-- Day Counter -->
-          <div style="
+          <div id="hud-day-box" style="
             background: #264653;
             color: #FFFFFF;
             border-radius: 8px;
-            padding: 4px 8px;
+            padding: 4px 6px;
             font-size: 11px;
             font-weight: 900;
             font-family: monospace;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             white-space: nowrap;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           ">
             <span>📅</span>
             <span>DAY ${s.day || 1}/28</span>
           </div>
 
           <!-- 4-Slot Dossier Tracker -->
-          <div style="
+          <div id="hud-docs-box" style="
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             background: #F0F4F8;
             border: 1.5px solid #264653;
             border-radius: 8px;
-            padding: 4px 6px;
+            padding: 4px 5px;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           " title="Dossier: Uni, WG Lease, Anmeldung, Bank">
-            <span style="font-size: 10px; font-weight: 900; color: #1D3557; margin-right: 2px;">DOCS:</span>
+            <span style="font-size: 9px; font-weight: 900; color: #1D3557; margin-right: 1px;">DOCS:</span>
             <!-- Slot 1: Matriculation -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.isMatriculated ? '#2A9D8F' : '#999'}; background: ${s.isMatriculated ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="University Matriculation">${s.isMatriculated ? '🎓' : ''}</span>
+            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${s.isMatriculated ? '#2A9D8F' : '#999'}; background: ${s.isMatriculated ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="University Matriculation">${s.isMatriculated ? '🎓' : ''}</span>
             <!-- Slot 2: Lease -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
+            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
             <!-- Slot 3: Anmeldung -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#999'}; background: ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${(s.hasAnmeldung || s.has_anmeldung) ? '📑' : ''}</span>
+            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#999'}; background: ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${(s.hasAnmeldung || s.has_anmeldung) ? '📑' : ''}</span>
             <!-- Slot 4: Sperrkonto Bank -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#999'}; background: ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${(s.isSperrkontoUnlocked || s.has_konto) ? '💳' : ''}</span>
+            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#999'}; background: ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${(s.isSperrkontoUnlocked || s.has_konto) ? '💳' : ''}</span>
           </div>
 
           <!-- Body & Heart Meters -->
-          <div style="
-            display: flex;
+          <div id="hud-stats-box" style="
+            display: ${(s.actOneStarted || s.shift_no >= 0) ? 'flex' : 'none'};
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             background: #F8F9FA;
             border: 1.5px solid #264653;
             border-radius: 8px;
-            padding: 3px 6px;
+            padding: 3px 5px;
             font-size: 10px;
             font-weight: 900;
             font-family: monospace;
+            white-space: nowrap;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           " title="Body Stamina & Heart Morale">
-            <span style="color: ${s.body < 30 ? '#E63946' : '#2A9D8F'};">⚡${s.body !== undefined ? s.body : 100}</span>
-            <span style="color: #666;">|</span>
-            <span style="color: ${s.heart < 30 ? '#E63946' : '#FF006E'};">❤️${s.heart !== undefined ? s.heart : 50}</span>
+            <span id="stat-val-body" style="color: ${s.body < 30 ? '#E63946' : '#2A9D8F'}; transition: color 0.3s ease;">⚡${s.body !== undefined ? s.body : 100}</span>
+            <span style="color: #666; margin: 0 1px;">|</span>
+            <span id="stat-val-heart" style="color: ${s.heart < 30 ? '#E63946' : '#FF006E'}; transition: color 0.3s ease;">❤️${s.heart !== undefined ? s.heart : 50}</span>
           </div>
 
           <!-- Wallet Balance -->
-          <div style="
+          <div id="hud-wallet-box" style="
             background: #F8F9FA;
             border: 2px solid #264653;
             border-radius: 8px;
-            padding: 4px 8px;
+            padding: 4px 6px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             white-space: nowrap;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           ">
             <span style="font-size: 12px;">💶</span>
             <div style="font-size: 11.5px; font-weight: 900; color: #E76F51; font-family: monospace;">
@@ -33206,7 +33633,7 @@ window.FFH.UI = class {
         </div>
 
         <!-- Row 2: Objective Tracker & Personality Archetype Badge -->
-        <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
+        <div style="display: flex; gap: 6px; align-items: stretch; width: 100%;">
           <div id="city-quest-tracker" style="
             box-sizing: border-box;
             flex: 1;
@@ -33220,9 +33647,11 @@ window.FFH.UI = class {
             display: flex;
             align-items: center;
             gap: 6px;
+            opacity: ${s.activeObjective ? 1 : 0};
+            transition: opacity 0.3s ease;
           ">
             <span style="font-size: 13px; flex-shrink: 0;">🎯</span>
-            <span id="city-quest-text" style="line-height: 1.3;">${objectiveText}</span>
+            <span id="city-quest-text" style="line-height: 1.3;">${(s.firstObjectiveRevealed && !s.isTypingObjective) ? objectiveText : ''}</span>
           </div>
 
           <!-- Cumulative Archetype Badge -->
@@ -33238,15 +33667,17 @@ window.FFH.UI = class {
             letter-spacing: 0.5px;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
             white-space: nowrap;
+            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           ">
             ${(() => {
               const d = s.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
               if (d.hustler >= d.bureaucrat && d.hustler >= d.diplomat && d.hustler > 0) return '⚡ Hustler';
               if (d.bureaucrat >= d.hustler && d.bureaucrat >= d.diplomat && d.bureaucrat > 0) return '📑 Bureaucrat';
               if (d.diplomat >= d.hustler && d.diplomat >= d.bureaucrat && d.diplomat > 0) return '🤝 Diplomat';
-              return '🌱 Expat';
+              return '👤 Profile';
             })()}
           </div>
         </div>
@@ -33258,29 +33689,9 @@ window.FFH.UI = class {
         </div>
       </div>
 
-      <!-- TEST NPCS BUTTON -->
-      <button id="btn-test-npc" style="
-        pointer-events: auto;
-        position: absolute;
-        bottom: 25px;
-        right: 15px;
-        background: #FF00FF;
-        color: #FFF;
-        border: 2px solid #000;
-        border-radius: 8px;
-        padding: 8px 12px;
-        font-weight: 900;
-        font-size: 11px;
-        cursor: pointer;
-        box-shadow: 0 4px 0 #880088;
-        z-index: 9999;
-      ">
-        🧪 TEST NPCS
-      </button>
-
-      <!-- Slide-over POI Card (Hidden initially) -->
+      <!-- Slide-over POI Card (Hidden permanently) -->
       <div id="city-poi-card" style="
-        display: none;
+        display: none !important;
         box-sizing: border-box;
         width: calc(100% - 24px);
         background: #FFFFFF;
@@ -33294,7 +33705,6 @@ window.FFH.UI = class {
         box-shadow: 0 12px 32px rgba(0,0,0,0.35);
         z-index: 1000;
         margin: 0 auto 12px auto;
-        display: flex;
         flex-direction: column;
         gap: 8px;
       ">
@@ -33365,24 +33775,9 @@ window.FFH.UI = class {
   }
 
   showPOICard(poiData) {
+    // Disabled — no POI location card popups ever appear
     const card = document.getElementById('city-poi-card');
-    if (!card || !poiData) return;
-
-    this.currentActivePOI = poiData;
-    document.getElementById('poi-card-title').textContent = poiData.name;
-    document.getElementById('poi-card-tag').textContent = poiData.tag || 'District POI';
-    document.getElementById('poi-card-desc').textContent = poiData.desc;
-    
-    const actionBtn = document.getElementById('btn-poi-action');
-    actionBtn.textContent = poiData.action || 'Enter Location';
-    
-    actionBtn.onclick = () => {
-      if (this.poiCallback) {
-        this.poiCallback(poiData.action, poiData);
-      }
-    };
-
-    card.style.display = 'block';
+    if (card) card.style.display = 'none';
   }
 
   showDialogueBox(npcEntry, dialogueData, onOptionChosen) {
@@ -33495,6 +33890,7 @@ window.FFH.UI = class {
         ">${dialogueData.actionIntro}</div>
         ` : ''}
 
+        ${englishText ? `
         <!-- Natural Dialogue Bubble -->
         <div style="
           background: #F4F7F6;
@@ -33510,6 +33906,7 @@ window.FFH.UI = class {
             font-weight: 700;
           "></div>
         </div>
+        ` : ''}
 
         <!-- Natural Conversation Choices inline in scroll stream with smooth fade-in -->
         <div id="dialogue-options-container" style="
@@ -33544,51 +33941,58 @@ window.FFH.UI = class {
         optionsContainer.style.transform = 'translateY(0)';
       }
       // Check if user needs to scroll to see options
-      if (scrollStream.scrollHeight > scrollStream.clientHeight + 15) {
+      if (scrollStream && scrollStream.scrollHeight > scrollStream.clientHeight + 15) {
         if (scrollIndicator) scrollIndicator.style.display = 'flex';
       }
     };
 
-    scrollStream.addEventListener('scroll', () => {
-      const isNearBottom = scrollStream.scrollHeight - scrollStream.scrollTop - scrollStream.clientHeight < 25;
-      if (isNearBottom) {
-        if (scrollIndicator) scrollIndicator.style.display = 'none';
-        if (optionsContainer) {
-          optionsContainer.style.opacity = '1';
-          optionsContainer.style.transform = 'translateY(0)';
+    if (scrollStream) {
+      scrollStream.addEventListener('scroll', () => {
+        const isNearBottom = scrollStream.scrollHeight - scrollStream.scrollTop - scrollStream.clientHeight < 25;
+        if (isNearBottom) {
+          if (scrollIndicator) scrollIndicator.style.display = 'none';
+          if (optionsContainer) {
+            optionsContainer.style.opacity = '1';
+            optionsContainer.style.transform = 'translateY(0)';
+          }
         }
-      }
-    });
+      });
+    }
 
-    box._typewriterTimer = setInterval(() => {
-      if (charIndex < fullSpeech.length) {
-        textTarget.textContent += fullSpeech[charIndex];
-        if (charIndex % 4 === 0 && this.game && this.game.speech) {
-          this.game.speech.playTalkBlip(npcId);
+    if (textTarget) {
+      box._typewriterTimer = setInterval(() => {
+        if (charIndex < fullSpeech.length) {
+          textTarget.textContent += fullSpeech[charIndex];
+          if (charIndex % 4 === 0 && this.game && this.game.speech) {
+            this.game.speech.playTalkBlip(npcId);
+          }
+          charIndex++;
+        } else {
+          clearInterval(box._typewriterTimer);
+          revealOptions();
+          if (scrollStream) {
+            scrollStream.scrollTop = scrollStream.scrollHeight;
+          }
         }
-        charIndex++;
-      } else {
-        clearInterval(box._typewriterTimer);
-        revealOptions();
-        if (scrollStream) {
-          scrollStream.scrollTop = scrollStream.scrollHeight;
-        }
-      }
-    }, 8);
+      }, 8);
 
-    // Clicking anywhere on dialogue skips typewriter to end immediately
-    box.addEventListener('click', (e) => {
-      if (e.target.closest('.dialogue-opt-btn')) return;
-      if (charIndex < fullSpeech.length) {
-        clearInterval(box._typewriterTimer);
-        textTarget.textContent = fullSpeech;
-        charIndex = fullSpeech.length;
-        revealOptions();
-        if (scrollStream) {
-          scrollStream.scrollTop = scrollStream.scrollHeight;
+      // Clicking anywhere on dialogue skips typewriter to end immediately
+      box.addEventListener('click', (e) => {
+        if (e.target.closest('.dialogue-opt-btn')) return;
+        if (charIndex < fullSpeech.length) {
+          clearInterval(box._typewriterTimer);
+          textTarget.textContent = fullSpeech;
+          charIndex = fullSpeech.length;
+          revealOptions();
+          if (scrollStream) {
+            scrollStream.scrollTop = scrollStream.scrollHeight;
+          }
         }
-      }
-    });
+      });
+    } else {
+      // If there's no dialogue text at all, just reveal options instantly
+      revealOptions();
+    }
 
     const buttons = box.querySelectorAll('.dialogue-opt-btn');
     buttons.forEach(btn => {
@@ -33919,57 +34323,56 @@ window.FFH.UI = class {
     div.id = 'story-overlay-container';
     div.style.cssText = `
       position: absolute;
-      top: 0;
+      bottom: 0;
       left: 0;
       right: 0;
-      bottom: 0;
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.88) 100%);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
       z-index: 9500;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
-      padding: 20px 18px 24px 18px;
-      box-sizing: border-box;
       pointer-events: auto;
-      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     `;
 
     const proseHtml = (overlayData.prose || []).map(p => `
       <p style="
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 13.5px;
-        line-height: 1.55;
-        color: #F8FAFC;
-        margin: 0 0 10px 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #1D3557;
+        margin: 0 0 12px 0;
         font-weight: 500;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
       ">${p}</p>
     `).join('');
 
     const choicesHtml = (overlayData.choices || []).map((ch, idx) => `
       <button class="btn-story-choice" data-idx="${ch.idx !== undefined ? ch.idx : idx}" style="
         width: 100%;
-        background: rgba(255, 255, 255, 0.14);
-        border: 1.5px solid rgba(255, 255, 255, 0.35);
-        color: #FFFFFF;
+        background: #FFFFFF;
+        color: #1D3557;
+        border: 2px solid #264653;
+        border-left: 5px solid ${idx === 0 ? '#2EC4B6' : '#E76F51'};
         border-radius: 12px;
         padding: 12px 14px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 13px;
-        font-weight: 700;
+        font-weight: 800;
         cursor: pointer;
         text-align: left;
         line-height: 1.35;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-        transition: all 0.12s ease-in-out;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
         display: flex;
         justify-content: space-between;
         align-items: center;
       ">
         <span>${ch.label}</span>
-        <span style="opacity: 0.8; margin-left: 8px;">➔</span>
       </button>
     `).join('');
 
@@ -33982,16 +34385,13 @@ window.FFH.UI = class {
         flex-direction: column;
         gap: 12px;
       ">
+        ${overlayData.prose && overlayData.prose.length ? `
         <div style="
-          background: rgba(18, 24, 38, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 16px;
-          padding: 14px 16px;
-          max-height: 48vh;
-          overflow-y: auto;
+          margin-bottom: 4px;
         ">
           ${proseHtml}
         </div>
+        ` : ''}
 
         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
           ${choicesHtml}
@@ -35259,6 +35659,7 @@ window.FFH.CityExplorationPhase = class {
     // Dedicated Station Spawn: Cobblestone road right outside ZOB & Hauptbahnhof on North Mainland (x: 4, z: 2)
     this.playerPos = new THREE.Vector3(10.4, 0.05, 5.2);
     this.targetMovePos = null;
+    this.hasFirstInteracted = false;
     this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
     this.playerRadius = 0.4;      // Collision cylinder radius
@@ -35319,7 +35720,7 @@ window.FFH.CityExplorationPhase = class {
     this.onContextMenu = (e) => e.preventDefault();
   }
 
-  enter() {
+  enter(data) {
     // Clear previous scene objects
     while (this.game.scene.children.length > 0) {
       const obj = this.game.scene.children[this.game.scene.children.length - 1];
@@ -35418,16 +35819,8 @@ window.FFH.CityExplorationPhase = class {
     // Initialize Minimap Data
     this.setupMinimap();
 
-    if (this.game.state.currentShift === 1) {
-      if (this.game.state.activeDelivery) {
-        setTimeout(() => {
-          this.game.ui.showTutorialBanner("Follow the pulsing marker on the minimap to deliver the groceries! Tap anywhere to move.", 6000);
-        }, 1000);
-      } else if (this.game.state.questStep === 0) {
-        setTimeout(() => {
-          this.game.ui.showTutorialBanner("Tap the yellow marker to visit Rita Schneider at the University to inspect your enrollment!", 6000);
-        }, 1000);
-      }
+    if (data && data.fromBuildingExit) {
+      this.startBuildingExit();
     }
   }
 
@@ -35873,6 +36266,7 @@ window.FFH.CityExplorationPhase = class {
   }
 
   onPointerDown(e) {
+    if (this.inputDisabled) return;
     if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
     
     this.pointerDownX = e.clientX;
@@ -35904,6 +36298,13 @@ window.FFH.CityExplorationPhase = class {
     
     if (dragDist > 8) {
       this.isDraggingCamera = true;
+      const dx = e.clientX - this.lastPointerX;
+      if (this.manualCameraAngle === undefined) {
+        this.manualCameraAngle = this.camCurrentAngle !== undefined ? this.camCurrentAngle : (Math.PI / 4 + Math.PI);
+      }
+      // Drag horizontally to rotate the camera around the player
+      this.manualCameraAngle -= dx * 0.01;
+      
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
     }
@@ -35926,7 +36327,23 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
+  revealCompass() {
+    this.compassRevealed = true;
+  }
+
   handleSingleOrDoubleTap(e) {
+    if (!this.hasFirstInteracted) {
+      this.hasFirstInteracted = true;
+      if (!this.game.state.firstObjectiveRevealed) {
+        if (this.game.ui && this.game.ui.triggerFirstObjectiveReveal) {
+          this.game.ui.triggerFirstObjectiveReveal();
+        }
+        return; // Consume the very first tap of a new game to introduce the HUD
+      } else {
+        this.revealCompass();
+      }
+    }
+
     const now = Date.now();
     const isDoubleTap = (now - this.lastTapTime < 350);
     this.lastTapTime = now;
@@ -35958,15 +36375,18 @@ window.FFH.CityExplorationPhase = class {
         const poi = root.userData.poi;
         poi.gridX = root.userData.gridX;
         poi.gridZ = root.userData.gridZ;
-
-        if (isDoubleTap) {
-          // Double click/tap to directly enter/interact
-          this.handlePOIAction(poi.action, poi);
-        } else {
-          // Single tap shows inspection card and walks toward building entrance
-          this.game.ui.showPOICard(poi, root.position);
-          this.setMoveTarget(root.position.x, root.position.z);
+        const INTERACT_RADIUS = 4 * (window.FFH.TILE_SCALE || 2.6); // 4 tiles
+        const dist = Math.hypot(root.position.x - this.playerPos.x, root.position.z - this.playerPos.z);
+        
+        if (dist > INTERACT_RADIUS) {
+          if (this.game.ui && this.game.ui.spawnFloatingText) {
+            this.game.ui.spawnFloatingText('Walk closer to interact', e.clientX, e.clientY, '#E76F51');
+          }
+          return;
         }
+
+        // We are close! Start building entry sequence
+        this.startBuildingEntry(root.userData.type, root.position);
         return;
       }
     }
@@ -35976,6 +36396,7 @@ window.FFH.CityExplorationPhase = class {
     if (groundHits.length > 0) {
       const hitPoint = groundHits[0].point;
       this.setMoveTarget(hitPoint.x, hitPoint.z);
+      this.intendedInteractionPoi = null; // Changed mind, cancel building interaction
     }
   }
 
@@ -36062,73 +36483,139 @@ window.FFH.CityExplorationPhase = class {
   updateZoomUI() {}
   removeDebugZoomUI() {}
 
-  handlePOIAction(action, poiData) {
-    if (!poiData) return;
+  getDoorPosition(poiType, fallbackPos) {
+    const locPositions = {
+      'B_ZOB':        { x: 10.4, z:  5.2 },
+      'B_BANK':       { x: 41.6, z:  5.2 },
+      'B_UNI':        { x: 20.8, z: 15.6 },
+      'B_BAKERY':     { x:  7.8, z: 18.2 },
+      'B_BURGTOR':    { x: 36.4, z: 18.2 },
+      'B_RATHAUS':    { x: 23.4, z: 23.4 },
+      'B_PIZZA':      { x: 28.6, z: 23.4 },
+      'B_WG':         { x:  7.8, z: 26.0 },
+      'B_AUSLAENDER': { x: 36.4, z: 26.0 },
+      'B_BIKESHOP':   { x:  7.8, z: 31.2 },
+      'B_KINO':       { x: 26.0, z: 31.2 },
+      'B_HOLSTEN':    { x: 18.2, z: 33.8 },
+      'B_MARIEN':     { x: 57.2, z: 33.8 },
+      'B_DOM':        { x: 26.0, z: 44.2 },
+      'B_DARKSTORE':  { x:  7.8, z: 46.8 }
+    };
+    if (locPositions[poiType]) {
+      return new THREE.Vector3(locPositions[poiType].x, 0, locPositions[poiType].z);
+    }
+    // Fallback: estimate door by pulling slightly toward street
+    return new THREE.Vector3(fallbackPos.x, 0, fallbackPos.z + 2.6);
+  }
 
-    // --- Story Tap Trigger ---
-    // If the story runner is expecting travel to a specific POI, and the
-    // player taps that building, immediately launch the pending scene.
+  startBuildingEntry(poiType, buildingPos) {
+    if (this.isEnteringBuilding) return;
+    this.isEnteringBuilding = true;
+    this.enteringPoiType = poiType;
+    
+    // The door is on the street. The building center is inside.
+    this.enteringDoorPos = this.getDoorPosition(poiType, buildingPos);
+    this.enteringBuildingPos = new THREE.Vector3(buildingPos.x, 0, buildingPos.z);
+    
+    // We start the entry animation from the door (snap to door to guarantee correct alignment)
+    this.playerPos.copy(this.enteringDoorPos);
+    this.enteringStartPos = this.enteringDoorPos.clone();
+    
+    this.enteringTimer = 0;
+    this.inputDisabled = true;
+    this.targetMovePos = null;
+    this.playerPath = [];
+    if (this.targetMarker) this.targetMarker.visible = false;
+    
+    const dx = this.enteringBuildingPos.x - this.enteringDoorPos.x;
+    const dz = this.enteringBuildingPos.z - this.enteringDoorPos.z;
+    const heading = Math.atan2(dx, dz);
+    // Camera behind the player looking at the building
+    this.manualCameraAngle = heading + Math.PI;
+    this.targetCamZoom = 1.35;
+    
+    if (this.courier && this.courier.userData && this.courier.userData.playAction) {
+       this.courier.rotation.y = heading;
+       this.courier.userData.playAction('walk');
+    }
+  }
+
+  triggerBuildingInteraction(poiType) {
     const sr = this.game.storyRunner;
-    if (sr && sr.pendingStoryTarget && poiData.type === sr.pendingStoryTarget.poi) {
+    
+    // Check if it's the pending story target
+    if (sr && sr.pendingStoryTarget && poiType === sr.pendingStoryTarget.poi) {
       const nextSceneId = sr.pendingStoryTarget.sceneId;
       sr.pendingStoryTarget = null;
+      if (this.game.ui && this.game.ui.hideCompassUI) {
+        this.game.ui.hideCompassUI();
+      }
       this.game.state.activeObjective = null;
-      console.log(`CityExploration: Player tapped ${poiData.type}. Launching scene "${nextSceneId}".`);
+      const qt = document.getElementById('city-quest-tracker');
+      if (qt) qt.style.opacity = '0';
+      console.log(`CityExploration: Player tapped ${poiType}. Launching scene "${nextSceneId}".`);
       sr.startScene(nextSceneId);
       return;
-    }
-
-    // Check if this is our active delivery destination!
-    if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
-      const tgt = this.game.state.deliveryTarget;
-      if (poiData.gridX === tgt.gridX && poiData.gridZ === tgt.gridZ) {
-        this.game.transitionTo('DIALOGUE', { isDelivery: true });
-        return;
-      }
     }
 
     let targetNpc = null;
     let storyScene = null;
 
-    if (poiData.name.includes('Universität') || poiData.name.includes('University')) {
+    if (poiType.includes('Universität') || poiType.includes('University') || poiType === 'B_UNI') {
       targetNpc = 'NPC_RITA';
       storyScene = 'rita_first';
-    } else if (poiData.name.includes('Pizzeria') || poiData.name.includes('Pizza')) {
+    } else if (poiType.includes('Pizzeria') || poiType.includes('Pizza') || poiType === 'B_PIZZA') {
       targetNpc = 'NPC_MATHIAS';
       storyScene = 'mathias_loan';
-    } else if (poiData.name.includes('Bakery') || poiData.name.includes('Bäcker')) {
+    } else if (poiType.includes('Bakery') || poiType.includes('Bäcker') || poiType === 'B_BAKERY') {
       targetNpc = 'NPC_MARTHA';
       storyScene = 'martha';
-    } else if (poiData.name.includes('Dark Store') || poiData.name.includes('Kruma')) {
+    } else if (poiType.includes('Dark Store') || poiType.includes('Kruma') || poiType === 'B_DARKSTORE') {
       targetNpc = 'NPC_NINA';
       storyScene = 'knot_money';
-    } else if (poiData.name.includes('Student Sublet') || poiData.name.includes('Apartment') || poiData.name.includes('WG')) {
+    } else if (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG') {
       targetNpc = 'NPC_LOKKER';
       storyScene = 'lokker_kaution';
-    } else if (poiData.name.includes('Hostel') || poiData.name.includes('Dorm')) {
-      targetNpc = 'NPC_NICO';
-      storyScene = 'nico_kitchen';
-    } else if (poiData.name.includes('Rathaus') || poiData.name.includes('Bürgeramt') || poiData.name.includes('Hospital')) {
-      targetNpc = 'NPC_VOGEL';
-      storyScene = 'knot_paper';
-    } else if (poiData.name.includes('Bank') || poiData.name.includes('Sparkasse') || poiData.name.includes('Späti')) {
+    } else if (poiType.includes('Hostel') || poiType.includes('Dorm')) {
       targetNpc = 'NPC_WEBER';
       storyScene = 'the_circle_2';
-    } else if (poiData.name.includes('Ausländer') || poiData.name.includes('Office') || poiData.name.includes('Dom')) {
+    } else if (poiType.includes('Ausländer') || poiType.includes('Office') || poiType.includes('Dom') || poiType === 'B_AUSLAENDER') {
       targetNpc = 'NPC_LINDEMANN';
       storyScene = 'act_five';
     }
 
-    if (this.game.storyRunner && storyScene && (this.game.storyRunner.scenesById ? this.game.storyRunner.scenesById[storyScene] : this.game.storyRunner.scenes[storyScene])) {
-      this.game.storyRunner.startScene(storyScene);
+    if (sr && storyScene && (sr.scenesById ? sr.scenesById[storyScene] : sr.scenes[storyScene])) {
+      sr.startScene(storyScene);
     } else if (targetNpc) {
       this.game.transitionTo('DIALOGUE', { npcKey: targetNpc });
     } else {
-      this.game.ui.spawnFloatingText(`Visited: ${poiData.name}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+      this.game.ui.spawnFloatingText(`Visited: ${poiType}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
       if (this.game.sfx && this.game.sfx.playSfx) {
         this.game.sfx.playSfx('success');
       }
+      // Since there's no scene transition, immediately bounce back out
+      this.isEnteringBuilding = false;
+      this.inputDisabled = false;
+      this.startBuildingExit();
     }
+  }
+
+  handlePOIAction(action, poiData) {
+    if (!poiData) return;
+    
+    const INTERACT_RADIUS = 4 * (window.FFH.TILE_SCALE || 2.6); // 4 tiles
+    const buildingPos = poiData.mesh ? poiData.mesh.position : (poiData.worldPos || { x: (poiData.gridX || 0) * 2.6, z: (poiData.gridZ || 0) * 2.6 });
+    const dist = Math.sqrt(
+      Math.pow(this.playerPos.x - buildingPos.x, 2) + 
+      Math.pow(this.playerPos.z - buildingPos.z, 2)
+    );
+    
+    if (dist > INTERACT_RADIUS) {
+      this.targetMovePos = { x: buildingPos.x, z: buildingPos.z };
+      return;
+    }
+
+    this.startBuildingEntry(poiData.type || poiData.name, buildingPos);
   }
 
   checkBuildingCollision(posX, posZ) {
@@ -36145,7 +36632,97 @@ window.FFH.CityExplorationPhase = class {
     return false;
   }
 
+  startBuildingExit() {
+    this.isExitingBuilding = true;
+    this.enteringTimer = 0;
+    this.inputDisabled = true;
+    
+    if (this.enteringPoiType && this.enteringBuildingPos) {
+      // We know exactly where the door is!
+      this.exitingStartPos = this.enteringBuildingPos.clone();
+      this.exitingTargetPos = this.enteringDoorPos.clone();
+      this.playerPos.copy(this.exitingStartPos);
+      
+      const dx = this.exitingTargetPos.x - this.exitingStartPos.x;
+      const dz = this.exitingTargetPos.z - this.exitingStartPos.z;
+      const heading = Math.atan2(dx, dz);
+      
+      if (this.courier) {
+        this.courier.scale.setScalar(0.01);
+        this.courier.rotation.y = heading;
+      }
+      this.manualCameraAngle = heading; // Camera looking back at player
+    } else {
+      // Fallback if enteringPoiType is lost (shouldn't happen)
+      if (this.courier) {
+        this.courier.scale.setScalar(0.01);
+        this.courier.rotation.y += Math.PI; 
+        this.exitingStartPos = this.playerPos.clone();
+        const exitDir = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.courier.rotation.y);
+        this.exitingTargetPos = this.playerPos.clone().add(exitDir.multiplyScalar(2.5));
+        this.manualCameraAngle = this.courier.rotation.y;
+      }
+    }
+    
+    this.targetCamZoom = 1.25;
+    this.updateCamera(true); // Snap immediately
+  }
+
   update(delta) {
+    if (this.isEnteringBuilding) {
+      this.enteringTimer += delta;
+      const progress = Math.min(this.enteringTimer / 1.5, 1.0);
+      
+      this.playerPos.lerpVectors(this.enteringStartPos, this.enteringBuildingPos, progress);
+      if (this.courier) {
+        this.courier.position.copy(this.playerPos);
+        const dx = this.enteringBuildingPos.x - this.playerPos.x;
+        const dz = this.enteringBuildingPos.z - this.playerPos.z;
+        if (Math.hypot(dx, dz) > 0.1) {
+           this.courier.rotation.y = Math.atan2(dx, dz);
+        }
+        this.courier.scale.setScalar(1.0 - progress);
+      }
+      
+      if (progress >= 1.0) {
+         this.isEnteringBuilding = false;
+         this.inputDisabled = false;
+         if (this.courier) this.courier.scale.setScalar(1.0);
+         this.triggerBuildingInteraction(this.enteringPoiType);
+      }
+      this.updateCamera(false);
+      return;
+    }
+
+    if (this.isExitingBuilding) {
+      this.enteringTimer += delta;
+      const progress = Math.min(this.enteringTimer / 1.5, 1.0);
+      
+      this.playerPos.lerpVectors(this.exitingStartPos, this.exitingTargetPos, progress);
+      if (this.courier) {
+        this.courier.position.copy(this.playerPos);
+        this.courier.scale.setScalar(progress);
+        if (this.courier.userData && this.courier.userData.playAction) {
+           this.courier.userData.playAction('walk');
+        }
+      }
+      
+      if (progress >= 1.0) {
+         this.isExitingBuilding = false;
+         this.inputDisabled = false;
+         if (this.courier) {
+            this.courier.scale.setScalar(1.0);
+            if (this.courier.userData && this.courier.userData.playAction) {
+               this.courier.userData.playAction('idle');
+            }
+         }
+         this.manualCameraAngle = undefined; // Return camera to normal isometric follow
+         this.targetCamZoom = 1.15;
+      }
+      this.updateCamera(false);
+      return;
+    }
+
     const timeSec = this.game.clock.getElapsedTime();
 
     // 1. Water waves & Cel Shading
@@ -36158,8 +36735,8 @@ window.FFH.CityExplorationPhase = class {
       }
     }
 
-    // 2. Day-Night cycle
-    this.updateAtmosphericTime((this.timeOfDay + delta * 0.008) % 1.0);
+    // Time of day is now strictly event-driven (controlled by storyRunner and shifts)
+    // this.updateAtmosphericTime((this.timeOfDay + delta * 0.008) % 1.0);
 
     // 3. Move Floating Clouds
     this.clouds.forEach(cloud => {
@@ -36317,7 +36894,7 @@ window.FFH.CityExplorationPhase = class {
       
       // Accumulate idle time for camera drift
       this.idleTimer += delta;
-      if (this.idleTimer > 3.0) {
+      if (this.idleTimer > 60.0) {
         this.idleDriftAngle += delta * 0.12;
       }
     }
@@ -36336,23 +36913,18 @@ window.FFH.CityExplorationPhase = class {
     const TUITION_GOAL = window.FFH.ECONOMY?.TUITION_GOAL || 250;
 
     // --- Highest priority: story is waiting for player to travel to a new location ---
+    // --- Target navigation marker is exclusively active when pendingStoryTarget or activeDelivery is set ---
     const sr = this.game.storyRunner;
     if (sr && sr.pendingStoryTarget) {
       targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
     } else if (this.game.state.wallet >= TUITION_GOAL) {
-      // 4.5 Win Condition: Highlight University Registry when wallet hits €250
       targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
     } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
       const tgt = this.game.state.deliveryTarget;
       targetMesh = this.interactiveMeshes.find(m => m.userData.gridX === tgt.gridX && m.userData.gridZ === tgt.gridZ);
-    } else if (this.game.state.questStep < 4 && this.game.state.currentShift === 1) {
-      const currentQuest = window.FFH.prologueQuests[this.game.state.questStep];
-      if (currentQuest) {
-        targetMesh = this.interactiveMeshes.find(m => m.userData.type === currentQuest.targetPoi);
-      }
     }
 
-    if (targetMesh && this.questHintMarker) {
+    if (targetMesh && this.questHintMarker && (this.compassRevealed || this.game.state.firstObjectiveRevealed)) {
       this.questHintMarker.visible = true;
       this.questHintMarker.position.set(targetMesh.position.x, 0, targetMesh.position.z);
       
@@ -36486,25 +37058,6 @@ window.FFH.CityExplorationPhase = class {
         this.game.ui.updateCityExplorerHUD(0, 0, false);
       }
 
-      // --- Story Proximity Trigger ---
-      // If the story runner is waiting for the player to reach a new location,
-      // check every frame. Trigger the pending scene when close enough.
-      const sr = this.game.storyRunner;
-      if (sr && sr.pendingStoryTarget) {
-        const storyMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
-        if (storyMesh) {
-          const sdx = storyMesh.position.x - this.playerPos.x;
-          const sdz = storyMesh.position.z - this.playerPos.z;
-          const sDist = Math.sqrt(sdx * sdx + sdz * sdz);
-          if (sDist < 4.0) {
-            const nextSceneId = sr.pendingStoryTarget.sceneId;
-            sr.pendingStoryTarget = null;
-            this.game.state.activeObjective = null;
-            console.log(`CityExploration: Player reached ${storyMesh.userData.type}. Launching scene "${nextSceneId}".`);
-            sr.startScene(nextSceneId);
-          }
-        }
-      }
     }
   }
 
@@ -36564,30 +37117,64 @@ window.FFH.CityExplorationPhase = class {
     const cam = this.game.currentCamera;
     if (!cam) return;
 
+    // Default closer 3rd-person ground zoom level
+    if (!this.camZoom) this.camZoom = 1.15;
+    if (!this.targetCamZoom) this.targetCamZoom = 1.15;
+
     // Smoothly interpolate zoom on OrthographicCamera
-    this.camZoom = THREE.MathUtils.lerp(this.camZoom || 1.0, this.targetCamZoom || 1.0, 0.15);
+    this.camZoom = THREE.MathUtils.lerp(this.camZoom, this.targetCamZoom, 0.15);
     if (Math.abs(cam.zoom - this.camZoom) > 0.001) {
       cam.zoom = this.camZoom;
       cam.updateProjectionMatrix();
     }
 
-    // Messenger-Style Dynamic Distance & Pitch Interpolation
-    // Zoom factor: 0.0 (wide diorama overview) to 1.0 (close Messenger ground follow)
     const zoomFactor = THREE.MathUtils.clamp((this.camZoom - 0.50) / (1.35 - 0.50), 0, 1);
 
-    // Zoomed out: high 50° angle (15, 20, 15). Zoomed in: intimate 22° angle (5, 5, 5)
-    const baseOffsetX = THREE.MathUtils.lerp(15.0, 5.0, zoomFactor);
-    const baseOffsetY = THREE.MathUtils.lerp(20.0, 5.5, zoomFactor);
-    const baseOffsetZ = THREE.MathUtils.lerp(15.0, 5.0, zoomFactor);
+    // Intimate 3rd-person distances
+    const baseDistance = THREE.MathUtils.lerp(12.0, 4.5, zoomFactor);
+    const baseHeight = THREE.MathUtils.lerp(14.0, 4.2, zoomFactor);
 
-    // Apply idle camera orbital drift when player stands still
-    const drift = this.idleDriftAngle || 0;
-    const offsetX = baseOffsetX * Math.cos(drift) - baseOffsetZ * Math.sin(drift);
-    const offsetZ = baseOffsetX * Math.sin(drift) + baseOffsetZ * Math.cos(drift);
-    const offsetY = baseOffsetY;
+    // Determine target camera angle:
+    // If cameraHoldTimer is active, hold the angle.
+    // Otherwise, rotate camera smoothly behind the player's movement heading.
+    if (this.cameraHoldTimer > 0) {
+      this.cameraHoldTimer -= 0.016;
+    }
+
+    const isMoving = this.targetMovePos !== null;
+    let targetAngle = (this.playerHeading !== undefined ? this.playerHeading : Math.PI / 4) + Math.PI;
+
+    // Use manual rotation if the user has dragged the camera
+    if (this.manualCameraAngle !== undefined) {
+      targetAngle = this.manualCameraAngle;
+    }
+
+    // Idle camera mode: After 60 seconds of no interaction, zoom out and spin
+    if (this.idleTimer > 60.0) {
+      targetAngle += this.idleDriftAngle;
+      this.targetCamZoom = 0.52; // Diorama overview zoom
+    } else {
+      // Ensure we stay closely zoomed in (unless player manually toggled overview)
+      if (this.targetCamZoom < 0.7 && this.idleTimer < 0.5 && isMoving) {
+          // If we were in idle overview and started moving, snap back to intimate view
+          this.targetCamZoom = 1.15;
+      }
+    }
+    
+    if (isMoving) {
+      this.cameraHoldTimer = 0; // Cancel hold if player starts walking
+    }
+
+    // Smoothly rotate camera angle
+    if (!this.camCurrentAngle) this.camCurrentAngle = targetAngle;
+    this.camCurrentAngle = THREE.MathUtils.lerp(this.camCurrentAngle, targetAngle, snap ? 1.0 : 0.06);
+
+    const offsetX = Math.sin(this.camCurrentAngle) * baseDistance;
+    const offsetZ = Math.cos(this.camCurrentAngle) * baseDistance;
+    const offsetY = baseHeight;
 
     const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
-    const lookTargetY = this.playerPos.y;
+    const lookTargetY = this.playerPos.y + 0.6; // look at chest/head height
     const lookTargetZ = this.playerPos.z + (this.cameraPanOffset ? this.cameraPanOffset.z : 0);
 
     const camX = lookTargetX + offsetX;
@@ -36597,7 +37184,7 @@ window.FFH.CityExplorationPhase = class {
     if (snap) {
       cam.position.set(camX, camY, camZ);
     } else {
-      const lerpSpeed = snap ? 1.0 : 0.1;
+      const lerpSpeed = 0.12;
       cam.position.x = THREE.MathUtils.lerp(cam.position.x, camX, lerpSpeed);
       cam.position.y = THREE.MathUtils.lerp(cam.position.y, camY, lerpSpeed);
       cam.position.z = THREE.MathUtils.lerp(cam.position.z, camZ, lerpSpeed);
@@ -37106,13 +37693,15 @@ class GameEngine {
     // Render loop - gently pan the title camera around the city on the boot screen
     if (this.titleDiorama && !this.currentPhase) {
       const t = this.clock.getElapsedTime();
-      const radius = 28;
+      const radius = 12; // Adjusted for 0.52 zoom
       const cam = this.cameras.mainCamera;
       if (cam) {
-        cam.position.x = 20 + Math.sin(t * 0.04) * radius;
-        cam.position.z = 26 + Math.cos(t * 0.04) * radius;
-        cam.position.y = 16 + Math.sin(t * 0.025) * 3;
-        cam.lookAt(20, 1, 14);
+        cam.zoom = 0.52;
+        cam.updateProjectionMatrix();
+        cam.position.x = 10.4 + Math.sin(t * 0.04) * radius;
+        cam.position.z = 5.2 + Math.cos(t * 0.04) * radius;
+        cam.position.y = 14 + Math.sin(t * 0.025) * 1.5;
+        cam.lookAt(10.4, 0.05, 5.2);
       }
       // Animate water on title screen too
       if (this.titleWaterMat && this.titleWaterMat.uniforms && this.titleWaterMat.uniforms.time) {

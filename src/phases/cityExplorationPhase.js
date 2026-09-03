@@ -24,6 +24,7 @@ window.FFH.CityExplorationPhase = class {
     // Dedicated Station Spawn: Cobblestone road right outside ZOB & Hauptbahnhof on North Mainland (x: 4, z: 2)
     this.playerPos = new THREE.Vector3(10.4, 0.05, 5.2);
     this.targetMovePos = null;
+    this.hasFirstInteracted = false;
     this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
     this.playerRadius = 0.4;      // Collision cylinder radius
@@ -84,7 +85,7 @@ window.FFH.CityExplorationPhase = class {
     this.onContextMenu = (e) => e.preventDefault();
   }
 
-  enter() {
+  enter(data) {
     // Clear previous scene objects
     while (this.game.scene.children.length > 0) {
       const obj = this.game.scene.children[this.game.scene.children.length - 1];
@@ -183,16 +184,8 @@ window.FFH.CityExplorationPhase = class {
     // Initialize Minimap Data
     this.setupMinimap();
 
-    if (this.game.state.currentShift === 1) {
-      if (this.game.state.activeDelivery) {
-        setTimeout(() => {
-          this.game.ui.showTutorialBanner("Follow the pulsing marker on the minimap to deliver the groceries! Tap anywhere to move.", 6000);
-        }, 1000);
-      } else if (this.game.state.questStep === 0) {
-        setTimeout(() => {
-          this.game.ui.showTutorialBanner("Tap the yellow marker to visit Rita Schneider at the University to inspect your enrollment!", 6000);
-        }, 1000);
-      }
+    if (data && data.fromBuildingExit) {
+      this.startBuildingExit();
     }
   }
 
@@ -638,6 +631,7 @@ window.FFH.CityExplorationPhase = class {
   }
 
   onPointerDown(e) {
+    if (this.inputDisabled) return;
     if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
     
     this.pointerDownX = e.clientX;
@@ -669,6 +663,13 @@ window.FFH.CityExplorationPhase = class {
     
     if (dragDist > 8) {
       this.isDraggingCamera = true;
+      const dx = e.clientX - this.lastPointerX;
+      if (this.manualCameraAngle === undefined) {
+        this.manualCameraAngle = this.camCurrentAngle !== undefined ? this.camCurrentAngle : (Math.PI / 4 + Math.PI);
+      }
+      // Drag horizontally to rotate the camera around the player
+      this.manualCameraAngle -= dx * 0.01;
+      
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;
     }
@@ -691,7 +692,23 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
+  revealCompass() {
+    this.compassRevealed = true;
+  }
+
   handleSingleOrDoubleTap(e) {
+    if (!this.hasFirstInteracted) {
+      this.hasFirstInteracted = true;
+      if (!this.game.state.firstObjectiveRevealed) {
+        if (this.game.ui && this.game.ui.triggerFirstObjectiveReveal) {
+          this.game.ui.triggerFirstObjectiveReveal();
+        }
+        return; // Consume the very first tap of a new game to introduce the HUD
+      } else {
+        this.revealCompass();
+      }
+    }
+
     const now = Date.now();
     const isDoubleTap = (now - this.lastTapTime < 350);
     this.lastTapTime = now;
@@ -723,15 +740,18 @@ window.FFH.CityExplorationPhase = class {
         const poi = root.userData.poi;
         poi.gridX = root.userData.gridX;
         poi.gridZ = root.userData.gridZ;
-
-        if (isDoubleTap) {
-          // Double click/tap to directly enter/interact
-          this.handlePOIAction(poi.action, poi);
-        } else {
-          // Single tap shows inspection card and walks toward building entrance
-          this.game.ui.showPOICard(poi, root.position);
-          this.setMoveTarget(root.position.x, root.position.z);
+        const INTERACT_RADIUS = 4 * (window.FFH.TILE_SCALE || 2.6); // 4 tiles
+        const dist = Math.hypot(root.position.x - this.playerPos.x, root.position.z - this.playerPos.z);
+        
+        if (dist > INTERACT_RADIUS) {
+          if (this.game.ui && this.game.ui.spawnFloatingText) {
+            this.game.ui.spawnFloatingText('Walk closer to interact', e.clientX, e.clientY, '#E76F51');
+          }
+          return;
         }
+
+        // We are close! Start building entry sequence
+        this.startBuildingEntry(root.userData.type, root.position);
         return;
       }
     }
@@ -741,6 +761,7 @@ window.FFH.CityExplorationPhase = class {
     if (groundHits.length > 0) {
       const hitPoint = groundHits[0].point;
       this.setMoveTarget(hitPoint.x, hitPoint.z);
+      this.intendedInteractionPoi = null; // Changed mind, cancel building interaction
     }
   }
 
@@ -827,73 +848,139 @@ window.FFH.CityExplorationPhase = class {
   updateZoomUI() {}
   removeDebugZoomUI() {}
 
-  handlePOIAction(action, poiData) {
-    if (!poiData) return;
+  getDoorPosition(poiType, fallbackPos) {
+    const locPositions = {
+      'B_ZOB':        { x: 10.4, z:  5.2 },
+      'B_BANK':       { x: 41.6, z:  5.2 },
+      'B_UNI':        { x: 20.8, z: 15.6 },
+      'B_BAKERY':     { x:  7.8, z: 18.2 },
+      'B_BURGTOR':    { x: 36.4, z: 18.2 },
+      'B_RATHAUS':    { x: 23.4, z: 23.4 },
+      'B_PIZZA':      { x: 28.6, z: 23.4 },
+      'B_WG':         { x:  7.8, z: 26.0 },
+      'B_AUSLAENDER': { x: 36.4, z: 26.0 },
+      'B_BIKESHOP':   { x:  7.8, z: 31.2 },
+      'B_KINO':       { x: 26.0, z: 31.2 },
+      'B_HOLSTEN':    { x: 18.2, z: 33.8 },
+      'B_MARIEN':     { x: 57.2, z: 33.8 },
+      'B_DOM':        { x: 26.0, z: 44.2 },
+      'B_DARKSTORE':  { x:  7.8, z: 46.8 }
+    };
+    if (locPositions[poiType]) {
+      return new THREE.Vector3(locPositions[poiType].x, 0, locPositions[poiType].z);
+    }
+    // Fallback: estimate door by pulling slightly toward street
+    return new THREE.Vector3(fallbackPos.x, 0, fallbackPos.z + 2.6);
+  }
 
-    // --- Story Tap Trigger ---
-    // If the story runner is expecting travel to a specific POI, and the
-    // player taps that building, immediately launch the pending scene.
+  startBuildingEntry(poiType, buildingPos) {
+    if (this.isEnteringBuilding) return;
+    this.isEnteringBuilding = true;
+    this.enteringPoiType = poiType;
+    
+    // The door is on the street. The building center is inside.
+    this.enteringDoorPos = this.getDoorPosition(poiType, buildingPos);
+    this.enteringBuildingPos = new THREE.Vector3(buildingPos.x, 0, buildingPos.z);
+    
+    // We start the entry animation from the door (snap to door to guarantee correct alignment)
+    this.playerPos.copy(this.enteringDoorPos);
+    this.enteringStartPos = this.enteringDoorPos.clone();
+    
+    this.enteringTimer = 0;
+    this.inputDisabled = true;
+    this.targetMovePos = null;
+    this.playerPath = [];
+    if (this.targetMarker) this.targetMarker.visible = false;
+    
+    const dx = this.enteringBuildingPos.x - this.enteringDoorPos.x;
+    const dz = this.enteringBuildingPos.z - this.enteringDoorPos.z;
+    const heading = Math.atan2(dx, dz);
+    // Camera behind the player looking at the building
+    this.manualCameraAngle = heading + Math.PI;
+    this.targetCamZoom = 1.35;
+    
+    if (this.courier && this.courier.userData && this.courier.userData.playAction) {
+       this.courier.rotation.y = heading;
+       this.courier.userData.playAction('walk');
+    }
+  }
+
+  triggerBuildingInteraction(poiType) {
     const sr = this.game.storyRunner;
-    if (sr && sr.pendingStoryTarget && poiData.type === sr.pendingStoryTarget.poi) {
+    
+    // Check if it's the pending story target
+    if (sr && sr.pendingStoryTarget && poiType === sr.pendingStoryTarget.poi) {
       const nextSceneId = sr.pendingStoryTarget.sceneId;
       sr.pendingStoryTarget = null;
+      if (this.game.ui && this.game.ui.hideCompassUI) {
+        this.game.ui.hideCompassUI();
+      }
       this.game.state.activeObjective = null;
-      console.log(`CityExploration: Player tapped ${poiData.type}. Launching scene "${nextSceneId}".`);
+      const qt = document.getElementById('city-quest-tracker');
+      if (qt) qt.style.opacity = '0';
+      console.log(`CityExploration: Player tapped ${poiType}. Launching scene "${nextSceneId}".`);
       sr.startScene(nextSceneId);
       return;
-    }
-
-    // Check if this is our active delivery destination!
-    if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
-      const tgt = this.game.state.deliveryTarget;
-      if (poiData.gridX === tgt.gridX && poiData.gridZ === tgt.gridZ) {
-        this.game.transitionTo('DIALOGUE', { isDelivery: true });
-        return;
-      }
     }
 
     let targetNpc = null;
     let storyScene = null;
 
-    if (poiData.name.includes('Universität') || poiData.name.includes('University')) {
+    if (poiType.includes('Universität') || poiType.includes('University') || poiType === 'B_UNI') {
       targetNpc = 'NPC_RITA';
       storyScene = 'rita_first';
-    } else if (poiData.name.includes('Pizzeria') || poiData.name.includes('Pizza')) {
+    } else if (poiType.includes('Pizzeria') || poiType.includes('Pizza') || poiType === 'B_PIZZA') {
       targetNpc = 'NPC_MATHIAS';
       storyScene = 'mathias_loan';
-    } else if (poiData.name.includes('Bakery') || poiData.name.includes('Bäcker')) {
+    } else if (poiType.includes('Bakery') || poiType.includes('Bäcker') || poiType === 'B_BAKERY') {
       targetNpc = 'NPC_MARTHA';
       storyScene = 'martha';
-    } else if (poiData.name.includes('Dark Store') || poiData.name.includes('Kruma')) {
+    } else if (poiType.includes('Dark Store') || poiType.includes('Kruma') || poiType === 'B_DARKSTORE') {
       targetNpc = 'NPC_NINA';
       storyScene = 'knot_money';
-    } else if (poiData.name.includes('Student Sublet') || poiData.name.includes('Apartment') || poiData.name.includes('WG')) {
+    } else if (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG') {
       targetNpc = 'NPC_LOKKER';
       storyScene = 'lokker_kaution';
-    } else if (poiData.name.includes('Hostel') || poiData.name.includes('Dorm')) {
-      targetNpc = 'NPC_NICO';
-      storyScene = 'nico_kitchen';
-    } else if (poiData.name.includes('Rathaus') || poiData.name.includes('Bürgeramt') || poiData.name.includes('Hospital')) {
-      targetNpc = 'NPC_VOGEL';
-      storyScene = 'knot_paper';
-    } else if (poiData.name.includes('Bank') || poiData.name.includes('Sparkasse') || poiData.name.includes('Späti')) {
+    } else if (poiType.includes('Hostel') || poiType.includes('Dorm')) {
       targetNpc = 'NPC_WEBER';
       storyScene = 'the_circle_2';
-    } else if (poiData.name.includes('Ausländer') || poiData.name.includes('Office') || poiData.name.includes('Dom')) {
+    } else if (poiType.includes('Ausländer') || poiType.includes('Office') || poiType.includes('Dom') || poiType === 'B_AUSLAENDER') {
       targetNpc = 'NPC_LINDEMANN';
       storyScene = 'act_five';
     }
 
-    if (this.game.storyRunner && storyScene && (this.game.storyRunner.scenesById ? this.game.storyRunner.scenesById[storyScene] : this.game.storyRunner.scenes[storyScene])) {
-      this.game.storyRunner.startScene(storyScene);
+    if (sr && storyScene && (sr.scenesById ? sr.scenesById[storyScene] : sr.scenes[storyScene])) {
+      sr.startScene(storyScene);
     } else if (targetNpc) {
       this.game.transitionTo('DIALOGUE', { npcKey: targetNpc });
     } else {
-      this.game.ui.spawnFloatingText(`Visited: ${poiData.name}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+      this.game.ui.spawnFloatingText(`Visited: ${poiType}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
       if (this.game.sfx && this.game.sfx.playSfx) {
         this.game.sfx.playSfx('success');
       }
+      // Since there's no scene transition, immediately bounce back out
+      this.isEnteringBuilding = false;
+      this.inputDisabled = false;
+      this.startBuildingExit();
     }
+  }
+
+  handlePOIAction(action, poiData) {
+    if (!poiData) return;
+    
+    const INTERACT_RADIUS = 4 * (window.FFH.TILE_SCALE || 2.6); // 4 tiles
+    const buildingPos = poiData.mesh ? poiData.mesh.position : (poiData.worldPos || { x: (poiData.gridX || 0) * 2.6, z: (poiData.gridZ || 0) * 2.6 });
+    const dist = Math.sqrt(
+      Math.pow(this.playerPos.x - buildingPos.x, 2) + 
+      Math.pow(this.playerPos.z - buildingPos.z, 2)
+    );
+    
+    if (dist > INTERACT_RADIUS) {
+      this.targetMovePos = { x: buildingPos.x, z: buildingPos.z };
+      return;
+    }
+
+    this.startBuildingEntry(poiData.type || poiData.name, buildingPos);
   }
 
   checkBuildingCollision(posX, posZ) {
@@ -910,7 +997,97 @@ window.FFH.CityExplorationPhase = class {
     return false;
   }
 
+  startBuildingExit() {
+    this.isExitingBuilding = true;
+    this.enteringTimer = 0;
+    this.inputDisabled = true;
+    
+    if (this.enteringPoiType && this.enteringBuildingPos) {
+      // We know exactly where the door is!
+      this.exitingStartPos = this.enteringBuildingPos.clone();
+      this.exitingTargetPos = this.enteringDoorPos.clone();
+      this.playerPos.copy(this.exitingStartPos);
+      
+      const dx = this.exitingTargetPos.x - this.exitingStartPos.x;
+      const dz = this.exitingTargetPos.z - this.exitingStartPos.z;
+      const heading = Math.atan2(dx, dz);
+      
+      if (this.courier) {
+        this.courier.scale.setScalar(0.01);
+        this.courier.rotation.y = heading;
+      }
+      this.manualCameraAngle = heading; // Camera looking back at player
+    } else {
+      // Fallback if enteringPoiType is lost (shouldn't happen)
+      if (this.courier) {
+        this.courier.scale.setScalar(0.01);
+        this.courier.rotation.y += Math.PI; 
+        this.exitingStartPos = this.playerPos.clone();
+        const exitDir = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.courier.rotation.y);
+        this.exitingTargetPos = this.playerPos.clone().add(exitDir.multiplyScalar(2.5));
+        this.manualCameraAngle = this.courier.rotation.y;
+      }
+    }
+    
+    this.targetCamZoom = 1.25;
+    this.updateCamera(true); // Snap immediately
+  }
+
   update(delta) {
+    if (this.isEnteringBuilding) {
+      this.enteringTimer += delta;
+      const progress = Math.min(this.enteringTimer / 1.5, 1.0);
+      
+      this.playerPos.lerpVectors(this.enteringStartPos, this.enteringBuildingPos, progress);
+      if (this.courier) {
+        this.courier.position.copy(this.playerPos);
+        const dx = this.enteringBuildingPos.x - this.playerPos.x;
+        const dz = this.enteringBuildingPos.z - this.playerPos.z;
+        if (Math.hypot(dx, dz) > 0.1) {
+           this.courier.rotation.y = Math.atan2(dx, dz);
+        }
+        this.courier.scale.setScalar(1.0 - progress);
+      }
+      
+      if (progress >= 1.0) {
+         this.isEnteringBuilding = false;
+         this.inputDisabled = false;
+         if (this.courier) this.courier.scale.setScalar(1.0);
+         this.triggerBuildingInteraction(this.enteringPoiType);
+      }
+      this.updateCamera(false);
+      return;
+    }
+
+    if (this.isExitingBuilding) {
+      this.enteringTimer += delta;
+      const progress = Math.min(this.enteringTimer / 1.5, 1.0);
+      
+      this.playerPos.lerpVectors(this.exitingStartPos, this.exitingTargetPos, progress);
+      if (this.courier) {
+        this.courier.position.copy(this.playerPos);
+        this.courier.scale.setScalar(progress);
+        if (this.courier.userData && this.courier.userData.playAction) {
+           this.courier.userData.playAction('walk');
+        }
+      }
+      
+      if (progress >= 1.0) {
+         this.isExitingBuilding = false;
+         this.inputDisabled = false;
+         if (this.courier) {
+            this.courier.scale.setScalar(1.0);
+            if (this.courier.userData && this.courier.userData.playAction) {
+               this.courier.userData.playAction('idle');
+            }
+         }
+         this.manualCameraAngle = undefined; // Return camera to normal isometric follow
+         this.targetCamZoom = 1.15;
+      }
+      this.updateCamera(false);
+      return;
+    }
+
     const timeSec = this.game.clock.getElapsedTime();
 
     // 1. Water waves & Cel Shading
@@ -923,8 +1100,8 @@ window.FFH.CityExplorationPhase = class {
       }
     }
 
-    // 2. Day-Night cycle
-    this.updateAtmosphericTime((this.timeOfDay + delta * 0.008) % 1.0);
+    // Time of day is now strictly event-driven (controlled by storyRunner and shifts)
+    // this.updateAtmosphericTime((this.timeOfDay + delta * 0.008) % 1.0);
 
     // 3. Move Floating Clouds
     this.clouds.forEach(cloud => {
@@ -1082,7 +1259,7 @@ window.FFH.CityExplorationPhase = class {
       
       // Accumulate idle time for camera drift
       this.idleTimer += delta;
-      if (this.idleTimer > 3.0) {
+      if (this.idleTimer > 60.0) {
         this.idleDriftAngle += delta * 0.12;
       }
     }
@@ -1101,23 +1278,18 @@ window.FFH.CityExplorationPhase = class {
     const TUITION_GOAL = window.FFH.ECONOMY?.TUITION_GOAL || 250;
 
     // --- Highest priority: story is waiting for player to travel to a new location ---
+    // --- Target navigation marker is exclusively active when pendingStoryTarget or activeDelivery is set ---
     const sr = this.game.storyRunner;
     if (sr && sr.pendingStoryTarget) {
       targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
     } else if (this.game.state.wallet >= TUITION_GOAL) {
-      // 4.5 Win Condition: Highlight University Registry when wallet hits €250
       targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
     } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
       const tgt = this.game.state.deliveryTarget;
       targetMesh = this.interactiveMeshes.find(m => m.userData.gridX === tgt.gridX && m.userData.gridZ === tgt.gridZ);
-    } else if (this.game.state.questStep < 4 && this.game.state.currentShift === 1) {
-      const currentQuest = window.FFH.prologueQuests[this.game.state.questStep];
-      if (currentQuest) {
-        targetMesh = this.interactiveMeshes.find(m => m.userData.type === currentQuest.targetPoi);
-      }
     }
 
-    if (targetMesh && this.questHintMarker) {
+    if (targetMesh && this.questHintMarker && (this.compassRevealed || this.game.state.firstObjectiveRevealed)) {
       this.questHintMarker.visible = true;
       this.questHintMarker.position.set(targetMesh.position.x, 0, targetMesh.position.z);
       
@@ -1251,25 +1423,6 @@ window.FFH.CityExplorationPhase = class {
         this.game.ui.updateCityExplorerHUD(0, 0, false);
       }
 
-      // --- Story Proximity Trigger ---
-      // If the story runner is waiting for the player to reach a new location,
-      // check every frame. Trigger the pending scene when close enough.
-      const sr = this.game.storyRunner;
-      if (sr && sr.pendingStoryTarget) {
-        const storyMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
-        if (storyMesh) {
-          const sdx = storyMesh.position.x - this.playerPos.x;
-          const sdz = storyMesh.position.z - this.playerPos.z;
-          const sDist = Math.sqrt(sdx * sdx + sdz * sdz);
-          if (sDist < 4.0) {
-            const nextSceneId = sr.pendingStoryTarget.sceneId;
-            sr.pendingStoryTarget = null;
-            this.game.state.activeObjective = null;
-            console.log(`CityExploration: Player reached ${storyMesh.userData.type}. Launching scene "${nextSceneId}".`);
-            sr.startScene(nextSceneId);
-          }
-        }
-      }
     }
   }
 
@@ -1329,30 +1482,64 @@ window.FFH.CityExplorationPhase = class {
     const cam = this.game.currentCamera;
     if (!cam) return;
 
+    // Default closer 3rd-person ground zoom level
+    if (!this.camZoom) this.camZoom = 1.15;
+    if (!this.targetCamZoom) this.targetCamZoom = 1.15;
+
     // Smoothly interpolate zoom on OrthographicCamera
-    this.camZoom = THREE.MathUtils.lerp(this.camZoom || 1.0, this.targetCamZoom || 1.0, 0.15);
+    this.camZoom = THREE.MathUtils.lerp(this.camZoom, this.targetCamZoom, 0.15);
     if (Math.abs(cam.zoom - this.camZoom) > 0.001) {
       cam.zoom = this.camZoom;
       cam.updateProjectionMatrix();
     }
 
-    // Messenger-Style Dynamic Distance & Pitch Interpolation
-    // Zoom factor: 0.0 (wide diorama overview) to 1.0 (close Messenger ground follow)
     const zoomFactor = THREE.MathUtils.clamp((this.camZoom - 0.50) / (1.35 - 0.50), 0, 1);
 
-    // Zoomed out: high 50° angle (15, 20, 15). Zoomed in: intimate 22° angle (5, 5, 5)
-    const baseOffsetX = THREE.MathUtils.lerp(15.0, 5.0, zoomFactor);
-    const baseOffsetY = THREE.MathUtils.lerp(20.0, 5.5, zoomFactor);
-    const baseOffsetZ = THREE.MathUtils.lerp(15.0, 5.0, zoomFactor);
+    // Intimate 3rd-person distances
+    const baseDistance = THREE.MathUtils.lerp(12.0, 4.5, zoomFactor);
+    const baseHeight = THREE.MathUtils.lerp(14.0, 4.2, zoomFactor);
 
-    // Apply idle camera orbital drift when player stands still
-    const drift = this.idleDriftAngle || 0;
-    const offsetX = baseOffsetX * Math.cos(drift) - baseOffsetZ * Math.sin(drift);
-    const offsetZ = baseOffsetX * Math.sin(drift) + baseOffsetZ * Math.cos(drift);
-    const offsetY = baseOffsetY;
+    // Determine target camera angle:
+    // If cameraHoldTimer is active, hold the angle.
+    // Otherwise, rotate camera smoothly behind the player's movement heading.
+    if (this.cameraHoldTimer > 0) {
+      this.cameraHoldTimer -= 0.016;
+    }
+
+    const isMoving = this.targetMovePos !== null;
+    let targetAngle = (this.playerHeading !== undefined ? this.playerHeading : Math.PI / 4) + Math.PI;
+
+    // Use manual rotation if the user has dragged the camera
+    if (this.manualCameraAngle !== undefined) {
+      targetAngle = this.manualCameraAngle;
+    }
+
+    // Idle camera mode: After 60 seconds of no interaction, zoom out and spin
+    if (this.idleTimer > 60.0) {
+      targetAngle += this.idleDriftAngle;
+      this.targetCamZoom = 0.52; // Diorama overview zoom
+    } else {
+      // Ensure we stay closely zoomed in (unless player manually toggled overview)
+      if (this.targetCamZoom < 0.7 && this.idleTimer < 0.5 && isMoving) {
+          // If we were in idle overview and started moving, snap back to intimate view
+          this.targetCamZoom = 1.15;
+      }
+    }
+    
+    if (isMoving) {
+      this.cameraHoldTimer = 0; // Cancel hold if player starts walking
+    }
+
+    // Smoothly rotate camera angle
+    if (!this.camCurrentAngle) this.camCurrentAngle = targetAngle;
+    this.camCurrentAngle = THREE.MathUtils.lerp(this.camCurrentAngle, targetAngle, snap ? 1.0 : 0.06);
+
+    const offsetX = Math.sin(this.camCurrentAngle) * baseDistance;
+    const offsetZ = Math.cos(this.camCurrentAngle) * baseDistance;
+    const offsetY = baseHeight;
 
     const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
-    const lookTargetY = this.playerPos.y;
+    const lookTargetY = this.playerPos.y + 0.6; // look at chest/head height
     const lookTargetZ = this.playerPos.z + (this.cameraPanOffset ? this.cameraPanOffset.z : 0);
 
     const camX = lookTargetX + offsetX;
@@ -1362,7 +1549,7 @@ window.FFH.CityExplorationPhase = class {
     if (snap) {
       cam.position.set(camX, camY, camZ);
     } else {
-      const lerpSpeed = snap ? 1.0 : 0.1;
+      const lerpSpeed = 0.12;
       cam.position.x = THREE.MathUtils.lerp(cam.position.x, camX, lerpSpeed);
       cam.position.y = THREE.MathUtils.lerp(cam.position.y, camY, lerpSpeed);
       cam.position.z = THREE.MathUtils.lerp(cam.position.z, camZ, lerpSpeed);

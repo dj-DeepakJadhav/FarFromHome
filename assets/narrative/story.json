@@ -100,63 +100,36 @@
         "time": "18:00",
         "light": "dusk_cold",
         "weather": "wind_baltic_hard",
-        "camera": "wide_establishing_low"
+        "camera": "single_close"
       },
       "cast": [],
       "props": [
-        "coach_bus",
-        "timetable_board",
         "suitcase_heavy",
-        "jacket_thin"
+        "jacket_thin",
+        "city_map"
       ],
       "audio": [
-        "bus_doors_hiss",
         "wind_gust_loop",
         "tram_bell_distant"
       ],
       "prose": [
-        "Luebeck. Six in the evening, already dark.",
-        "The coach doors hiss shut behind you and it pulls away. Nobody else got off.",
-        "Twenty euros in your jacket pocket. A visa that stops working in twenty-eight days. A slip of paper with a room number on it: 4.",
-        "The board says the number 2 bus goes south. Two euros ninety. The map says the same trip is twenty-five minutes on foot."
+        "Luebeck. Six in the evening , already dark.",
+        "Twenty euros in your jacket pocket. A visa that stops working in twenty-eight days. A slip of paper with a room number on it: 4."
       ],
       "choices": [
         {
-          "label": "Take the bus. Two ninety.",
-          "gate": null,
-          "to": "wg_door",
-          "effects": [
-            {
-              "var": "wallet",
-              "expr": "wallet - 2.9"
-            }
-          ],
-          "prose": [
-            "You sit directly on top of the heater and let the old town slide past the glass. Red brick. Seven spires. Water on both sides of everything.",
-            "It looks like a postcard that was addressed to somebody else."
-          ]
+          "label": "Take the scenic river path (Longer)",
+          "to": "wg_door_scenic"
         },
         {
-          "label": "Walk. Keep the two ninety.",
-          "gate": null,
-          "to": "wg_door",
-          "effects": [
-            {
-              "var": "body",
-              "expr": "body - 6"
-            }
-          ],
-          "prose": [
-            "Twenty-five minutes becomes forty, because you take the wrong bridge and have to come back over it.",
-            "The wind off the Baltic finds every seam in your jacket. By the end you cannot feel your ears.",
-            "You keep two euros ninety. Years from now you still will not know if that was the right call."
-          ]
+          "label": "Take the fast street path (Direct)",
+          "to": "wg_door_fast"
         }
       ],
       "effects": [],
       "beat": "arrival / hope + first cold",
       "origin": "story.ink",
-      "econ_note": "wallet -2.90 (bus) | body -6 (walk)",
+      "econ_note": "body -5 (walk) | body -6 (walk)",
       "mode": "overlay",
       "duration_s": 10,
       "duration_source": "authored",
@@ -172,13 +145,31 @@
       "critical_path_index": 0
     },
     {
+      "id": "wg_door_scenic",
+      "act": "I",
+      "stage": { "loc": "B_WG", "time": "19:30", "light": "night_lantern", "camera": "doorway_two_shot" },
+      "effects": [{ "var": "body", "expr": "body - 6" }],
+      "prose": [],
+      "choices": [],
+      "next": "wg_door"
+    },
+    {
+      "id": "wg_door_fast",
+      "act": "I",
+      "stage": { "loc": "B_WG", "time": "19:30", "light": "night_lantern", "camera": "doorway_two_shot" },
+      "effects": [{ "var": "body", "expr": "body - 5" }],
+      "prose": [],
+      "choices": [],
+      "next": "wg_door"
+    },
+    {
       "id": "wg_door",
       "act": "I",
       "threads": 1,
       "stage": {
         "loc": "B_WG",
-        "time": "18:40",
-        "light": "interior_warm_lamp",
+        "time": "19:30",
+        "light": "night_lantern",
         "camera": "doorway_two_shot"
       },
       "cast": [
@@ -412,7 +403,7 @@
       "prose": [
         "Nico looks at the paper slip in your hand, then at the clock.",
         "Nico: One more thing and then I'll leave you alone. Lokker wants thirty euros deposit by Friday. That's not a suggestion, that's just how the building works.",
-        "Nico: Kruma Express, behind the Holstentor. Night manifest. They're short of people basically always."
+        "Nico: You'll need to find work tonight. Around the old market, near the Holstentor — there is always something for somebody willing to start now."
       ],
       "choices": [
         {
@@ -425,7 +416,7 @@
           ]
         },
         {
-          "label": "\"Behind the Holstentor. Got it.\"",
+          "label": "\"Around the old market. Got it.\"",
           "to": "uni_closed",
           "effects": [
             {
@@ -439,9 +430,8 @@
         }
       ],
       "effects": [],
-      "beat": "MOTIVATES the first shift tonight, and routes you past the locked door",
+      "beat": "MOTIVATES finding work tonight — player must discover Kruma Express themselves via pizzeria and bakery",
       "origin": "new",
-      "mode": "overlay",
       "duration_s": 6,
       "duration_source": "authored",
       "unlocks": {
@@ -489,7 +479,7 @@
         {
           "label": "\"I know. I've only just arrived. I only wanted to see where it was.\"",
           "gate": null,
-          "to": "shift_1_teach",
+          "to": "pizzeria_job",
           "effects": [
             {
               "var": "heart",
@@ -505,7 +495,7 @@
         {
           "label": "\"Please. Two minutes. I've come a very long way.\"",
           "gate": null,
-          "to": "shift_1_teach",
+          "to": "pizzeria_job",
           "effects": [
             {
               "var": "heart",
@@ -520,16 +510,164 @@
         }
       ],
       "effects": [],
-      "beat": "first defeat / the locked door",
+      "beat": "first defeat / the locked door — player now searches for work: pizzeria then bakery then Kruma",
       "origin": "story.ink",
       "econ_note": "heart +3 / -3",
-      "divert": "shift_1_teach",
+      "divert": "pizzeria_job",
       "mode": "blocking",
       "duration_s": 7,
       "duration_source": "authored",
       "unlocks": {},
       "cumulative_s": 43,
       "critical_path_index": 5
+    },
+    {
+      "id": "pizzeria_job",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_PIZZA",
+        "time": "19:35",
+        "light": "interior_warm_red",
+        "camera": "counter_low_across"
+      },
+      "cast": [
+        "NPC_PIZZERIA_OWNER"
+      ],
+      "props": [
+        "pizza_counter",
+        "help_wanted_sign",
+        "flour_bags"
+      ],
+      "audio": [
+        "kitchen_clatter",
+        "oven_whoosh"
+      ],
+      "prose": [
+        "The pizzeria shutter is half up. Hot air and garlic come out from under it.",
+        "You duck inside. A man in a flour-dusted apron doesn't look up.",
+        "Pizzeria Owner: We're closed.",
+        "You: I'm looking for work. Any work.",
+        "He looks up for the first time. Assesses. Looks back down.",
+        "Pizzeria Owner: Nobody to train tonight. Come back in two weeks. Or don't."
+      ],
+      "choices": [
+        {
+          "label": "\"Two weeks is too late. Thank you anyway.\"",
+          "gate": null,
+          "to": "bakery_job",
+          "effects": [],
+          "prose": [
+            "He nods once and goes back to the dough.",
+            "Outside the air is cold again. The flour smell stays with you for half a block."
+          ]
+        },
+        {
+          "label": "\"Can I leave my number?\"",
+          "gate": null,
+          "to": "bakery_job",
+          "effects": [],
+          "prose": [
+            "He points at a corkboard on the wall without looking up. Already full of numbers.",
+            "You write yours at the bottom, where nobody will look."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "REJECTION 1: pizzeria — too late, no one to train, try elsewhere",
+      "origin": "new",
+      "econ_note": "no economy change",
+      "mode": "blocking",
+      "duration_s": 9,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 52,
+      "critical_path_index": 6
+    },
+    {
+      "id": "bakery_job",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_BAKERY",
+        "time": "19:50",
+        "light": "interior_warm_bakery",
+        "camera": "counter_close_warm"
+      },
+      "cast": [
+        "NPC_MARTHA"
+      ],
+      "props": [
+        "bakery_counter",
+        "bread_loaves",
+        "pastry_tray",
+        "closed_sign"
+      ],
+      "audio": [
+        "bakery_warm_hum",
+        "oven_low",
+        "bread_rustle"
+      ],
+      "prose": [
+        "The bakery window is still lit. An older woman is stacking bread trays behind the glass.",
+        "You knock. She looks up, looks at the time, looks at you — and unlocks the door anyway.",
+        "Martha: We're closed for selling. But you don't look like you're buying.",
+        "You: I'm looking for work. Anything.",
+        "Martha: Do you speak German? Even a little?",
+        "You explain. She listens properly, which is more than the pizzeria did.",
+        "Martha: Our orders go to German customers. It would not work, not tonight.",
+        "She pauses. Picks up a small Franzbroetchen from the tray and puts it on the counter in front of you.",
+        "Martha: But. There is a place around the Holstentor. Kruma Express. Dark store. Night deliveries. They sort by ear, not by words — you hear the article and you find the shelf. Nina runs it. Tell her Martha sent you."
+      ],
+      "choices": [
+        {
+          "label": "\"Kruma Express. I'll find it. Thank you, Martha.\"",
+          "gate": null,
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "r_martha",
+              "expr": "r_martha + 2"
+            }
+          ],
+          "prose": [
+            "She locks the door again as you leave. You eat the Franzbroetchen on the walk over.",
+            "It is the second best thing you have eaten today, after the coffee."
+          ]
+        },
+        {
+          "label": "[Take the Franzbroetchen and go.]",
+          "gate": null,
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "r_martha",
+              "expr": "r_martha + 1"
+            }
+          ],
+          "prose": [
+            "She nods. You don't need to say anything.",
+            "You eat it before you have even turned the corner."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "REJECTION 2 / DISCOVERY: bakery — language barrier, but Martha gives the Kruma lead and a Franzbroetchen",
+      "origin": "new",
+      "econ_note": "r_martha +1 or +2; free Franzbroetchen (body +2 implied)",
+      "sets_note": "first meeting with Martha — she remembers this",
+      "mode": "blocking",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [],
+        "teaches": {
+          "subject": "kruma_express_discovery",
+          "mode": "ORGANIC"
+        }
+      },
+      "cumulative_s": 66,
+      "critical_path_index": 7
     },
     {
       "id": "shift_1_teach",
@@ -1729,7 +1867,7 @@
             }
           ],
           "prose": [
-            "He stops. Wipes his hands. Looks at you properly, which nobody has done since the coach.",
+            "He stops. Wipes his hands. Looks at you properly, which nobody has done since you arrived.",
             "Herr Mathias Becker: Ah. Kaution. Lokker."
           ]
         },

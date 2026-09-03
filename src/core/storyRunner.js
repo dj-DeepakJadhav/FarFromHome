@@ -107,9 +107,13 @@ window.FFH.StoryRunner = class {
     }
 
     this.checkHealthState();
-
     if (this.game.ui && this.game.ui.updatePersistentHUD) {
       this.game.ui.updatePersistentHUD(state);
+    }
+    
+    if (this.game.currentPhase === 'CITY_EXPLORATION' && this.game.ui && this.game.ui.refreshStats) {
+      // Refresh the stats visibly in the HUD without a full DOM teardown
+      this.game.ui.refreshStats(state);
     }
   }
 
@@ -244,6 +248,7 @@ window.FFH.StoryRunner = class {
         'B_MARIEN':     { x: 57.2, z: 33.8 },  // row13,col22 — keep
         'B_DOM':        { x: 26.0, z: 44.2 },  // row17,col10
         'B_DARKSTORE':  { x:  7.8, z: 46.8 },  // row18,col3 R_C (east of Darkstore)
+        'LM_ALTSTADT':  { x: 20.8, z: 18.2 },
         'LM_CANAL':     { x: 20.8, z: 31.2 },
         'LM_MARKTPLATZ':{ x: 26.0, z: 23.4 }
       };
@@ -273,7 +278,8 @@ window.FFH.StoryRunner = class {
   }
 
   renderScene(scene) {
-    const mode = scene.mode || 'overlay';
+    const hasCast = scene.cast && scene.cast.length > 0;
+    const mode = scene.mode || (hasCast ? 'blocking' : 'overlay');
     const s = this.game.state;
 
     // Direct stage, camera, and environmental audio
@@ -296,32 +302,55 @@ window.FFH.StoryRunner = class {
   }
 
   handleOverlayScene(scene, choices) {
-    // If in DIALOGUE phase, transition to CITY_EXPLORATION first so the live 3D world is visible
     if (this.game.currentPhase !== 'CITY_EXPLORATION') {
-      this.game.transitionTo('CITY_EXPLORATION');
+      const wasDialogue = this.game.currentPhase === 'DIALOGUE';
+      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: wasDialogue });
     }
 
     const rawProse = scene.prose || [];
     const processedProse = rawProse.map(p => this.interpolate(p));
 
-    const overlayData = {
-      sceneId: scene.id,
-      beat: scene.beat,
-      stage: scene.stage,
-      prose: processedProse,
-      choices: choices.map((ch, idx) => ({
-        idx: idx,
-        label: this.interpolate(ch.label),
-        original: ch
-      }))
-    };
-
-    if (this.game.ui && this.game.ui.showStoryOverlay) {
-      this.game.ui.showStoryOverlay(overlayData, (choiceIndex) => {
-        const choice = choices[choiceIndex];
-        this.selectChoice(choice);
+    let delay = 0;
+    if (processedProse.length) {
+      processedProse.forEach((line) => {
+        setTimeout(() => {
+          if (this.game.ui && this.game.ui.showThoughtBubble) {
+            this.game.ui.showThoughtBubble(line, 2800);
+          }
+        }, delay);
+        delay += 3000;
       });
     }
+
+    // Show clean choice buttons overlay after thoughts finish
+    setTimeout(() => {
+      if (choices && choices.length && this.game.ui && this.game.ui.showStoryOverlay) {
+        const overlayData = {
+          sceneId: scene.id,
+          beat: scene.beat,
+          stage: scene.stage,
+          prose: [], // No dark modal box; prose rendered above player head
+          choices: choices.map((ch, idx) => ({
+            idx: idx,
+            label: this.interpolate(ch.label),
+            original: ch
+          }))
+        };
+        this.game.ui.showStoryOverlay(overlayData, (choiceIndex) => {
+          const choice = choices[choiceIndex];
+          if (scene.id === 'act_one') {
+            this.game.state.actOneChoiceDone = true;
+          }
+          this.selectChoice(choice);
+        });
+      } else {
+        // Scene has no choices; it concludes automatically.
+        if (scene.id === 'act_one') {
+          this.game.state.actOneChoiceDone = true;
+        }
+        this.selectChoice({ next: scene.next || scene.divert });
+      }
+    }, delay);
   }
 
   handleBlockingScene(scene, choices) {
@@ -337,7 +366,8 @@ window.FFH.StoryRunner = class {
       else if (npcKey === 'NPC_NINA') speaker = 'Nina Lindemann';
       else if (npcKey === 'NPC_LOKKER') speaker = 'Herr Hans Lokker';
       else if (npcKey === 'NPC_VOGEL') speaker = 'Herr Vogel';
-      else if (npcKey === 'NPC_MARTHA') speaker = 'Martha Webber';
+      else if (npcKey === 'NPC_MARTHA') speaker = 'Martha';
+      else if (npcKey === 'NPC_PIZZERIA_OWNER') speaker = 'Pizzeria Owner';
       else if (npcKey === 'NPC_MATHIAS') speaker = 'Mathias Becker';
       else if (npcKey === 'NPC_LINDEMANN') speaker = 'Dr. Lindemann';
     }
@@ -427,9 +457,9 @@ window.FFH.StoryRunner = class {
       this.applyEffects(choice.effects);
     }
 
-    let target = choice.to;
+    let target = choice.to || choice.next;
     if (typeof target === 'object' && target !== null) {
-      target = target.then || target.to;
+      target = target.then || target.to || target.next;
     }
 
     if (!target && this.currentScene && this.currentScene.divert) {
@@ -446,6 +476,10 @@ window.FFH.StoryRunner = class {
       }
     }
 
+    if (this.currentSceneId === 'act_one') {
+      this.game.state.actOneStarted = true;
+    }
+
     if (target) {
       // --- Exploration Handshake ---
       // If the target scene is at a DIFFERENT map location from the current one,
@@ -458,26 +492,40 @@ window.FFH.StoryRunner = class {
       if (TRAVEL_REQUIRED) {
         const objectiveMap = {
           'wg_door':          '🏠 Find Room 4 — Student WG (south)',
+          'wg_door_scenic':   '🏠 Find Room 4 — Student WG (south)',
+          'wg_door_fast':     '🏠 Find Room 4 — Student WG (south)',
           'nico_sends_kruma': '🎓 Check out Lübeck University (east across the bridge)',
           'uni_closed':       '🎓 Check out Lübeck University (east across the bridge)',
-          'shift_1_teach':    '📦 Report for your first shift — Kruma Express (south)',
+          'pizzeria_job':     '🍕 Try the pizzeria near the market — ask about work',
+          'bakery_job':       '🥐 Try the bakery — ask about work',
+          'shift_1_teach':    '📦 Kruma Express — Nina is expecting you (behind the Holstentor)',
         };
         const objective = objectiveMap[target] || `Go to ${targetLoc}`;
+        console.log(`[StoryRunner] TRAVEL_REQUIRED to scene '${target}' at '${targetLoc}'. Setting objective: ${objective}`);
 
         this.pendingStoryTarget = { sceneId: target, poi: targetLoc, objective };
         this.game.state.activeObjective = objective;
+        this.game.state.isTypingObjective = true;
 
         if (this.game.ui && this.game.ui.hideDialogueBox) {
           this.game.ui.hideDialogueBox();
         }
         console.log(`StoryRunner: Travel required to ${targetLoc} for scene "${target}". Entering city exploration.`);
-        this.game.transitionTo('CITY_EXPLORATION');
+        this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.game.currentPhase === 'DIALOGUE' });
+
+        if (this.game.ui && this.game.ui.playObjectiveRevealSequence) {
+          // Only automatically play the sequence if the tutorial reveal has already happened.
+          // If it hasn't, cityExplorationPhase will trigger it on the very first screen tap.
+          if (this.game.state.firstObjectiveRevealed) {
+            this.game.ui.playObjectiveRevealSequence(false);
+          }
+        }
       } else {
         this.startScene(target);
       }
     } else {
       console.log('StoryRunner: Flow reached leaf or hub. Transitioning to city exploration.');
-      this.game.transitionTo('CITY_EXPLORATION');
+      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.game.currentPhase === 'DIALOGUE' });
     }
   }
 };
