@@ -790,6 +790,36 @@ window.FFH.CityExplorationPhase = class {
       this.setZoom(1.0);
     } else if (e.key === 'o' || e.key === 'O' || e.key === 'm' || e.key === 'M') {
       this.toggleOverview();
+    } else if (e.key === 't' || e.key === 'T') {
+      this.cycleTestNPC();
+    }
+  }
+
+  cycleTestNPC() {
+    if (!this.testNpcKeys) {
+      this.testNpcKeys = Object.keys(window.FFH.GLB_CHARACTERS_BASE64 || {});
+      this.testNpcIndex = 0;
+    }
+    if (this.testNpcKeys.length === 0) return;
+
+    this.testNpcIndex = (this.testNpcIndex + 1) % this.testNpcKeys.length;
+    const testKey = this.testNpcKeys[this.testNpcIndex];
+    
+    const oldMesh = this.courier;
+    const newMesh = window.FFH.createNPCMesh(testKey);
+    
+    if (newMesh) {
+      newMesh.position.copy(oldMesh.position);
+      newMesh.rotation.copy(oldMesh.rotation);
+      
+      this.game.scene.remove(oldMesh);
+      this.game.scene.add(newMesh);
+      this.courier = newMesh;
+      
+      if (this.game.ui && this.game.ui.spawnFloatingText) {
+        this.game.ui.spawnFloatingText(`🧪 Testing Model: ${testKey}`, window.innerWidth / 2, window.innerHeight * 0.7, '#FF00FF');
+      }
+      console.log(`[TEST] Swapped player model to: ${testKey}`);
     }
   }
 
@@ -971,10 +1001,13 @@ window.FFH.CityExplorationPhase = class {
       });
     }
 
-    // Tick Roaming Citizens using Behavior Tree
+    // Tick Roaming Citizens using Behavior Tree & update animation mixers
     if (this.roamingCitizens && this.citizenBehaviorTree) {
       this.roamingCitizens.forEach(citizen => {
         this.citizenBehaviorTree.tick(citizen, delta, this.game);
+        if (citizen.mesh && window.FFH.updateNPCAnimation) {
+          window.FFH.updateNPCAnimation(citizen.mesh, delta);
+        }
       });
     }
 
@@ -1019,16 +1052,30 @@ window.FFH.CityExplorationPhase = class {
           this.courier.rotation.y = THREE.MathUtils.lerp(this.courier.rotation.y, moveAngle, delta * 14);
         }
 
-        if (window.FFH.updateCourierWalk && this.courier) {
+        if (this.courier && this.courier.userData && this.courier.userData.mixer) {
+          window.FFH.updateNPCAnimation(this.courier, delta);
+          if (this.courier.userData.playAction && this.courier.userData.currentAction !== this.courier.userData.actions['walk']) {
+            this.courier.userData.playAction('walk');
+          }
+        } else if (window.FFH.updateCourierWalk && this.courier) {
           window.FFH.updateCourierWalk(this.courier, delta, 1.0);
         }
+
         if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(1.0);
 
         this.idleTimer = 0;
         this.idleDriftAngle = THREE.MathUtils.lerp(this.idleDriftAngle, 0, delta * 5);
       }
     } else {
-      if (window.FFH.updateCourierWalk && this.courier) {
+      if (this.courier && this.courier.userData && this.courier.userData.mixer) {
+        window.FFH.updateNPCAnimation(this.courier, delta);
+        if (this.courier.userData.playAction) {
+          const idleStr = this.courier.userData.actions['idle'] ? 'idle' : 'static';
+          if (this.courier.userData.currentAction !== this.courier.userData.actions[idleStr]) {
+            this.courier.userData.playAction(idleStr);
+          }
+        }
+      } else if (window.FFH.updateCourierWalk && this.courier) {
         window.FFH.updateCourierWalk(this.courier, delta, 0);
       }
       if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);

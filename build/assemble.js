@@ -46,6 +46,7 @@ function assemble() {
     'src/core/npcBehaviorTree.js',
     'src/data/prologueQuests.js',
     'src/data/characterModels.js',
+    'src/data/characterGLB.js',
     'src/data/npcDialogue.js',
     'src/data/items.js',
     'src/data/shifts.js',

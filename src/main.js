@@ -293,7 +293,14 @@ class GameEngine {
 window.FFH.Game = GameEngine;
 
 // Window load trigger
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  if (window.FFH.preloadAllNPCModels) {
+    try {
+      await window.FFH.preloadAllNPCModels();
+    } catch (e) {
+      console.error("NPC Preload failed:", e);
+    }
+  }
   const game = new window.FFH.Game();
   window.FFH_GAME = game;
   window.game = game;

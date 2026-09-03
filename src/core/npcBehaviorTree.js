@@ -174,7 +174,9 @@ window.FFH.createCitizenBehaviorTree = function () {
       const angle = Math.atan2(dirX, dirZ);
       agent.mesh.rotation.y = THREE.MathUtils.lerp(agent.mesh.rotation.y, angle, delta * 8);
       
-      if (window.FFH.updateCourierWalk) {
+      if (agent.mesh.userData.playAction) {
+        agent.mesh.userData.playAction('walk');
+      } else if (window.FFH.updateCourierWalk) {
         window.FFH.updateCourierWalk(agent.mesh, delta, 0.6);
       }
       return 'RUNNING';
@@ -196,6 +198,9 @@ window.FFH.createCitizenBehaviorTree = function () {
       if (agent.greetTimer <= 0) {
         agent.isGreeting = false;
         agent.greetCooldown = 8.0; // 8 seconds cooldown before next greeting
+        if (agent.mesh.userData.playAction) {
+          agent.mesh.userData.playAction('idle');
+        }
         return 'FAILURE';
       }
       
@@ -208,9 +213,13 @@ window.FFH.createCitizenBehaviorTree = function () {
         agent.mesh.rotation.y = THREE.MathUtils.lerp(agent.mesh.rotation.y, angle, delta * 10);
       }
 
-      // Play cute bouncing animation
-      agent.mesh.position.y = 0.05 + Math.abs(Math.sin(agent.greetTimer * 12)) * 0.15;
-      agent.mesh.rotation.z = 0; // stand straight up while greeting
+      if (agent.mesh.userData.playAction) {
+        agent.mesh.userData.playAction('emote-yes');
+      } else {
+        // Cute procedural bounce fallback
+        agent.mesh.position.y = 0.05 + Math.abs(Math.sin(agent.greetTimer * 12)) * 0.15;
+        agent.mesh.rotation.z = 0;
+      }
       return 'RUNNING';
     }
 
@@ -220,6 +229,9 @@ window.FFH.createCitizenBehaviorTree = function () {
       agent.isGreeting = true;
       agent.greetTimer = 2.0; // greet for 2 seconds
       agent.greetTarget = phase.playerPos;
+      if (agent.mesh.userData.playAction) {
+        agent.mesh.userData.playAction('emote-yes');
+      }
       // Show mini chat indicator / text above head
       if (game.ui && game.ui.spawnFloatingText && Math.random() > 0.6) {
         const lines = ["Moin!", "Hallo!", "Guten Tag!", "Schönen Tag!", "Grüß Gott!"];
@@ -277,11 +289,17 @@ window.FFH.createCitizenBehaviorTree = function () {
           ? window.FFH.findPath(agent.position.x, agent.position.z, destX, destZ)
           : [{ x: destX, z: destZ }];
       } else {
+        if (agent.mesh.userData.playAction) {
+          agent.mesh.userData.playAction('idle');
+        }
         return 'FAILURE';
       }
     }
 
     if (!agent.path || agent.path.length === 0) {
+      if (agent.mesh.userData.playAction) {
+        agent.mesh.userData.playAction('idle');
+      }
       return 'SUCCESS';
     }
 
@@ -291,6 +309,9 @@ window.FFH.createCitizenBehaviorTree = function () {
     if (dist < 0.3) {
       agent.path.shift();
       if (agent.path.length === 0) {
+        if (agent.mesh.userData.playAction) {
+          agent.mesh.userData.playAction('idle');
+        }
         return 'SUCCESS';
       }
     } else {
@@ -309,6 +330,9 @@ window.FFH.createCitizenBehaviorTree = function () {
       const distMoved = Math.hypot(resolved.x - agent.position.x, resolved.z - agent.position.z);
       if (distMoved < 0.001) {
         agent.path = null;
+        if (agent.mesh.userData.playAction) {
+          agent.mesh.userData.playAction('idle');
+        }
         return 'FAILURE';
       }
 
@@ -320,9 +344,13 @@ window.FFH.createCitizenBehaviorTree = function () {
       const angle = Math.atan2(dirX, dirZ);
       agent.mesh.rotation.y = THREE.MathUtils.lerp(agent.mesh.rotation.y, angle, delta * 8);
 
-      agent.walkTime = (agent.walkTime || 0) + delta * 15;
-      agent.mesh.position.y = 0.05 + Math.abs(Math.sin(agent.walkTime)) * 0.12;
-      agent.mesh.rotation.z = Math.cos(agent.walkTime * 0.5) * 0.15;
+      if (agent.mesh.userData.playAction) {
+        agent.mesh.userData.playAction('walk');
+      } else {
+        agent.walkTime = (agent.walkTime || 0) + delta * 15;
+        agent.mesh.position.y = 0.05 + Math.abs(Math.sin(agent.walkTime)) * 0.12;
+        agent.mesh.rotation.z = Math.cos(agent.walkTime * 0.5) * 0.15;
+      }
       return 'RUNNING';
     }
   });

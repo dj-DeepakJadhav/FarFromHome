@@ -138,11 +138,16 @@ window.FFH.DialoguePhase = class {
     cam.position.copy(this.endCamPos);
     cam.lookAt(this.endCamTarget);
 
-    // Gentle idle breathing for NPC
+    // Update NPC animations (idle breathing / gestures)
     if (this.npcGroup) {
-      const time = this.game.clock.getElapsedTime();
-      const baseY = this.game.phases.CITY_EXPLORATION.playerPos.y;
-      this.npcGroup.position.y = baseY + Math.sin(time * 3) * 0.03;
+      if (window.FFH.updateNPCAnimation) {
+        window.FFH.updateNPCAnimation(this.npcGroup, delta);
+      }
+      if (!this.npcGroup.userData.mixer) {
+        const time = this.game.clock.getElapsedTime();
+        const baseY = this.game.phases.CITY_EXPLORATION.playerPos.y;
+        this.npcGroup.position.y = baseY + Math.sin(time * 3) * 0.03;
+      }
     }
   }
 

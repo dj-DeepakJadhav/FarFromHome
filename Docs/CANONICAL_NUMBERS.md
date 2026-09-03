@@ -6,7 +6,7 @@
 > Every value below is read from code or measured from the build. If a number here
 > disagrees with the code, **the code wins** — fix this file, not the code.
 
-Last verified: 2026-09-02
+Last verified: 2026-09-03
 
 ---
 
@@ -14,9 +14,9 @@ Last verified: 2026-09-02
 
 | Fact | Value | Source of truth |
 | :--- | :--- | :--- |
-| Release `index.html` (uncompressed) | **3.63 MB** | `node build/check-size.js` |
+| Release `index.html` (uncompressed) | **10.71 MB** | `node build/check-size.js` |
 | Competition hard limit | 35 MB | MHCP rules |
-| Headroom | ~89 % unused | — |
+| Headroom | ~69.4 % unused | — |
 | Viewport | 390 × 844 fixed portrait | `index.dev.html` |
 | Three.js | r128, vendored | `vendor/three.min.js` |
 | Runtime network requests | **0** (document only) | DevTools Network tab |

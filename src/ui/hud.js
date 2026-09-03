@@ -1718,6 +1718,26 @@ window.FFH.UI = class {
         </div>
       </div>
 
+      <!-- TEST NPCS BUTTON -->
+      <button id="btn-test-npc" style="
+        pointer-events: auto;
+        position: absolute;
+        bottom: 25px;
+        right: 15px;
+        background: #FF00FF;
+        color: #FFF;
+        border: 2px solid #000;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-weight: 900;
+        font-size: 11px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #880088;
+        z-index: 9999;
+      ">
+        🧪 TEST NPCS
+      </button>
+
       <!-- Slide-over POI Card (Hidden initially) -->
       <div id="city-poi-card" style="
         display: none;
@@ -1774,6 +1794,16 @@ window.FFH.UI = class {
     if (skillsBtn) {
       skillsBtn.addEventListener('click', () => {
         this.showSkillTreeModal();
+      });
+    }
+
+    const testNpcBtn = document.getElementById('btn-test-npc');
+    if (testNpcBtn) {
+      testNpcBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.game.currentPhase && typeof this.game.currentPhase.cycleTestNPC === 'function') {
+          this.game.currentPhase.cycleTestNPC();
+        }
       });
     }
 
