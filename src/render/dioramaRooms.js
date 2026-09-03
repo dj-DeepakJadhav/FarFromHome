@@ -300,10 +300,22 @@ window.FFH.createBakeryRoom = function() {
 
   // Flour Sack on Floor
   const sackMat = window.FFH.createCelMaterial(0xF7EDE2);
-  const sack = new THREE.Mesh(boxGeo, sackMat);
-  sack.scale.set(0.4, 0.5, 0.35);
-  sack.position.set(1.0, 0.25, 0.4);
-  room.add(sack);
+  // Chalkboard Price List
+  const boardMat = window.FFH.createCelMaterial(0x264653);
+  const priceBoard = new THREE.Mesh(boxGeo, boardMat);
+  priceBoard.scale.set(0.8, 0.9, 0.03);
+  priceBoard.position.set(-0.5, 1.8, -1.42);
+  room.add(priceBoard);
+
+  return room;
+};
+
+// 6. RATHAUS BÜRGERAMT (Herr Vogel)
+// Formal municipal counter, hygiene glass partition, ticket dispenser (Wartemarke), eagle seal
+window.FFH.createRathausRoom = function() {
+  const room = window.FFH.createRoomShell(0x457B9D, 0x1D3557); // Formal steel blue walls, dark granite floor
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
   // Massive Official Stone Counter
   const counter = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x8D99AE));
   counter.scale.set(2.2, 0.9, 0.65);
@@ -604,4 +616,9 @@ window.FFH.createBikeShopRoom = function(state = window.FFH.state) {
   room.add(tb);
 
   return room;
+};
+
+// WG Room: Alias to the detailed Student Room / Sublet
+window.FFH.createWGRoom = function(state = window.FFH.state) {
+  return window.FFH.createLevel0Room(state);
 };

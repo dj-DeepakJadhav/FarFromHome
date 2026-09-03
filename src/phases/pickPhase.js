@@ -19,8 +19,9 @@ window.FFH.PickPhase = class {
     this.onTap = this.onTap.bind(this);
   }
 
-  enter() {
+  enter(params = {}) {
     const state = this.game.state;
+    this.currentStoryParams = params;
 
     // Every per-shift meter resets here.
     window.FFH.resetShiftState(state);
@@ -72,7 +73,10 @@ window.FFH.PickPhase = class {
     const firstUnpacked = state.activeOrder[0];
     if (firstUnpacked) {
       firstUnpacked.promptStarted = true;
-      firstUnpacked.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
+      const delaySec = (this.currentStoryParams && this.currentStoryParams.iconDelay !== undefined)
+        ? this.currentStoryParams.iconDelay
+        : window.FFH.iconRevealDelay(state.currentShift, state.upgrades);
+      firstUnpacked.revealAt = Date.now() + delaySec * 1000;
       // Play pre-recorded voice sprite for the specific item
       if (firstUnpacked.id) {
         this.game.speech.speakKey(firstUnpacked.id.toLowerCase());
@@ -85,7 +89,22 @@ window.FFH.PickPhase = class {
     this.game.ui.showWarehouseManifest();
     window.addEventListener('pointerdown', this.onTap);
 
-    if (state.isVipRush) {
+    if (this.currentStoryParams && this.currentStoryParams.storyScene) {
+      const sceneId = this.currentStoryParams.storyScene.id;
+      if (sceneId === 'shift_1_teach') {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Nina: Bottom is der (Blue). Middle is die (Pink). Top is das (Purple). The word tells you the shelf!", '#2EC4B6', 9000);
+        }, 300);
+      } else if (sceneId === 'shift_2_anticipate') {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Nina: 1.5s delay. Listen first! Tap shelf early for 2.0x Early Bonus!", '#FF9F1C', 8000);
+        }, 300);
+      } else if (sceneId === 'shift_3_test') {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Nina: Pure listening test. Full speed. Pick by audio alone!", '#E76F51', 8000);
+        }, 300);
+      }
+    } else if (state.isVipRush) {
       setTimeout(() => {
         this.game.ui.showTutorialBanner(`🔥 VIP EXPRESS RUSH: 2.5x Customer Tips Active! (Fast Timer)`, '#FF006E', 6000);
       }, 300);
@@ -93,17 +112,6 @@ window.FFH.PickPhase = class {
       setTimeout(() => {
         this.game.ui.showTutorialBanner(`📦 ${this.shift.name}: ${this.shift.briefing}`, '#3A86FF', 6000);
       }, 400);
-    }
-
-    if (state.currentShift === 1) {
-      setTimeout(() => {
-        this.game.ui.showTutorialBanner("Listen closely! Pick items by their gender color: Der = Blue, Die = Pink, Das = Purple", 8000);
-      }, 6500);
-    } else if (state.currentShift === 2 && !state.hasSeenShift2Tutorial) {
-      state.hasSeenShift2Tutorial = true;
-      setTimeout(() => {
-        this.game.ui.showTutorialBanner("The item icon is hidden for 1.5s. Guess early based on the audio for a 2.0x early pick bonus!", 8000);
-      }, 6500);
     }
     // Setup camera target for the shelf (zooming in close to the 3-tier shelves at origin)
     const cam = this.game.cameras.mainCamera;
@@ -211,6 +219,30 @@ window.FFH.PickPhase = class {
 
   // The order ticket. Items may repeat - buildShelf guarantees enough copies.
   buildOrder(shift) {
+    // If running under StoryRunner with explicit storyScene items
+    if (this.currentStoryParams && this.currentStoryParams.storyScene) {
+      const sceneId = this.currentStoryParams.storyScene.id;
+      let manifestIds = null;
+      if (sceneId === 'shift_1_teach') {
+        manifestIds = ['milch', 'kaese', 'brot'];
+      } else if (sceneId === 'shift_2_anticipate') {
+        manifestIds = ['kaese', 'milch', 'apfel', 'brot'];
+      } else if (sceneId === 'shift_3_test') {
+        manifestIds = ['apfel', 'milch', 'brot', 'kaese', 'karton'];
+      }
+
+      if (manifestIds) {
+        const order = [];
+        for (const id of manifestIds) {
+          const itemData = window.FFH.items.find(it => it.id.toLowerCase() === id.toLowerCase());
+          if (itemData) {
+            order.push({ ...itemData, packed: false });
+          }
+        }
+        if (order.length > 0) return order;
+      }
+    }
+
     const pool = window.FFH.getShiftItemPool(shift.index);
     const order = [];
 
@@ -438,6 +470,14 @@ window.FFH.PickPhase = class {
         this.exit();
         // Pre-compute last payout
         this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
+
+        // If triggered via StoryRunner, hand control back to the story engine
+        if (this.currentStoryParams && typeof this.currentStoryParams.onComplete === 'function') {
+          const callback = this.currentStoryParams.onComplete;
+          this.currentStoryParams = null;
+          callback();
+          return;
+        }
         
         const pool = [];
         const grid = window.FFH.LUBECK_CITY_GRID;

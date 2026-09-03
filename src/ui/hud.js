@@ -471,7 +471,16 @@ window.FFH.UI = class {
         this.game.sfx.playSfx('success');
         this.game.state = window.FFH.createRunState();
         window.FFH.state = this.game.state;
+        
+        // Clear title screen UI
+        this.clear();
+        this.game.clearTitleDiorama();
+
+        // Boot into continuous city exploration, then launch story scene act_one
         this.game.transitionTo('CITY_EXPLORATION');
+        if (this.game.storyRunner) {
+          this.game.storyRunner.startScene('act_one');
+        }
       });
     }
 
@@ -1558,14 +1567,9 @@ window.FFH.UI = class {
       font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
     `;
 
-    const activePrologue = window.FFH.prologueQuests && window.FFH.prologueQuests[s.questStep];
-    const objectiveText = activePrologue ? activePrologue.prompt :
-      !s.hasJob ? 'Head to Kruma Express to start your courier shifts' :
-      !s.isMatriculated ? 'Earn 250€ and visit University to pay Semesterbeitrag' :
-      !s.hasApartment ? 'Earn 30€ Kaution downpayment & visit Hans Lokker to sign WG lease' :
-      !s.hasAnmeldung ? 'Visit Rathaus Bürgeramt for your address registration (Anmeldung)' :
-      !s.isSperrkontoUnlocked ? 'Visit Sparkasse Bank to unlock your Sperrkonto' :
-      'Visit Ausländerbehörde to receive your permanent Aufenthaltstitel!';
+    // Objective is exclusively driven by game.state.activeObjective (set by storyRunner).
+    // If nothing is set the tracker is hidden — player roams freely until story sets the next goal.
+    const objectiveText = s.activeObjective || '';
 
     explorerDiv.innerHTML = `
       <!-- Top Title & Unified Sleek Objective Header -->
@@ -1618,11 +1622,29 @@ window.FFH.UI = class {
             <!-- Slot 1: Matriculation -->
             <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.isMatriculated ? '#2A9D8F' : '#999'}; background: ${s.isMatriculated ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="University Matriculation">${s.isMatriculated ? '🎓' : ''}</span>
             <!-- Slot 2: Lease -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
             <!-- Slot 3: Anmeldung -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.hasAnmeldung ? '#2A9D8F' : '#999'}; background: ${s.hasAnmeldung ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${s.hasAnmeldung ? '📑' : ''}</span>
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#999'}; background: ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${(s.hasAnmeldung || s.has_anmeldung) ? '📑' : ''}</span>
             <!-- Slot 4: Sperrkonto Bank -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.isSperrkontoUnlocked ? '#2A9D8F' : '#999'}; background: ${s.isSperrkontoUnlocked ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${s.isSperrkontoUnlocked ? '💳' : ''}</span>
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#999'}; background: ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${(s.isSperrkontoUnlocked || s.has_konto) ? '💳' : ''}</span>
+          </div>
+
+          <!-- Body & Heart Meters -->
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #F8F9FA;
+            border: 1.5px solid #264653;
+            border-radius: 8px;
+            padding: 3px 6px;
+            font-size: 10px;
+            font-weight: 900;
+            font-family: monospace;
+          " title="Body Stamina & Heart Morale">
+            <span style="color: ${s.body < 30 ? '#E63946' : '#2A9D8F'};">⚡${s.body !== undefined ? s.body : 100}</span>
+            <span style="color: #666;">|</span>
+            <span style="color: ${s.heart < 30 ? '#E63946' : '#FF006E'};">❤️${s.heart !== undefined ? s.heart : 50}</span>
           </div>
 
           <!-- Wallet Balance -->
@@ -1810,13 +1832,13 @@ window.FFH.UI = class {
       bottom: 0;
       left: 0;
       right: 0;
-      height: 40vh;
+      height: 48vh;
       box-sizing: border-box;
       background: #FFFFFF;
       border-top: 4px solid #2EC4B6;
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
-      padding: 10px 14px 12px 14px;
+      padding: 12px 14px 14px 14px;
       box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
       font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
       pointer-events: auto;
@@ -1830,8 +1852,8 @@ window.FFH.UI = class {
     // Primary spoken line is English for instant emotional clarity and zero reading friction
     let englishText = dialogueData.en || dialogueData.speechEn || dialogueData.text || dialogueData.de || '';
 
-    // Limit to exactly 2 options for clean, organic human choice
-    const options = (dialogueData.options || []).slice(0, 2);
+    // Show full options list for story scenes, fallback to 2 for basic NPC chatter
+    const options = dialogueData.isStory ? (dialogueData.options || []) : (dialogueData.options || []).slice(0, 3);
 
     const optionsHtml = options.map((opt, idx) => {
       const primaryLabel = opt.label || opt.en || '';
@@ -1887,6 +1909,22 @@ window.FFH.UI = class {
         gap: 8px;
         scroll-behavior: smooth;
       ">
+        ${dialogueData.actionIntro ? `
+        <!-- Narrative Context Card (Action Description) -->
+        <div style="
+          background: #EBF4F6;
+          border-left: 4px solid #2EC4B6;
+          border-radius: 8px;
+          padding: 8px 10px;
+          font-style: italic;
+          font-size: 11.5px;
+          line-height: 1.4;
+          color: #264653;
+          font-weight: 600;
+          flex-shrink: 0;
+        ">${dialogueData.actionIntro}</div>
+        ` : ''}
+
         <!-- Natural Dialogue Bubble -->
         <div style="
           background: #F4F7F6;
@@ -1903,7 +1941,7 @@ window.FFH.UI = class {
           "></div>
         </div>
 
-        <!-- 2 Natural Conversation Choices inline in scroll stream with smooth fade-in -->
+        <!-- Natural Conversation Choices inline in scroll stream with smooth fade-in -->
         <div id="dialogue-options-container" style="
           display: flex;
           flex-direction: column;
@@ -1955,15 +1993,32 @@ window.FFH.UI = class {
     box._typewriterTimer = setInterval(() => {
       if (charIndex < fullSpeech.length) {
         textTarget.textContent += fullSpeech[charIndex];
-        if (charIndex % 2 === 0 && this.game && this.game.speech) {
+        if (charIndex % 4 === 0 && this.game && this.game.speech) {
           this.game.speech.playTalkBlip(npcId);
         }
         charIndex++;
       } else {
         clearInterval(box._typewriterTimer);
         revealOptions();
+        if (scrollStream) {
+          scrollStream.scrollTop = scrollStream.scrollHeight;
+        }
       }
-    }, 16);
+    }, 8);
+
+    // Clicking anywhere on dialogue skips typewriter to end immediately
+    box.addEventListener('click', (e) => {
+      if (e.target.closest('.dialogue-opt-btn')) return;
+      if (charIndex < fullSpeech.length) {
+        clearInterval(box._typewriterTimer);
+        textTarget.textContent = fullSpeech;
+        charIndex = fullSpeech.length;
+        revealOptions();
+        if (scrollStream) {
+          scrollStream.scrollTop = scrollStream.scrollHeight;
+        }
+      }
+    });
 
     const buttons = box.querySelectorAll('.dialogue-opt-btn');
     buttons.forEach(btn => {
@@ -2283,6 +2338,113 @@ window.FFH.UI = class {
         this.showPOICard(lastPoi);
       }
     }
+  }
+
+  showStoryOverlay(overlayData, onChoiceSelected) {
+    const existing = document.getElementById('story-overlay-container');
+    if (existing) existing.remove();
+
+    const parent = document.getElementById('game-container') || document.body;
+    const div = document.createElement('div');
+    div.id = 'story-overlay-container';
+    div.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.88) 100%);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9500;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px 18px 24px 18px;
+      box-sizing: border-box;
+      pointer-events: auto;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    `;
+
+    const proseHtml = (overlayData.prose || []).map(p => `
+      <p style="
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: #F8FAFC;
+        margin: 0 0 10px 0;
+        font-weight: 500;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      ">${p}</p>
+    `).join('');
+
+    const choicesHtml = (overlayData.choices || []).map((ch, idx) => `
+      <button class="btn-story-choice" data-idx="${ch.idx !== undefined ? ch.idx : idx}" style="
+        width: 100%;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        color: #FFFFFF;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: left;
+        line-height: 1.35;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        transition: all 0.12s ease-in-out;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      ">
+        <span>${ch.label}</span>
+        <span style="opacity: 0.8; margin-left: 8px;">➔</span>
+      </button>
+    `).join('');
+
+    div.innerHTML = `
+      <div style="
+        max-width: 380px;
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      ">
+        <div style="
+          background: rgba(18, 24, 38, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 16px;
+          padding: 14px 16px;
+          max-height: 48vh;
+          overflow-y: auto;
+        ">
+          ${proseHtml}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          ${choicesHtml}
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(div);
+
+    div.querySelectorAll('.btn-story-choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (this.game && this.game.sfx) {
+          this.game.sfx.playSfx('click');
+        }
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => {
+          div.remove();
+          if (onChoiceSelected) onChoiceSelected(idx);
+        }, 200);
+      });
+    });
   }
 
   updateCityExplorerHUD(distance, angleRad, isActive) {

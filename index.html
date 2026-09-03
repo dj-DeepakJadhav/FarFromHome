@@ -17558,6 +17558,4897 @@ struct BVH {
 </script>
 
   <script>
+window.FFH = window.FFH || {};
+window.FFH.storyData = {
+  "$schema_version": 1,
+  "title": "Far From Home",
+  "subtitle": "Luebeck. 28 days. 20 euros.",
+  "about": [
+    "STORYBOARD AND SINGLE SOURCE OF TRUTH.",
+    "This file owns prose, branching, economy deltas, UI/mechanic unlocks and",
+    "pacing. story.ink and story.twee predate it and no longer match: they do",
+    "not contain the Act I restructure. Treat them as historical until they",
+    "are regenerated from this file.",
+    "JSON has no comments, so commentary lives in real fields: beat, econ_note,",
+    "sets_note, about."
+  ],
+  "shape": {
+    "form": "diamond",
+    "rule": "Introduce mechanics on the widening half. Master them on the narrowing half.",
+    "acts": [
+      {
+        "id": "I",
+        "name": "One thread",
+        "intent": "Arrival, one conversation, and the der/die/das ramp. Ends on the Aha."
+      },
+      {
+        "id": "II",
+        "name": "Two threads",
+        "intent": "The Kaution fork: pay it and be broke, or borrow and keep a runway."
+      },
+      {
+        "id": "III",
+        "name": "Four to six threads",
+        "intent": "Every remaining system arrives here. Peak chaos."
+      },
+      {
+        "id": "IV",
+        "name": "Threads close",
+        "intent": "Nothing new is introduced. Mastery and untangling only."
+      },
+      {
+        "id": "V",
+        "name": "One thread",
+        "intent": "One desk, one stamp, three shadings of the same ending."
+      }
+    ]
+  },
+  "pacing": {
+    "aha_scene": "shift_3_test",
+    "budget_s": 90,
+    "rule_source": "Docs/CANONICAL_NUMBERS.md section 5; CLAUDE.md rule 4",
+    "delivery_modes": {
+      "overlay": "narration plays over live gameplay and never blocks input",
+      "blocking": "a real conversation; the dialogue IS the interaction",
+      "gameplay": "a minigame owns the screen; narration is incidental"
+    }
+  },
+  "economy_ref": "src/core/economy.js is authoritative; Docs/CANONICAL_NUMBERS.md mirrors it",
+  "state": {
+    "wallet": 20.0,
+    "day": 1,
+    "shift_no": 0,
+    "body": 100,
+    "heart": 50,
+    "strikes": 0,
+    "r_nico": 0,
+    "r_martha": 0,
+    "r_nina": 0,
+    "r_mathias": 0,
+    "r_lokker": 0,
+    "r_vogel": 0,
+    "r_klaus": 0,
+    "paid_kaution": false,
+    "has_lease": false,
+    "has_anmeldung": false,
+    "has_konto": false,
+    "matriculated": false,
+    "knows_trennung": false,
+    "knows_the_circle": false,
+    "met_anke": false,
+    "circle_cut": false,
+    "has_ebike": false,
+    "has_thermalbag": false,
+    "has_vocabcards": false,
+    "has_notepad": false,
+    "has_labels": false,
+    "owes_mathias": 0.0,
+    "night_route_taken": 0,
+    "helped_nico": false,
+    "nico_gone": false,
+    "klaus_quit": false,
+    "told_truth_home": false,
+    "fined_trennung": false,
+    "knots": 0
+  },
+  "scenes": [
+    {
+      "id": "act_one",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_ZOB",
+        "time": "18:00",
+        "light": "dusk_cold",
+        "weather": "wind_baltic_hard",
+        "camera": "wide_establishing_low"
+      },
+      "cast": [],
+      "props": [
+        "coach_bus",
+        "timetable_board",
+        "suitcase_heavy",
+        "jacket_thin"
+      ],
+      "audio": [
+        "bus_doors_hiss",
+        "wind_gust_loop",
+        "tram_bell_distant"
+      ],
+      "prose": [
+        "Luebeck. Six in the evening, already dark.",
+        "The coach doors hiss shut behind you and it pulls away. Nobody else got off.",
+        "Twenty euros in your jacket pocket. A visa that stops working in twenty-eight days. A slip of paper with a room number on it: 4.",
+        "The board says the number 2 bus goes south. Two euros ninety. The map says the same trip is twenty-five minutes on foot."
+      ],
+      "choices": [
+        {
+          "label": "Take the bus. Two ninety.",
+          "gate": null,
+          "to": "wg_door",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet - 2.9"
+            }
+          ],
+          "prose": [
+            "You sit directly on top of the heater and let the old town slide past the glass. Red brick. Seven spires. Water on both sides of everything.",
+            "It looks like a postcard that was addressed to somebody else."
+          ]
+        },
+        {
+          "label": "Walk. Keep the two ninety.",
+          "gate": null,
+          "to": "wg_door",
+          "effects": [
+            {
+              "var": "body",
+              "expr": "body - 6"
+            }
+          ],
+          "prose": [
+            "Twenty-five minutes becomes forty, because you take the wrong bridge and have to come back over it.",
+            "The wind off the Baltic finds every seam in your jacket. By the end you cannot feel your ears.",
+            "You keep two euros ninety. Years from now you still will not know if that was the right call."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "arrival / hope + first cold",
+      "origin": "story.ink",
+      "econ_note": "wallet -2.90 (bus) | body -6 (walk)",
+      "mode": "overlay",
+      "duration_s": 10,
+      "duration_source": "authored",
+      "unlocks": {
+        "phase": "CITY_EXPLORATION",
+        "ui": [
+          "btn-roam-city",
+          "delivery-distance-indicator"
+        ],
+        "mechanic": "walk_city"
+      },
+      "cumulative_s": 10,
+      "critical_path_index": 0
+    },
+    {
+      "id": "wg_door",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "18:40",
+        "light": "interior_warm_lamp",
+        "camera": "doorway_two_shot"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "kitchen_counter",
+        "mug_instant_coffee",
+        "radiator",
+        "suitcase_heavy"
+      ],
+      "audio": [
+        "stairwell_echo",
+        "kettle_low",
+        "radiator_tick"
+      ],
+      "prose": [
+        "Room 4 is on the second floor of a building the colour of wet brick. The stairwell smells of radiators and old paint.",
+        "Somebody has left the kitchen door open. There is a lamp on in there, and a person under it.",
+        "Nico: Oh. You're the new one. Room 4.",
+        "Nico: Sit down. Put the suitcase down, it isn't going anywhere.",
+        "He pushes a mug across the counter. Instant coffee. It is the best thing you have ever held."
+      ],
+      "choices": [
+        {
+          "label": "\"Thank you. I didn't think anyone would be awake.\"",
+          "gate": null,
+          "to": "nico_kitchen",
+          "effects": [
+            {
+              "var": "r_nico",
+              "expr": "r_nico + 1"
+            }
+          ],
+          "prose": [
+            "Nico: Somebody is always awake here. That's the whole trick."
+          ]
+        },
+        {
+          "label": "\"How long have you been here?\"",
+          "gate": null,
+          "to": "nico_kitchen",
+          "effects": [],
+          "prose": [
+            "Nico: Third year. He says it the way people say a prison sentence, then laughs at himself for it.",
+            "Nico: Three good years. Mostly."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "first kindness / the mug",
+      "origin": "story.ink",
+      "sets_note": "r_nico +1",
+      "mode": "blocking",
+      "duration_s": 7,
+      "duration_source": "authored",
+      "unlocks": {
+        "phase": "DIALOGUE",
+        "ui": [
+          "dialogue-speaker",
+          "dialogue-text",
+          "dialogue-options-container"
+        ],
+        "mechanic": "converse"
+      },
+      "cumulative_s": 17,
+      "critical_path_index": 1
+    },
+    {
+      "id": "nico_kitchen",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "18:50",
+        "light": "interior_warm_lamp",
+        "camera": "over_shoulder_table"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "kitchen_table",
+        "window_black",
+        "bin_blue",
+        "bin_yellow",
+        "bin_black"
+      ],
+      "audio": [
+        "radiator_tick"
+      ],
+      "prose": [
+        "Nico: Right. Two things, then sleep.",
+        "Nico: One - the university office shuts at five. It's ten past six.",
+        "You look at the window. The window looks back, black.",
+        "Nico: Two, and I am serious about this one. The bins."
+      ],
+      "choices": [
+        {
+          "label": "\"The bins.\"",
+          "gate": null,
+          "to": "nico_bins_choice",
+          "effects": [],
+          "prose": [
+            "Nico: Muelltrennung. Sorting. Blue is paper, yellow is plastic, black is everything else.",
+            "Nico: Herr Lokker checks. With a torch. He fined the guy in Room 2 twenty-five euros last winter."
+          ]
+        },
+        {
+          "label": "\"Can the bins wait? I've been travelling two days.\"",
+          "gate": null,
+          "to": "nico_sends_kruma",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart - 2"
+            }
+          ],
+          "prose": [
+            "Nico shrugs, and lets it go.",
+            "Nico: Sure. They can wait. They can wait right up until they can't."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "setup: office shut + the bins",
+      "origin": "story.ink",
+      "econ_note": "heart -2 (brush off)",
+      "divert": "nico_sends_kruma",
+      "mode": "blocking",
+      "duration_s": 6,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 23,
+      "critical_path_index": 2
+    },
+    {
+      "id": "nico_bins_choice",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "18:52",
+        "light": "interior_warm_lamp",
+        "camera": "insert_three_bins"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "bin_blue",
+        "bin_yellow",
+        "bin_black"
+      ],
+      "audio": [],
+      "prose": [],
+      "choices": [
+        {
+          "label": "\"Blue paper, yellow plastic, black the rest. Say it again, slower.\"",
+          "gate": null,
+          "to": "nico_sends_kruma",
+          "effects": [
+            {
+              "var": "knows_trennung",
+              "expr": "true"
+            },
+            {
+              "var": "r_nico",
+              "expr": "r_nico + 1"
+            }
+          ],
+          "prose": [
+            "You make him repeat it twice. He does, without making you feel stupid about it, which you notice.",
+            "Nico: Blue. Yellow. Black. That's it. That's the entire exam."
+          ]
+        },
+        {
+          "label": "\"Twenty-five euros. For bins.\"",
+          "gate": null,
+          "to": "nico_sends_kruma",
+          "effects": [],
+          "prose": [
+            "Nico grins into his coffee.",
+            "Nico: Wait until you meet the bank."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "PLANT: pays off day 11 as a 25 euro fine",
+      "origin": "story.ink",
+      "sets_note": "knows_trennung, r_nico +1",
+      "divert": "nico_sends_kruma",
+      "mode": "blocking",
+      "duration_s": 7,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [
+          "btn-vocab-notebook",
+          "vocab-modal",
+          "vocab-list"
+        ],
+        "mechanic": "vocab_notebook",
+        "teaches": {
+          "subject": "muelltrennung",
+          "mode": "TEACH"
+        }
+      },
+      "cumulative_s": 30,
+      "critical_path_index": 3
+    },
+    {
+      "id": "nico_sends_kruma",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "18:25",
+        "light": "interior_warm_lamp",
+        "camera": "kitchen_two_shot"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "kitchen_counter",
+        "paper_slip"
+      ],
+      "audio": [
+        "radiator_tick"
+      ],
+      "prose": [
+        "Nico looks at the paper slip in your hand, then at the clock.",
+        "Nico: One more thing and then I'll leave you alone. Lokker wants thirty euros deposit by Friday. That's not a suggestion, that's just how the building works.",
+        "Nico: Kruma Express, behind the Holstentor. Night manifest. They're short of people basically always."
+      ],
+      "choices": [
+        {
+          "label": "\"Tonight? I have not even put the suitcase down.\"",
+          "to": "uni_closed",
+          "effects": [],
+          "prose": [
+            "Nico: I know. I did the same thing. Everybody does the same thing.",
+            "Nico: Go the long way, past the university. You should see where it is."
+          ]
+        },
+        {
+          "label": "\"Behind the Holstentor. Got it.\"",
+          "to": "uni_closed",
+          "effects": [
+            {
+              "var": "r_nico",
+              "expr": "r_nico + 1"
+            }
+          ],
+          "prose": [
+            "Nico: Go past the university on the way. Two minutes out of your way and then you know where it is."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "MOTIVATES the first shift tonight, and routes you past the locked door",
+      "origin": "new",
+      "mode": "overlay",
+      "duration_s": 6,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [
+          "city-quest-tracker",
+          "city-quest-text",
+          "city-poi-card"
+        ],
+        "mechanic": "quest_tracking"
+      },
+      "cumulative_s": 36,
+      "critical_path_index": 4
+    },
+    {
+      "id": "uni_closed",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_UNI",
+        "time": "19:20",
+        "light": "night_lantern",
+        "weather": "cold_clear",
+        "camera": "through_glass_two_shot"
+      },
+      "cast": [
+        "NPC_RITA"
+      ],
+      "props": [
+        "glass_door",
+        "briefcase",
+        "key_ring",
+        "window_lit_single"
+      ],
+      "audio": [
+        "door_lock_turn",
+        "footsteps_cobble"
+      ],
+      "prose": [
+        "You cross the bridge because it is the only thing lit.",
+        "On the far side: the admissions building. Brick, tall windows, one of them still yellow. Somebody is in there.",
+        "You reach the door as a woman is locking it from the inside.",
+        "Rita Schneider: We closed at seventeen hundred."
+      ],
+      "choices": [
+        {
+          "label": "\"I know. I've only just arrived. I only wanted to see where it was.\"",
+          "gate": null,
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 3"
+            }
+          ],
+          "prose": [
+            "Her hand stops on the key.",
+            "Rita Schneider, through the glass: Ah. Then you have found it. It will still be here tomorrow.",
+            "Rita Schneider: Nine o'clock. Two hundred and fifty euros for matriculation. Bring it as notes, not in coins."
+          ]
+        },
+        {
+          "label": "\"Please. Two minutes. I've come a very long way.\"",
+          "gate": null,
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart - 3"
+            }
+          ],
+          "prose": [
+            "Rita Schneider: So has everybody in the queue that starts tomorrow at nine.",
+            "She finishes locking the door. Not unkindly. Just finished.",
+            "Rita Schneider: Two hundred and fifty euros, nine o'clock. Go and sleep."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "first defeat / the locked door",
+      "origin": "story.ink",
+      "econ_note": "heart +3 / -3",
+      "divert": "shift_1_teach",
+      "mode": "blocking",
+      "duration_s": 7,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 43,
+      "critical_path_index": 5
+    },
+    {
+      "id": "shift_1_teach",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "18:50",
+        "light": "interior_fluorescent_cold",
+        "camera": "first_person_pick"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [
+        "shelf_der",
+        "shelf_die",
+        "shelf_das",
+        "crate",
+        "apple",
+        "cheese",
+        "bread",
+        "carton"
+      ],
+      "audio": [
+        "freezer_hum",
+        "ceiling_voice_der",
+        "ceiling_voice_die",
+        "ceiling_voice_das",
+        "pick_confirm"
+      ],
+      "prose": [
+        "Nina Lindemann: You're the temp, or you're lost.",
+        "Nina Lindemann: Shelves. Three rows. Bottom is der. Middle is die. Top is das. Not fruit on one and drinks on another, nobody sorts a warehouse by fruit.",
+        "Nina Lindemann: The word tells you the shelf. Learn the word and you stop searching.",
+        "The voice in the ceiling says a word and the shelf lights up at the same time, so you cannot get it wrong. For about four minutes you are still genuinely terrible at this."
+      ],
+      "choices": [
+        {
+          "label": "[Pick to the glowing shelf.]",
+          "to": "shift_2_anticipate",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet + 9.5"
+            },
+            {
+              "var": "shift_no",
+              "expr": "shift_no + 1"
+            }
+          ],
+          "prose": [
+            "Die Milch, middle. Der Kaese, bottom. Das Brot, top.",
+            "Nina Lindemann: That's the whole job. Again, faster."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "TEACH: audio and icon together, cannot fail. Mechanic introduced.",
+      "origin": "new",
+      "payout": {
+        "formula": "base 13 + accuracy, teach mode",
+        "wallet": 9.5
+      },
+      "mode": "gameplay",
+      "duration_s": 18,
+      "duration_source": "authored",
+      "unlocks": {
+        "phase": "PICK",
+        "ui": [
+          "pick-timer-text",
+          "tuition-text",
+          "tuition-bar"
+        ],
+        "mechanic": "gender_shelf_sort",
+        "teaches": {
+          "subject": "der_die_das",
+          "mode": "TEACH",
+          "icon_delay_s": 0.0
+        }
+      },
+      "cumulative_s": 61,
+      "critical_path_index": 6
+    },
+    {
+      "id": "shift_2_anticipate",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "19:20",
+        "light": "interior_fluorescent_cold",
+        "camera": "first_person_pick"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [
+        "shelf_der",
+        "shelf_die",
+        "shelf_das",
+        "crate",
+        "thermal_bag"
+      ],
+      "audio": [
+        "ceiling_voice_ramp",
+        "pick_confirm",
+        "mispick_buzz"
+      ],
+      "prose": [
+        "Second manifest. Longer.",
+        "The voice comes a beat before the shelf lights up now. You notice, and you start moving on the word instead of the light.",
+        "Nina Lindemann: There it is. You heard it before you saw it."
+      ],
+      "choices": [
+        {
+          "label": "[Pick on the word, before the light.]",
+          "to": "shift_3_test",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet + 10.5"
+            },
+            {
+              "var": "shift_no",
+              "expr": "shift_no + 1"
+            }
+          ],
+          "prose": [
+            "Twice you go early and twice you are right, and it pays double for early."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "ANTICIPATE: 1.5s icon delay. Player starts listening, not looking.",
+      "origin": "new",
+      "payout": {
+        "formula": "base + accuracy, anticipate mode",
+        "wallet": 10.5
+      },
+      "mode": "gameplay",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [
+          "hud-freshness-bar"
+        ],
+        "mechanic": "freshness",
+        "teaches": {
+          "subject": "der_die_das",
+          "mode": "ANTICIPATE",
+          "icon_delay_s": 1.5
+        }
+      },
+      "cumulative_s": 75,
+      "critical_path_index": 7
+    },
+    {
+      "id": "shift_3_test",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "19:50",
+        "light": "interior_fluorescent_cold",
+        "camera": "first_person_pick"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [
+        "shelf_der",
+        "shelf_die",
+        "shelf_das",
+        "crate",
+        "manifest_long"
+      ],
+      "audio": [
+        "ceiling_voice_test_mode",
+        "pick_confirm_fast",
+        "mispick_buzz"
+      ],
+      "prose": [
+        "Third manifest. The light does not come.",
+        "It does not come because you do not need it any more. The voice says die Banane and your hand is already at the middle row, and you have known this word for eleven minutes.",
+        "You are standing in a freezing warehouse in a country you landed in two hours ago, sorting groceries by grammatical gender, and you are good at it."
+      ],
+      "choices": [
+        {
+          "label": "[Finish the manifest.]",
+          "to": "shift_receipt",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet + 11.5"
+            },
+            {
+              "var": "shift_no",
+              "expr": "shift_no + 1"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 6"
+            }
+          ],
+          "prose": [
+            "Nina Lindemann: Same time tomorrow.",
+            "It is not a question, and you find that you do not want it to be."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "THE AHA. Icon never arrives; the grammar has become spatial instinct.",
+      "origin": "new",
+      "payout": {
+        "formula": "base + accuracy + streak, test mode",
+        "wallet": 11.5
+      },
+      "mode": "gameplay",
+      "duration_s": 12,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [
+          "hud-integrity-bar"
+        ],
+        "mechanic": "bag_integrity",
+        "teaches": {
+          "subject": "der_die_das",
+          "mode": "TEST",
+          "icon_delay_s": 2.5
+        }
+      },
+      "cumulative_s": 87,
+      "critical_path_index": 8
+    },
+    {
+      "id": "shift_receipt",
+      "act": "I",
+      "threads": 2,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "09:30",
+        "light": "interior_fluorescent_cold",
+        "camera": "first_person_pick"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [
+        "shelf_der",
+        "shelf_die",
+        "shelf_das",
+        "crate",
+        "apple",
+        "cheese",
+        "bread",
+        "carton"
+      ],
+      "audio": [
+        "ceiling_voice_der",
+        "ceiling_voice_die",
+        "ceiling_voice_das",
+        "pick_confirm"
+      ],
+      "prose": [
+        "Three manifests. The receipt prints on paper that curls.",
+        "Nina Lindemann: Thirteen base, three runs, items clean, and a tip off the hostel because you said bitte.",
+        "Nina Lindemann: Thirty-one fifty for the night. Don't look so surprised. You earned it, that's what earned looks like."
+      ],
+      "choices": [
+        {
+          "label": "[Take the receipt.]",
+          "to": "rita_first",
+          "gate": null,
+          "effects": [],
+          "prose": [
+            "You fold it into your passport, which is where you will keep every piece of paper for the next four weeks."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "THE RECEIPT: names the money so the tuition bar means something",
+      "origin": "story.ink + restructured",
+      "econ_note": "no wallet change here: the three shift scenes already paid 9.50 + 10.50 + 11.50 = 31.50",
+      "sets_note": "shift_no +1, r_nina +1",
+      "mode": "blocking",
+      "duration_s": 12,
+      "duration_source": "authored",
+      "unlocks": {
+        "phase": "DEBRIEF_RECEIPT",
+        "ui": [
+          "btn-finish-shift"
+        ],
+        "mechanic": "shift_receipt"
+      },
+      "cumulative_s": 99,
+      "critical_path_index": 9
+    },
+    {
+      "id": "rita_first",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_UNI",
+        "time": "19:25",
+        "light": "night_lantern",
+        "weather": "cold_clear",
+        "camera": "single_close"
+      },
+      "cast": [],
+      "props": [
+        "paper_slip"
+      ],
+      "audio": [
+        "wind_gust_loop"
+      ],
+      "prose": [
+        "You have {wallet}€.",
+        "Two hundred and fifty is not a number you can look at directly yet. It is more like weather."
+      ],
+      "choices": [
+        {
+          "label": "Walk back the slow way.",
+          "gate": null,
+          "to": "night_one",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "the number 250 lands as weather",
+      "origin": "story.ink",
+      "divert": "night_one",
+      "mode": "overlay",
+      "duration_s": 6,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 105,
+      "critical_path_index": 10
+    },
+    {
+      "id": "night_one",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "LM_CANAL",
+        "time": "20:10",
+        "light": "night_lantern_water",
+        "weather": "still_cold",
+        "camera": "wide_reflection_hold"
+      },
+      "cast": [],
+      "props": [
+        "canal_water_still",
+        "lantern_row",
+        "phone"
+      ],
+      "audio": [
+        "water_lap_soft",
+        "phone_buzz"
+      ],
+      "prose": [
+        "The canal is completely still. The lanterns lie down flat on it, orange and unbroken, and you stand there longer than you meant to.",
+        "Your phone buzzes. Home. They will have been waiting up."
+      ],
+      "choices": [
+        {
+          "label": "\"It's beautiful here. Everything's fine. The room's great.\"",
+          "gate": null,
+          "to": "night_one_end",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 6"
+            }
+          ],
+          "prose": [
+            "You hear your mother let a breath out. It is worth the lie. That is the thing about this particular lie - it is genuinely worth it."
+          ]
+        },
+        {
+          "label": "\"I got in late. I missed the office. I have seventeen euros.\"",
+          "gate": null,
+          "to": "night_one_end",
+          "effects": [
+            {
+              "var": "told_truth_home",
+              "expr": "true"
+            },
+            {
+              "var": "heart",
+              "expr": "heart - 4"
+            }
+          ],
+          "prose": [
+            "Silence on the line. Then your father, who never takes the phone, takes the phone.",
+            "\"So you'll go at nine tomorrow,\" he says. \"That's all this is. You'll go at nine.\"",
+            "It fixes nothing. You sleep better anyway."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "THEME: the worthwhile lie / mirrored in four_phone",
+      "origin": "story.ink",
+      "econ_note": "heart +6 (lie) | heart -4 (truth)",
+      "sets_note": "told_truth_home",
+      "mode": "blocking",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 119,
+      "critical_path_index": 11
+    },
+    {
+      "id": "night_one_end",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "21:30",
+        "light": "interior_dim_single",
+        "camera": "room_wide_static"
+      },
+      "cast": [],
+      "props": [
+        "bed",
+        "desk",
+        "window",
+        "radiator",
+        "suitcase_unopened"
+      ],
+      "audio": [
+        "radiator_tick"
+      ],
+      "prose": [
+        "Room 4 has a bed, a desk, a window, and a radiator that ticks.",
+        "You do not unpack. You will not unpack for eleven days."
+      ],
+      "choices": [
+        {
+          "label": "Sleep.",
+          "gate": null,
+          "to": {
+            "tunnel": "night_tick",
+            "then": "act_two"
+          },
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "the suitcase stays packed for 11 days",
+      "origin": "story.ink",
+      "mode": "overlay",
+      "duration_s": 6,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 125,
+      "critical_path_index": 12
+    },
+    {
+      "id": "act_two",
+      "act": "II",
+      "threads": 2,
+      "stage": {
+        "loc": "B_WG",
+        "time": "08:10",
+        "light": "dawn_grey",
+        "weather": "overcast",
+        "camera": "low_angle_authority"
+      },
+      "cast": [
+        "NPC_LOKKER"
+      ],
+      "props": [
+        "clipboard",
+        "stairwell"
+      ],
+      "audio": [
+        "footsteps_stair"
+      ],
+      "prose": [
+        "There is a man in the stairwell holding a clipboard like a weapon.",
+        "Herr Hans Lokker: Room 4. You arrived last night at eighteen forty."
+      ],
+      "choices": [
+        {
+          "label": "\"You were counting?\"",
+          "gate": null,
+          "to": "lokker_kaution",
+          "effects": [],
+          "prose": [
+            "Herr Hans Lokker: I was awake."
+          ]
+        },
+        {
+          "label": "\"Good morning.\"",
+          "gate": null,
+          "to": "lokker_kaution",
+          "effects": [
+            {
+              "var": "r_lokker",
+              "expr": "r_lokker + 1"
+            }
+          ],
+          "prose": [
+            "A nod. Very small.",
+            "Herr Hans Lokker: Morgen."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "the antagonist who is not one",
+      "origin": "story.ink",
+      "sets_note": "r_lokker +1",
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 133,
+      "critical_path_index": 13
+    },
+    {
+      "id": "lokker_kaution",
+      "act": "II",
+      "threads": 2,
+      "stage": {
+        "loc": "B_WG",
+        "time": "08:12",
+        "light": "dawn_grey",
+        "weather": "overcast",
+        "camera": "two_shot_stairwell"
+      },
+      "cast": [
+        "NPC_LOKKER"
+      ],
+      "props": [
+        "clipboard",
+        "lease_form_blank"
+      ],
+      "audio": [],
+      "prose": [
+        "Herr Hans Lokker: Kaution. Deposit. Thirty euros. You have three days.",
+        "Herr Hans Lokker: No deposit, no signed lease. And you will find that without a signed lease this city does not believe you live in it.",
+        "He is not enjoying this. Somehow that is worse than if he were."
+      ],
+      "choices": [
+        {
+          "label": "\"I have {wallet}€.\"",
+          "gate": null,
+          "to": "act_two_fork",
+          "effects": [],
+          "prose": [
+            "Herr Hans Lokker: Then you have a problem, and three days in which to have had it.",
+            "At the stairs, without turning: Kruma Express. Behind the Holstentor. They are always short of somebody."
+          ]
+        },
+        {
+          "label": "\"You'll have it.\"",
+          "gate": null,
+          "to": "act_two_fork",
+          "effects": [
+            {
+              "var": "r_lokker",
+              "expr": "r_lokker + 1"
+            }
+          ],
+          "prose": [
+            "Herr Hans Lokker: Good. I prefer that answer. It is usually not true, but I prefer it."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "INCITING: 30 euros in 3 days",
+      "origin": "story.ink",
+      "sets_note": "r_lokker +1",
+      "mode": "blocking",
+      "duration_s": 10,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 143,
+      "critical_path_index": 14
+    },
+    {
+      "id": "act_two_fork",
+      "act": "II",
+      "threads": 2,
+      "stage": {
+        "loc": "LM_MARKTPLATZ",
+        "time": "08:30",
+        "light": "dawn_grey",
+        "weather": "overcast",
+        "camera": "fork_two_doors_wide"
+      },
+      "cast": [],
+      "props": [
+        "holstentor",
+        "loading_bay_lit",
+        "pizzeria_shutter",
+        "bicycle_upturned"
+      ],
+      "audio": [
+        "city_morning_loop"
+      ],
+      "prose": [
+        "You have thirty-one fifty in your pocket and Lokker wants thirty of it.",
+        "Which is fine. Which is exactly fine, and leaves you one euro fifty and a two hundred and fifty euro tuition bill.",
+        "Two streets over there is a pizzeria with the shutter half up, and a man inside with a bicycle upside down on a table."
+      ],
+      "choices": [
+        {
+          "label": "[Pay Lokker the thirty. Be broke and owe nobody.]",
+          "to": "kaution_pay",
+          "gate": null,
+          "effects": [],
+          "prose": [
+            "You count it twice on the stairs before you knock, which does not change the number."
+          ]
+        },
+        {
+          "label": "[Try the pizzeria first. Keep the thirty-one fifty as a runway.]",
+          "to": "mathias_loan",
+          "gate": null,
+          "effects": [],
+          "prose": [
+            "The shutter is half up. You duck under it, which feels like the wrong way to enter a business."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "THE FORK, REFRAMED: pay it and be broke, or borrow and keep a runway",
+      "origin": "story.ink + restructured",
+      "mode": "overlay",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 151,
+      "critical_path_index": 15
+    },
+    {
+      "id": "kaution_pay",
+      "act": "II",
+      "threads": 2,
+      "stage": {
+        "loc": "B_WG",
+        "time": "13:00",
+        "light": "overcast_noon",
+        "weather": "overcast",
+        "camera": "insert_hands_form"
+      },
+      "cast": [
+        "NPC_LOKKER"
+      ],
+      "props": [
+        "lease_form_signed",
+        "fountain_pen",
+        "bin_blue"
+      ],
+      "audio": [
+        "paper_rustle",
+        "pen_scratch"
+      ],
+      "prose": [
+        "Lokker counts it twice, then writes on a form in handwriting from another century.",
+        "Herr Hans Lokker: Wohnungsgeberbestaetigung. Landlord's confirmation. This proves you sleep here.",
+        "Herr Hans Lokker: Take it to the Buergeramt. They will not believe you exist without it, and I am not being funny.",
+        "Wallet: {wallet}€."
+      ],
+      "choices": [
+        {
+          "label": "\"Thank you, Herr Lokker.\"",
+          "gate": null,
+          "to": "act_two_end",
+          "effects": [
+            {
+              "var": "r_lokker",
+              "expr": "r_lokker + 1"
+            }
+          ],
+          "prose": [
+            "He is already inspecting the bins.",
+            "Herr Hans Lokker: Blue is paper."
+          ]
+        },
+        {
+          "label": "Take the form and go.",
+          "gate": null,
+          "to": "act_two_end",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [
+        {
+          "var": "wallet",
+          "expr": "wallet - 30.0"
+        },
+        {
+          "var": "paid_kaution",
+          "expr": "true"
+        },
+        {
+          "var": "has_lease",
+          "expr": "true"
+        },
+        {
+          "var": "r_lokker",
+          "expr": "r_lokker + 1"
+        }
+      ],
+      "beat": "FIRST PAPER WON / both threads converge here",
+      "origin": "story.ink",
+      "econ_note": "wallet -30.00",
+      "sets_note": "paid_kaution, has_lease, r_lokker +1",
+      "mode": "blocking",
+      "duration_s": 10,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [
+          "stamp-seal"
+        ],
+        "mechanic": "document_dossier"
+      },
+      "cumulative_s": 161,
+      "critical_path_index": 16
+    },
+    {
+      "id": "act_two_end",
+      "act": "II",
+      "threads": 2,
+      "stage": {
+        "loc": "B_WG",
+        "time": "21:00",
+        "light": "interior_warm_lamp",
+        "camera": "kitchen_two_shot"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "lease_form_signed",
+        "books_three_open"
+      ],
+      "audio": [],
+      "prose": [
+        "One piece of paper. It weighs nothing. You keep checking that it is still in your pocket.",
+        "Nico is in the kitchen with three books open and none of them being read.",
+        "Nico: You got the lease? On day two?",
+        "He puts a hand up for a high five, converts it to a handshake halfway, and the result is a mess.",
+        "Nico: Okay. Don't get comfortable. Tomorrow it stops being one thing at a time."
+      ],
+      "choices": [
+        {
+          "label": "Sleep.",
+          "gate": null,
+          "to": {
+            "tunnel": "night_tick",
+            "then": "act_three_open"
+          },
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "the botched high five / warning: it stops being one thing at a time",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 169,
+      "critical_path_index": 17
+    },
+    {
+      "id": "act_three_open",
+      "act": "III",
+      "threads": 4,
+      "stage": {
+        "loc": "B_WG",
+        "time": "07:00",
+        "light": "dawn_grey",
+        "weather": "overcast",
+        "camera": "ceiling_lie_back"
+      },
+      "cast": [],
+      "props": [
+        "bed",
+        "calendar_marked"
+      ],
+      "audio": [
+        "alarm_phone"
+      ],
+      "prose": [
+        "You wake up knowing four things at the same time, which is one more than a person can hold.",
+        "Two hundred and fifty euros, before the visa appointment on the twenty-eighth.",
+        "A stamp at the Buergeramt.",
+        "A bank account.",
+        "And rent, eight euros, every single morning, whether or not you got out of bed."
+      ],
+      "choices": [
+        {
+          "label": "Get up.",
+          "gate": null,
+          "to": "hub",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [
+        {
+          "var": "knots",
+          "expr": "4"
+        }
+      ],
+      "beat": "CHAOS OPENS: four problems held at once",
+      "origin": "story.ink",
+      "sets_note": "knots = 4",
+      "mode": "overlay",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 177,
+      "critical_path_index": 18
+    },
+    {
+      "id": "hub",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "LM_MARKTPLATZ",
+        "time": "09:00",
+        "light": "overcast_noon",
+        "weather": "variable",
+        "camera": "hub_orbit_slow"
+      },
+      "cast": [],
+      "props": [
+        "cobbles",
+        "tram_rail",
+        "notice_board"
+      ],
+      "audio": [
+        "tram_bell_distant",
+        "city_day_loop"
+      ],
+      "prose": [
+        "Marktplatz. Cobbles. A tram bell somewhere. {day > 12:The days have started to look the same, which is its own kind of danger.}",
+        "Day {day} of 28. Wallet {wallet}€. Body {body}. { has_lease:Lease: yes.|Lease: no.} { has_anmeldung:Anmeldung: stamped.|Anmeldung: not stamped.} { has_konto:Account: open.|Account: frozen.} { matriculated:Matriculated.|Tuition still owed.}"
+      ],
+      "choices": [
+        {
+          "label": "Buergeramt. Get the stamp.",
+          "gate": "not has_anmeldung",
+          "to": "knot_paper",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "Kruma Express. Take a shift.",
+          "gate": null,
+          "to": "knot_money",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "The yard behind Kruma. Klaus is out there again.",
+          "gate": "shift_no >= 2",
+          "to": "knot_body",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "The WG kitchen. Nico hasn't slept.",
+          "gate": null,
+          "to": "knot_heart",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "The shop counter at Kruma. Spend money to make money.",
+          "gate": "shift_no >= 1",
+          "to": "shop",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "Bakery Hansa. It's warm in there.",
+          "gate": null,
+          "to": "martha",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "The AStA office. Somebody said there's a lawyer.",
+          "gate": "day >= 6 && not met_anke",
+          "to": "anke",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "End the day.",
+          "gate": null,
+          "to": "end_of_day",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "PLAYER AGENCY: work the knots in any order",
+      "origin": "story.ink",
+      "econ_note": "readout: wallet, body, day",
+      "gate": "knots > 1",
+      "conditional_edges": [
+        {
+          "if": "knots <= 1",
+          "to": "act_four"
+        }
+      ],
+      "mode": "blocking",
+      "duration_s": 6,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 183,
+      "critical_path_index": 19
+    },
+    {
+      "id": "knot_paper",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_RATHAUS",
+        "time": "10:00",
+        "light": "interior_office_strip",
+        "camera": "counter_low_across"
+      },
+      "cast": [
+        "NPC_VOGEL"
+      ],
+      "props": [
+        "desk_counter",
+        "rubber_stamp",
+        "queue_rope",
+        "passport",
+        "lease_form_signed"
+      ],
+      "audio": [
+        "stamp_thud",
+        "queue_murmur"
+      ],
+      "prose": [
+        "Herr Vogel has a desk, a stamp, and a queue, and he loves exactly one of those things.",
+        "Herr Vogel: Anmeldung. Passport. Landlord's confirmation. Bank details."
+      ],
+      "choices": [
+        {
+          "label": "\"Bank details?\"",
+          "gate": null,
+          "to": "the_circle",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "Hand over the passport and the lease.",
+          "gate": null,
+          "to": "the_circle",
+          "effects": [],
+          "prose": [
+            "He reads both. Slowly. Then looks up with an expression of real regret, which you were not expecting.",
+            "Herr Vogel: And your German bank account."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "KNOT 1 opens",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 191,
+      "critical_path_index": 20
+    },
+    {
+      "id": "the_circle",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_RATHAUS",
+        "time": "10:20",
+        "light": "interior_office_strip",
+        "camera": "single_close_reaction"
+      },
+      "cast": [
+        "NPC_VOGEL"
+      ],
+      "props": [
+        "passport",
+        "lease_form_signed"
+      ],
+      "audio": [],
+      "prose": [],
+      "choices": [
+        {
+          "label": "\"I'll go and open one.\"",
+          "gate": null,
+          "to": "the_circle_2",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "\"I don't have one yet.\"",
+          "gate": null,
+          "to": "the_circle_2",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [
+        {
+          "var": "knows_the_circle",
+          "expr": "true"
+        },
+        {
+          "var": "knots",
+          "expr": "knots + 1"
+        }
+      ],
+      "beat": "the deadlock is named",
+      "origin": "story.ink",
+      "sets_note": "knows_the_circle, knots +1",
+      "mode": "blocking",
+      "duration_s": 4,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {},
+      "cumulative_s": 195,
+      "critical_path_index": 21
+    },
+    {
+      "id": "the_circle_2",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_BANK",
+        "time": "10:40",
+        "light": "interior_bank_bright",
+        "camera": "desk_two_shot"
+      },
+      "cast": [
+        "NPC_WEBER"
+      ],
+      "props": [
+        "desk_third",
+        "monitor",
+        "form_meldebescheinigung"
+      ],
+      "audio": [
+        "keyboard_soft",
+        "coin_counter"
+      ],
+      "prose": [
+        "You go to the Sparkasse. It takes eleven minutes to walk and four minutes to understand.",
+        "Frau Weber: I can open the account the moment you bring me your Meldebescheinigung. Your registration certificate."
+      ],
+      "choices": [
+        {
+          "label": "\"From the Buergeramt.\"",
+          "gate": null,
+          "to": "the_circle_3",
+          "effects": [],
+          "prose": [
+            "Frau Weber: From the Buergeramt."
+          ]
+        },
+        {
+          "label": "\"The man at the Buergeramt wants the bank account first.\"",
+          "gate": null,
+          "to": "the_circle_3",
+          "effects": [],
+          "prose": [
+            "Frau Weber, without any change of expression at all: Yes."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "the other half of the circle",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 17,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {},
+      "cumulative_s": 212,
+      "critical_path_index": 22
+    },
+    {
+      "id": "the_circle_3",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "LM_BANK_STEP",
+        "time": "11:00",
+        "light": "overcast_noon",
+        "weather": "cold_flat",
+        "camera": "pull_back_isolate"
+      },
+      "cast": [],
+      "props": [
+        "bank_step",
+        "two_buildings_400m"
+      ],
+      "audio": [
+        "city_day_loop_muted"
+      ],
+      "prose": [
+        "You stand on the pavement between the two buildings, which are four hundred metres apart, and you do the loop again in your head to check.",
+        "The Buergeramt needs the bank. The bank needs the Buergeramt. The university needs both. The visa needs the university.",
+        "Nothing in this circle is anybody's fault. That is the part that gets to you. There is nobody to be angry at. It is just a shape, and you are inside it."
+      ],
+      "choices": [
+        {
+          "label": "Sit down on the step for a minute.",
+          "gate": null,
+          "to": "hub",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart - 6"
+            }
+          ],
+          "prose": [
+            "You sit down on the step of a bank in a country where you know six people, and for about ninety seconds you are not okay.",
+            "Then you get up, because the alternative is to keep sitting there."
+          ]
+        },
+        {
+          "label": "Go and find somebody who has seen this before.",
+          "gate": null,
+          "to": "hub",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart - 2"
+            }
+          ],
+          "prose": [
+            "Somebody has seen this before. Somebody has to have seen this before. Four hundred metres apart, for decades - somebody knows the way through."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "EMOTIONAL LOW / nobody to be angry at",
+      "origin": "story.ink",
+      "econ_note": "heart -6 (sit) | heart -2 (ask)",
+      "mode": "blocking",
+      "duration_s": 12,
+      "duration_source": "authored",
+      "unlocks": {},
+      "cumulative_s": 224,
+      "critical_path_index": 23
+    },
+    {
+      "id": "mathias_loan",
+      "act": "II",
+      "threads": 2,
+      "stage": {
+        "loc": "B_PIZZA",
+        "time": "09:00",
+        "light": "interior_warm_oven",
+        "camera": "workbench_two_shot"
+      },
+      "cast": [
+        "NPC_MATHIAS"
+      ],
+      "props": [
+        "bicycle_upturned",
+        "rear_wheel",
+        "flour_dusting",
+        "till",
+        "three_ten_notes"
+      ],
+      "audio": [
+        "wrench_clink",
+        "oven_roar_low"
+      ],
+      "prose": [
+        "The bicycle on the table has no back wheel. The man has one hand inside the frame and flour on his forearm.",
+        "Herr Mathias Becker: We open at eleven. Unless you're here about the bike, in which case sit down."
+      ],
+      "choices": [
+        {
+          "label": "\"I'm here about thirty euros.\"",
+          "gate": null,
+          "to": "mathias_loan_2",
+          "effects": [
+            {
+              "var": "r_mathias",
+              "expr": "r_mathias + 1"
+            }
+          ],
+          "prose": [
+            "He stops. Wipes his hands. Looks at you properly, which nobody has done since the coach.",
+            "Herr Mathias Becker: Ah. Kaution. Lokker."
+          ]
+        },
+        {
+          "label": "\"What's wrong with the bike?\"",
+          "gate": null,
+          "to": "mathias_loan_2",
+          "effects": [
+            {
+              "var": "r_mathias",
+              "expr": "r_mathias + 2"
+            }
+          ],
+          "prose": [
+            "Herr Mathias Becker: Everything. It's forty years old and I am not throwing it out.",
+            "You hold the frame while he seats the wheel. It takes eleven minutes. He talks the whole time and none of it is about you, which is a relief.",
+            "Herr Mathias Becker: Now. What did you actually come in here for."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "THEME: the debt you repay forward, not back",
+      "origin": "story.ink",
+      "econ_note": "wallet +30.00, owes_mathias 30.00",
+      "sets_note": "r_mathias +1..2, heart +5",
+      "mode": "blocking",
+      "duration_s": 9,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "mathias_loan_2",
+      "act": "II",
+      "threads": 2,
+      "stage": {
+        "loc": "B_PIZZA",
+        "time": "09:10",
+        "light": "interior_warm_oven",
+        "camera": "workbench_two_shot"
+      },
+      "cast": [
+        "NPC_MATHIAS"
+      ],
+      "props": [
+        "till",
+        "three_ten_notes",
+        "flour_dusting",
+        "bicycle_upturned"
+      ],
+      "audio": [
+        "till_drawer",
+        "oven_roar_low"
+      ],
+      "prose": [
+        "Herr Mathias Becker: Naples. Nineteen ninety-four. I arrived with a bag and a cousin's address, and the cousin had moved.",
+        "He says it flatly, like a weather report.",
+        "Herr Mathias Becker: Somebody gave me forty marks. I never paid him back, because he wouldn't let me. So.",
+        "He puts three tens on the table and slides them across with two fingers.",
+        "Herr Mathias Becker: Thirty. You pay me back when it's easy, not when it's hard. And if you come in here looking guilty I will throw a pizza at you."
+      ],
+      "choices": [
+        {
+          "label": "\"I'll pay you back.\"",
+          "gate": null,
+          "to": "kaution_pay",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet + 30.0"
+            },
+            {
+              "var": "owes_mathias",
+              "expr": "30.0"
+            },
+            {
+              "var": "r_mathias",
+              "expr": "r_mathias + 1"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 5"
+            }
+          ],
+          "prose": [
+            "Herr Mathias Becker: Yes, yes. Go. Lokker's awake. Lokker is always awake."
+          ]
+        },
+        {
+          "label": "\"I can't take this. I don't know you.\"",
+          "gate": null,
+          "to": "kaution_pay",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 2"
+            },
+            {
+              "var": "wallet",
+              "expr": "wallet + 30.0"
+            },
+            {
+              "var": "owes_mathias",
+              "expr": "30.0"
+            },
+            {
+              "var": "r_mathias",
+              "expr": "r_mathias + 2"
+            }
+          ],
+          "prose": [
+            "He pushes it two centimetres further.",
+            "Herr Mathias Becker: That is the correct answer and it is also stupid. Take the money."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "Naples 1994 / the debt you repay forward, not back",
+      "origin": "story.ink",
+      "econ_note": "wallet +30.00, owes_mathias 30.00",
+      "sets_note": "r_mathias +1..2, heart +2..5",
+      "mode": "blocking",
+      "duration_s": 12,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "knot_money",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "06:00",
+        "light": "interior_fluorescent_cold",
+        "camera": "first_person_pick"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [
+        "shelf_der",
+        "shelf_die",
+        "shelf_das",
+        "manifest_long",
+        "crate",
+        "thermal_bag"
+      ],
+      "audio": [
+        "ceiling_voice_ramp",
+        "pick_confirm",
+        "mispick_buzz"
+      ],
+      "prose": [
+        "Nina Lindemann: Shift {shift_no}. Manifest's longer than yesterday. It gets longer every day, that's not a mistake, that's the job growing.",
+        {
+          "text": "The voice in the ceiling comes a beat before the icon now. You notice it, and you start picking on the word instead of the picture.",
+          "if": "shift_no == 2"
+        },
+        {
+          "text": "Today the icon does not come at all until you are already holding the thing. You have stopped looking at the shelves. You are listening.",
+          "if": "shift_no == 3"
+        },
+        {
+          "text": "Your back has a new opinion about the bottom shelf. Der Kaese is down there. Der Kaese is always down there.",
+          "if": "shift_no > 3 && body < 55"
+        },
+        "~ temp pay = 10.0 + 3.0 * shift_no + 12.5",
+        "Payout: {pay}€. Wallet: {wallet}€. Body: {body}.",
+        {
+          "text": "The e-bike does the hill on Grosse Petersgrube for you. You had forgotten there was a hill.",
+          "if": "has_ebike"
+        }
+      ],
+      "choices": [
+        {
+          "label": "\"Nina. Can I ask you something that isn't about work.\"",
+          "gate": "r_nina >= 3 && not has_konto",
+          "to": "nina_sister",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "Clock out.",
+          "gate": null,
+          "to": "hub",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [
+        {
+          "var": "shift_no",
+          "expr": "shift_no + 1"
+        },
+        {
+          "var": "wallet",
+          "expr": "wallet + pay"
+        },
+        {
+          "var": "body",
+          "expr": "body - 7"
+        }
+      ],
+      "beat": "KNOT 2 / the audio ramp TEACH->ANTICIPATE->TEST",
+      "origin": "story.ink",
+      "econ_note": "wallet + (10 + 3n + 12.5) +upgrades -11 if body<50; body -7",
+      "sets_note": "shift_no +1",
+      "mode": "gameplay",
+      "duration_s": 16,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "nina_sister",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "14:00",
+        "light": "interior_fluorescent_cold",
+        "camera": "single_close_both"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [
+        "tablet_set_down"
+      ],
+      "audio": [
+        "freezer_hum"
+      ],
+      "prose": [
+        "Nina Lindemann: You can ask. I might not answer."
+      ],
+      "choices": [
+        {
+          "label": "\"The Auslaenderbehoerde. The director there is called Lindemann.\"",
+          "gate": null,
+          "to": "nina_sister_2",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "RELATIONSHIP AS CURRENCY: sets up act_five reference",
+      "origin": "story.ink",
+      "gate": "r_nina >= 3 && !has_konto",
+      "sets_note": "r_nina +1..2",
+      "mode": "blocking",
+      "duration_s": 4,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "nina_sister_2",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "14:02",
+        "light": "interior_fluorescent_cold",
+        "camera": "single_close_both"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [
+        "tablet_set_down"
+      ],
+      "audio": [],
+      "prose": [
+        "She puts the tablet down, which she has never once done.",
+        "Nina Lindemann: She's my sister."
+      ],
+      "choices": [
+        {
+          "label": "\"...Oh.\"",
+          "gate": null,
+          "to": "nina_sister_3",
+          "effects": [],
+          "prose": [
+            "Nina Lindemann: We don't speak. Eleven years. It's not interesting, it's just old."
+          ]
+        },
+        {
+          "label": "\"Does that help me or hurt me?\"",
+          "gate": null,
+          "to": "nina_sister_3",
+          "effects": [
+            {
+              "var": "r_nina",
+              "expr": "r_nina + 1"
+            }
+          ],
+          "prose": [
+            "One short laugh again.",
+            "Nina Lindemann: Straight to the point. Good."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "reveal: Nina and Dr Lindemann are sisters",
+      "origin": "story.ink",
+      "sets_note": "r_nina +1",
+      "mode": "blocking",
+      "duration_s": 14,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "nina_sister_3",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "14:05",
+        "light": "interior_fluorescent_cold",
+        "camera": "single_close_both"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [],
+      "audio": [],
+      "prose": [
+        "Nina Lindemann: It does nothing for you. She'd throw out anything with my name on it and she'd be right to.",
+        "Nina Lindemann: But I'll tell you what does work on her. She reads the file. The whole file. Every page, every time. She's the only one left in that building who does.",
+        "Nina Lindemann: So make the file good. Not sad. Good."
+      ],
+      "choices": [
+        {
+          "label": "\"I will.\"",
+          "gate": null,
+          "to": "hub",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [
+        {
+          "var": "r_nina",
+          "expr": "r_nina + 1"
+        }
+      ],
+      "beat": "the actionable advice: make the file good, not sad",
+      "origin": "story.ink",
+      "sets_note": "r_nina +1",
+      "mode": "blocking",
+      "duration_s": 22,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "shop",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "15:00",
+        "light": "interior_fluorescent_cold",
+        "camera": "ui_shop_overlay"
+      },
+      "cast": [
+        "NPC_NINA",
+        "NPC_KLAUS"
+      ],
+      "props": [
+        "laminated_price_sheet",
+        "clockout_terminal",
+        "ebike",
+        "thermal_bag",
+        "vocab_cards",
+        "shelf_labels",
+        "notepad"
+      ],
+      "audio": [
+        "terminal_beep"
+      ],
+      "prose": [
+        "A laminated sheet by the clock-out terminal. Company gear, staff price, deducted or cash.",
+        "Wallet: {wallet}€."
+      ],
+      "choices": [
+        {
+          "label": "E-Bike. 45€. The hills stop existing.",
+          "gate": "not has_ebike && wallet >= 45",
+          "to": "shop",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet - 45.0"
+            },
+            {
+              "var": "has_ebike",
+              "expr": "true"
+            },
+            {
+              "var": "body",
+              "expr": "body + 8"
+            }
+          ],
+          "prose": [
+            "Klaus, from the yard, without looking up: Best money you'll ever spend. Ask my knees."
+          ]
+        },
+        {
+          "label": "Thermal Bag. 50€. Things arrive cold that should be cold.",
+          "gate": "not has_thermalbag && wallet >= 50",
+          "to": "shop",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet - 50.0"
+            },
+            {
+              "var": "has_thermalbag",
+              "expr": "true"
+            }
+          ],
+          "prose": [
+            "Nina Lindemann: Tips go up. People tip freshness, they just think they're tipping you."
+          ]
+        },
+        {
+          "label": "Vocab Cards. 35€. Der, die, das, on paper, in your pocket.",
+          "gate": "not has_vocabcards && wallet >= 35",
+          "to": "shop",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet - 35.0"
+            },
+            {
+              "var": "has_vocabcards",
+              "expr": "true"
+            }
+          ],
+          "prose": [
+            "You learn eleven words on the tram. Tomorrow you will pick eleven things before the icon shows up, at double."
+          ]
+        },
+        {
+          "label": "Shelf Labels. 25€. Your handwriting, on the racks.",
+          "gate": "not has_labels && wallet >= 25",
+          "to": "shop",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet - 25.0"
+            },
+            {
+              "var": "has_labels",
+              "expr": "true"
+            }
+          ],
+          "prose": [
+            "You label the rows yourself, in marker, in your own hand. It is the first thing you have changed here."
+          ]
+        },
+        {
+          "label": "Pocket Notepad. 20€. For the things people tell you once.",
+          "gate": "not has_notepad && wallet >= 20",
+          "to": "shop",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet - 20.0"
+            },
+            {
+              "var": "has_notepad",
+              "expr": "true"
+            }
+          ],
+          "prose": [
+            "Blue paper. Yellow plastic. Black rest. Nine o'clock, notes not coins. You write it all down."
+          ]
+        },
+        {
+          "label": "Leave it. Every euro in the tin is a euro toward the two-fifty.",
+          "gate": null,
+          "to": "hub",
+          "effects": [],
+          "prose": [
+            {
+              "text": "You do the arithmetic and the arithmetic says no. Not yet.|Buying something feels like going backwards. It isn't. But it feels like it.",
+              "if": "wallet < 45"
+            }
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "INVEST / HARVEST / UPGRADE spine",
+      "origin": "story.ink",
+      "econ_note": "wallet -45 | -50 | -35 | -25 | -20; body +8 (ebike)",
+      "gate": "shift_no >= 1",
+      "sets_note": "has_ebike, has_thermalbag, has_vocabcards, has_labels, has_notepad, knows_trennung",
+      "mode": "blocking",
+      "duration_s": 12,
+      "duration_source": "authored",
+      "unlocks": {
+        "phase": "SHOP",
+        "ui": [
+          "btn-close-shop"
+        ],
+        "mechanic": "invest_upgrade"
+      }
+    },
+    {
+      "id": "knot_body",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE_YARD",
+        "time": "16:00",
+        "light": "overcast_late",
+        "weather": "cold_damp",
+        "camera": "seated_eye_level"
+      },
+      "cast": [
+        "NPC_KLAUS"
+      ],
+      "props": [
+        "crate_upturned",
+        "knee_bandage",
+        "bicycle_old"
+      ],
+      "audio": [
+        "yard_ambience",
+        "bandage_velcro"
+      ],
+      "prose": [
+        "Klaus is sitting on an upturned crate with one leg straight out in front of him, wrapping his knee in a bandage he has clearly wrapped a thousand times.",
+        "Klaus der Blitz: Fourteen years. They called me the lightning. Now I get called by the physio."
+      ],
+      "choices": [
+        {
+          "label": "\"Fourteen years?\"",
+          "gate": null,
+          "to": "klaus_offer",
+          "effects": [
+            {
+              "var": "r_klaus",
+              "expr": "r_klaus + 1"
+            }
+          ],
+          "prose": [
+            "Klaus der Blitz: Fourteen. I was going to do two.",
+            "Klaus der Blitz: That's how it gets you. Not all at once. Two more years, fourteen times."
+          ]
+        },
+        {
+          "label": "\"Does it get better?\"",
+          "gate": null,
+          "to": "klaus_offer",
+          "effects": [],
+          "prose": [
+            "Klaus der Blitz: The knee? No. The job? Also no. You get better. That's the only variable."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "KNOT 3 / THE MIRROR: 14 years, meant to do 2",
+      "origin": "story.ink",
+      "gate": "shift_no >= 2",
+      "sets_note": "r_klaus +1",
+      "conditional_edges": [
+        {
+          "if": "r_klaus > 0",
+          "to": "klaus_revisit"
+        }
+      ],
+      "mode": "blocking",
+      "duration_s": 10,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "klaus_revisit",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE_YARD",
+        "time": "16:00",
+        "light": "overcast_late",
+        "weather": "cold_damp",
+        "camera": "seated_eye_level"
+      },
+      "cast": [
+        "NPC_KLAUS"
+      ],
+      "props": [
+        "crate_upturned",
+        "knee_bandage"
+      ],
+      "audio": [
+        "yard_ambience"
+      ],
+      "prose": [
+        "Klaus is still on the crate. He is always on the crate now."
+      ],
+      "choices": [],
+      "effects": [],
+      "beat": "he is always on the crate now",
+      "origin": "story.ink",
+      "gate": "r_klaus > 0",
+      "divert": "klaus_offer",
+      "mode": "blocking",
+      "duration_s": 5,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "klaus_offer",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE_YARD",
+        "time": "16:10",
+        "light": "overcast_late",
+        "weather": "cold_damp",
+        "camera": "seated_eye_level"
+      },
+      "cast": [
+        "NPC_KLAUS"
+      ],
+      "props": [
+        "crate_upturned",
+        "route_map_harbour"
+      ],
+      "audio": [
+        "yard_ambience"
+      ],
+      "prose": [
+        "Klaus der Blitz: Listen. You need money faster than the day shift gives it to you. I've watched you do the sums on your hand.",
+        "Klaus der Blitz: There's a night route. Off the roster. Harbour to the industrial park, twenty-two hundred to four. Sixty euros, cash, no receipt.",
+        "Klaus der Blitz: The road out there has no lights and the potholes will try to kill you. I did it for six years. Look at me. Look at the leg.",
+        "Klaus der Blitz: I'm not recommending it. I'm telling you it exists, because somebody told me and I'd rather it was me that told you."
+      ],
+      "choices": [
+        {
+          "label": "Take the night route. Sixty euros is sixty euros.",
+          "gate": null,
+          "to": "night_route",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "\"No. I've seen your knee.\"",
+          "gate": null,
+          "to": "hub",
+          "effects": [
+            {
+              "var": "r_klaus",
+              "expr": "r_klaus + 2"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 4"
+            }
+          ],
+          "prose": [
+            "Klaus der Blitz is quiet for a second.",
+            "Klaus der Blitz: Good. Say it like that every time they offer. It gets harder to say every time."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "THE TEMPTATION: 60 euros against your own body",
+      "origin": "story.ink",
+      "sets_note": "r_klaus +2, heart +4 (refuse)",
+      "conditional_edges": [
+        {
+          "if": "night_route_taken > 0",
+          "to": "klaus_offer_repeat"
+        }
+      ],
+      "mode": "blocking",
+      "duration_s": 12,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "klaus_offer_repeat",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE_YARD",
+        "time": "16:10",
+        "light": "overcast_late",
+        "weather": "cold_damp",
+        "camera": "seated_eye_level"
+      },
+      "cast": [
+        "NPC_KLAUS"
+      ],
+      "props": [
+        "crate_upturned"
+      ],
+      "audio": [],
+      "prose": [
+        "Klaus der Blitz: Again?"
+      ],
+      "choices": [
+        {
+          "label": "Again.",
+          "gate": "body > 35",
+          "to": "night_route",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "\"Not tonight.\"",
+          "gate": null,
+          "to": "hub",
+          "effects": [
+            {
+              "var": "r_klaus",
+              "expr": "r_klaus + 1"
+            }
+          ],
+          "prose": [
+            "Klaus der Blitz: Mm. Good."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "it gets harder to say no every time",
+      "origin": "story.ink",
+      "gate": "night_route_taken > 0",
+      "sets_note": "r_klaus +1",
+      "mode": "blocking",
+      "duration_s": 4,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "night_route",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "LM_HARBOUR_ROAD",
+        "time": "22:00",
+        "light": "night_unlit_road",
+        "weather": "fog_cold",
+        "camera": "first_person_ride_shaky"
+      },
+      "cast": [],
+      "props": [
+        "bicycle_or_ebike",
+        "pothole_field",
+        "cargo_bag",
+        "harbour_crane"
+      ],
+      "audio": [
+        "wind_hard",
+        "tyre_gravel",
+        "bag_strain",
+        "heartbeat_low"
+      ],
+      "prose": [
+        "No lights past the harbour. The road surface goes from cobbles to concrete to something that is mostly holes with concrete between them.",
+        {
+          "text": "You make it. Sixty euros in your inside pocket, warm from your own body. You have never been this awake or this tired at the same time.",
+          "if": "night_route_taken == 1"
+        },
+        {
+          "text": "You know where the bad holes are now. You know because of what happened to your shoulder last time.",
+          "if": "night_route_taken == 2"
+        },
+        {
+          "text": "You catch yourself doing the sum on the ride home: how many more of these until two-fifty. That is exactly the sum Klaus was doing fourteen years ago.",
+          "if": "night_route_taken >= 3"
+        },
+        "Wallet: {wallet}€. Body: {body}.",
+        "Something is wrong with your hands in the morning. They work, they just take a moment to agree to."
+      ],
+      "choices": [
+        {
+          "label": "Sleep, if you can call it that.",
+          "gate": null,
+          "to": "end_of_day",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [
+        {
+          "var": "night_route_taken",
+          "expr": "night_route_taken + 1"
+        },
+        {
+          "var": "wallet",
+          "expr": "wallet + 60.0"
+        },
+        {
+          "var": "body",
+          "expr": "body - 22"
+        },
+        {
+          "var": "heart",
+          "expr": "heart - 5"
+        },
+        {
+          "var": "knots",
+          "expr": "knots + 1"
+        }
+      ],
+      "beat": "FAST MONEY / logged against you in act_five",
+      "origin": "story.ink",
+      "econ_note": "wallet +60.00, body -22, heart -5",
+      "sets_note": "night_route_taken +1, knots +1 if body<40",
+      "mode": "gameplay",
+      "duration_s": 16,
+      "duration_source": "authored",
+      "unlocks": {
+        "mechanic": "night_ride_hazards"
+      }
+    },
+    {
+      "id": "knot_heart",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_WG",
+        "time": "03:00",
+        "light": "interior_laptop_blue",
+        "camera": "static_table_hold"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "kitchen_table",
+        "laptop_shut",
+        "hands_flat"
+      ],
+      "audio": [
+        "room_tone_night",
+        "fridge_hum"
+      ],
+      "prose": [
+        "Three in the morning. Nico is at the kitchen table with his laptop shut and his hands flat on top of it."
+      ],
+      "choices": [
+        {
+          "label": "\"You're up.\"",
+          "gate": null,
+          "to": "nico_crisis",
+          "effects": [],
+          "prose": [
+            "Nico: Yeah."
+          ]
+        },
+        {
+          "label": "Sit down without saying anything.",
+          "gate": null,
+          "to": "nico_crisis",
+          "effects": [
+            {
+              "var": "r_nico",
+              "expr": "r_nico + 1"
+            }
+          ],
+          "prose": [
+            "You sit. He doesn't look up. After a while he starts talking anyway, which is what he needed."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "KNOT 4 / the 3am table",
+      "origin": "story.ink",
+      "sets_note": "r_nico +1",
+      "conditional_edges": [
+        {
+          "if": "helped_nico || nico_gone",
+          "to": "knot_heart_after"
+        }
+      ],
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "nico_crisis",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_WG",
+        "time": "03:10",
+        "light": "interior_laptop_blue",
+        "camera": "two_shot_low_light"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "laptop_shut",
+        "enrollment_letter"
+      ],
+      "audio": [
+        "room_tone_night"
+      ],
+      "prose": [
+        "Nico: Re-enrollment. Third year. It's a hundred and twenty euros and I have thirty-one.",
+        "Nico: If I miss it I'm not a student. If I'm not a student the visa goes. If the visa goes I go.",
+        "He says it very calmly, in order, like he has said it to himself many times in this chair.",
+        "Nico: Deadline's the nineteenth."
+      ],
+      "choices": [
+        {
+          "label": "Give him the hundred and twenty.",
+          "gate": "wallet >= 120",
+          "to": "nico_money",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "\"Come to Kruma with me. Nina's short of people.\"",
+          "gate": null,
+          "to": "nico_work",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "\"I don't have it. I'm sorry. I really don't have it.\"",
+          "gate": null,
+          "to": "nico_no",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "THE ASK HE DOES NOT MAKE: 120 euros by the 19th",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 10,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "nico_money",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_WG",
+        "time": "03:20",
+        "light": "interior_laptop_blue",
+        "camera": "insert_hands_money"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "notes_counted",
+        "biro",
+        "hand_written_date"
+      ],
+      "audio": [
+        "paper_count"
+      ],
+      "prose": [
+        "You count it out on the table. It is most of what you have and all of your last eleven days.",
+        "Nico does not say thank you. He says, \"I'll have it back to you by the ninth of next month,\" in a completely flat voice, and writes it on the back of his hand in biro, and that is somehow much bigger than thank you.",
+        "Wallet: {wallet}€."
+      ],
+      "choices": [
+        {
+          "label": "Go to bed. The two-fifty just got further away.",
+          "gate": null,
+          "to": "end_of_day",
+          "effects": [],
+          "prose": [
+            "You lie there and run the numbers and the numbers are worse.",
+            "You have never once been less sorry about numbers."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "wallet",
+          "expr": "wallet - 120.0"
+        },
+        {
+          "var": "helped_nico",
+          "expr": "true"
+        },
+        {
+          "var": "r_nico",
+          "expr": "r_nico + 3"
+        },
+        {
+          "var": "heart",
+          "expr": "heart + 12"
+        },
+        {
+          "var": "knots",
+          "expr": "knots - 1"
+        }
+      ],
+      "beat": "THE REAL SACRIFICE: pushes tuition 11 days back",
+      "origin": "story.ink",
+      "econ_note": "wallet -120.00, heart +12",
+      "gate": "wallet >= 120",
+      "sets_note": "helped_nico, r_nico +3, knots -1",
+      "mode": "blocking",
+      "duration_s": 30,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "nico_work",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "06:00",
+        "light": "interior_fluorescent_cold",
+        "camera": "two_worker_wide"
+      },
+      "cast": [
+        "NPC_NICO",
+        "NPC_NINA"
+      ],
+      "props": [
+        "shelf_der",
+        "shelf_die",
+        "shelf_das",
+        "crate"
+      ],
+      "audio": [
+        "pick_confirm",
+        "mispick_buzz"
+      ],
+      "prose": [
+        "You take him in at six. Nina looks him up and down for two seconds.",
+        "Nina Lindemann: Can you read?",
+        "Nico: I'm in my third year of law.",
+        "Nina Lindemann: So, no. Bottom shelf is der. Go.",
+        "He is bad at it. He is so much worse at it than you were, and watching that is the best feeling you have had in this country.",
+        "Nico, at the end of the shift, holding his back: How do you DO this every day."
+      ],
+      "choices": [
+        {
+          "label": "\"Badly. For about a week.\"",
+          "gate": null,
+          "to": "hub",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [
+        {
+          "var": "helped_nico",
+          "expr": "true"
+        },
+        {
+          "var": "r_nico",
+          "expr": "r_nico + 2"
+        },
+        {
+          "var": "r_nina",
+          "expr": "r_nina + 1"
+        },
+        {
+          "var": "heart",
+          "expr": "heart + 8"
+        },
+        {
+          "var": "knots",
+          "expr": "knots - 1"
+        }
+      ],
+      "beat": "THE THIRD WAY: teach instead of pay",
+      "origin": "story.ink",
+      "econ_note": "heart +8",
+      "sets_note": "helped_nico, r_nico +2, r_nina +1, knots -1",
+      "mode": "blocking",
+      "duration_s": 29,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "nico_no",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_WG",
+        "time": "03:20",
+        "light": "interior_laptop_blue",
+        "camera": "pull_away_slow"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "laptop_open_blue_glow"
+      ],
+      "audio": [
+        "room_tone_night"
+      ],
+      "prose": [
+        "Nico: No. Of course. I wasn't - I wasn't asking. I was just saying it out loud to somebody.",
+        "He opens the laptop again. The light goes blue on his face.",
+        "Nico: Go to bed. You've got a shift."
+      ],
+      "choices": [
+        {
+          "label": "Go to bed.",
+          "gate": null,
+          "to": "end_of_day",
+          "effects": [
+            {
+              "var": "knots",
+              "expr": "knots - 1"
+            }
+          ],
+          "prose": [
+            "You lie in Room 4 and listen to him not typing."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "heart",
+          "expr": "heart - 8"
+        }
+      ],
+      "beat": "COST OF SAYING NO / leads to the empty room on day 19",
+      "origin": "story.ink",
+      "econ_note": "heart -8",
+      "sets_note": "knots -1",
+      "mode": "blocking",
+      "duration_s": 18,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "knot_heart_after",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_WG",
+        "time": "23:00",
+        "light": "interior_dim_single",
+        "camera": "doorway_look_in"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "blanket",
+        "highlighter",
+        "poster_tape_empty"
+      ],
+      "audio": [
+        "room_tone_night"
+      ],
+      "prose": [
+        "Room 3 has the door open and nothing in it. Somebody has taken the poster down and left the tape.",
+        "Nico is asleep on the kitchen table with a highlighter still in his hand. You put the blanket from the sofa over him and take the highlighter, because he'll roll onto it."
+      ],
+      "choices": [],
+      "effects": [
+        {
+          "var": "heart",
+          "expr": "heart - 4"
+        },
+        {
+          "var": "heart",
+          "expr": "heart + 3"
+        }
+      ],
+      "beat": "either you cover him with a blanket, or you look at tape",
+      "origin": "story.ink",
+      "econ_note": "heart +3 | heart -4",
+      "divert": "hub",
+      "mode": "blocking",
+      "duration_s": 19,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "martha",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_BAKERY",
+        "time": "11:00",
+        "light": "interior_warm_oven",
+        "camera": "counter_warm_two_shot"
+      },
+      "cast": [
+        "NPC_MARTHA"
+      ],
+      "props": [
+        "oven_1971",
+        "franzbroetchen",
+        "croissant",
+        "tray",
+        "window_steamed"
+      ],
+      "audio": [
+        "oven_roar_low",
+        "tray_slide",
+        "bell_shop_door"
+      ],
+      "prose": [
+        "Bakery Hansa is nine degrees warmer than the street and smells like the inside of a good morning.",
+        "Martha Webber: Sit by the oven, child. You've gone a colour I don't like."
+      ],
+      "choices": [
+        {
+          "label": "\"I can't afford anything.\"",
+          "gate": null,
+          "to": "martha_2",
+          "effects": [
+            {
+              "var": "r_martha",
+              "expr": "r_martha + 1"
+            },
+            {
+              "var": "body",
+              "expr": "body + 5"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 5"
+            }
+          ],
+          "prose": [
+            "She puts a Franzbroetchen in front of you and turns her back so you can't argue with her about it.",
+            "Martha Webber: I said sit. I did not say buy."
+          ]
+        },
+        {
+          "label": "Buy a croissant. Two euros.",
+          "gate": "wallet >= 2",
+          "to": "martha_2",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet - 2.0"
+            },
+            {
+              "var": "r_martha",
+              "expr": "r_martha + 1"
+            },
+            {
+              "var": "body",
+              "expr": "body + 3"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 3"
+            }
+          ],
+          "prose": [
+            "You eat it standing up in the doorway and it is worth considerably more than two euros."
+          ]
+        },
+        {
+          "label": "Just get warm for ten minutes.",
+          "gate": null,
+          "to": "martha_2",
+          "effects": [
+            {
+              "var": "body",
+              "expr": "body + 4"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 2"
+            }
+          ],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "THE WARM ROOM in the middle of a cold act",
+      "origin": "story.ink",
+      "econ_note": "wallet -2.00 (buy); body +3..5; heart +2..5",
+      "sets_note": "r_martha +1",
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {
+        "mechanic": "etiquette_tip"
+      }
+    },
+    {
+      "id": "martha_2",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_BAKERY",
+        "time": "11:10",
+        "light": "interior_warm_oven",
+        "camera": "counter_warm_two_shot"
+      },
+      "cast": [
+        "NPC_MARTHA"
+      ],
+      "props": [
+        "oven_1971"
+      ],
+      "audio": [
+        "oven_roar_low"
+      ],
+      "prose": [
+        "Martha Webber: You've got the bank face. Everybody comes in here with the bank face eventually.",
+        "Martha Webber: My oven's been on since nineteen seventy-one. As long as it's on, nobody starves in this street. That's not a nice thought, it's just a fact about the street."
+      ],
+      "choices": [
+        {
+          "label": "Back out into it.",
+          "gate": null,
+          "to": "hub",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "as long as the oven is on, nobody starves",
+      "origin": "story.ink",
+      "divert": "martha_weber",
+      "mode": "blocking",
+      "duration_s": 17,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "martha_weber",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_BAKERY",
+        "time": "11:12",
+        "light": "interior_warm_oven",
+        "camera": "counter_warm_two_shot"
+      },
+      "cast": [
+        "NPC_MARTHA"
+      ],
+      "props": [
+        "bread_yesterday"
+      ],
+      "audio": [],
+      "prose": [
+        "Martha Webber: Sparkasse, on the corner. The advisor there. Weber."
+      ],
+      "choices": [
+        {
+          "label": "\"Weber. Like Webber.\"",
+          "gate": null,
+          "to": "martha_weber_2",
+          "effects": [
+            {
+              "var": "r_martha",
+              "expr": "r_martha + 2"
+            }
+          ],
+          "prose": [
+            "Martha Webber: One b. She dropped one when she married and I have never let it go.",
+            "Martha Webber: She's my daughter. Tell her Mama says you're not a problem, you're a queue."
+          ]
+        },
+        {
+          "label": "\"Is she like you?\"",
+          "gate": null,
+          "to": "martha_weber_2",
+          "effects": [
+            {
+              "var": "r_martha",
+              "expr": "r_martha + 1"
+            }
+          ],
+          "prose": [
+            "Martha Webber: No. She's better at rules and worse at people. Between us we make one whole woman."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "REVEAL: Frau Weber is her daughter / unlocks the fee waiver",
+      "origin": "story.ink",
+      "gate": "r_martha >= 2 && !has_konto",
+      "sets_note": "r_martha +1..2",
+      "mode": "blocking",
+      "duration_s": 22,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "martha_weber_2",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_BAKERY",
+        "time": "11:15",
+        "light": "interior_warm_oven",
+        "camera": "insert_hands_bread"
+      },
+      "cast": [
+        "NPC_MARTHA"
+      ],
+      "props": [
+        "bread_yesterday",
+        "paper_bag"
+      ],
+      "audio": [
+        "paper_bag_rustle"
+      ],
+      "prose": [
+        "Martha Webber: Go on. And take this, don't argue, it's yesterday's."
+      ],
+      "choices": [
+        {
+          "label": "Take the bread. Go to the bank.",
+          "gate": null,
+          "to": "hub",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "do not argue, it is yesterday’s",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 4,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "anke",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_UNI",
+        "time": "13:00",
+        "light": "interior_office_strip",
+        "camera": "cramped_two_shot"
+      },
+      "cast": [
+        "NPC_ANKE"
+      ],
+      "props": [
+        "broom_cupboard_office",
+        "four_chairs",
+        "dead_plant",
+        "filing_drawer"
+      ],
+      "audio": [
+        "drawer_slide",
+        "corridor_echo"
+      ],
+      "prose": [
+        "The AStA office is a converted broom cupboard with four chairs and a plant that has given up.",
+        "Dr Anke Schmidt: Sit. What's the shape of it?"
+      ],
+      "choices": [
+        {
+          "label": "\"The Buergeramt wants my bank account. The bank wants my Buergeramt stamp.\"",
+          "gate": "knows_the_circle",
+          "to": "anke_cut",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "\"I don't know yet. Everything, a bit.\"",
+          "gate": "not knows_the_circle",
+          "to": "hub",
+          "effects": [],
+          "prose": [
+            "Dr Anke Schmidt: Then come back when you've hit the wall. You'll know the one. Everyone hits the same wall."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "met_anke",
+          "expr": "true"
+        }
+      ],
+      "beat": "KNOT 5 opens: the thread that becomes the knife",
+      "origin": "story.ink",
+      "gate": "day >= 6 && !met_anke",
+      "sets_note": "met_anke",
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [
+          "btn-close-skills",
+          "skills-tree-scroll"
+        ],
+        "mechanic": "skill_tree"
+      }
+    },
+    {
+      "id": "anke_cut",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_UNI",
+        "time": "13:05",
+        "light": "interior_office_strip",
+        "camera": "insert_single_sheet"
+      },
+      "cast": [
+        "NPC_ANKE"
+      ],
+      "props": [
+        "single_sheet_a4",
+        "filing_drawer"
+      ],
+      "audio": [
+        "paper_slide_single"
+      ],
+      "prose": [
+        "She has already opened a drawer before you finish the sentence.",
+        "Dr Anke Schmidt: Yes. Everybody. Every October, four hundred metres apart, for thirty years.",
+        "She slides a single sheet across.",
+        "Dr Anke Schmidt: Provisional confirmation of enrollment intent. The bank accepts this instead of the Meldebescheinigung. It has always accepted this. Nobody at the counter will tell you it exists, because nobody at the counter is allowed to give you advice."
+      ],
+      "choices": [
+        {
+          "label": "\"That's it? One page?\"",
+          "gate": null,
+          "to": "anke_2",
+          "effects": [],
+          "prose": [
+            "Dr Anke Schmidt: That's it. One page.",
+            "Dr Anke Schmidt: The wall isn't a wall. It's a door that nobody is permitted to point at. That's most of what I do here."
+          ]
+        },
+        {
+          "label": "\"Why isn't this on a website?\"",
+          "gate": null,
+          "to": "anke_2",
+          "effects": [],
+          "prose": [
+            "Dr Anke Schmidt: Write and ask them. I have. Twice."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "circle_cut",
+          "expr": "true"
+        },
+        {
+          "var": "knots",
+          "expr": "knots - 1"
+        },
+        {
+          "var": "heart",
+          "expr": "heart + 8"
+        }
+      ],
+      "beat": "CATHARSIS: the wall was a door nobody may point at",
+      "origin": "story.ink",
+      "econ_note": "heart +8",
+      "gate": "knows_the_circle",
+      "sets_note": "circle_cut, knots -1",
+      "mode": "blocking",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "anke_2",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_UNI",
+        "time": "13:10",
+        "light": "interior_office_strip",
+        "camera": "corridor_lean_wall"
+      },
+      "cast": [
+        "NPC_ANKE"
+      ],
+      "props": [
+        "single_sheet_a4"
+      ],
+      "audio": [
+        "corridor_echo"
+      ],
+      "prose": [
+        "Dr Anke Schmidt: Bank first, with that. Then Buergeramt with the account number. Then the university. In that order and it takes two days."
+      ],
+      "choices": [
+        {
+          "label": "Two days.",
+          "gate": null,
+          "to": "hub",
+          "effects": [],
+          "prose": [
+            "You stand in the corridor holding one sheet of A4 and you have to lean on the wall for a second."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "bank, then Buergeramt, then university. Two days.",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 16,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "end_of_day",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_WG",
+        "time": "23:00",
+        "light": "interior_dim_single"
+      },
+      "cast": [
+        "NPC_LOKKER"
+      ],
+      "props": [
+        "yellow_fine_slip",
+        "door_room4",
+        "bin_yellow",
+        "bag_broken"
+      ],
+      "audio": [
+        "paper_tear",
+        "stair_voice_below"
+      ],
+      "prose": [
+        "-> night_tick ->",
+        "There is a yellow slip taped to the door of Room 4.",
+        "Herr Hans Lokker, from the bottom of the stairs, sounding genuinely sorry about it: Paper in the yellow bin. Twenty-five euros. I did warn the house.",
+        "You did not listen on the first night, because on the first night you were tired. Wallet: {wallet}€.",
+        "A pothole on the harbour road takes the front wheel out from under you at eleven at night.",
+        "Nothing is broken. The bag is. Strike {strikes} of 3, and the deduction comes off Friday.",
+        "The nineteenth. Nico's door is open and his room is empty except for the tape where the poster was.",
+        "Nobody in the kitchen says anything about it. That is the part you will remember.",
+        "You are running four problems and a body that has started sending letters. Something has to close.",
+        "Rent took the last of it and then some. Lokker writes it in a book instead of taking it, and does not comment, which costs him something."
+      ],
+      "choices": [],
+      "effects": [
+        {
+          "var": "fined_trennung",
+          "expr": "true"
+        },
+        {
+          "var": "wallet",
+          "expr": "wallet - 25.0"
+        },
+        {
+          "var": "knots",
+          "expr": "knots + 1"
+        },
+        {
+          "var": "strikes",
+          "expr": "strikes + 1"
+        },
+        {
+          "var": "nico_gone",
+          "expr": "true"
+        },
+        {
+          "var": "heart",
+          "expr": "heart - 10"
+        },
+        {
+          "var": "knots",
+          "expr": "knots - 1"
+        },
+        {
+          "var": "wallet",
+          "expr": "0.0"
+        }
+      ],
+      "beat": "CONSEQUENCE ENGINE: day 11 fine, day 14 crash, day 19 empty room",
+      "origin": "story.ink",
+      "econ_note": "wallet -25.00 (day 11 fine, if !knows_trennung); strikes +1 (day 14)",
+      "sets_note": "fined_trennung, nico_gone (day 19), knots -1",
+      "divert": "hub",
+      "conditional_edges": [
+        {
+          "if": "day >= 20",
+          "to": "act_four"
+        }
+      ],
+      "mode": "overlay",
+      "duration_s": 6,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "night_tick",
+      "act": "III",
+      "threads": 6,
+      "stage": {
+        "loc": "B_WG",
+        "time": "06:30",
+        "light": "dawn_grey"
+      },
+      "cast": [],
+      "props": [
+        "bed",
+        "calendar_marked"
+      ],
+      "audio": [
+        "alarm_phone"
+      ],
+      "prose": [
+        "Tag {day}. Rent: 8€. Wallet: {wallet}€."
+      ],
+      "choices": [],
+      "effects": [
+        {
+          "var": "day",
+          "expr": "day + 1"
+        },
+        {
+          "var": "wallet",
+          "expr": "wallet - 8.0"
+        },
+        {
+          "var": "body",
+          "expr": "body + 5"
+        },
+        {
+          "var": "body",
+          "expr": "100"
+        }
+      ],
+      "beat": "THE DRIP: rent every morning regardless",
+      "origin": "story.ink",
+      "econ_note": "day +1, wallet -8.00 rent, body +5 (cap 100)",
+      "sets_note": "day, wallet, body",
+      "mode": "overlay",
+      "duration_s": 3,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "act_four",
+      "act": "IV",
+      "threads": 6,
+      "stage": {
+        "loc": "B_WG",
+        "time": "07:00",
+        "light": "dawn_clear",
+        "weather": "cold_clear",
+        "camera": "sit_up_resolve"
+      },
+      "cast": [],
+      "props": [
+        "calendar_marked",
+        "plastic_folder"
+      ],
+      "audio": [
+        "alarm_phone"
+      ],
+      "prose": [
+        "Day {day}. Eight days of visa left. Wallet {wallet}€.",
+        "Something has changed and it takes you a while to work out what. It is this: you know what to do next. Not everything. Just the next thing.",
+        "That turns out to be the whole difference."
+      ],
+      "choices": [
+        {
+          "label": "The next thing.",
+          "gate": null,
+          "to": "four_bank",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "TURN: you know what to do NEXT. that is the difference.",
+      "origin": "story.ink",
+      "gate": "knots <= 1 || day >= 20",
+      "mode": "overlay",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "four_bank",
+      "act": "IV",
+      "threads": 5,
+      "stage": {
+        "loc": "B_BANK",
+        "time": "09:00",
+        "light": "interior_bank_bright",
+        "camera": "desk_two_shot"
+      },
+      "cast": [
+        "NPC_WEBER"
+      ],
+      "props": [
+        "desk_third",
+        "single_sheet_a4",
+        "monitor",
+        "account_card"
+      ],
+      "audio": [
+        "keyboard_soft",
+        "printer_short"
+      ],
+      "prose": [
+        "Frau Weber at the Sparkasse, third desk.",
+        "You put Anke's single sheet on the counter. She reads it, nods once, and starts typing. The whole thing takes nine minutes.",
+        "You explain the circle to her for the third time in three weeks, and this time you do not stop talking, and eventually she holds up a hand and says \"there is a provisional form\" as though you had simply never asked.",
+        "Frau Weber: My mother phoned me about you. She phones me about approximately everybody.",
+        "Frau Weber: There is a twenty-five euro account setup fee. I am waiving it. Do not tell her I did, she'll send me more of you.",
+        "Frau Weber: Setup fee, twenty-five euros. Yes, I know. I do not set them.",
+        "Frau Weber: Account open. First monthly disbursement, fifty euros, is already on it.",
+        "Frau Weber: Take the account number to the Buergeramt. Today, not tomorrow. The stamp queue on Fridays is a punishment.",
+        "Wallet: {wallet}€."
+      ],
+      "choices": [
+        {
+          "label": "Buergeramt. Today.",
+          "gate": null,
+          "to": "four_amt",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [
+        {
+          "var": "heart",
+          "expr": "heart - 3"
+        },
+        {
+          "var": "wallet",
+          "expr": "wallet - 25.0"
+        },
+        {
+          "var": "has_konto",
+          "expr": "true"
+        },
+        {
+          "var": "wallet",
+          "expr": "wallet + 50.0"
+        }
+      ],
+      "beat": "KNOT CLOSES 1: kindness to Martha pays out here",
+      "origin": "story.ink",
+      "econ_note": "wallet -25.00 unless r_martha>=3; wallet +50.00 disbursement",
+      "sets_note": "has_konto",
+      "conditional_edges": [
+        {
+          "if": "has_konto",
+          "to": "four_amt"
+        }
+      ],
+      "mode": "blocking",
+      "duration_s": 30,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_amt",
+      "act": "IV",
+      "threads": 4,
+      "stage": {
+        "loc": "B_RATHAUS",
+        "time": "11:00",
+        "light": "interior_office_strip",
+        "camera": "counter_low_across"
+      },
+      "cast": [
+        "NPC_VOGEL"
+      ],
+      "props": [
+        "desk_counter",
+        "rubber_stamp",
+        "passport",
+        "lease_form_signed",
+        "account_number"
+      ],
+      "audio": [
+        "queue_murmur"
+      ],
+      "prose": [
+        "Herr Vogel. Same desk. Same stamp.",
+        "He reads the passport, the lease, and the account number. Then he does something with his mouth that on him is a smile."
+      ],
+      "choices": [
+        {
+          "label": "\"You had coffee off me. Shift eleven. Rathaus rush.\"",
+          "gate": "r_vogel >= 1",
+          "to": "four_amt_stamp",
+          "effects": [],
+          "prose": [
+            "Herr Vogel: I remember. It was still hot. That is not nothing, in this building."
+          ]
+        },
+        {
+          "label": "Say nothing and let the man work.",
+          "gate": null,
+          "to": "four_amt_stamp",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "KNOT CLOSES 2",
+      "origin": "story.ink",
+      "conditional_edges": [
+        {
+          "if": "has_anmeldung",
+          "to": "four_uni"
+        }
+      ],
+      "mode": "blocking",
+      "duration_s": 16,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_amt_stamp",
+      "act": "IV",
+      "threads": 4,
+      "stage": {
+        "loc": "B_RATHAUS",
+        "time": "11:05",
+        "light": "interior_office_strip",
+        "camera": "insert_stamp_impact"
+      },
+      "cast": [
+        "NPC_VOGEL"
+      ],
+      "props": [
+        "rubber_stamp",
+        "meldebescheinigung"
+      ],
+      "audio": [
+        "stamp_thud_hard"
+      ],
+      "prose": [
+        "Herr Vogel: Anmeldung.",
+        "STAMP.",
+        "Herr Vogel: Meldebescheinigung. You are registered as resident in the Hansestadt Luebeck.",
+        "He hands it over and then, unexpectedly, keeps hold of it for a half second longer.",
+        "Herr Vogel: I stamp about ninety of these a week. Yours took twenty days, which is not good. I would like you to know that I know that."
+      ],
+      "choices": [
+        {
+          "label": "\"Thank you, Herr Vogel.\"",
+          "gate": null,
+          "to": "four_uni",
+          "effects": [
+            {
+              "var": "r_vogel",
+              "expr": "r_vogel + 1"
+            }
+          ],
+          "prose": [
+            "Herr Vogel: Next, please."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "has_anmeldung",
+          "expr": "true"
+        }
+      ],
+      "beat": "the bureaucrat apologises / 20 days is not good and he knows it",
+      "origin": "story.ink",
+      "sets_note": "has_anmeldung, r_vogel +1",
+      "mode": "blocking",
+      "duration_s": 23,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_uni",
+      "act": "IV",
+      "threads": 3,
+      "stage": {
+        "loc": "B_UNI",
+        "time": "09:00",
+        "light": "overcast_noon",
+        "camera": "single_close"
+      },
+      "cast": [],
+      "props": [
+        "fee_notice_250"
+      ],
+      "audio": [],
+      "prose": [
+        "Two hundred and fifty euros, and you have {wallet}€.",
+        "The deadline is in {28 - day} days. You know exactly what this is now: it is shifts. It is a number of shifts. It is not a mystery any more, it is arithmetic, and arithmetic you can do."
+      ],
+      "choices": [
+        {
+          "label": "Work.",
+          "gate": null,
+          "to": "four_grind",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "the mystery becomes arithmetic",
+      "origin": "story.ink",
+      "econ_note": "readout: shortfall vs 250",
+      "divert": "four_uni_pay",
+      "mode": "blocking",
+      "duration_s": 17,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_grind",
+      "act": "IV",
+      "threads": 3,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "06:00",
+        "light": "interior_fluorescent_cold",
+        "camera": "first_person_pick_fluent"
+      },
+      "cast": [
+        "NPC_NINA",
+        "NPC_NICO"
+      ],
+      "props": [
+        "shelf_der",
+        "shelf_die",
+        "shelf_das",
+        "manifest_long",
+        "ebike",
+        "thermal_bag"
+      ],
+      "audio": [
+        "ceiling_voice_test_mode",
+        "pick_confirm_fast"
+      ],
+      "prose": [
+        "~ temp pay = 10.0 + 3.0 * shift_no + 14.0",
+        "Shift {shift_no}. {pay}€. Wallet {wallet}€.",
+        {
+          "text": "You do not look at the shelves any more. The word arrives and your arm is already moving, and there is a real pleasure in it that you would find difficult to explain to anybody at home.",
+          "if": "shift_no > 8"
+        },
+        {
+          "text": "Nico is on the middle rack shouting die at things. He is still bad. He is less bad.",
+          "if": "helped_nico && not nico_gone"
+        },
+        "-> night_tick ->"
+      ],
+      "choices": [],
+      "effects": [
+        {
+          "var": "shift_no",
+          "expr": "shift_no + 1"
+        },
+        {
+          "var": "wallet",
+          "expr": "wallet + pay"
+        },
+        {
+          "var": "body",
+          "expr": "body - 6"
+        }
+      ],
+      "beat": "MASTERY: you stopped looking at the shelves",
+      "origin": "story.ink",
+      "econ_note": "wallet + (10 + 3n + 14) +upgrades -10 if body<50; body -6",
+      "sets_note": "shift_no +1",
+      "divert": "four_grind",
+      "conditional_edges": [
+        {
+          "if": "day >= 27",
+          "to": "four_shortfall"
+        },
+        {
+          "if": "wallet >= 250",
+          "to": "four_uni_pay"
+        }
+      ],
+      "mode": "gameplay",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "four_shortfall",
+      "act": "IV",
+      "threads": 3,
+      "stage": {
+        "loc": "LM_MARKTPLATZ",
+        "time": "18:00",
+        "light": "dusk_cold",
+        "weather": "cold_clear",
+        "camera": "hub_orbit_slow"
+      },
+      "cast": [],
+      "props": [],
+      "audio": [
+        "city_evening_loop"
+      ],
+      "prose": [
+        "Day {day}. {wallet}€. It is not going to be enough, and there is one day left."
+      ],
+      "choices": [
+        {
+          "label": "Go to the pizzeria.",
+          "gate": "owes_mathias > 0",
+          "to": "four_mathias",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "Go to the kitchen.",
+          "gate": "helped_nico",
+          "to": "four_nico_repay",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "Go to Nina.",
+          "gate": null,
+          "to": "four_nina_advance",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "THE COMMUNITY PAYS BACK: three doors, all of them people",
+      "origin": "story.ink",
+      "gate": "day >= 27 && wallet < 250",
+      "conditional_edges": [
+        {
+          "if": "wallet >= 250",
+          "to": "four_uni_pay"
+        }
+      ],
+      "mode": "blocking",
+      "duration_s": 6,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_mathias",
+      "act": "IV",
+      "threads": 2,
+      "stage": {
+        "loc": "B_PIZZA",
+        "time": "18:30",
+        "light": "interior_warm_oven",
+        "camera": "insert_hands_closed_fingers"
+      },
+      "cast": [
+        "NPC_MATHIAS"
+      ],
+      "props": [
+        "till",
+        "notes_sixty",
+        "oven"
+      ],
+      "audio": [
+        "till_drawer",
+        "oven_roar_low"
+      ],
+      "prose": [
+        "You come in to tell him you can't pay him back yet. You get about four words out.",
+        "Herr Mathias Becker: Stop. How short are you."
+      ],
+      "choices": [
+        {
+          "label": "\"Forty. Maybe fifty.\"",
+          "gate": null,
+          "to": "four_uni_pay",
+          "effects": [
+            {
+              "var": "owes_mathias",
+              "expr": "0.0"
+            },
+            {
+              "var": "wallet",
+              "expr": "wallet + 60.0"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 8"
+            }
+          ],
+          "prose": [
+            "He goes to the till, counts, and puts it in your hand and closes your fingers around it.",
+            "Herr Mathias Becker: Sixty. And the thirty from the first week is finished, gone, never happened.",
+            "Herr Mathias Becker: Nineteen ninety-four, remember. I told you I never paid mine back. This is how you pay it. Not to me. Later. To somebody with a suitcase."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "PAYOFF OF THEME: pay it to somebody with a suitcase",
+      "origin": "story.ink",
+      "econ_note": "wallet +60.00, owes_mathias 0, heart +8",
+      "gate": "owes_mathias > 0",
+      "mode": "blocking",
+      "duration_s": 30,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_nico_repay",
+      "act": "IV",
+      "threads": 2,
+      "stage": {
+        "loc": "B_WG",
+        "time": "18:30",
+        "light": "interior_warm_lamp",
+        "camera": "kitchen_two_shot"
+      },
+      "cast": [
+        "NPC_NICO"
+      ],
+      "props": [
+        "envelope",
+        "notes_120"
+      ],
+      "audio": [
+        "paper_count"
+      ],
+      "prose": [
+        "Nico is in the kitchen with an envelope he has clearly been holding for a while.",
+        "Nico: The ninth of next month. I wrote it on my hand. I don't miss dates.",
+        "Nico: A hundred and twenty. Count it, I'd count it."
+      ],
+      "choices": [
+        {
+          "label": "\"I don't need to count it.\"",
+          "gate": null,
+          "to": "four_uni_pay",
+          "effects": [],
+          "prose": [
+            "Nico: Count it anyway. This country will teach you to count it eventually, might as well be me."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "wallet",
+          "expr": "wallet + 120.0"
+        },
+        {
+          "var": "heart",
+          "expr": "heart + 10"
+        }
+      ],
+      "beat": "he wrote the date on his hand and he does not miss dates",
+      "origin": "story.ink",
+      "econ_note": "wallet +120.00, heart +10",
+      "gate": "helped_nico",
+      "mode": "blocking",
+      "duration_s": 21,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_nina_advance",
+      "act": "IV",
+      "threads": 2,
+      "stage": {
+        "loc": "B_DARKSTORE",
+        "time": "18:30",
+        "light": "interior_fluorescent_cold",
+        "camera": "desk_two_shot"
+      },
+      "cast": [
+        "NPC_NINA"
+      ],
+      "props": [
+        "roster_board",
+        "clock"
+      ],
+      "audio": [
+        "terminal_beep"
+      ],
+      "prose": [
+        "Nina Lindemann: How short."
+      ],
+      "choices": [
+        {
+          "label": "\"Short.\"",
+          "gate": null,
+          "to": "four_uni_pay",
+          "effects": [
+            {
+              "var": "wallet",
+              "expr": "wallet + 70.0"
+            },
+            {
+              "var": "body",
+              "expr": "body - 12"
+            },
+            {
+              "var": "r_nina",
+              "expr": "r_nina + 1"
+            }
+          ],
+          "prose": [
+            "She looks at the roster, then at the clock, then at you.",
+            "Nina Lindemann: Double shift. Tonight, day route, lit roads, and I'll advance the rest against next week.",
+            "Nina Lindemann: Not the harbour road. I know Klaus talks. Not the harbour road.",
+            "Fourteen hours. Wallet {wallet}€. You cannot feel your hands and you have the money."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "NOT the harbour road. she knows Klaus talks.",
+      "origin": "story.ink",
+      "econ_note": "wallet +70.00, body -12",
+      "sets_note": "r_nina +1",
+      "mode": "blocking",
+      "duration_s": 22,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_uni_pay",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_UNI",
+        "time": "09:00",
+        "light": "bright_cold_clear",
+        "weather": "cold_clear",
+        "camera": "counter_two_shot_warm"
+      },
+      "cast": [
+        "NPC_RITA"
+      ],
+      "props": [
+        "notes_250",
+        "receipt",
+        "student_card_handwritten"
+      ],
+      "audio": [
+        "paper_count",
+        "pen_scratch",
+        "stamp_soft"
+      ],
+      "prose": [
+        "Rita Schneider, at nine in the morning, on the twenty-seventh day.",
+        "You put two hundred and fifty euros on the counter in notes, not coins, because she told you that on the first night and you have thought about it every day since.",
+        "Rita Schneider: Matriculation fee. Receipt. Student card.",
+        "She fills the card in by hand. Your name, spelled correctly, which nobody here has managed on the first attempt before."
+      ],
+      "choices": [
+        {
+          "label": "\"You told me nine o'clock. Three weeks ago, through the glass.\"",
+          "gate": null,
+          "to": "four_evening",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 6"
+            }
+          ],
+          "prose": [
+            "Rita Schneider stops writing.",
+            "Rita Schneider: I remember. You were the one who said you only wanted to see where it was.",
+            "Rita Schneider: I locked that door on about forty people that month. Most of them shouted. You are the only one who came back at nine."
+          ]
+        },
+        {
+          "label": "Take the card and say nothing.",
+          "gate": null,
+          "to": "four_evening",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 3"
+            }
+          ],
+          "prose": [
+            "You hold it in both hands like it might go off."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "wallet",
+          "expr": "wallet - 250.0"
+        },
+        {
+          "var": "matriculated",
+          "expr": "true"
+        },
+        {
+          "var": "knots",
+          "expr": "0"
+        }
+      ],
+      "beat": "CALLBACK: notes not coins / she remembers the locked door",
+      "origin": "story.ink",
+      "econ_note": "wallet -250.00",
+      "sets_note": "matriculated, knots 0, heart +3..6",
+      "mode": "blocking",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "four_evening",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "18:00",
+        "light": "interior_warm_lamp",
+        "camera": "insert_four_documents"
+      },
+      "cast": [],
+      "props": [
+        "plastic_folder_80c",
+        "four_documents"
+      ],
+      "audio": [
+        "paper_square_tap"
+      ],
+      "prose": [
+        "Four documents. Matriculation. Lease. Registration. Bank.",
+        "They go in one plastic folder that cost eighty cents, and you square the edges twice."
+      ],
+      "choices": [],
+      "effects": [],
+      "beat": "the dossier, squared twice",
+      "origin": "story.ink",
+      "divert": "four_last_night",
+      "conditional_edges": [
+        {
+          "if": "klaus_quit == false && r_klaus >= 2",
+          "to": "four_klaus"
+        }
+      ],
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_klaus",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_DARKSTORE_YARD",
+        "time": "17:00",
+        "light": "dusk_cold",
+        "weather": "cold_damp",
+        "camera": "seated_eye_level"
+      },
+      "cast": [
+        "NPC_KLAUS"
+      ],
+      "props": [
+        "crate_upturned",
+        "knee_bandage"
+      ],
+      "audio": [
+        "yard_ambience"
+      ],
+      "prose": [
+        "Klaus is in the yard. The crate. The bandage."
+      ],
+      "choices": [
+        {
+          "label": "\"Klaus. I got the file done.\"",
+          "gate": null,
+          "to": "four_klaus_2",
+          "effects": [],
+          "prose": [
+            "Klaus der Blitz: Course you did."
+          ]
+        },
+        {
+          "label": "\"Klaus. Come inside, it's freezing.\"",
+          "gate": null,
+          "to": "four_klaus_2",
+          "effects": [
+            {
+              "var": "r_klaus",
+              "expr": "r_klaus + 1"
+            }
+          ],
+          "prose": [
+            "Klaus der Blitz: In a minute."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "KNOT CLOSES: the mirror gets an out",
+      "origin": "story.ink",
+      "gate": "r_klaus >= 2 && !klaus_quit",
+      "sets_note": "r_klaus +1",
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_klaus_2",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_DARKSTORE_YARD",
+        "time": "17:05",
+        "light": "dusk_cold",
+        "weather": "cold_damp",
+        "camera": "seated_eye_level"
+      },
+      "cast": [
+        "NPC_KLAUS"
+      ],
+      "props": [
+        "crate_upturned"
+      ],
+      "audio": [
+        "yard_ambience"
+      ],
+      "prose": [
+        "Klaus der Blitz: Fourteen years I've been telling new ones about the harbour road.",
+        "Klaus der Blitz: You're the second one who said no. I keep count."
+      ],
+      "choices": [
+        {
+          "label": "\"Who was the first?\"",
+          "gate": null,
+          "to": "four_klaus_3",
+          "effects": [],
+          "prose": [
+            "Klaus der Blitz: Nobody. I lied. You're the first."
+          ]
+        },
+        {
+          "label": "\"Then stop telling them.\"",
+          "gate": null,
+          "to": "four_klaus_3",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "you are the second who said no. I keep count. (he lied)",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 13,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_klaus_3",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_DARKSTORE_YARD",
+        "time": "17:10",
+        "light": "dusk_cold",
+        "weather": "cold_damp",
+        "camera": "seated_eye_level"
+      },
+      "cast": [
+        "NPC_KLAUS"
+      ],
+      "props": [
+        "knee_bandage_rewound",
+        "dispatch_desk_empty"
+      ],
+      "audio": [
+        "bandage_velcro"
+      ],
+      "prose": [
+        "He is quiet for long enough that you think you have offended him.",
+        "Klaus der Blitz: Nina's had a dispatch desk open since June. Sitting down. Less money.",
+        "Klaus der Blitz: I've said no to it three times because saying yes means the leg won. *He starts rewinding the bandage.* Maybe the leg won."
+      ],
+      "choices": [
+        {
+          "label": "\"Take the desk, Klaus.\"",
+          "gate": null,
+          "to": "four_last_night",
+          "effects": [],
+          "prose": [
+            "Klaus der Blitz: Mm.",
+            "He does, on the Monday. He is a nightmare at it and he is there every morning at five, dry and sitting down, and his hands are fine."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "klaus_quit",
+          "expr": "true"
+        },
+        {
+          "var": "heart",
+          "expr": "heart + 6"
+        }
+      ],
+      "beat": "maybe the leg won / he takes the desk on the Monday",
+      "origin": "story.ink",
+      "econ_note": "heart +6",
+      "sets_note": "klaus_quit",
+      "mode": "blocking",
+      "duration_s": 30,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_last_night",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "20:00",
+        "light": "interior_warm_lamp",
+        "camera": "room_wide_static"
+      },
+      "cast": [],
+      "props": [
+        "suitcase_open_finally",
+        "empty_evening"
+      ],
+      "audio": [
+        "room_tone_quiet"
+      ],
+      "prose": [
+        "-> night_tick ->",
+        "Day {day}. The last night.",
+        "There is nothing to do. It is the first evening in twenty-seven days with nothing in it, and you have absolutely no idea what to do with your hands.",
+        "You unpack the suitcase. It takes nine minutes. You had been carrying it for four weeks."
+      ],
+      "choices": [
+        {
+          "label": "Sit at the window.",
+          "gate": null,
+          "to": "four_phone",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "FIRST EMPTY EVENING / the suitcase is unpacked",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 19,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_phone",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "21:00",
+        "light": "interior_dim_single",
+        "camera": "window_seat_single"
+      },
+      "cast": [],
+      "props": [
+        "phone",
+        "window"
+      ],
+      "audio": [
+        "phone_dial",
+        "room_tone_quiet"
+      ],
+      "prose": [
+        "The phone. Home.",
+        "They already know all of it, because you told them on the first night and every night after, and it turns out that was not weakness, it was just admin.",
+        "Four weeks of \"everything's fine\". Four weeks of a very small, very reasonable lie."
+      ],
+      "choices": [
+        {
+          "label": "\"It was hard. It was really hard. It's done.\"",
+          "gate": null,
+          "to": "four_door",
+          "effects": [
+            {
+              "var": "told_truth_home",
+              "expr": "true"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 10"
+            }
+          ],
+          "prose": [
+            "You tell them the whole thing. The bridge, the circle, the harbour road, the yellow slip on the door.",
+            "Your mother cries, which you expected, and your father asks what the exact procedure is for sending money to a German bank account, which you did not."
+          ]
+        },
+        {
+          "label": "\"I'm fine. Tomorrow's just a formality.\"",
+          "gate": null,
+          "to": "four_door",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 2"
+            }
+          ],
+          "prose": [
+            "It is not a formality and you are not fine, but you are eight hours from the end and you would like one night of somebody not worrying."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "MIRROR of night_one: the lie, revisited",
+      "origin": "story.ink",
+      "econ_note": "heart +2 | heart +10",
+      "sets_note": "told_truth_home",
+      "mode": "blocking",
+      "duration_s": 30,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "four_door",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "22:00",
+        "light": "interior_warm_lamp",
+        "camera": "doorway_two_shot"
+      },
+      "cast": [
+        "NPC_YUSRA"
+      ],
+      "props": [
+        "suitcase_heavy",
+        "paper_slip",
+        "kettle",
+        "mug_instant_coffee",
+        "radiator"
+      ],
+      "audio": [
+        "door_knock_x3",
+        "kettle_low",
+        "radiator_tick"
+      ],
+      "prose": [
+        "Somebody knocks on the door of Room 4 at ten at night.",
+        "There is a girl in the corridor with a suitcase that is too heavy for her and a slip of paper in her hand, and she has gone a colour you recognise, because Martha told you off for it three weeks ago.",
+        "Yusra: Sorry. Sorry. Is this - I'm looking for Room 3? They gave me Room 3?"
+      ],
+      "choices": [
+        {
+          "label": "\"Room 3 is down the hall. Put the suitcase down, it isn't going anywhere.\"",
+          "gate": null,
+          "to": "yusra_bins",
+          "effects": [
+            {
+              "var": "r_nico",
+              "expr": "r_nico + 1"
+            },
+            {
+              "var": "heart",
+              "expr": "heart + 12"
+            }
+          ],
+          "prose": [
+            "You hear the sentence come out of your mouth in Nico's voice and you have to stop for a second.",
+            "You put the kettle on. There is only instant coffee. It will do, it did for you."
+          ]
+        },
+        {
+          "label": "\"You must be freezing. Come in, the radiator's the only warm thing in the building.\"",
+          "gate": null,
+          "to": "yusra_bins",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 12"
+            }
+          ],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "THE DIAMOND CLOSES: you are Nico now. same framing as wg_door.",
+      "origin": "story.ink",
+      "econ_note": "heart +12",
+      "sets_note": "r_nico +1",
+      "mode": "blocking",
+      "duration_s": 12,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "yusra_bins",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "22:10",
+        "light": "interior_warm_lamp",
+        "camera": "kitchen_two_shot"
+      },
+      "cast": [
+        "NPC_YUSRA"
+      ],
+      "props": [
+        "kitchen_counter",
+        "mug_instant_coffee"
+      ],
+      "audio": [
+        "kettle_pour"
+      ],
+      "prose": [
+        "Yusra: The office. At the university. It's shut, isn't it. I got in at six."
+      ],
+      "choices": [
+        {
+          "label": "\"Nine o'clock tomorrow. Two hundred and fifty euros, in notes, not coins.\"",
+          "gate": null,
+          "to": "yusra_bins_2",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "\"It's shut. It'll be there tomorrow. That's genuinely the worst thing that's happened to you today.\"",
+          "gate": null,
+          "to": "yusra_bins_2",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "the office is shut. it will be there tomorrow.",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 5,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "yusra_bins_2",
+      "act": "IV",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "22:20",
+        "light": "interior_warm_lamp",
+        "camera": "insert_three_bins"
+      },
+      "cast": [
+        "NPC_YUSRA"
+      ],
+      "props": [
+        "bin_blue",
+        "bin_yellow",
+        "bin_black"
+      ],
+      "audio": [],
+      "prose": [
+        "And then you tell her about the bins.",
+        "Blue is paper. Yellow is plastic. Black is everything else. Herr Lokker checks with a torch, and it is twenty-five euros, and you know that number in a very specific way.",
+        "She makes you say it twice. You say it twice, slowly, without making her feel stupid about it."
+      ],
+      "choices": [
+        {
+          "label": "Sleep.",
+          "gate": null,
+          "to": "act_five",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "FULL CIRCLE: you say it twice, slowly, without making her feel stupid",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 20,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "act_five",
+      "act": "V",
+      "threads": 1,
+      "stage": {
+        "loc": "B_AUSLAENDER",
+        "time": "09:40",
+        "light": "interior_waiting_room_flat",
+        "camera": "waiting_room_wide_then_desk"
+      },
+      "cast": [
+        "NPC_LINDEMANN"
+      ],
+      "props": [
+        "forty_chairs",
+        "number_display_B114",
+        "plastic_folder_80c"
+      ],
+      "audio": [
+        "display_chime",
+        "waiting_room_tone",
+        "page_turn_slow"
+      ],
+      "prose": [
+        "Day 28.",
+        "The Auslaenderbehoerde has a waiting room with forty chairs and a number display, and your number is B-114, and it comes up at nine forty.",
+        "Dr Lindemann does not look up when you sit down. She opens the folder and reads it.",
+        "All of it. Every page. She turns them one at a time with a fingertip and she does not skip anything, and it takes six minutes, and nobody in the room says a word."
+      ],
+      "choices": [
+        {
+          "label": "Wait.",
+          "gate": null,
+          "to": "five_read",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "she reads every page. six minutes. nobody speaks.",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "five_read",
+      "act": "V",
+      "threads": 1,
+      "stage": {
+        "loc": "B_AUSLAENDER",
+        "time": "09:46",
+        "light": "interior_waiting_room_flat",
+        "camera": "desk_two_shot"
+      },
+      "cast": [
+        "NPC_LINDEMANN"
+      ],
+      "props": [
+        "four_documents",
+        "date_stamps"
+      ],
+      "audio": [
+        "page_turn_slow"
+      ],
+      "prose": [
+        "Dr Lindemann: Matriculation, twenty-seventh. Registration, twenty-first. Account, twentieth. Lease, day two.",
+        "Dr Lindemann: Day two.",
+        "She looks up for the first time."
+      ],
+      "choices": [
+        {
+          "label": "\"The landlord asked for it in three days.\"",
+          "gate": null,
+          "to": "five_verdict",
+          "effects": [],
+          "prose": [
+            "Dr Lindemann: Most people take three weeks and then arrive here shouting at me about it."
+          ]
+        },
+        {
+          "label": "\"A man I'd known for eleven minutes lent me thirty euros.\"",
+          "gate": null,
+          "to": "five_verdict",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 4"
+            }
+          ],
+          "prose": [
+            "Dr Lindemann, after a pause: Yes. That is usually how the day-two ones happen."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "\"Day two.\" the lease date is the whole character sheet",
+      "origin": "story.ink",
+      "econ_note": "heart +4",
+      "mode": "blocking",
+      "duration_s": 19,
+      "duration_source": "estimated_from_wordcount",
+      "unlocks": {}
+    },
+    {
+      "id": "five_verdict",
+      "act": "V",
+      "threads": 1,
+      "stage": {
+        "loc": "B_AUSLAENDER",
+        "time": "09:50",
+        "light": "interior_waiting_room_flat",
+        "camera": "desk_two_shot"
+      },
+      "cast": [
+        "NPC_LINDEMANN"
+      ],
+      "props": [
+        "dossier",
+        "harbour_depot_log",
+        "nina_reference_letter"
+      ],
+      "audio": [
+        "page_turn_slow"
+      ],
+      "prose": [
+        "Dr Lindemann: There are three unregistered night movements logged against this address by the harbour depot.",
+        "Dr Lindemann: I am not going to ask about them, because the file is otherwise clean and because I know exactly who runs that route and I have been trying to close it since 2019.",
+        "Dr Lindemann: There is a second name in here. A co-signature from a third-year at your address, on the twelfth.",
+        "Dr Lindemann: People in your position do not usually put other people's names in their file. It costs them nothing and they still do not do it.",
+        "She turns the last page and stops.",
+        "Dr Lindemann: There is a reference here from Kruma dispatch.",
+        "She reads it. Her face does something very small and completely private, and then goes back to being a face at a desk.",
+        "Dr Lindemann: It is a good reference. Whoever wrote it does not write those.",
+        "Dr Lindemann: Aufenthaltstitel, paragraph sixteen b. Residence permit for the purpose of study. Three years.",
+        "Dr Lindemann: Do you understand what you are signing?"
+      ],
+      "choices": [
+        {
+          "label": "\"Yes.\"",
+          "gate": null,
+          "to": "five_stamp",
+          "effects": [],
+          "prose": []
+        },
+        {
+          "label": "\"I understand about eighty per cent of it, and I'd like to read it properly tonight.\"",
+          "gate": null,
+          "to": "five_stamp",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 4"
+            }
+          ],
+          "prose": [
+            "Dr Lindemann: Good answer. Take it home. Come back Thursday if you have questions.",
+            "Dr Lindemann: Nobody asks for time. Everybody should ask for time."
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "var": "heart",
+          "expr": "heart - 2"
+        }
+      ],
+      "beat": "EVERY ACT III CHOICE IS READ BACK ALOUD",
+      "origin": "story.ink",
+      "econ_note": "heart -2 (night route >=3) | heart +4 (ask for time)",
+      "gate": "night_route_taken>=3 | helped_nico | r_nina>=4",
+      "mode": "blocking",
+      "duration_s": 16,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "five_stamp",
+      "act": "V",
+      "threads": 1,
+      "stage": {
+        "loc": "B_AUSLAENDER",
+        "time": "09:55",
+        "light": "interior_waiting_room_flat",
+        "camera": "insert_stamp_impact"
+      },
+      "cast": [
+        "NPC_LINDEMANN"
+      ],
+      "props": [
+        "rubber_stamp",
+        "residence_permit_16b",
+        "number_display_B115"
+      ],
+      "audio": [
+        "stamp_thud_small",
+        "display_chime"
+      ],
+      "prose": [
+        "STAMP.",
+        "The sound is much smaller than you had imagined it. Four weeks of your life, and it is a click and a thud, and the number display moves on to B-115."
+      ],
+      "choices": [
+        {
+          "label": "Go outside.",
+          "gate": null,
+          "to": "five_out",
+          "effects": [],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "the sound is smaller than you imagined",
+      "origin": "story.ink",
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {}
+    },
+    {
+      "id": "five_out",
+      "act": "V",
+      "threads": 1,
+      "stage": {
+        "loc": "LM_MARKTPLATZ",
+        "time": "10:30",
+        "light": "bright_cold_clear",
+        "weather": "cold_bright",
+        "camera": "walk_away_wide_hold"
+      },
+      "cast": [
+        "NPC_MARTHA"
+      ],
+      "props": [
+        "plastic_folder_80c",
+        "bakery_window",
+        "oven_1971"
+      ],
+      "audio": [
+        "city_day_loop",
+        "window_knock_flat_hand"
+      ],
+      "prose": [
+        "Outside it is cold and completely bright.",
+        "You have {wallet}€, a body at {body}, a residence permit valid for three years, and a folder that cost eighty cents.",
+        "You walk back through the Marktplatz and you know the names of eleven people between here and the WG, and four of them wave.",
+        "Martha bangs on the bakery window with the flat of her hand and points at the oven, which means sit down, which means she has already put something on a plate.",
+        "You came here four weeks ago with twenty euros and it turns out that was never the number that mattered.",
+        "THE END - \"Angekommen.\" Arrived.",
+        "You walk back through the Marktplatz. You made it. Every single number came out right and the folder is full and the stamp is real.",
+        "You pass the bakery and Martha is in the window and you nod, and she nods, and you keep walking because there is a shift at six.",
+        "You have the visa. Three years. You will work out the rest of it in the second one.",
+        "THE END - \"Geschafft.\" Managed it.",
+        "You walk back through the Marktplatz and you cannot feel very much about it.",
+        "The stamp is real. The permit is three years. You beat every number and the numbers were the only thing you spoke to for two of those four weeks.",
+        "Klaus was on his crate for fourteen years and he was somebody's friend for none of them. You put the folder in your bag and you think about that all the way home.",
+        "Three years is a long time. Long enough to do it differently.",
+        "THE END - \"Ueberlebt.\" Survived."
+      ],
+      "choices": [],
+      "effects": [],
+      "beat": "THREE ENDINGS, ONE DOOR / different person walking out",
+      "origin": "story.ink",
+      "econ_note": "readout: wallet, body, heart",
+      "gate": "ENDING by heart: >=70 Angekommen | >=40 Geschafft | else Ueberlebt",
+      "divert": "END",
+      "mode": "blocking",
+      "duration_s": 16,
+      "duration_source": "authored",
+      "unlocks": {}
+    }
+  ]
+}
+;
+
 
 /* --- FILE: src/core/pathfinding.js --- */
 // High-Performance A* Grid Pathfinding Engine for Far From Home
@@ -17743,10 +22634,8 @@ window.FFH.findPath = function(startX, startZ, targetX, targetZ) {
 //
 // This file loads first (see build/assemble.js) and owns the FFH namespace.
 
-window.FFH = {
-  // Every tunable that affects whether a run is winnable lives here, not
-  // scattered across phases. Design authority: Docs/README_HACKATHON.md §5.
-  ECONOMY: {
+window.FFH = window.FFH || {};
+window.FFH.ECONOMY = {
     STARTING_WALLET: 20,
     TUITION_GOAL: 250,
     KAUTION_DEPOSIT: 30,
@@ -17761,8 +22650,7 @@ window.FFH = {
     MISPICK_INTEGRITY_COST: 8,     // bag damage for tapping the wrong item
     POTHOLE_INTEGRITY_COST: 15,    // bag damage per hazard hit on the ride
     EARLY_PICK_MULTIPLIER: 2.0     // Accuracy bonus multiplier for pre-icon picks
-  }
-};
+  };
 
 window.FFH.calculatePayout = function(state) {
   const E = window.FFH.ECONOMY;
@@ -17873,6 +22761,33 @@ window.FFH.createRunState = function () {
     wallet: window.FFH.ECONOMY.STARTING_WALLET,
     currentShift: 1,
     day: 1,
+    body: 100,
+    heart: 50,
+    knots: 4,
+    shift_no: 0,
+    r_nico: 0,
+    r_martha: 0,
+    r_nina: 0,
+    r_mathias: 0,
+    r_lokker: 0,
+    r_vogel: 0,
+    r_klaus: 0,
+    paid_kaution: false,
+    has_lease: false,
+    has_anmeldung: false,
+    has_konto: false,
+    matriculated: false,
+    knows_trennung: false,
+    knows_the_circle: false,
+    met_anke: false,
+    circle_cut: false,
+    owes_mathias: 0.0,
+    night_route_taken: 0,
+    helped_nico: false,
+    nico_gone: false,
+    klaus_quit: false,
+    told_truth_home: false,
+    fined_trennung: false,
     // Story Quest and Progression State
     questStep: 0,
     activeQuests: ['main_visa_survival'],
@@ -18055,6 +22970,492 @@ window.FFH.loadGame = function(game) {
   } catch(e) {
     console.error("Failed to load game:", e);
     return false;
+  }
+};
+
+
+/* --- FILE: src/core/storyRunner.js --- */
+// Dynamic Story Interpreter & Runtime Engine
+// Single Source of Truth: assets/narrative/story.json
+window.FFH = window.FFH || {};
+
+window.FFH.StoryRunner = class {
+  constructor(game) {
+    this.game = game;
+    this.data = window.FFH.storyData || null;
+    this.currentSceneId = null;
+    this.currentScene = null;
+    this.history = [];
+    // When set, city exploration will guide the player to this POI
+    // before launching the target scene (exploration handshake).
+    this.pendingStoryTarget = null;
+  }
+
+  // Lookup table of which POI each scene id belongs to.
+  // When the target scene is at a DIFFERENT location from the current scene,
+  // we break the dialogue chain and drop the player into city exploration.
+  _getSceneLoc(sceneId) {
+    const scene = this.scenesById && this.scenesById[sceneId];
+    return scene && scene.stage && scene.stage.loc ? scene.stage.loc : null;
+  }
+
+  init() {
+    if (!this.data && window.FFH.storyData) {
+      this.data = window.FFH.storyData;
+    }
+    if (this.data) {
+      this.initSceneMap();
+      return;
+    }
+
+    // If running in dev mode via HTTP server without pre-inlined storyData
+    if (typeof fetch === 'function') {
+      fetch('assets/narrative/story.json')
+        .then(res => res.json())
+        .then(data => {
+          this.data = data;
+          window.FFH.storyData = data;
+          this.initSceneMap();
+          console.log('FFH.StoryRunner: Loaded story.json dynamically in dev mode.');
+        })
+        .catch(err => {
+          console.warn('FFH.StoryRunner: Could not fetch story.json:', err);
+        });
+    }
+  }
+
+  initSceneMap() {
+    this.scenesById = {};
+    if (this.data && this.data.scenes) {
+      for (const scene of this.data.scenes) {
+        this.scenesById[scene.id] = scene;
+      }
+    }
+  }
+
+  evaluateExpr(expr, state) {
+    if (typeof expr === 'boolean') return expr;
+    if (typeof expr === 'number') return expr;
+    if (expr === 'true') return true;
+    if (expr === 'false') return false;
+
+    try {
+      const keys = Object.keys(state);
+      const values = Object.values(state);
+      const fn = new Function(...keys, `return (${expr});`);
+      return fn(...values);
+    } catch (e) {
+      console.warn(`StoryRunner: Failed to evaluate expr "${expr}":`, e);
+      return null;
+    }
+  }
+
+  checkGate(gate, state) {
+    if (!gate) return true;
+    try {
+      let jsGate = gate
+        .replace(/\bnot\s+/g, '!')
+        .replace(/\band\b/g, '&&')
+        .replace(/\bor\b/g, '||');
+      
+      const keys = Object.keys(state);
+      const values = Object.values(state);
+      const fn = new Function(...keys, `return Boolean(${jsGate});`);
+      return fn(...values);
+    } catch (e) {
+      console.warn(`StoryRunner: Failed to evaluate gate "${gate}":`, e);
+      return true;
+    }
+  }
+
+  applyEffects(effects) {
+    if (!effects || !effects.length) return;
+    const state = this.game.state;
+
+    for (const eff of effects) {
+      if (!eff.var) continue;
+      const res = this.evaluateExpr(eff.expr, state);
+      if (res !== null && res !== undefined) {
+        state[eff.var] = res;
+        if (eff.var === 'wallet' && typeof state[eff.var] === 'number') {
+          state[eff.var] = Math.round(state[eff.var] * 100) / 100;
+        }
+      }
+    }
+
+    this.checkHealthState();
+
+    if (this.game.ui && this.game.ui.updatePersistentHUD) {
+      this.game.ui.updatePersistentHUD(state);
+    }
+  }
+
+  checkHealthState() {
+    const s = this.game.state;
+    if (s.body !== undefined && s.body <= 0) {
+      s.body = 15;
+      s.wallet = Math.max(0, s.wallet - 8);
+      if (this.game.ui && this.game.ui.spawnFloatingText) {
+        this.game.ui.spawnFloatingText('⚠️ Physical Collapse! Rested 1 day (-8€)', window.innerWidth / 2, window.innerHeight / 2, '#E63946');
+      }
+    }
+    if (s.heart !== undefined && s.heart <= 0) {
+      s.heart = 20;
+      if (this.game.ui && this.game.ui.spawnFloatingText) {
+        this.game.ui.spawnFloatingText('💔 Severe Despair! Nico checked in on you.', window.innerWidth / 2, window.innerHeight / 2, '#E63946');
+      }
+    }
+  }
+
+  interpolate(text) {
+    if (!text) return '';
+    const state = this.game.state;
+    return text.replace(/\{([^}]+)\}/g, (match, expr) => {
+      if (expr.includes(':')) {
+        const parts = expr.split(':');
+        const cond = parts[0].trim();
+        const branch = parts[1].split('|');
+        const ifTrue = branch[0] || '';
+        const ifFalse = branch[1] || '';
+        const res = this.checkGate(cond, state);
+        return res ? ifTrue : ifFalse;
+      }
+      const val = this.evaluateExpr(expr, state);
+      if (val !== null && val !== undefined) {
+        if (typeof val === 'number') {
+          return val.toFixed(2).replace(/\.00$/, '');
+        }
+        return String(val);
+      }
+      return match;
+    });
+  }
+
+  startScene(sceneId) {
+    if (!this.scenesById) {
+      this.initSceneMap();
+    }
+    const scene = this.scenesById ? this.scenesById[sceneId] : null;
+    if (!scene) {
+      console.error(`StoryRunner: Scene "${sceneId}" not found in story.json.`);
+      return;
+    }
+
+    this.currentSceneId = sceneId;
+    this.currentScene = scene;
+    this.history.push(sceneId);
+
+    if (scene.effects && scene.effects.length) {
+      this.applyEffects(scene.effects);
+    }
+
+    if (scene.unlocks) {
+      this.handleUnlocks(scene.unlocks);
+    }
+
+    this.renderScene(scene);
+  }
+
+  handleUnlocks(unlocks) {
+    const s = this.game.state;
+    if (unlocks.mechanic) {
+      s[unlocks.mechanic] = true;
+    }
+    if (unlocks.ui && Array.isArray(unlocks.ui)) {
+      for (const uiId of unlocks.ui) {
+        const el = document.getElementById(uiId);
+        if (el) el.style.display = '';
+      }
+    }
+  }
+
+  applyStage(stage, audioList = []) {
+    if (!stage) return;
+    const g = this.game;
+
+    // 1. Play environmental audio triggers from scene
+    if (audioList && audioList.length && g.sfx && g.sfx.playSfx) {
+      audioList.forEach(aKey => {
+        g.sfx.playSfx(aKey);
+      });
+    }
+
+    // 2. Adjust City Atmosphere / Lighting based on stage.time and stage.light
+    const cityPhase = g.phases && g.phases.CITY_EXPLORATION;
+    if (cityPhase) {
+      let timeProgress = 0.4; // default day
+      if (stage.time) {
+        const [h, m] = stage.time.split(':').map(Number);
+        if (!isNaN(h)) {
+          timeProgress = (h * 60 + (m || 0)) / (24 * 60);
+        }
+      }
+      if (stage.light === 'dusk_cold') timeProgress = 0.75;
+      else if (stage.light === 'night_lantern' || stage.light === 'night_lantern_water') timeProgress = 0.88;
+      else if (stage.light === 'dawn_grey' || stage.light === 'dawn_clear') timeProgress = 0.22;
+      else if (stage.light === 'interior_fluorescent_cold') timeProgress = 0.90;
+
+      if (cityPhase.updateAtmosphericTime) {
+        cityPhase.updateAtmosphericTime(timeProgress);
+      }
+    }
+
+    // 3. Move Player and Position Camera to stage.loc when in city
+    if (stage.loc && cityPhase && cityPhase.worldGroup && cityPhase.courier) {
+      const locPositions = {
+        // Each position is the R_C (road) tile immediately outside the building entrance.
+        // Building centres are at col*2.6, row*2.6 — those are inside walls.
+        // TILE_SCALE = 2.6; grid reference: LUBECK_CITY_GRID
+        'B_ZOB':        { x: 10.4, z:  5.2 },  // row2,col4 R_C (east of ZOB)
+        'B_BANK':       { x: 41.6, z:  5.2 },  // row2,col16 building — col15 R_C would be 39.0
+        'B_UNI':        { x: 20.8, z: 15.6 },  // row6,col8  R_C (west of UNI)
+        'B_BAKERY':     { x:  7.8, z: 18.2 },  // row7,col3  R_C (east of Bakery)
+        'B_BURGTOR':    { x: 36.4, z: 18.2 },  // row7,col14 building — keep as-is (road bridge)
+        'B_RATHAUS':    { x: 23.4, z: 23.4 },  // row9,col9 B_RATHAUS itself is road-adjacent
+        'B_PIZZA':      { x: 28.6, z: 23.4 },  // row9,col11 building — col12 R_C = 31.2
+        'B_WG':         { x:  7.8, z: 26.0 },  // row10,col3 R_C (east of WG)
+        'B_AUSLAENDER': { x: 36.4, z: 26.0 },  // row10,col14 building entrance
+        'B_BIKESHOP':   { x:  7.8, z: 31.2 },  // row12,col3 R_C (east of Bikeshop)
+        'B_KINO':       { x: 26.0, z: 31.2 },  // row12,col10 building (road left/right)
+        'B_HOLSTEN':    { x: 18.2, z: 33.8 },  // row13,col7 bridge area
+        'B_MARIEN':     { x: 57.2, z: 33.8 },  // row13,col22 — keep
+        'B_DOM':        { x: 26.0, z: 44.2 },  // row17,col10
+        'B_DARKSTORE':  { x:  7.8, z: 46.8 },  // row18,col3 R_C (east of Darkstore)
+        'LM_CANAL':     { x: 20.8, z: 31.2 },
+        'LM_MARKTPLATZ':{ x: 26.0, z: 23.4 }
+      };
+
+      const targetPos = locPositions[stage.loc];
+      if (targetPos) {
+        cityPhase.playerPos.x = targetPos.x;
+        cityPhase.playerPos.z = targetPos.z;
+        cityPhase.courier.position.copy(cityPhase.playerPos);
+
+        // Adjust Camera Framing based on stage.camera
+        const cam = g.cameras && g.cameras.mainCamera;
+        if (cam) {
+          if (stage.camera === 'wide_establishing_low') {
+            cityPhase.setZoom(0.65);
+          } else if (stage.camera === 'single_close' || stage.camera === 'first_person_pick') {
+            cityPhase.setZoom(1.30);
+          } else if (stage.camera === 'wide_reflection_hold' || stage.camera === 'fork_two_doors_wide') {
+            cityPhase.setZoom(0.70);
+          } else {
+            cityPhase.setZoom(1.05);
+          }
+          cityPhase.updateCamera(true);
+        }
+      }
+    }
+  }
+
+  renderScene(scene) {
+    const mode = scene.mode || 'overlay';
+    const s = this.game.state;
+
+    // Direct stage, camera, and environmental audio
+    this.applyStage(scene.stage, scene.audio);
+
+    const validChoices = (scene.choices || []).filter(c => {
+      if (c.gate) {
+        return this.checkGate(c.gate, s);
+      }
+      return true;
+    });
+
+    if (mode === 'gameplay') {
+      this.handleGameplayScene(scene, validChoices);
+    } else if (mode === 'blocking') {
+      this.handleBlockingScene(scene, validChoices);
+    } else {
+      this.handleOverlayScene(scene, validChoices);
+    }
+  }
+
+  handleOverlayScene(scene, choices) {
+    // If in DIALOGUE phase, transition to CITY_EXPLORATION first so the live 3D world is visible
+    if (this.game.currentPhase !== 'CITY_EXPLORATION') {
+      this.game.transitionTo('CITY_EXPLORATION');
+    }
+
+    const rawProse = scene.prose || [];
+    const processedProse = rawProse.map(p => this.interpolate(p));
+
+    const overlayData = {
+      sceneId: scene.id,
+      beat: scene.beat,
+      stage: scene.stage,
+      prose: processedProse,
+      choices: choices.map((ch, idx) => ({
+        idx: idx,
+        label: this.interpolate(ch.label),
+        original: ch
+      }))
+    };
+
+    if (this.game.ui && this.game.ui.showStoryOverlay) {
+      this.game.ui.showStoryOverlay(overlayData, (choiceIndex) => {
+        const choice = choices[choiceIndex];
+        this.selectChoice(choice);
+      });
+    }
+  }
+
+  handleBlockingScene(scene, choices) {
+    const rawProse = scene.prose || [];
+    const processedProse = rawProse.map(p => this.interpolate(p));
+
+    let speaker = 'Conversation';
+    let npcKey = 'NPC_NICO';
+    if (scene.cast && scene.cast.length) {
+      npcKey = scene.cast[0];
+      if (npcKey === 'NPC_NICO') speaker = 'Nico';
+      else if (npcKey === 'NPC_RITA') speaker = 'Rita Schneider';
+      else if (npcKey === 'NPC_NINA') speaker = 'Nina Lindemann';
+      else if (npcKey === 'NPC_LOKKER') speaker = 'Herr Hans Lokker';
+      else if (npcKey === 'NPC_VOGEL') speaker = 'Herr Vogel';
+      else if (npcKey === 'NPC_MARTHA') speaker = 'Martha Webber';
+      else if (npcKey === 'NPC_MATHIAS') speaker = 'Mathias Becker';
+      else if (npcKey === 'NPC_LINDEMANN') speaker = 'Dr. Lindemann';
+    }
+
+    // Separate action/narrative prose from spoken dialogue lines
+    const actionLines = [];
+    const spokenLines = [];
+
+    for (const p of processedProse) {
+      if (p.includes(':')) {
+        const colonIdx = p.indexOf(':');
+        const spk = p.slice(0, colonIdx).trim();
+        const speech = p.slice(colonIdx + 1).trim();
+        spokenLines.push(speech);
+        if (!speaker || speaker === 'Conversation') {
+          speaker = spk;
+        }
+      } else {
+        actionLines.push(p);
+      }
+    }
+
+    const dialogueData = {
+      speaker: speaker,
+      actionIntro: actionLines.join(' '),
+      text: spokenLines.length ? spokenLines.join(' ') : actionLines.join(' '),
+      isStory: true,
+      options: choices.map((ch, idx) => ({
+        idx: idx,
+        label: this.interpolate(ch.label),
+        original: ch
+      }))
+    };
+
+    if (this.game.phases.DIALOGUE) {
+      this.game.transitionTo('DIALOGUE', { npcKey: npcKey, isStory: true });
+
+      // Apply camera adjustments inside the diorama room
+      const cam = this.game.cameras && this.game.cameras.mainCamera;
+      if (cam && scene.stage && scene.stage.camera) {
+        const cType = scene.stage.camera;
+        if (cType === 'doorway_two_shot' || cType === 'kitchen_two_shot' || cType === 'workbench_two_shot') {
+          this.game.phases.DIALOGUE.endCamZoom = 2.45;
+        } else if (cType === 'insert_three_bins' || cType === 'single_close') {
+          this.game.phases.DIALOGUE.endCamZoom = 2.85;
+        } else {
+          this.game.phases.DIALOGUE.endCamZoom = 2.15;
+        }
+      }
+
+      if (this.game.ui && this.game.ui.showDialogueBox) {
+        const npcEntry = (window.FFH.NPC_DATABASE && window.FFH.NPC_DATABASE[npcKey]) || {
+          name: speaker,
+          title: 'Lübeck Resident',
+          avatarColor: '#2EC4B6'
+        };
+        this.game.ui.showDialogueBox(npcEntry, dialogueData, (chosenOption) => {
+          if (chosenOption && chosenOption.original) {
+            this.selectChoice(chosenOption.original);
+          }
+        });
+      }
+    }
+  }
+
+  handleGameplayScene(scene, choices) {
+    const teaches = scene.teaches || {};
+    const iconDelay = teaches.icon_delay_s !== undefined ? teaches.icon_delay_s : 0.0;
+
+    this.game.transitionTo('PICK', {
+      storyScene: scene,
+      iconDelay: iconDelay,
+      onComplete: () => {
+        if (choices && choices.length) {
+          this.selectChoice(choices[0]);
+        } else if (scene.divert) {
+          this.startScene(scene.divert);
+        }
+      }
+    });
+  }
+
+  selectChoice(choice) {
+    if (!choice) return;
+
+    if (choice.effects && choice.effects.length) {
+      this.applyEffects(choice.effects);
+    }
+
+    let target = choice.to;
+    if (typeof target === 'object' && target !== null) {
+      target = target.then || target.to;
+    }
+
+    if (!target && this.currentScene && this.currentScene.divert) {
+      target = this.currentScene.divert;
+    }
+
+    if (this.currentScene && this.currentScene.conditional_edges) {
+      const state = this.game.state;
+      for (const ce of this.currentScene.conditional_edges) {
+        if (this.checkGate(ce.if, state)) {
+          target = ce.to;
+          break;
+        }
+      }
+    }
+
+    if (target) {
+      // --- Exploration Handshake ---
+      // If the target scene is at a DIFFERENT map location from the current one,
+      // break the dialogue chain. Set pendingStoryTarget so city exploration
+      // can beacon-guide the player there, firing the scene on approach.
+      const currentLoc = this.currentScene && this.currentScene.stage && this.currentScene.stage.loc;
+      const targetLoc = this._getSceneLoc(target);
+      const TRAVEL_REQUIRED = !!(targetLoc && currentLoc && targetLoc !== currentLoc);
+
+      if (TRAVEL_REQUIRED) {
+        const objectiveMap = {
+          'wg_door':          '🏠 Find Room 4 — Student WG (south)',
+          'nico_sends_kruma': '🎓 Check out Lübeck University (east across the bridge)',
+          'uni_closed':       '🎓 Check out Lübeck University (east across the bridge)',
+          'shift_1_teach':    '📦 Report for your first shift — Kruma Express (south)',
+        };
+        const objective = objectiveMap[target] || `Go to ${targetLoc}`;
+
+        this.pendingStoryTarget = { sceneId: target, poi: targetLoc, objective };
+        this.game.state.activeObjective = objective;
+
+        if (this.game.ui && this.game.ui.hideDialogueBox) {
+          this.game.ui.hideDialogueBox();
+        }
+        console.log(`StoryRunner: Travel required to ${targetLoc} for scene "${target}". Entering city exploration.`);
+        this.game.transitionTo('CITY_EXPLORATION');
+      } else {
+        this.startScene(target);
+      }
+    } else {
+      console.log('StoryRunner: Flow reached leaf or hub. Transitioning to city exploration.');
+      this.game.transitionTo('CITY_EXPLORATION');
+    }
   }
 };
 
@@ -22080,10 +27481,22 @@ window.FFH.createBakeryRoom = function() {
 
   // Flour Sack on Floor
   const sackMat = window.FFH.createCelMaterial(0xF7EDE2);
-  const sack = new THREE.Mesh(boxGeo, sackMat);
-  sack.scale.set(0.4, 0.5, 0.35);
-  sack.position.set(1.0, 0.25, 0.4);
-  room.add(sack);
+  // Chalkboard Price List
+  const boardMat = window.FFH.createCelMaterial(0x264653);
+  const priceBoard = new THREE.Mesh(boxGeo, boardMat);
+  priceBoard.scale.set(0.8, 0.9, 0.03);
+  priceBoard.position.set(-0.5, 1.8, -1.42);
+  room.add(priceBoard);
+
+  return room;
+};
+
+// 6. RATHAUS BÜRGERAMT (Herr Vogel)
+// Formal municipal counter, hygiene glass partition, ticket dispenser (Wartemarke), eagle seal
+window.FFH.createRathausRoom = function() {
+  const room = window.FFH.createRoomShell(0x457B9D, 0x1D3557); // Formal steel blue walls, dark granite floor
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
   // Massive Official Stone Counter
   const counter = new THREE.Mesh(boxGeo, window.FFH.createCelMaterial(0x8D99AE));
   counter.scale.set(2.2, 0.9, 0.65);
@@ -22384,6 +27797,11 @@ window.FFH.createBikeShopRoom = function(state = window.FFH.state) {
   room.add(tb);
 
   return room;
+};
+
+// WG Room: Alias to the detailed Student Room / Sublet
+window.FFH.createWGRoom = function(state = window.FFH.state) {
+  return window.FFH.createLevel0Room(state);
 };
 
 
@@ -25743,6 +31161,94 @@ window.FFH.AudioEngine = class {
       gainThud.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
       oscThud.start(now + 0.03);
       oscThud.stop(now + 0.35);
+    } else if (type === 'bus_doors_hiss') {
+      // Pneumatic air brake / bus door release hiss
+      const bufferSize = this.ctx.sampleRate * 0.45;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.15));
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(2200, now);
+      filter.Q.setValueAtTime(1.5, now);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start(now);
+    } else if (type === 'door_lock_turn') {
+      // Heavy key turning in brass lock tumbler (double click + metal scrape)
+      [0, 0.08].forEach((offset, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(idx === 0 ? 800 : 520, now + offset);
+        osc.frequency.exponentialRampToValueAtTime(180, now + offset + 0.05);
+        gain.gain.setValueAtTime(0.15, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.05);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.05);
+      });
+    } else if (type === 'radiator_tick') {
+      // Warm cast iron radiator expansion tick
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(3200, now);
+      osc.frequency.exponentialRampToValueAtTime(1200, now + 0.03);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+      osc.start(now);
+      osc.stop(now + 0.03);
+    } else if (type === 'kettle_low') {
+      // Soft boiling water rumble
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(75, now);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      osc.start(now);
+      osc.stop(now + 0.6);
+    } else if (type === 'phone_buzz') {
+      // Double vibration motor buzz
+      [0, 0.14].forEach((offset) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(130, now + offset);
+        gain.gain.setValueAtTime(0.12, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.09);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.09);
+      });
+    } else if (type === 'paper_rustle') {
+      // Paper document slide / unfold
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1100, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.12);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.start(now);
+      osc.stop(now + 0.12);
     }
   }
 
@@ -26405,7 +31911,16 @@ window.FFH.UI = class {
         this.game.sfx.playSfx('success');
         this.game.state = window.FFH.createRunState();
         window.FFH.state = this.game.state;
+        
+        // Clear title screen UI
+        this.clear();
+        this.game.clearTitleDiorama();
+
+        // Boot into continuous city exploration, then launch story scene act_one
         this.game.transitionTo('CITY_EXPLORATION');
+        if (this.game.storyRunner) {
+          this.game.storyRunner.startScene('act_one');
+        }
       });
     }
 
@@ -27552,11 +33067,29 @@ window.FFH.UI = class {
             <!-- Slot 1: Matriculation -->
             <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.isMatriculated ? '#2A9D8F' : '#999'}; background: ${s.isMatriculated ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="University Matriculation">${s.isMatriculated ? '🎓' : ''}</span>
             <!-- Slot 2: Lease -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
             <!-- Slot 3: Anmeldung -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.hasAnmeldung ? '#2A9D8F' : '#999'}; background: ${s.hasAnmeldung ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${s.hasAnmeldung ? '📑' : ''}</span>
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#999'}; background: ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${(s.hasAnmeldung || s.has_anmeldung) ? '📑' : ''}</span>
             <!-- Slot 4: Sperrkonto Bank -->
-            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${s.isSperrkontoUnlocked ? '#2A9D8F' : '#999'}; background: ${s.isSperrkontoUnlocked ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${s.isSperrkontoUnlocked ? '💳' : ''}</span>
+            <span style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#999'}; background: ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${(s.isSperrkontoUnlocked || s.has_konto) ? '💳' : ''}</span>
+          </div>
+
+          <!-- Body & Heart Meters -->
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #F8F9FA;
+            border: 1.5px solid #264653;
+            border-radius: 8px;
+            padding: 3px 6px;
+            font-size: 10px;
+            font-weight: 900;
+            font-family: monospace;
+          " title="Body Stamina & Heart Morale">
+            <span style="color: ${s.body < 30 ? '#E63946' : '#2A9D8F'};">⚡${s.body !== undefined ? s.body : 100}</span>
+            <span style="color: #666;">|</span>
+            <span style="color: ${s.heart < 30 ? '#E63946' : '#FF006E'};">❤️${s.heart !== undefined ? s.heart : 50}</span>
           </div>
 
           <!-- Wallet Balance -->
@@ -27744,13 +33277,13 @@ window.FFH.UI = class {
       bottom: 0;
       left: 0;
       right: 0;
-      height: 40vh;
+      height: 48vh;
       box-sizing: border-box;
       background: #FFFFFF;
       border-top: 4px solid #2EC4B6;
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
-      padding: 10px 14px 12px 14px;
+      padding: 12px 14px 14px 14px;
       box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
       font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
       pointer-events: auto;
@@ -27764,8 +33297,8 @@ window.FFH.UI = class {
     // Primary spoken line is English for instant emotional clarity and zero reading friction
     let englishText = dialogueData.en || dialogueData.speechEn || dialogueData.text || dialogueData.de || '';
 
-    // Limit to exactly 2 options for clean, organic human choice
-    const options = (dialogueData.options || []).slice(0, 2);
+    // Show full options list for story scenes, fallback to 2 for basic NPC chatter
+    const options = dialogueData.isStory ? (dialogueData.options || []) : (dialogueData.options || []).slice(0, 3);
 
     const optionsHtml = options.map((opt, idx) => {
       const primaryLabel = opt.label || opt.en || '';
@@ -27821,6 +33354,22 @@ window.FFH.UI = class {
         gap: 8px;
         scroll-behavior: smooth;
       ">
+        ${dialogueData.actionIntro ? `
+        <!-- Narrative Context Card (Action Description) -->
+        <div style="
+          background: #EBF4F6;
+          border-left: 4px solid #2EC4B6;
+          border-radius: 8px;
+          padding: 8px 10px;
+          font-style: italic;
+          font-size: 11.5px;
+          line-height: 1.4;
+          color: #264653;
+          font-weight: 600;
+          flex-shrink: 0;
+        ">${dialogueData.actionIntro}</div>
+        ` : ''}
+
         <!-- Natural Dialogue Bubble -->
         <div style="
           background: #F4F7F6;
@@ -27837,7 +33386,7 @@ window.FFH.UI = class {
           "></div>
         </div>
 
-        <!-- 2 Natural Conversation Choices inline in scroll stream with smooth fade-in -->
+        <!-- Natural Conversation Choices inline in scroll stream with smooth fade-in -->
         <div id="dialogue-options-container" style="
           display: flex;
           flex-direction: column;
@@ -27889,15 +33438,32 @@ window.FFH.UI = class {
     box._typewriterTimer = setInterval(() => {
       if (charIndex < fullSpeech.length) {
         textTarget.textContent += fullSpeech[charIndex];
-        if (charIndex % 2 === 0 && this.game && this.game.speech) {
+        if (charIndex % 4 === 0 && this.game && this.game.speech) {
           this.game.speech.playTalkBlip(npcId);
         }
         charIndex++;
       } else {
         clearInterval(box._typewriterTimer);
         revealOptions();
+        if (scrollStream) {
+          scrollStream.scrollTop = scrollStream.scrollHeight;
+        }
       }
-    }, 16);
+    }, 8);
+
+    // Clicking anywhere on dialogue skips typewriter to end immediately
+    box.addEventListener('click', (e) => {
+      if (e.target.closest('.dialogue-opt-btn')) return;
+      if (charIndex < fullSpeech.length) {
+        clearInterval(box._typewriterTimer);
+        textTarget.textContent = fullSpeech;
+        charIndex = fullSpeech.length;
+        revealOptions();
+        if (scrollStream) {
+          scrollStream.scrollTop = scrollStream.scrollHeight;
+        }
+      }
+    });
 
     const buttons = box.querySelectorAll('.dialogue-opt-btn');
     buttons.forEach(btn => {
@@ -28219,6 +33785,113 @@ window.FFH.UI = class {
     }
   }
 
+  showStoryOverlay(overlayData, onChoiceSelected) {
+    const existing = document.getElementById('story-overlay-container');
+    if (existing) existing.remove();
+
+    const parent = document.getElementById('game-container') || document.body;
+    const div = document.createElement('div');
+    div.id = 'story-overlay-container';
+    div.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.88) 100%);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9500;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px 18px 24px 18px;
+      box-sizing: border-box;
+      pointer-events: auto;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    `;
+
+    const proseHtml = (overlayData.prose || []).map(p => `
+      <p style="
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: #F8FAFC;
+        margin: 0 0 10px 0;
+        font-weight: 500;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      ">${p}</p>
+    `).join('');
+
+    const choicesHtml = (overlayData.choices || []).map((ch, idx) => `
+      <button class="btn-story-choice" data-idx="${ch.idx !== undefined ? ch.idx : idx}" style="
+        width: 100%;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        color: #FFFFFF;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: left;
+        line-height: 1.35;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        transition: all 0.12s ease-in-out;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      ">
+        <span>${ch.label}</span>
+        <span style="opacity: 0.8; margin-left: 8px;">➔</span>
+      </button>
+    `).join('');
+
+    div.innerHTML = `
+      <div style="
+        max-width: 380px;
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      ">
+        <div style="
+          background: rgba(18, 24, 38, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 16px;
+          padding: 14px 16px;
+          max-height: 48vh;
+          overflow-y: auto;
+        ">
+          ${proseHtml}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          ${choicesHtml}
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(div);
+
+    div.querySelectorAll('.btn-story-choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (this.game && this.game.sfx) {
+          this.game.sfx.playSfx('click');
+        }
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => {
+          div.remove();
+          if (onChoiceSelected) onChoiceSelected(idx);
+        }, 200);
+      });
+    });
+  }
+
   updateCityExplorerHUD(distance, angleRad, isActive) {
     const indicator = document.getElementById('delivery-distance-indicator');
     if (!indicator) return;
@@ -28260,8 +33933,9 @@ window.FFH.PickPhase = class {
     this.onTap = this.onTap.bind(this);
   }
 
-  enter() {
+  enter(params = {}) {
     const state = this.game.state;
+    this.currentStoryParams = params;
 
     // Every per-shift meter resets here.
     window.FFH.resetShiftState(state);
@@ -28313,7 +33987,10 @@ window.FFH.PickPhase = class {
     const firstUnpacked = state.activeOrder[0];
     if (firstUnpacked) {
       firstUnpacked.promptStarted = true;
-      firstUnpacked.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
+      const delaySec = (this.currentStoryParams && this.currentStoryParams.iconDelay !== undefined)
+        ? this.currentStoryParams.iconDelay
+        : window.FFH.iconRevealDelay(state.currentShift, state.upgrades);
+      firstUnpacked.revealAt = Date.now() + delaySec * 1000;
       // Play pre-recorded voice sprite for the specific item
       if (firstUnpacked.id) {
         this.game.speech.speakKey(firstUnpacked.id.toLowerCase());
@@ -28326,7 +34003,22 @@ window.FFH.PickPhase = class {
     this.game.ui.showWarehouseManifest();
     window.addEventListener('pointerdown', this.onTap);
 
-    if (state.isVipRush) {
+    if (this.currentStoryParams && this.currentStoryParams.storyScene) {
+      const sceneId = this.currentStoryParams.storyScene.id;
+      if (sceneId === 'shift_1_teach') {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Nina: Bottom is der (Blue). Middle is die (Pink). Top is das (Purple). The word tells you the shelf!", '#2EC4B6', 9000);
+        }, 300);
+      } else if (sceneId === 'shift_2_anticipate') {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Nina: 1.5s delay. Listen first! Tap shelf early for 2.0x Early Bonus!", '#FF9F1C', 8000);
+        }, 300);
+      } else if (sceneId === 'shift_3_test') {
+        setTimeout(() => {
+          this.game.ui.showTutorialBanner("Nina: Pure listening test. Full speed. Pick by audio alone!", '#E76F51', 8000);
+        }, 300);
+      }
+    } else if (state.isVipRush) {
       setTimeout(() => {
         this.game.ui.showTutorialBanner(`🔥 VIP EXPRESS RUSH: 2.5x Customer Tips Active! (Fast Timer)`, '#FF006E', 6000);
       }, 300);
@@ -28334,17 +34026,6 @@ window.FFH.PickPhase = class {
       setTimeout(() => {
         this.game.ui.showTutorialBanner(`📦 ${this.shift.name}: ${this.shift.briefing}`, '#3A86FF', 6000);
       }, 400);
-    }
-
-    if (state.currentShift === 1) {
-      setTimeout(() => {
-        this.game.ui.showTutorialBanner("Listen closely! Pick items by their gender color: Der = Blue, Die = Pink, Das = Purple", 8000);
-      }, 6500);
-    } else if (state.currentShift === 2 && !state.hasSeenShift2Tutorial) {
-      state.hasSeenShift2Tutorial = true;
-      setTimeout(() => {
-        this.game.ui.showTutorialBanner("The item icon is hidden for 1.5s. Guess early based on the audio for a 2.0x early pick bonus!", 8000);
-      }, 6500);
     }
     // Setup camera target for the shelf (zooming in close to the 3-tier shelves at origin)
     const cam = this.game.cameras.mainCamera;
@@ -28452,6 +34133,30 @@ window.FFH.PickPhase = class {
 
   // The order ticket. Items may repeat - buildShelf guarantees enough copies.
   buildOrder(shift) {
+    // If running under StoryRunner with explicit storyScene items
+    if (this.currentStoryParams && this.currentStoryParams.storyScene) {
+      const sceneId = this.currentStoryParams.storyScene.id;
+      let manifestIds = null;
+      if (sceneId === 'shift_1_teach') {
+        manifestIds = ['milch', 'kaese', 'brot'];
+      } else if (sceneId === 'shift_2_anticipate') {
+        manifestIds = ['kaese', 'milch', 'apfel', 'brot'];
+      } else if (sceneId === 'shift_3_test') {
+        manifestIds = ['apfel', 'milch', 'brot', 'kaese', 'karton'];
+      }
+
+      if (manifestIds) {
+        const order = [];
+        for (const id of manifestIds) {
+          const itemData = window.FFH.items.find(it => it.id.toLowerCase() === id.toLowerCase());
+          if (itemData) {
+            order.push({ ...itemData, packed: false });
+          }
+        }
+        if (order.length > 0) return order;
+      }
+    }
+
     const pool = window.FFH.getShiftItemPool(shift.index);
     const order = [];
 
@@ -28679,6 +34384,14 @@ window.FFH.PickPhase = class {
         this.exit();
         // Pre-compute last payout
         this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
+
+        // If triggered via StoryRunner, hand control back to the story engine
+        if (this.currentStoryParams && typeof this.currentStoryParams.onComplete === 'function') {
+          const callback = this.currentStoryParams.onComplete;
+          this.currentStoryParams = null;
+          callback();
+          return;
+        }
         
         const pool = [];
         const grid = window.FFH.LUBECK_CITY_GRID;
@@ -30093,6 +35806,16 @@ window.FFH.CityExplorationPhase = class {
     const isDoubleTap = (now - this.lastTapTime < 350);
     this.lastTapTime = now;
 
+    // --- Dismiss POI card on any canvas tap ---
+    // The card is a DOM overlay; once the tap lands on the canvas we
+    // always hide it so it never traps the player's movement.
+    const poiCard = document.getElementById('city-poi-card');
+    if (poiCard && poiCard.style.display !== 'none') {
+      poiCard.style.display = 'none';
+      if (this.game.ui) this.game.ui.currentActivePOI = null;
+      // Don't return — still process the tap as click-to-move below.
+    }
+
     const rect = this.game.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -30187,6 +35910,19 @@ window.FFH.CityExplorationPhase = class {
   handlePOIAction(action, poiData) {
     if (!poiData) return;
 
+    // --- Story Tap Trigger ---
+    // If the story runner is expecting travel to a specific POI, and the
+    // player taps that building, immediately launch the pending scene.
+    const sr = this.game.storyRunner;
+    if (sr && sr.pendingStoryTarget && poiData.type === sr.pendingStoryTarget.poi) {
+      const nextSceneId = sr.pendingStoryTarget.sceneId;
+      sr.pendingStoryTarget = null;
+      this.game.state.activeObjective = null;
+      console.log(`CityExploration: Player tapped ${poiData.type}. Launching scene "${nextSceneId}".`);
+      sr.startScene(nextSceneId);
+      return;
+    }
+
     // Check if this is our active delivery destination!
     if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
       const tgt = this.game.state.deliveryTarget;
@@ -30197,27 +35933,40 @@ window.FFH.CityExplorationPhase = class {
     }
 
     let targetNpc = null;
+    let storyScene = null;
+
     if (poiData.name.includes('Universität') || poiData.name.includes('University')) {
       targetNpc = 'NPC_RITA';
+      storyScene = 'rita_first';
     } else if (poiData.name.includes('Pizzeria') || poiData.name.includes('Pizza')) {
       targetNpc = 'NPC_MATHIAS';
+      storyScene = 'mathias_loan';
     } else if (poiData.name.includes('Bakery') || poiData.name.includes('Bäcker')) {
       targetNpc = 'NPC_MARTHA';
+      storyScene = 'martha';
     } else if (poiData.name.includes('Dark Store') || poiData.name.includes('Kruma')) {
       targetNpc = 'NPC_NINA';
+      storyScene = 'knot_money';
     } else if (poiData.name.includes('Student Sublet') || poiData.name.includes('Apartment') || poiData.name.includes('WG')) {
       targetNpc = 'NPC_LOKKER';
+      storyScene = 'lokker_kaution';
     } else if (poiData.name.includes('Hostel') || poiData.name.includes('Dorm')) {
       targetNpc = 'NPC_NICO';
+      storyScene = 'nico_kitchen';
     } else if (poiData.name.includes('Rathaus') || poiData.name.includes('Bürgeramt') || poiData.name.includes('Hospital')) {
       targetNpc = 'NPC_VOGEL';
+      storyScene = 'knot_paper';
     } else if (poiData.name.includes('Bank') || poiData.name.includes('Sparkasse') || poiData.name.includes('Späti')) {
       targetNpc = 'NPC_WEBER';
+      storyScene = 'the_circle_2';
     } else if (poiData.name.includes('Ausländer') || poiData.name.includes('Office') || poiData.name.includes('Dom')) {
       targetNpc = 'NPC_LINDEMANN';
+      storyScene = 'act_five';
     }
 
-    if (targetNpc) {
+    if (this.game.storyRunner && storyScene && (this.game.storyRunner.scenesById ? this.game.storyRunner.scenesById[storyScene] : this.game.storyRunner.scenes[storyScene])) {
+      this.game.storyRunner.startScene(storyScene);
+    } else if (targetNpc) {
       this.game.transitionTo('DIALOGUE', { npcKey: targetNpc });
     } else {
       this.game.ui.spawnFloatingText(`Visited: ${poiData.name}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
@@ -30414,7 +36163,11 @@ window.FFH.CityExplorationPhase = class {
     let targetMesh = null;
     const TUITION_GOAL = window.FFH.ECONOMY?.TUITION_GOAL || 250;
 
-    if (this.game.state.wallet >= TUITION_GOAL) {
+    // --- Highest priority: story is waiting for player to travel to a new location ---
+    const sr = this.game.storyRunner;
+    if (sr && sr.pendingStoryTarget) {
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
+    } else if (this.game.state.wallet >= TUITION_GOAL) {
       // 4.5 Win Condition: Highlight University Registry when wallet hits €250
       targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
     } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
@@ -30559,6 +36312,26 @@ window.FFH.CityExplorationPhase = class {
     } else {
       if (this.game.ui.updateCityExplorerHUD) {
         this.game.ui.updateCityExplorerHUD(0, 0, false);
+      }
+
+      // --- Story Proximity Trigger ---
+      // If the story runner is waiting for the player to reach a new location,
+      // check every frame. Trigger the pending scene when close enough.
+      const sr = this.game.storyRunner;
+      if (sr && sr.pendingStoryTarget) {
+        const storyMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
+        if (storyMesh) {
+          const sdx = storyMesh.position.x - this.playerPos.x;
+          const sdz = storyMesh.position.z - this.playerPos.z;
+          const sDist = Math.sqrt(sdx * sdx + sdz * sdz);
+          if (sDist < 4.0) {
+            const nextSceneId = sr.pendingStoryTarget.sceneId;
+            sr.pendingStoryTarget = null;
+            this.game.state.activeObjective = null;
+            console.log(`CityExploration: Player reached ${storyMesh.userData.type}. Launching scene "${nextSceneId}".`);
+            sr.startScene(nextSceneId);
+          }
+        }
       }
     }
   }
@@ -30740,6 +36513,9 @@ window.FFH.DialoguePhase = class {
   enter(params = {}) {
     // If already in DIALOGUE and just updating dialogue node/options, don't recreate room or restart camera
     if (this.dioramaRoom && this.targetNpcKey === (params.isDelivery ? 'NPC_DELIVERY_CUSTOMER' : (params.npcKey || 'NPC_RITA'))) {
+      if (params.isStory) {
+        return; // Handled directly by StoryRunner
+      }
       const npcEntry = window.FFH.NPC_DATABASE ? window.FFH.NPC_DATABASE[this.targetNpcKey] : null;
       if (npcEntry && npcEntry.dialogue) {
         if (params.custom && npcEntry.currentResponse) {
@@ -30834,7 +36610,7 @@ window.FFH.DialoguePhase = class {
     this.isTransitioning = false;
 
     // 4. Render Visual Dialogue UI & speak full German sentence
-    if (npcEntry && npcEntry.dialogue) {
+    if (!params.isStory && npcEntry && npcEntry.dialogue) {
       if (params.custom && npcEntry.currentResponse) {
         this.dialogueData = npcEntry.currentResponse;
       } else {
@@ -30956,6 +36732,12 @@ class GameEngine {
     this.phases.SHOP = new window.FFH.ShopPhase(this);
     this.phases.CITY_EXPLORATION = new window.FFH.CityExplorationPhase(this);
     this.phases.DIALOGUE = new window.FFH.DialoguePhase(this);
+
+    // Initialize Dynamic Story Interpreter (assets/narrative/story.json)
+    if (window.FFH.StoryRunner) {
+      this.storyRunner = new window.FFH.StoryRunner(this);
+      this.storyRunner.init();
+    }
 
     // Setup zoom controls
     this.initZoomControls();

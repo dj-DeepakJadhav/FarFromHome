@@ -29,3 +29,6 @@ Docs/archive/*.html
 # authoritative design document (see Docs/README.md) and must be versioned.
 # THE_IMMIGRANT_ODYSSEY_COMPLETE_STORY.md now lives in Docs/archive/ and is
 # tracked there for history.
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

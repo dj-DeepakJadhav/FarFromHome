@@ -2,10 +2,8 @@
 //
 // This file loads first (see build/assemble.js) and owns the FFH namespace.
 
-window.FFH = {
-  // Every tunable that affects whether a run is winnable lives here, not
-  // scattered across phases. Design authority: Docs/README_HACKATHON.md §5.
-  ECONOMY: {
+window.FFH = window.FFH || {};
+window.FFH.ECONOMY = {
     STARTING_WALLET: 20,
     TUITION_GOAL: 250,
     KAUTION_DEPOSIT: 30,
@@ -20,8 +18,7 @@ window.FFH = {
     MISPICK_INTEGRITY_COST: 8,     // bag damage for tapping the wrong item
     POTHOLE_INTEGRITY_COST: 15,    // bag damage per hazard hit on the ride
     EARLY_PICK_MULTIPLIER: 2.0     // Accuracy bonus multiplier for pre-icon picks
-  }
-};
+  };
 
 window.FFH.calculatePayout = function(state) {
   const E = window.FFH.ECONOMY;
@@ -132,6 +129,33 @@ window.FFH.createRunState = function () {
     wallet: window.FFH.ECONOMY.STARTING_WALLET,
     currentShift: 1,
     day: 1,
+    body: 100,
+    heart: 50,
+    knots: 4,
+    shift_no: 0,
+    r_nico: 0,
+    r_martha: 0,
+    r_nina: 0,
+    r_mathias: 0,
+    r_lokker: 0,
+    r_vogel: 0,
+    r_klaus: 0,
+    paid_kaution: false,
+    has_lease: false,
+    has_anmeldung: false,
+    has_konto: false,
+    matriculated: false,
+    knows_trennung: false,
+    knows_the_circle: false,
+    met_anke: false,
+    circle_cut: false,
+    owes_mathias: 0.0,
+    night_route_taken: 0,
+    helped_nico: false,
+    nico_gone: false,
+    klaus_quit: false,
+    told_truth_home: false,
+    fined_trennung: false,
     // Story Quest and Progression State
     questStep: 0,
     activeQuests: ['main_visa_survival'],

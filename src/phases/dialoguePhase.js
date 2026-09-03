@@ -18,6 +18,9 @@ window.FFH.DialoguePhase = class {
   enter(params = {}) {
     // If already in DIALOGUE and just updating dialogue node/options, don't recreate room or restart camera
     if (this.dioramaRoom && this.targetNpcKey === (params.isDelivery ? 'NPC_DELIVERY_CUSTOMER' : (params.npcKey || 'NPC_RITA'))) {
+      if (params.isStory) {
+        return; // Handled directly by StoryRunner
+      }
       const npcEntry = window.FFH.NPC_DATABASE ? window.FFH.NPC_DATABASE[this.targetNpcKey] : null;
       if (npcEntry && npcEntry.dialogue) {
         if (params.custom && npcEntry.currentResponse) {
@@ -112,7 +115,7 @@ window.FFH.DialoguePhase = class {
     this.isTransitioning = false;
 
     // 4. Render Visual Dialogue UI & speak full German sentence
-    if (npcEntry && npcEntry.dialogue) {
+    if (!params.isStory && npcEntry && npcEntry.dialogue) {
       if (params.custom && npcEntry.currentResponse) {
         this.dialogueData = npcEntry.currentResponse;
       } else {

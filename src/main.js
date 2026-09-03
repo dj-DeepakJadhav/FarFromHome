@@ -58,6 +58,12 @@ class GameEngine {
     this.phases.CITY_EXPLORATION = new window.FFH.CityExplorationPhase(this);
     this.phases.DIALOGUE = new window.FFH.DialoguePhase(this);
 
+    // Initialize Dynamic Story Interpreter (assets/narrative/story.json)
+    if (window.FFH.StoryRunner) {
+      this.storyRunner = new window.FFH.StoryRunner(this);
+      this.storyRunner.init();
+    }
+
     // Setup zoom controls
     this.initZoomControls();
 

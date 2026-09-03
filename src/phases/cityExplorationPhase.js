@@ -696,6 +696,16 @@ window.FFH.CityExplorationPhase = class {
     const isDoubleTap = (now - this.lastTapTime < 350);
     this.lastTapTime = now;
 
+    // --- Dismiss POI card on any canvas tap ---
+    // The card is a DOM overlay; once the tap lands on the canvas we
+    // always hide it so it never traps the player's movement.
+    const poiCard = document.getElementById('city-poi-card');
+    if (poiCard && poiCard.style.display !== 'none') {
+      poiCard.style.display = 'none';
+      if (this.game.ui) this.game.ui.currentActivePOI = null;
+      // Don't return — still process the tap as click-to-move below.
+    }
+
     const rect = this.game.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -790,6 +800,19 @@ window.FFH.CityExplorationPhase = class {
   handlePOIAction(action, poiData) {
     if (!poiData) return;
 
+    // --- Story Tap Trigger ---
+    // If the story runner is expecting travel to a specific POI, and the
+    // player taps that building, immediately launch the pending scene.
+    const sr = this.game.storyRunner;
+    if (sr && sr.pendingStoryTarget && poiData.type === sr.pendingStoryTarget.poi) {
+      const nextSceneId = sr.pendingStoryTarget.sceneId;
+      sr.pendingStoryTarget = null;
+      this.game.state.activeObjective = null;
+      console.log(`CityExploration: Player tapped ${poiData.type}. Launching scene "${nextSceneId}".`);
+      sr.startScene(nextSceneId);
+      return;
+    }
+
     // Check if this is our active delivery destination!
     if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
       const tgt = this.game.state.deliveryTarget;
@@ -800,27 +823,40 @@ window.FFH.CityExplorationPhase = class {
     }
 
     let targetNpc = null;
+    let storyScene = null;
+
     if (poiData.name.includes('Universität') || poiData.name.includes('University')) {
       targetNpc = 'NPC_RITA';
+      storyScene = 'rita_first';
     } else if (poiData.name.includes('Pizzeria') || poiData.name.includes('Pizza')) {
       targetNpc = 'NPC_MATHIAS';
+      storyScene = 'mathias_loan';
     } else if (poiData.name.includes('Bakery') || poiData.name.includes('Bäcker')) {
       targetNpc = 'NPC_MARTHA';
+      storyScene = 'martha';
     } else if (poiData.name.includes('Dark Store') || poiData.name.includes('Kruma')) {
       targetNpc = 'NPC_NINA';
+      storyScene = 'knot_money';
     } else if (poiData.name.includes('Student Sublet') || poiData.name.includes('Apartment') || poiData.name.includes('WG')) {
       targetNpc = 'NPC_LOKKER';
+      storyScene = 'lokker_kaution';
     } else if (poiData.name.includes('Hostel') || poiData.name.includes('Dorm')) {
       targetNpc = 'NPC_NICO';
+      storyScene = 'nico_kitchen';
     } else if (poiData.name.includes('Rathaus') || poiData.name.includes('Bürgeramt') || poiData.name.includes('Hospital')) {
       targetNpc = 'NPC_VOGEL';
+      storyScene = 'knot_paper';
     } else if (poiData.name.includes('Bank') || poiData.name.includes('Sparkasse') || poiData.name.includes('Späti')) {
       targetNpc = 'NPC_WEBER';
+      storyScene = 'the_circle_2';
     } else if (poiData.name.includes('Ausländer') || poiData.name.includes('Office') || poiData.name.includes('Dom')) {
       targetNpc = 'NPC_LINDEMANN';
+      storyScene = 'act_five';
     }
 
-    if (targetNpc) {
+    if (this.game.storyRunner && storyScene && (this.game.storyRunner.scenesById ? this.game.storyRunner.scenesById[storyScene] : this.game.storyRunner.scenes[storyScene])) {
+      this.game.storyRunner.startScene(storyScene);
+    } else if (targetNpc) {
       this.game.transitionTo('DIALOGUE', { npcKey: targetNpc });
     } else {
       this.game.ui.spawnFloatingText(`Visited: ${poiData.name}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
@@ -1017,7 +1053,11 @@ window.FFH.CityExplorationPhase = class {
     let targetMesh = null;
     const TUITION_GOAL = window.FFH.ECONOMY?.TUITION_GOAL || 250;
 
-    if (this.game.state.wallet >= TUITION_GOAL) {
+    // --- Highest priority: story is waiting for player to travel to a new location ---
+    const sr = this.game.storyRunner;
+    if (sr && sr.pendingStoryTarget) {
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
+    } else if (this.game.state.wallet >= TUITION_GOAL) {
       // 4.5 Win Condition: Highlight University Registry when wallet hits €250
       targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
     } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
@@ -1162,6 +1202,26 @@ window.FFH.CityExplorationPhase = class {
     } else {
       if (this.game.ui.updateCityExplorerHUD) {
         this.game.ui.updateCityExplorerHUD(0, 0, false);
+      }
+
+      // --- Story Proximity Trigger ---
+      // If the story runner is waiting for the player to reach a new location,
+      // check every frame. Trigger the pending scene when close enough.
+      const sr = this.game.storyRunner;
+      if (sr && sr.pendingStoryTarget) {
+        const storyMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
+        if (storyMesh) {
+          const sdx = storyMesh.position.x - this.playerPos.x;
+          const sdz = storyMesh.position.z - this.playerPos.z;
+          const sDist = Math.sqrt(sdx * sdx + sdz * sdz);
+          if (sDist < 4.0) {
+            const nextSceneId = sr.pendingStoryTarget.sceneId;
+            sr.pendingStoryTarget = null;
+            this.game.state.activeObjective = null;
+            console.log(`CityExploration: Player reached ${storyMesh.userData.type}. Launching scene "${nextSceneId}".`);
+            sr.startScene(nextSceneId);
+          }
+        }
       }
     }
   }

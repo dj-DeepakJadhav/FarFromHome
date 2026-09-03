@@ -42,6 +42,7 @@ function assemble() {
   const srcFiles = [
     'src/core/pathfinding.js',
     'src/core/economy.js',
+    'src/core/storyRunner.js',
     'src/core/npcBehaviorTree.js',
     'src/data/prologueQuests.js',
     'src/data/characterModels.js',
@@ -121,9 +122,18 @@ function assemble() {
     outputHtml = outputHtml.replace(tagPattern, `<script>\n${vendorContents[vf]}\n</script>`);
   }
 
-  // 2. Remove all dev script tags
+  // 2. Inline assets/narrative/story.json as window.FFH.storyData for 100% offline compliance
+  const storyJsonPath = path.join(root, 'assets', 'narrative', 'story.json');
+  let storyJsonData = '{}';
+  if (fs.existsSync(storyJsonPath)) {
+    storyJsonData = fs.readFileSync(storyJsonPath, 'utf-8');
+    console.log(`- Inlining story.json (${Math.round(storyJsonData.length / 1024)} KB)`);
+  }
+  const storyDataScript = `\nwindow.FFH = window.FFH || {};\nwindow.FFH.storyData = ${storyJsonData};\n`;
+
+  // 3. Remove all dev script tags and replace with inlined release scripts
   const devScriptsPattern = /<!-- Game Source Code -->[\s\S]*?<\/body>/;
-  const inlineBlock = `<script>\n${mergedSourceCode}\n</script>\n</body>`;
+  const inlineBlock = `<script>${storyDataScript}\n${mergedSourceCode}\n</script>\n</body>`;
   outputHtml = outputHtml.replace(devScriptsPattern, inlineBlock);
   
   // Write index.html to workspace root
