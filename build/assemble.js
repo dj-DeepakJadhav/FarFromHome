@@ -77,6 +77,7 @@ function assemble() {
     'src/phases/shopPhase.js',
     'src/phases/cityExplorationPhase.js',
     'src/phases/dialoguePhase.js',
+    'src/phases/interiorPhase.js',
     'src/main.js'
   ];
   

@@ -359,6 +359,33 @@ window.FFH.CityAssetRegistry = {
       cone.castShadow = true;
       group.add(cone);
     }
+    
+    // Add a raised stone planter border around the tree to visually indicate it's an obstacle
+    const borderMat = new THREE.MeshLambertMaterial({ color: 0x7F8C8D });
+    const bThickness = 0.2;
+    const bSize = 2.4;
+    const bHeight = 0.25;
+    
+    const bN = new THREE.Mesh(new THREE.BoxGeometry(bSize, bHeight, bThickness), borderMat);
+    bN.position.set(0, bHeight/2, -bSize/2 + bThickness/2);
+    bN.castShadow = true;
+    group.add(bN);
+    
+    const bS = new THREE.Mesh(new THREE.BoxGeometry(bSize, bHeight, bThickness), borderMat);
+    bS.position.set(0, bHeight/2, bSize/2 - bThickness/2);
+    bS.castShadow = true;
+    group.add(bS);
+    
+    const bE = new THREE.Mesh(new THREE.BoxGeometry(bThickness, bHeight, bSize - bThickness * 2), borderMat);
+    bE.position.set(bSize/2 - bThickness/2, bHeight/2, 0);
+    bE.castShadow = true;
+    group.add(bE);
+    
+    const bW = new THREE.Mesh(new THREE.BoxGeometry(bThickness, bHeight, bSize - bThickness * 2), borderMat);
+    bW.position.set(-bSize/2 + bThickness/2, bHeight/2, 0);
+    bW.castShadow = true;
+    group.add(bW);
+
     return group;
   },
 
@@ -1661,11 +1688,11 @@ window.FFH.initBuildingColliders = function() {
           minZ: posZ - 1.08, maxZ: posZ + 1.08
         });
       } else if (type === 'T') {
-        // Urban Trees
+        // Urban Trees - Block the entire tile so the player doesn't clip in
         colliders.push({
           id: 'TREE_' + x + '_' + z,
-          minX: posX - 0.35, maxX: posX + 0.35,
-          minZ: posZ - 0.35, maxZ: posZ + 0.35
+          minX: posX - 1.2, maxX: posX + 1.2,
+          minZ: posZ - 1.2, maxZ: posZ + 1.2
         });
       }
     }

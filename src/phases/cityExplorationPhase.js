@@ -1091,6 +1091,26 @@ window.FFH.CityExplorationPhase = class {
 
 
   showInteriorModal(roomBuilderFunc, npcModelKey, modalUIRenderer) {
+    if (this.game.phases.INTERIOR) {
+      let roomType = 'DOORWAY';
+      if (roomBuilderFunc === window.FFH.createWGRoom) roomType = 'WG_ROOM';
+      else if (roomBuilderFunc === window.FFH.createUniRoom) roomType = 'UNI';
+      else if (roomBuilderFunc === window.FFH.createPizzeriaRoom) roomType = 'PIZZERIA';
+      else if (roomBuilderFunc === window.FFH.createBakeryRoom) roomType = 'BAKERY';
+
+      this.game.transitionTo('INTERIOR', {
+        roomType: roomType,
+        npcKey: npcModelKey,
+        customWidget: (actionSlot, onComplete, interiorPhase) => {
+          modalUIRenderer((onCompleteCallback) => {
+            interiorPhase.exitToCity();
+            if (onCompleteCallback) onCompleteCallback();
+          });
+        }
+      });
+      return;
+    }
+
     const worldGroup = this.worldGroup;
     const courier = this.courier;
     const scene = this.game.scene;
@@ -1183,48 +1203,61 @@ window.FFH.CityExplorationPhase = class {
 
     if (poiType.includes('Universität') || poiType.includes('University') || poiType === 'B_UNI') {
       // University is only relevant once player has finished WG arrival and discovered tuition
-      if (this.game.state.hasDoneMuelltrennung && !this.game.state.hasVisitedLockedUni && this.game.ui && this.game.ui.showLockedUniModal) {
-        this.showInteriorModal(window.FFH.createUniRoom, null, (cleanup) => {
-          this.game.ui.showLockedUniModal(() => {
-            cleanup();
-          this.game.state.hasVisitedLockedUni = true;
-          this.game.state.questStep = 2; // Advance to finding work
-          this.game.state.activeObjective = '🍕 Try Pizzeria Bella for work — ask about a job';
-          if (this.game.storyRunner) {
-            this.game.storyRunner.pendingStoryTarget = { sceneId: 'pizzeria_job', poi: 'B_PIZZA' };
-          }
-          if (this.game.ui && this.game.ui.updateQuestTracker) {
-            this.game.ui.updateQuestTracker();
-          }
+      if (this.game.state.hasDoneMuelltrennung && !this.game.state.hasVisitedLockedUni) {
+        this.game.transitionTo('INTERIOR', {
+          roomType: 'UNI',
+          npcKey: null,
+          titleBadge: 'UNIVERSITÄT',
+          title: 'Campus Admissions',
+          text: 'The financial office is closed. A heavy wooden door blocks the way. A notice on the wall reads: "Payment deadline: Friday. Failure to pay will result in Exmatrikulation."',
+          note: 'I need to find a job immediately. Pizzeria Bella might be hiring.',
+          choices: [
+            {
+              label: 'Leave Campus',
+              subtext: 'Time to find work.',
+              borderLeft: '#E76F51',
+              action: (game, interiorPhase) => {
+                this.game.state.hasVisitedLockedUni = true;
+                this.game.state.questStep = 2; // Advance to finding work
+                this.game.state.activeObjective = '🍕 Try Pizzeria Bella for work — ask about a job';
+                if (this.game.storyRunner) {
+                  this.game.storyRunner.pendingStoryTarget = { sceneId: 'pizzeria_job', poi: 'B_PIZZA' };
+                }
+                if (this.game.ui && this.game.ui.updateQuestTracker) {
+                  this.game.ui.updateQuestTracker();
+                }
 
-          // Step 9: Smoothly transition atmosphere to Night Mode (19:00, progress 0.85)!
-          let currentProgress = this.timeOfDay || 0.70;
-          const targetProgress = 0.88; // Deep Baltic night
-          const stepNight = () => {
-            if (currentProgress < targetProgress) {
-              currentProgress = Math.min(targetProgress, currentProgress + 0.03);
-              this.updateAtmosphericTime(currentProgress);
-              requestAnimationFrame(stepNight);
+                // Step 9: Smoothly transition atmosphere to Night Mode (19:00, progress 0.85)!
+                let currentProgress = this.timeOfDay || 0.70;
+                const targetProgress = 0.88; // Deep Baltic night
+                const stepNight = () => {
+                  if (currentProgress < targetProgress) {
+                    currentProgress = Math.min(targetProgress, currentProgress + 0.03);
+                    this.updateAtmosphericTime(currentProgress);
+                    requestAnimationFrame(stepNight);
+                  }
+                };
+                stepNight();
+
+                // British thought on freezing cold night and hunger
+                if (this.game.ui && this.game.ui.spawnWandererThought) {
+                  setTimeout(() => {
+                    this.game.ui.spawnWandererThought(
+                      "Great. It's pitch black, freezing cold, and I still don't have a job. Check the lamp posts for flyers."
+                    );
+                  }, 1200);
+                }
+
+                this.isEnteringBuilding = false;
+                this.inputDisabled = false;
+                this.isShowingInteriorModal = false;
+                if (window.FFH && window.FFH.saveGame) {
+                  window.FFH.saveGame(this.game);
+                }
+                interiorPhase.exitToCity();
+              }
             }
-          };
-          stepNight();
-
-          // British thought on freezing cold night and hunger
-          if (this.game.ui && this.game.ui.spawnWandererThought) {
-            setTimeout(() => {
-              this.game.ui.spawnWandererThought(
-                "Great. It's pitch black, freezing cold, and I still don't have a job. Check the lamp posts for flyers."
-              );
-            }, 1200);
-          }
-
-          this.isEnteringBuilding = false;
-          this.inputDisabled = false;
-          if (window.FFH && window.FFH.saveGame) {
-            window.FFH.saveGame(this.game);
-          }
-          this.startBuildingExit();
-        });
+          ]
         });
         return;
       } else if (!this.game.state.hasDoneMuelltrennung) {
@@ -1325,16 +1358,42 @@ window.FFH.CityExplorationPhase = class {
         return;
       }
     } else if (poiType !== 'B_WG_ENTERED' && (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG')) {
-      if (!this.game.state.hasBuzzedWG && this.game.ui && this.game.ui.showWGBuzzerModal) {
-        this.showInteriorModal(window.FFH.createDoorwayRoom, null, (cleanup) => {
-          this.game.ui.showWGBuzzerModal(() => {
-            cleanup();
-          this.game.state.hasBuzzedWG = true;
-          if (window.FFH && window.FFH.saveGame) {
-            window.FFH.saveGame(this.game);
-          }
-          this.triggerBuildingInteraction('B_WG_ENTERED');
-        });
+      if (!this.game.state.hasBuzzedWG) {
+        this.game.transitionTo('INTERIOR', {
+          roomType: 'DOORWAY',
+          npcKey: null,
+          titleBadge: 'ENTRANCE',
+          title: 'Apartment Buzzer',
+          text: 'There are three names on the bells. The landlord said my flatmate is named Nico.',
+          note: 'Ring the correct bell to enter.',
+          choices: [
+            {
+              label: 'Müller',
+              borderLeft: '#718096',
+              action: (game, interiorPhase) => {
+                if (game.sfx) game.sfx.playSfx('error');
+                if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('No answer...', window.innerWidth/2, window.innerHeight*0.3, '#718096');
+              }
+            },
+            {
+              label: 'Schmidt / Nico',
+              borderLeft: '#2EC4B6',
+              action: (game, interiorPhase) => {
+                if (game.sfx) game.sfx.playSfx('success');
+                game.state.hasBuzzedWG = true;
+                if (window.FFH && window.FFH.saveGame) window.FFH.saveGame(game);
+                this.triggerBuildingInteraction('B_WG_ENTERED');
+              }
+            },
+            {
+              label: 'Hausverwaltung',
+              borderLeft: '#718096',
+              action: (game, interiorPhase) => {
+                if (game.sfx) game.sfx.playSfx('error');
+                if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('An angry voice yells: "Keine Werbung!"', window.innerWidth/2, window.innerHeight*0.3, '#E76F51');
+              }
+            }
+          ]
         });
         return;
       }
@@ -1376,55 +1435,99 @@ window.FFH.CityExplorationPhase = class {
       targetNpc = 'NPC_LOKKER';
       storyScene = 'lokker_kaution';
     } else if (poiType === 'B_WG_ENTERED') {
-      if (!this.game.state.hasDoneMuelltrennung && this.game.ui && this.game.ui.showMuelltrennungModal) {
-        this.showInteriorModal(window.FFH.createWGRoom, 'NPC_NICO', (cleanup) => {
-          this.game.ui.showMuelltrennungModal((isCorrect) => {
-            cleanup();
-          this.game.state.hasDoneMuelltrennung = true;
-          // Trigger the Tuition Notice letter on the desk right after!
-          if (this.game.ui && this.game.ui.showTuitionLetterModal) {
-            this.game.ui.showTuitionLetterModal(() => {
-              this.game.state.questStep = 1; // Direct player to Chapter 2: University
-              this.game.state.activeObjective = '🎓 Sprint to University Campus before 17:00!';
-              if (this.game.storyRunner) {
-                this.game.storyRunner.pendingStoryTarget = { sceneId: 'uni_closed', poi: 'B_UNI' };
+      if (!this.game.state.hasDoneMuelltrennung) {
+        this.game.transitionTo('INTERIOR', {
+          roomType: 'WG_ROOM',
+          npcKey: 'NPC_NICO',
+          titleBadge: 'APARTMENT',
+          title: 'Mülltrennung (Garbage Sorting)',
+          speaker: 'Nico (Flatmate)',
+          text: 'Hey! Before you settle in, you must learn the German way. Where does the empty milk carton go?',
+          note: 'Sort the trash correctly to pass.',
+          choices: [
+            {
+              label: 'Restmüll (Black Bin)',
+              subtext: 'General waste',
+              borderLeft: '#111111',
+              action: (game, interiorPhase) => {
+                if (game.sfx) game.sfx.playSfx('error');
+                if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('Wrong! Nico looks disappointed.', window.innerWidth/2, window.innerHeight*0.3, '#E76F51');
               }
-              if (this.game.ui && this.game.ui.updateQuestTracker) {
-                this.game.ui.updateQuestTracker();
-              }
-              // Smoothly transition city lighting to warm Golden Hour (16:45)!
-              let currentProgress = this.timeOfDay || 0.35;
-              const targetProgress = 0.70; // Golden hour amber sunset
-              const stepTime = () => {
-                if (currentProgress < targetProgress) {
-                  currentProgress = Math.min(targetProgress, currentProgress + 0.035);
-                  this.updateAtmosphericTime(currentProgress);
-                  requestAnimationFrame(stepTime);
-                }
-              };
-              stepTime();
+            },
+            {
+              label: 'Gelber Sack (Yellow Bag)',
+              subtext: 'Plastics & Packaging',
+              borderLeft: '#F4D03F',
+              action: (game, interiorPhase) => {
+                if (game.sfx) game.sfx.playSfx('success');
+                game.state.hasDoneMuelltrennung = true;
+                
+                // Immediately transition to the Tuition Letter inside the same room!
+                game.transitionTo('INTERIOR', {
+                  roomType: 'WG_ROOM',
+                  npcKey: null,
+                  titleBadge: 'DESK',
+                  title: 'Urgent Letter',
+                  text: 'You spot a letter on your desk. It says: "Achtung: Exmatrikulation upon failure to pay €250 semester fee by Friday."',
+                  note: 'I need to head to the University Campus immediately to sort this out.',
+                  choices: [
+                    {
+                      label: 'Leave Apartment',
+                      subtext: 'Sprint to University Campus.',
+                      borderLeft: '#2EC4B6',
+                      action: (game2, interiorPhase2) => {
+                        game2.state.questStep = 1; // Direct player to Chapter 2: University
+                        game2.state.activeObjective = '🎓 Sprint to University Campus before 17:00!';
+                        if (game2.storyRunner) {
+                          game2.storyRunner.pendingStoryTarget = { sceneId: 'uni_closed', poi: 'B_UNI' };
+                        }
+                        if (game2.ui && game2.ui.updateQuestTracker) {
+                          game2.ui.updateQuestTracker();
+                        }
+                        // Smoothly transition city lighting to warm Golden Hour (16:45)!
+                        let currentProgress = this.timeOfDay || 0.35;
+                        const targetProgress = 0.70; // Golden hour amber sunset
+                        const stepTime = () => {
+                          if (currentProgress < targetProgress) {
+                            currentProgress = Math.min(targetProgress, currentProgress + 0.035);
+                            this.updateAtmosphericTime(currentProgress);
+                            requestAnimationFrame(stepTime);
+                          }
+                        };
+                        stepTime();
 
-              // British thought bubble on golden hour beauty
-              if (this.game.ui && this.game.ui.spawnWandererThought) {
-                setTimeout(() => {
-                  this.game.ui.spawnWandererThought(
-                    "The sun is going down. The city actually looks dead pretty in this golden light. Still completely broke, of course, but the scenery is lovely."
-                  );
-                }, 1200);
-              }
+                        // British thought bubble on golden hour beauty
+                        if (game2.ui && game2.ui.spawnWandererThought) {
+                          setTimeout(() => {
+                            game2.ui.spawnWandererThought(
+                              "The sun is going down. The city actually looks dead pretty in this golden light. Still completely broke, of course, but the scenery is lovely."
+                            );
+                          }, 1200);
+                        }
 
-              // Bounce back out to city so player walks to University
-              this.isEnteringBuilding = false;
-              this.inputDisabled = false;
-              if (window.FFH && window.FFH.saveGame) {
-                window.FFH.saveGame(this.game);
+                        this.isEnteringBuilding = false;
+                        this.inputDisabled = false;
+                        this.isShowingInteriorModal = false; // FIX CAMERA BUG
+                        if (window.FFH && window.FFH.saveGame) {
+                          window.FFH.saveGame(game2);
+                        }
+                        interiorPhase2.exitToCity();
+                      }
+                    }
+                  ]
+                });
               }
-              this.startBuildingExit();
-            });
-          } else {
-            this.triggerBuildingInteraction('B_WG_ENTERED');
-          }
-        });
+            },
+            {
+              label: 'Papiertonne (Blue Bin)',
+              subtext: 'Paper & Cardboard',
+              borderLeft: '#3498DB',
+              action: (game, interiorPhase) => {
+                if (game.sfx) game.sfx.playSfx('error');
+                if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('Wrong! Nico sighs loudly.', window.innerWidth/2, window.innerHeight*0.3, '#E76F51');
+              }
+            }
+          ]
         });
         return;
       }

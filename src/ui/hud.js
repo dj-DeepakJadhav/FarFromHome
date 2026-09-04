@@ -2871,12 +2871,12 @@ window.FFH.UI = class {
     modal.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
         <!-- Header -->
-        <div style="display: flex; flex-direction: column; padding-bottom: 8px; border-bottom: 2px solid #F0F4F8; margin-bottom: 8px;">
+        <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 2px solid #F0F4F8; margin-bottom: 8px;">
           <div>
             <div style="font-size: 11px; color: #E76F51; font-weight: 800; letter-spacing: 1px;">STUDENTEN-WG LÜBECK</div>
-            <div style="font-size: 16px; font-weight: 900;">🔔 Klingelanlage (Doorbell)</div>
+            <div style="font-size: 16px; font-weight: 900; color: #1D3557;">🔔 Klingelanlage (Doorbell)</div>
           </div>
-          <button id="btn-close-buzzer" style="background: none; border: none; color: #1D3557; font-size: 20px; cursor: pointer;">✕</button>
+          <button id="btn-close-buzzer" style="background: none; border: none; color: #1D3557; font-size: 20px; font-weight: 800; cursor: pointer; padding: 2px 8px;">✕</button>
         </div>
 
         <div id="buzzer-buttons-container" style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
@@ -3239,7 +3239,7 @@ window.FFH.UI = class {
           gap: 8px;
           width: 100%;
           box-sizing: border-box;">
-            <span style="flex: 1; font-size: 13px;"></span>
+            <span style="flex: 1; font-size: 13px;">Sprint to University Campus before 17:00!</span>
             <span style="font-size: 13px; opacity: 0.7;">➔</span>
           </button>
         </div>
@@ -3339,7 +3339,7 @@ window.FFH.UI = class {
           gap: 8px;
           width: 100%;
           box-sizing: border-box;">
-            <span style="flex: 1; font-size: 13px;"></span>
+            <span style="flex: 1; font-size: 13px;">Walk Away &amp; Find Work</span>
             <span style="font-size: 13px; opacity: 0.7;">➔</span>
           </button>
         </div>

@@ -57,6 +57,9 @@ class GameEngine {
     this.phases.SHOP = new window.FFH.ShopPhase(this);
     this.phases.CITY_EXPLORATION = new window.FFH.CityExplorationPhase(this);
     this.phases.DIALOGUE = new window.FFH.DialoguePhase(this);
+    if (window.FFH.InteriorPhase) {
+      this.phases.INTERIOR = new window.FFH.InteriorPhase(this);
+    }
 
     // Initialize Dynamic Story Interpreter (assets/narrative/story.json)
     if (window.FFH.StoryRunner) {
@@ -167,6 +170,10 @@ class GameEngine {
         this.currentPhase.enter(params);
       } else if (phaseKey === 'DIALOGUE') {
         this.currentPhase = this.phases.DIALOGUE;
+        this.currentCamera = this.cameras.mainCamera;
+        this.currentPhase.enter(params);
+      } else if (phaseKey === 'INTERIOR') {
+        this.currentPhase = this.phases.INTERIOR;
         this.currentCamera = this.cameras.mainCamera;
         this.currentPhase.enter(params);
       } else if (phaseKey === 'PICK') {
