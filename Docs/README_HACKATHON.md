@@ -8,6 +8,7 @@
 > **Engine**: Three.js r128 (vendored), plain ES6 — zero external build dependencies  
 
 > **Scope:** this document owns the full design detail (cast, loop, mechanics, narrative framing).
+> Act One dialogue, humor, and progression beats are authoritatively governed by [`ACT_ONE_BRITISH_COMEDY.md`](ACT_ONE_BRITISH_COMEDY.md).
 > It is not the authority on numbers — those live in [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
 > See [`README.md`](README.md) for which document owns what.
 

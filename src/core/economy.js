@@ -1,8 +1,18 @@
-// Run economy, state shape, and the numbers the whole game tunes against.
-//
-// This file loads first (see build/assemble.js) and owns the FFH namespace.
-
 window.FFH = window.FFH || {};
+
+window.FFH.ACT1_STAGES = {
+  ARRIVAL_ZOB: 'ARRIVAL_ZOB',         // At ZOB bus station, suitcase struggle
+  TRANSIT_TO_WG: 'TRANSIT_TO_WG',     // Navigating south to Student WG (B_WG)
+  WG_DOOR: 'WG_DOOR',                 // At B_WG door, buzzer intercom puzzle
+  WG_ROOM4: 'WG_ROOM4',               // Inside Room 4, Nico meet & Mülltrennung test
+  TRANSIT_TO_UNI: 'TRANSIT_TO_UNI',   // Golden hour sprint across bridges to B_UNI
+  UNI_LOCKED: 'UNI_LOCKED',           // At B_UNI, registry closed at 17:00, need job
+  JOB_HUNT_PIZZA: 'JOB_HUNT_PIZZA',   // At B_PIZZA, ask Mathias for job (rejected)
+  JOB_HUNT_BAKERY: 'JOB_HUNT_BAKERY', // At B_BAKERY, Oma Martha reveals Kruma Express
+  RETURN_TO_WG: 'RETURN_TO_WG',       // Night walk home to WG
+  DAY1_SLEEP: 'DAY1_SLEEP'            // Sleep, day recap, transition to Day 2 Shift 1
+};
+
 window.FFH.ECONOMY = {
     STARTING_WALLET: 20,
     TUITION_GOAL: 250,
@@ -126,6 +136,7 @@ window.FFH.finishShift = function(game) {
 // which is why this returns a new object rather than mutating one in place.
 window.FFH.createRunState = function () {
   return {
+    act1Stage: window.FFH.ACT1_STAGES.ARRIVAL_ZOB,
     wallet: window.FFH.ECONOMY.STARTING_WALLET,
     currentShift: 1,
     day: 1,
@@ -319,37 +330,44 @@ window.FFH.saveGame = function(game) {
       }
     }
 
-    // Determine target spawn based on current finished objectives / story progress
+    // Determine target spawn based on canonical act1Stage
     const s = game.state;
-    let objectiveStage = 'start';
-    if (s.day >= 2 || s.hasSleptDay1) {
+    const Stages = window.FFH.ACT1_STAGES || {};
+    let objectiveStage = s.act1Stage || Stages.ARRIVAL_ZOB;
+
+    if (s.day >= 2 || s.act1Stage === Stages.DAY1_SLEEP) {
       objectiveStage = 'day2_kruma';
       if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // Outside WG facing south to Kruma
-    } else if (s.hasVisitedBakeryJob) {
+    } else if (s.act1Stage === Stages.RETURN_TO_WG) {
       objectiveStage = 'return_to_wg_sleep';
       if (!spawnPos) spawnPos = { x: 7.8, z: 20.0 }; // Outside Bakery
-    } else if (s.hasVisitedPizzeriaJob) {
+    } else if (s.act1Stage === Stages.JOB_HUNT_BAKERY) {
       objectiveStage = 'bakery_hunt';
       if (!spawnPos) spawnPos = { x: 28.6, z: 25.0 }; // Outside Pizzeria
-    } else if (s.hasVisitedLockedUni) {
+    } else if (s.act1Stage === Stages.JOB_HUNT_PIZZA) {
       objectiveStage = 'pizzeria_hunt';
       if (!spawnPos) spawnPos = { x: 20.8, z: 18.0 }; // Outside Uni
-    } else if (s.hasDoneMuelltrennung) {
+    } else if (s.act1Stage === Stages.UNI_LOCKED || s.act1Stage === Stages.TRANSIT_TO_UNI) {
       objectiveStage = 'uni_rush';
       if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // Outside WG
-    } else if (s.hasBuzzedWG) {
+    } else if (s.act1Stage === Stages.WG_ROOM4 || s.act1Stage === Stages.WG_DOOR) {
       objectiveStage = 'nico_room4';
       if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // At Nico's WG door
     }
 
-    // Count finished milestones
-    let finishedObjectivesCount = 0;
-    if (s.hasBuzzedWG) finishedObjectivesCount++;
-    if (s.hasDoneMuelltrennung) finishedObjectivesCount++;
-    if (s.hasVisitedLockedUni) finishedObjectivesCount++;
-    if (s.hasVisitedPizzeriaJob) finishedObjectivesCount++;
-    if (s.hasVisitedBakeryJob) finishedObjectivesCount++;
-    if (s.hasSleptDay1) finishedObjectivesCount++;
+    const stageOrder = [
+      Stages.ARRIVAL_ZOB,
+      Stages.TRANSIT_TO_WG,
+      Stages.WG_DOOR,
+      Stages.WG_ROOM4,
+      Stages.TRANSIT_TO_UNI,
+      Stages.UNI_LOCKED,
+      Stages.JOB_HUNT_PIZZA,
+      Stages.JOB_HUNT_BAKERY,
+      Stages.RETURN_TO_WG,
+      Stages.DAY1_SLEEP
+    ];
+    const finishedObjectivesCount = Math.max(0, stageOrder.indexOf(s.act1Stage));
 
     const saveData = {
       state: game.state,
@@ -387,6 +405,13 @@ window.FFH.loadGame = function(game) {
     if (!raw) return false;
     const saveData = JSON.parse(raw);
     if (!saveData || !saveData.state) return false;
+
+    // Hard wipe if save lacks canonical act1Stage
+    if (!saveData.state.act1Stage) {
+      console.warn("[SaveSystem] Legacy save detected without act1Stage. Performing hard wipe.");
+      localStorage.removeItem('FFH_SAVE_GAME');
+      return false;
+    }
     
     // Merge clean run state with saved attributes
     game.state = Object.assign(window.FFH.createRunState(), saveData.state);
@@ -398,12 +423,6 @@ window.FFH.loadGame = function(game) {
     }
     if (saveData.activeObjective) {
       game.state.activeObjective = saveData.activeObjective;
-    }
-
-    // If the save was mid-WG-entry (buzzed but Mülltrennung not done),
-    // reset the buzzer flag so the full Nico sequence fires again on re-entry.
-    if (saveData.objectiveStage === 'nico_room4' && !game.state.hasDoneMuelltrennung) {
-      game.state.hasBuzzedWG = false;
     }
 
     return {

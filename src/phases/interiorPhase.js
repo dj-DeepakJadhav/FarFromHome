@@ -48,9 +48,32 @@ window.FFH.InteriorPhase = class {
     if (config.npcKey && window.FFH.createNPCMesh) {
       this.npcMesh = window.FFH.createNPCMesh(config.npcKey);
       if (this.npcMesh) {
-        const charY = config.characterY !== undefined ? config.characterY : 0.05;
-        this.npcMesh.position.set(0, charY, 0);
-        this.npcMesh.rotation.y = config.characterRotationY !== undefined ? config.characterRotationY : (Math.PI / 4);
+        // Room-specific NPC placement presets (stand behind counters, proper scale and orientation)
+        const ROOM_NPC_PRESETS = {
+          'PIZZERIA':   { x: -0.45, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+          'BAKERY':     { x: -0.40, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+          'UNI':        { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
+          'UNI_LOBBY':  { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
+          'DARKSTORE':  { x:  0.00, y: 0.05, z: -0.65, rotY: Math.PI / 4, scale: 1.45 },
+          'RATHAUS':    { x: -0.20, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+          'BANK':       { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+          'AUSLAENDER': { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+          'WG_ROOM':    { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 },
+          'WG_KITCHEN': { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 }
+        };
+
+        const preset = ROOM_NPC_PRESETS[config.roomType] || { x: 0, y: 0.05, z: -0.4, rotY: Math.PI / 4, scale: 1.45 };
+
+        const charX = config.characterX !== undefined ? config.characterX : preset.x;
+        const charY = config.characterY !== undefined ? config.characterY : preset.y;
+        const charZ = config.characterZ !== undefined ? config.characterZ : preset.z;
+        const charRotY = config.characterRotationY !== undefined ? config.characterRotationY : preset.rotY;
+        const charScale = config.characterScale !== undefined ? config.characterScale : preset.scale;
+
+        this.currentCharY = charY;
+        this.npcMesh.position.set(charX, charY, charZ);
+        this.npcMesh.rotation.y = charRotY;
+        this.npcMesh.scale.multiplyScalar(charScale);
         scene.add(this.npcMesh);
       }
     }
@@ -246,8 +269,8 @@ window.FFH.InteriorPhase = class {
         window.FFH.updateNPCAnimation(this.npcMesh, delta);
       }
       if (!this.npcMesh.userData.mixer) {
-        const time = this.game.clock.getElapsedTime();
-        this.npcMesh.position.y = (this.currentConfig?.characterY || 0.05) + Math.sin(time * 3) * 0.025;
+        const baseY = this.currentCharY !== undefined ? this.currentCharY : (this.currentConfig?.characterY || 0.05);
+        this.npcMesh.position.y = baseY + Math.sin(time * 3) * 0.025;
       }
     }
   }
@@ -255,20 +278,16 @@ window.FFH.InteriorPhase = class {
   exitToCity() {
     this.cleanupScene();
 
-    // Transition back to CITY_EXPLORATION
-    this.game.currentPhase = this.game.phases.CITY_EXPLORATION;
-    this.game.currentCamera = this.game.cameras.mainCamera;
-
     const city = this.game.phases.CITY_EXPLORATION;
-    if (city.worldGroup) city.worldGroup.visible = true;
-    if (city.courier) city.courier.visible = true;
+    const spawnPos = (city && city.playerPos) ? city.playerPos.clone() : null;
+    const timeOfDay = (city && city.timeOfDay !== undefined) ? city.timeOfDay : undefined;
 
-    // Restore HUD
-    const hud = document.getElementById('hud');
-    if (hud) hud.style.display = 'block';
-
-    // Run clean building exit animation
-    city.startBuildingExit();
+    // Transition back to CITY_EXPLORATION through GameEngine so scene, world, HUD, and listeners are properly restored
+    this.game.transitionTo('CITY_EXPLORATION', {
+      spawnPos: spawnPos,
+      timeOfDay: timeOfDay,
+      fromBuildingExit: true
+    });
   }
 
   cleanupScene() {

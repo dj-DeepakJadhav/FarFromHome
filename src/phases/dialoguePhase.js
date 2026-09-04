@@ -100,12 +100,23 @@ window.FFH.DialoguePhase = class {
     this.dioramaRoom.position.set(0, 0, 0);
     this.game.scene.add(this.dioramaRoom);
 
-    // 2. Spawn NPC in the center of the diorama room
+    // 2. Spawn NPC behind counter or desk according to room type
     if (window.FFH.createNPCMesh) {
       this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
-      this.npcGroup.position.set(0, 0.05, 0);
-      // Face towards camera angle
-      this.npcGroup.rotation.y = Math.PI / 4;
+      const ROOM_NPC_PRESETS = {
+        'B_PIZZA':     { x: -0.45, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+        'B_BAKERY':    { x: -0.40, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+        'B_UNI':       { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
+        'B_DARKSTORE': { x:  0.00, y: 0.05, z: -0.65, rotY: Math.PI / 4, scale: 1.45 },
+        'B_RATHAUS':   { x: -0.20, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+        'B_BANK':      { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+        'B_AUSLAENDER':{ x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
+        'B_WG':        { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 }
+      };
+      const preset = ROOM_NPC_PRESETS[bType] || { x: 0, y: 0.05, z: -0.4, rotY: Math.PI / 4, scale: 1.45 };
+      this.npcGroup.position.set(preset.x, preset.y, preset.z);
+      this.npcGroup.rotation.y = preset.rotY;
+      this.npcGroup.scale.multiplyScalar(preset.scale);
       this.game.scene.add(this.npcGroup);
     }
 

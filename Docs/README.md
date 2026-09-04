@@ -14,6 +14,7 @@
 | Subject | Owner | Notes |
 | :--- | :--- | :--- |
 | **Competition rules & agent operating rules** | [`AGENTS.md`](../AGENTS.md) | Hard constraints, rubric weights, anti-patterns. Highest authority. |
+| **Act One Narrative & Flow Ground Truth** | [`ACT_ONE_BRITISH_COMEDY.md`](ACT_ONE_BRITISH_COMEDY.md) | The authoritative story, dialogue beats, and NPC progression for Act One. |
 | **Every number** (sizes, tunables, prices, word counts) | [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md) | No other doc may hard-code a number. Link here. |
 | **Design at a glance** | [`ONE_PAGE_DESIGN_DOCUMENT.md`](ONE_PAGE_DESIGN_DOCUMENT.md) | The one-page GDD. Start here for the shape of the game. |
 | **Full design detail** | [`README_HACKATHON.md`](README_HACKATHON.md) | Cast, loop, mechanics, narrative framing. |
@@ -33,10 +34,11 @@
 Superseded or out-of-scope. **Nothing in `archive/` is authoritative** and no agent
 should treat it as a work order. It is kept for history.
 
-It holds the narrative bible, the 28-day interactive text story, the narrative flow
-and mind-map documents, the three retired task lists, the Messenger pivot analysis,
-and the development log. The story material describes a far larger game than the one
-being submitted — it is inspiration, not scope.
+It holds legacy drafts (such as `ACT_ONE_LEGACY.md`), the narrative bible,
+the 28-day interactive text story, the narrative flow and mind-map documents,
+the three retired task lists, the Messenger pivot analysis, and the development log.
+Note: `assets/narrative/story.json` is preserved as-is as a secondary asset reference,
+but is superseded by `ACT_ONE_BRITISH_COMEDY.md` for ground-truth narrative design.
 
 ---
 

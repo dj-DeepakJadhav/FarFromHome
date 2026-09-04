@@ -199,9 +199,13 @@ window.FFH.UI = class {
     el.id = 'ffh-thought-bubble';
     el.innerHTML = `<span style="opacity:0.8; margin-right:4px;">💭</span><em id="thought-bubble-text" style="font-style:italic;"></em>`;
     
+    const container = document.getElementById('game-container') || document.body;
+    const contW = container.clientWidth || 390;
+    const contH = container.clientHeight || 844;
+
     // Position directly over player character head in 3D screen space if in CITY_EXPLORATION
-    let screenX = window.innerWidth / 2;
-    let screenY = window.innerHeight * 0.45;
+    let screenX = contW / 2;
+    let screenY = contH * 0.45;
     
     if (this.game && this.game.currentPhase === this.game.phases.CITY_EXPLORATION) {
       const cityPhase = this.game.phases.CITY_EXPLORATION;
@@ -210,16 +214,16 @@ window.FFH.UI = class {
         const headPos = cityPhase.playerPos.clone();
         headPos.y += 1.8; // Height offset above player head
         headPos.project(cam);
-        screenX = (headPos.x * 0.5 + 0.5) * window.innerWidth;
-        screenY = (-headPos.y * 0.5 + 0.5) * window.innerHeight;
+        screenX = (headPos.x * 0.5 + 0.5) * contW;
+        screenY = (-headPos.y * 0.5 + 0.5) * contH;
       }
     }
 
-    // Clamp horizontally to stay cleanly visible on screen
-    screenX = Math.max(50, Math.min(window.innerWidth - 50, screenX));
+    // Clamp horizontally to stay cleanly visible inside the game viewport
+    screenX = Math.max(145, Math.min(contW - 145, screenX));
 
     el.style.cssText = `
-      position: fixed;
+      position: absolute;
       left: ${screenX}px;
       top: ${screenY}px;
       transform: translate(-50%, -100%) scale(0.9);
@@ -240,10 +244,13 @@ window.FFH.UI = class {
       z-index: 99999;
       opacity: 0;
       transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-      max-width: 300px;
+      width: max-content;
+      max-width: 270px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
       text-align: center;
     `;
-    document.body.appendChild(el);
+    container.appendChild(el);
 
     requestAnimationFrame(() => {
       el.style.opacity = '1';

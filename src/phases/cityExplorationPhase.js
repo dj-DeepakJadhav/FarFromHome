@@ -814,7 +814,6 @@ window.FFH.CityExplorationPhase = class {
   }
 
   onPointerDown(e) {
-    if (this.inputDisabled) return;
     if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
     
     this.pointerDownX = e.clientX;
@@ -880,6 +879,8 @@ window.FFH.CityExplorationPhase = class {
   }
 
   handleSingleOrDoubleTap(e) {
+    if (this.inputDisabled) return; // Prevent movement/interaction if input is locked
+    
     if (!this.hasFirstInteracted) {
       this.hasFirstInteracted = true;
       if (!this.game.state.firstObjectiveRevealed) {
@@ -933,7 +934,26 @@ window.FFH.CityExplorationPhase = class {
           return;
         }
 
-        // We are close! Start building entry sequence
+        // If tapping a generic residential townhouse (A1, A2, A3, etc.), never enter or shrink courier!
+        // Just show a dry British observation thought bubble.
+        if (root.userData.type && root.userData.type.startsWith('A')) {
+          const britObservations = [
+            "Just a residential block. Perfectly tidy curtains. No help with my tuition here.",
+            "Stepped gables. Very Hansa. Not currently offering employment or sympathy, though.",
+            "Someone's flat. The smell of cabbage and clean laundry. Best not loiter on the doorstep.",
+            "Brick facade. Solid, silent, and thoroughly indifferent to my financial catastrophe."
+          ];
+          const text = britObservations[Math.floor(Math.random() * britObservations.length)];
+          if (this.game.ui && this.game.ui.spawnWandererThought) {
+            this.game.ui.spawnWandererThought(text);
+          } else if (this.game.ui && this.game.ui.spawnFloatingText) {
+            this.game.ui.spawnFloatingText("Residence", e.clientX, e.clientY, '#718096');
+          }
+          if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+          return;
+        }
+
+        // We are close! Start building entry sequence for key story locations
         this.startBuildingEntry(root.userData.type, root.position);
         return;
       }
@@ -1033,60 +1053,48 @@ window.FFH.CityExplorationPhase = class {
 
   getDoorPosition(poiType, fallbackPos) {
     const locPositions = {
-      'B_ZOB':        { x: 10.4, z:  5.2 },
-      'B_BANK':       { x: 41.6, z:  5.2 },
-      'B_UNI':        { x: 20.8, z: 15.6 },
-      'B_BAKERY':     { x:  7.8, z: 18.2 },
-      'B_BURGTOR':    { x: 36.4, z: 18.2 },
-      'B_RATHAUS':    { x: 23.4, z: 23.4 },
-      'B_PIZZA':      { x: 28.6, z: 23.4 },
-      'B_WG':         { x:  7.8, z: 26.0 },
-      'B_AUSLAENDER': { x: 36.4, z: 26.0 },
-      'B_BIKESHOP':   { x:  7.8, z: 31.2 },
-      'B_KINO':       { x: 26.0, z: 31.2 },
-      'B_HOLSTEN':    { x: 18.2, z: 33.8 },
-      'B_MARIEN':     { x: 57.2, z: 33.8 },
-      'B_DOM':        { x: 26.0, z: 44.2 },
-      'B_DARKSTORE':  { x:  7.8, z: 46.8 }
+      'B_ZOB':        { x: 10.4, z:  5.2 }, // Street east of ZOB
+      'B_BANK':       { x: 44.2, z:  5.2 }, // Street east of Bank
+      'B_UNI':        { x: 20.8, z: 15.6 }, // Street west of Uni
+      'B_BAKERY':     { x:  7.8, z: 18.2 }, // Street east of Bakery
+      'B_BURGTOR':    { x: 36.4, z: 18.2 }, // Bridge road
+      'B_RATHAUS':    { x: 20.8, z: 23.4 }, // Street west of Rathaus
+      'B_PIZZA':      { x: 28.6, z: 26.0 }, // Street south of Pizzeria Bella
+      'B_WG':         { x:  7.8, z: 26.0 }, // Street east of Student WG
+      'B_AUSLAENDER': { x: 41.6, z: 26.0 }, // Street east of Ausländerbehörde
+      'B_BIKESHOP':   { x:  7.8, z: 31.2 }, // Street east of Bike Shop
+      'B_KINO':       { x: 20.8, z: 31.2 }, // Street west of Cinema
+      'B_HOLSTEN':    { x: 18.2, z: 33.8 }, // Bridge approach
+      'B_MARIEN':     { x: 52.0, z: 33.8 }, // Church square
+      'B_DOM':        { x: 26.0, z: 41.6 }, // Cathedral road
+      'B_DARKSTORE':  { x:  7.8, z: 46.8 }  // Street east of Kruma Express
     };
     if (locPositions[poiType]) {
-      return new THREE.Vector3(locPositions[poiType].x, 0, locPositions[poiType].z);
+      return new THREE.Vector3(locPositions[poiType].x, 0.05, locPositions[poiType].z);
     }
     // Fallback: estimate door by pulling slightly toward street
-    return new THREE.Vector3(fallbackPos.x, 0, fallbackPos.z + 2.6);
+    return new THREE.Vector3(fallbackPos.x, 0.05, fallbackPos.z + 2.6);
   }
 
   startBuildingEntry(poiType, buildingPos) {
     if (this.isEnteringBuilding) return;
-    this.isEnteringBuilding = true;
-    this.isShowingInteriorModal = true;
     this.enteringPoiType = poiType;
-    
-    // The door is on the street. The building center is inside.
     this.enteringDoorPos = this.getDoorPosition(poiType, buildingPos);
-    this.enteringBuildingPos = new THREE.Vector3(buildingPos.x, 0, buildingPos.z);
+    this.enteringBuildingPos = new THREE.Vector3(buildingPos.x, 0.05, buildingPos.z);
     
-    // We start the entry animation from the door (snap to door to guarantee correct alignment)
+    // Position player cleanly outside at the door
     this.playerPos.copy(this.enteringDoorPos);
-    this.enteringStartPos = this.enteringDoorPos.clone();
+    if (this.courier) {
+      this.courier.position.copy(this.playerPos);
+      this.courier.scale.setScalar(1.0);
+    }
     
-    this.enteringTimer = 0;
-    this.inputDisabled = true;
     this.targetMovePos = null;
     this.playerPath = [];
     if (this.targetMarker) this.targetMarker.visible = false;
     
-    const dx = this.enteringBuildingPos.x - this.enteringDoorPos.x;
-    const dz = this.enteringBuildingPos.z - this.enteringDoorPos.z;
-    const heading = Math.atan2(dx, dz);
-    // Camera behind the player looking at the building
-    this.manualCameraAngle = heading + Math.PI;
-    this.targetCamZoom = 1.35;
-    
-    if (this.courier && this.courier.userData && this.courier.userData.playAction) {
-       this.courier.rotation.y = heading;
-       this.courier.userData.playAction('walk');
-    }
+    // Trigger building interaction directly
+    this.triggerBuildingInteraction(poiType);
   }
 
 
@@ -1201,164 +1209,24 @@ window.FFH.CityExplorationPhase = class {
     };
     const cleanPoiName = friendlyPoiNames[poiType] || poiType.replace(/^B_/, '').replace(/_/g, ' ');
 
-    if (poiType.includes('Universität') || poiType.includes('University') || poiType === 'B_UNI') {
-      // University is only relevant once player has finished WG arrival and discovered tuition
-      if (this.game.state.hasDoneMuelltrennung && !this.game.state.hasVisitedLockedUni) {
-        this.game.transitionTo('INTERIOR', {
-          roomType: 'UNI',
-          npcKey: null,
-          titleBadge: 'UNIVERSITÄT',
-          title: 'Campus Admissions',
-          text: 'The financial office is closed. A heavy wooden door blocks the way. A notice on the wall reads: "Payment deadline: Friday. Failure to pay will result in Exmatrikulation."',
-          note: 'I need to find a job immediately. Pizzeria Bella might be hiring.',
-          choices: [
-            {
-              label: 'Leave Campus',
-              subtext: 'Time to find work.',
-              borderLeft: '#E76F51',
-              action: (game, interiorPhase) => {
-                this.game.state.hasVisitedLockedUni = true;
-                this.game.state.questStep = 2; // Advance to finding work
-                this.game.state.activeObjective = '🍕 Try Pizzeria Bella for work — ask about a job';
-                if (this.game.storyRunner) {
-                  this.game.storyRunner.pendingStoryTarget = { sceneId: 'pizzeria_job', poi: 'B_PIZZA' };
-                }
-                if (this.game.ui && this.game.ui.updateQuestTracker) {
-                  this.game.ui.updateQuestTracker();
-                }
+    // ---------------------------------------------------------------------
+    // CANONICAL ACT ONE STATE MACHINE (Docs/ACT_ONE_BRITISH_COMEDY.md)
+    // ---------------------------------------------------------------------
+    const Stages = window.FFH.ACT1_STAGES || {};
+    const curStage = s.act1Stage || Stages.ARRIVAL_ZOB;
+    console.log(`[Act1FSM] Interacted with ${poiType} during stage ${curStage}`);
 
-                // Step 9: Smoothly transition atmosphere to Night Mode (19:00, progress 0.85)!
-                let currentProgress = this.timeOfDay || 0.70;
-                const targetProgress = 0.88; // Deep Baltic night
-                const stepNight = () => {
-                  if (currentProgress < targetProgress) {
-                    currentProgress = Math.min(targetProgress, currentProgress + 0.03);
-                    this.updateAtmosphericTime(currentProgress);
-                    requestAnimationFrame(stepNight);
-                  }
-                };
-                stepNight();
+    // Helper: Safely exit to city after non-modal or rejected interaction
+    const cancelAndExit = () => {
+      this.isEnteringBuilding = false;
+      this.inputDisabled = false;
+      this.startBuildingExit();
+    };
 
-                // British thought on freezing cold night and hunger
-                if (this.game.ui && this.game.ui.spawnWandererThought) {
-                  setTimeout(() => {
-                    this.game.ui.spawnWandererThought(
-                      "Great. It's pitch black, freezing cold, and I still don't have a job. Check the lamp posts for flyers."
-                    );
-                  }, 1200);
-                }
-
-                this.isEnteringBuilding = false;
-                this.inputDisabled = false;
-                this.isShowingInteriorModal = false;
-                if (window.FFH && window.FFH.saveGame) {
-                  window.FFH.saveGame(this.game);
-                }
-                interiorPhase.exitToCity();
-              }
-            }
-          ]
-        });
-        return;
-      } else if (!this.game.state.hasDoneMuelltrennung) {
-        // Player tried to enter university before dropping luggage at WG
-        if (this.game.ui && this.game.ui.spawnWandererThought) {
-          this.game.ui.spawnWandererThought("I should drop off my luggage at the student WG first before heading to campus.");
-        }
-        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
-        this.isEnteringBuilding = false;
-        this.inputDisabled = false;
-        this.startBuildingExit();
-        return;
-      }
-      targetNpc = 'NPC_RITA';
-      storyScene = 'rita_first';
-    } else if (poiType.includes('Pizzeria') || poiType.includes('Pizza') || poiType === 'B_PIZZA') {
-      if (this.game.state.hasVisitedLockedUni && !this.game.state.hasVisitedPizzeriaJob) {
-        if (this.game.ui && this.game.ui.showPizzeriaJobModal) {
-          this.showInteriorModal(window.FFH.createPizzeriaRoom, 'NPC_MATHIAS', (cleanup) => {
-            this.game.ui.showPizzeriaJobModal(() => {
-              cleanup();
-            this.game.state.hasVisitedPizzeriaJob = true;
-            this.game.state.questStep = 3;
-            this.game.state.activeObjective = '🥐 Rejected at Pizzeria! Try Bakery Hansa for work.';
-            if (this.game.storyRunner) {
-              this.game.storyRunner.pendingStoryTarget = { sceneId: 'bakery_job', poi: 'B_BAKERY' };
-            }
-            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
-            this.isEnteringBuilding = false;
-            this.inputDisabled = false;
-            if (window.FFH && window.FFH.saveGame) {
-              window.FFH.saveGame(this.game);
-            }
-            this.startBuildingExit();
-          });
-          });
-        }
-        return;
-      } else if (!this.game.state.hasVisitedLockedUni) {
-        if (this.game.ui && this.game.ui.spawnWandererThought) {
-          this.game.ui.spawnWandererThought("The smells of fresh garlic and oregano are intoxicating, but I have places to be right now.");
-        }
-        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
-        this.isEnteringBuilding = false;
-        this.inputDisabled = false;
-        this.startBuildingExit();
-        return;
-      }
-      targetNpc = 'NPC_MATHIAS';
-      storyScene = 'mathias_loan';
-    } else if (poiType.includes('Bakery') || poiType.includes('Bäcker') || poiType === 'B_BAKERY') {
-      if (this.game.state.hasVisitedPizzeriaJob && !this.game.state.hasVisitedBakeryJob) {
-        if (this.game.ui && this.game.ui.showBakeryJobModal) {
-          this.showInteriorModal(window.FFH.createBakeryRoom, 'NPC_MARTHA', (cleanup) => {
-            this.game.ui.showBakeryJobModal(() => {
-              cleanup();
-            this.game.state.hasVisitedBakeryJob = true;
-            this.game.state.questStep = 4;
-            this.game.state.activeObjective = '🏠 Rejected at Bakery! Head back to WG to sleep.';
-            if (this.game.storyRunner) {
-              this.game.storyRunner.pendingStoryTarget = { sceneId: 'day1_sleep', poi: 'B_WG' };
-            }
-            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
-            this.isEnteringBuilding = false;
-            this.inputDisabled = false;
-            if (window.FFH && window.FFH.saveGame) {
-              window.FFH.saveGame(this.game);
-            }
-            this.startBuildingExit();
-          });
-          });
-        }
-        return;
-      } else if (!this.game.state.hasVisitedPizzeriaJob) {
-        if (this.game.ui && this.game.ui.spawnWandererThought) {
-          this.game.ui.spawnWandererThought("Warm crusty rye bread in the window. No time to browse pastries just yet.");
-        }
-        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
-        this.isEnteringBuilding = false;
-        this.inputDisabled = false;
-        this.startBuildingExit();
-        return;
-      }
-      targetNpc = 'NPC_MARTHA';
-      storyScene = 'martha';
-    } else if (poiType.includes('Dark Store') || poiType.includes('Kruma') || poiType === 'B_DARKSTORE') {
-      if (this.game.state.day >= 2 || this.game.state.hasSleptDay1) {
-        targetNpc = 'NPC_NINA';
-        storyScene = 'knot_money';
-      } else {
-        if (this.game.ui && this.game.ui.spawnWandererThought) {
-          this.game.ui.spawnWandererThought("Kruma Express warehouse. Shutter doors are down for the night. Opens tomorrow at 07:00.");
-        }
-        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
-        this.isEnteringBuilding = false;
-        this.inputDisabled = false;
-        this.startBuildingExit();
-        return;
-      }
-    } else if (poiType !== 'B_WG_ENTERED' && (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG')) {
-      if (!this.game.state.hasBuzzedWG) {
+    // 1. WG INTERCOM & ROOM 4
+    if (poiType === 'B_WG') {
+      if (curStage === Stages.ARRIVAL_ZOB || curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
+        s.act1Stage = Stages.WG_DOOR;
         this.game.transitionTo('INTERIOR', {
           roomType: 'DOORWAY',
           npcKey: null,
@@ -1370,7 +1238,7 @@ window.FFH.CityExplorationPhase = class {
             {
               label: 'Müller',
               borderLeft: '#718096',
-              action: (game, interiorPhase) => {
+              action: (game) => {
                 if (game.sfx) game.sfx.playSfx('error');
                 if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('No answer...', window.innerWidth/2, window.innerHeight*0.3, '#718096');
               }
@@ -1378,9 +1246,9 @@ window.FFH.CityExplorationPhase = class {
             {
               label: 'Schmidt / Nico',
               borderLeft: '#2EC4B6',
-              action: (game, interiorPhase) => {
+              action: (game) => {
                 if (game.sfx) game.sfx.playSfx('success');
-                game.state.hasBuzzedWG = true;
+                s.act1Stage = Stages.WG_ROOM4;
                 if (window.FFH && window.FFH.saveGame) window.FFH.saveGame(game);
                 this.triggerBuildingInteraction('B_WG_ENTERED');
               }
@@ -1388,7 +1256,7 @@ window.FFH.CityExplorationPhase = class {
             {
               label: 'Hausverwaltung',
               borderLeft: '#718096',
-              action: (game, interiorPhase) => {
+              action: (game) => {
                 if (game.sfx) game.sfx.playSfx('error');
                 if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('An angry voice yells: "Keine Werbung!"', window.innerWidth/2, window.innerHeight*0.3, '#E76F51');
               }
@@ -1397,163 +1265,294 @@ window.FFH.CityExplorationPhase = class {
         });
         return;
       }
-      // Buzzed but haven't done Mülltrennung yet — Nico is waiting inside!
-      if (this.game.state.hasBuzzedWG && !this.game.state.hasDoneMuelltrennung) {
+
+      if (curStage === Stages.WG_ROOM4) {
         this.triggerBuildingInteraction('B_WG_ENTERED');
         return;
       }
-      // If returning to WG at night after job hunting, trigger Day 1 sleep cycle!
-      if (this.game.state.hasVisitedLockedUni && !this.game.state.hasSleptDay1 && this.game.ui && this.game.ui.showDayRecapModal) {
-        this.game.ui.showDayRecapModal(() => {
-          this.game.state.hasSleptDay1 = true;
-          this.game.state.day = 2;
-          this.game.state.questStep = 4;
-          this.game.state.activeObjective = 'Tag 2 (07:00): Head to Kruma Express Dark Store for Shift 1!';
-          if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
-          if (this.game.ui && this.game.ui.refreshStats) this.game.ui.refreshStats(this.game.state);
 
-          // Transition lighting to Day 2 morning dawn (progress 0.30)!
-          let currentProgress = this.timeOfDay || 0.88;
-          const targetProgress = 0.30;
-          this.updateAtmosphericTime(targetProgress);
+      if (curStage === Stages.RETURN_TO_WG || curStage === Stages.JOB_HUNT_BAKERY) {
+        if (this.game.ui && this.game.ui.showDayRecapModal) {
+          this.game.ui.showDayRecapModal(() => {
+            s.act1Stage = Stages.DAY1_SLEEP;
+            s.day = 2;
+            s.questStep = 4;
+            s.activeObjective = 'Tag 2 (07:00): Head to Kruma Express Dark Store for Shift 1!';
+            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+            if (this.game.ui && this.game.ui.refreshStats) this.game.ui.refreshStats(this.game.state);
 
-          if (this.game.ui && this.game.ui.spawnWandererThought) {
-            this.game.ui.spawnWandererThought(
-              "Day 2. Sun is up, tea is drunk, and my landlord is still threatening eviction. Time to tackle Kruma Express."
-            );
-          }
+            // Transition lighting to Day 2 morning dawn (0.30)!
+            this.updateAtmosphericTime(0.30);
 
-          this.isEnteringBuilding = false;
-          this.inputDisabled = false;
-          if (window.FFH && window.FFH.saveGame) {
-            window.FFH.saveGame(this.game);
-          }
-          this.startBuildingExit();
-        });
-        return;
+            if (this.game.ui && this.game.ui.spawnWandererThought) {
+              this.game.ui.spawnWandererThought(
+                "Day 2. Sun is up, tea is drunk, and my landlord is still threatening eviction. Time to tackle Kruma Express."
+              );
+            }
+
+            this.isEnteringBuilding = false;
+            this.inputDisabled = false;
+            if (window.FFH && window.FFH.saveGame) {
+              window.FFH.saveGame(this.game);
+            }
+            this.startBuildingExit();
+          });
+          return;
+        }
       }
-      targetNpc = 'NPC_LOKKER';
-      storyScene = 'lokker_kaution';
-    } else if (poiType === 'B_WG_ENTERED') {
-      if (!this.game.state.hasDoneMuelltrennung) {
+
+      // Default WG interaction if visited out of sequence
+      if (this.game.ui && this.game.ui.spawnWandererThought) {
+        this.game.ui.spawnWandererThought("My room key is in my pocket, but I need to finish my errands first.");
+      }
+      cancelAndExit();
+      return;
+    }
+
+    // 2. INSIDE WG ROOM 4 (Nico & Mülltrennung)
+    if (poiType === 'B_WG_ENTERED') {
+      this.game.transitionTo('INTERIOR', {
+        roomType: 'WG_ROOM',
+        npcKey: 'NPC_NICO',
+        titleBadge: 'APARTMENT',
+        title: 'Mülltrennung (Garbage Sorting)',
+        speaker: 'Nico (Flatmate)',
+        text: 'Hey! Before you unpack, you must learn the German way. Where does the empty milk carton go?',
+        note: 'Sort the trash correctly to pass.',
+        choices: [
+          {
+            label: 'Restmüll (Black Bin)',
+            subtext: 'General waste',
+            borderLeft: '#111111',
+            action: (game) => {
+              if (game.sfx) game.sfx.playSfx('error');
+              if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('Wrong! Nico sighs loudly.', window.innerWidth/2, window.innerHeight*0.3, '#E76F51');
+            }
+          },
+          {
+            label: 'Gelber Sack (Yellow Bag)',
+            subtext: 'Plastics & Packaging',
+            borderLeft: '#F4D03F',
+            action: (game) => {
+              if (game.sfx) game.sfx.playSfx('success');
+              s.act1Stage = Stages.TRANSIT_TO_UNI;
+              
+              // Transition to Urgent Tuition Letter on desk
+              game.transitionTo('INTERIOR', {
+                roomType: 'WG_ROOM',
+                npcKey: null,
+                titleBadge: 'DESK',
+                title: 'Urgent Letter',
+                text: 'You spot a letter on your desk. It says: "Achtung: Exmatrikulation upon failure to pay €250 semester fee by Friday."',
+                note: 'I need to head to the University Campus immediately to sort this out.',
+                choices: [
+                  {
+                    label: 'Leave Apartment',
+                    subtext: 'Sprint to University Campus.',
+                    borderLeft: '#2EC4B6',
+                    action: (game2, interiorPhase2) => {
+                      game2.state.questStep = 1;
+                      game2.state.activeObjective = '🎓 Sprint to University Campus before 17:00!';
+                      if (game2.storyRunner) {
+                        game2.storyRunner.pendingStoryTarget = { sceneId: 'uni_closed', poi: 'B_UNI' };
+                      }
+                      if (game2.ui && game2.ui.updateQuestTracker) {
+                        game2.ui.updateQuestTracker();
+                      }
+                      // Smooth transition to golden hour (16:45)
+                      this.updateAtmosphericTime(0.70);
+
+                      if (game2.ui && game2.ui.spawnWandererThought) {
+                        setTimeout(() => {
+                          game2.ui.spawnWandererThought(
+                            "The sun is going down. The city looks dead pretty in this golden light. Still completely broke, of course, but the scenery is lovely."
+                          );
+                        }, 1200);
+                      }
+
+                      this.isEnteringBuilding = false;
+                      this.inputDisabled = false;
+                      this.isShowingInteriorModal = false;
+                      if (window.FFH && window.FFH.saveGame) {
+                        window.FFH.saveGame(game2);
+                      }
+                      interiorPhase2.exitToCity();
+                    }
+                  }
+                ]
+              });
+            }
+          },
+          {
+            label: 'Papiertonne (Blue Bin)',
+            subtext: 'Paper & Cardboard',
+            borderLeft: '#3498DB',
+            action: (game) => {
+              if (game.sfx) game.sfx.playSfx('error');
+              if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('Wrong! Nico looks disappointed.', window.innerWidth/2, window.innerHeight*0.3, '#E76F51');
+            }
+          }
+        ]
+      });
+      return;
+    }
+
+    // 3. UNIVERSITÄT ZU LÜBECK (Closed Door Notice)
+    if (poiType === 'B_UNI' || poiType.includes('Universität') || poiType.includes('University')) {
+      if (curStage === Stages.TRANSIT_TO_UNI || curStage === Stages.UNI_LOCKED) {
         this.game.transitionTo('INTERIOR', {
-          roomType: 'WG_ROOM',
-          npcKey: 'NPC_NICO',
-          titleBadge: 'APARTMENT',
-          title: 'Mülltrennung (Garbage Sorting)',
-          speaker: 'Nico (Flatmate)',
-          text: 'Hey! Before you settle in, you must learn the German way. Where does the empty milk carton go?',
-          note: 'Sort the trash correctly to pass.',
+          roomType: 'UNI',
+          npcKey: null,
+          titleBadge: 'UNIVERSITÄT',
+          title: 'Campus Admissions',
+          text: 'The financial office is closed. A heavy wooden door blocks the way. A notice on the wall reads: "Payment deadline: Friday. Failure to pay will result in Exmatrikulation."',
+          note: 'I need to find a job immediately. Pizzeria Bella might be hiring.',
           choices: [
             {
-              label: 'Restmüll (Black Bin)',
-              subtext: 'General waste',
-              borderLeft: '#111111',
+              label: 'Leave Campus',
+              subtext: 'Search for work in town.',
+              borderLeft: '#E76F51',
               action: (game, interiorPhase) => {
-                if (game.sfx) game.sfx.playSfx('error');
-                if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('Wrong! Nico looks disappointed.', window.innerWidth/2, window.innerHeight*0.3, '#E76F51');
-              }
-            },
-            {
-              label: 'Gelber Sack (Yellow Bag)',
-              subtext: 'Plastics & Packaging',
-              borderLeft: '#F4D03F',
-              action: (game, interiorPhase) => {
-                if (game.sfx) game.sfx.playSfx('success');
-                game.state.hasDoneMuelltrennung = true;
-                
-                // Immediately transition to the Tuition Letter inside the same room!
-                game.transitionTo('INTERIOR', {
-                  roomType: 'WG_ROOM',
-                  npcKey: null,
-                  titleBadge: 'DESK',
-                  title: 'Urgent Letter',
-                  text: 'You spot a letter on your desk. It says: "Achtung: Exmatrikulation upon failure to pay €250 semester fee by Friday."',
-                  note: 'I need to head to the University Campus immediately to sort this out.',
-                  choices: [
-                    {
-                      label: 'Leave Apartment',
-                      subtext: 'Sprint to University Campus.',
-                      borderLeft: '#2EC4B6',
-                      action: (game2, interiorPhase2) => {
-                        game2.state.questStep = 1; // Direct player to Chapter 2: University
-                        game2.state.activeObjective = '🎓 Sprint to University Campus before 17:00!';
-                        if (game2.storyRunner) {
-                          game2.storyRunner.pendingStoryTarget = { sceneId: 'uni_closed', poi: 'B_UNI' };
-                        }
-                        if (game2.ui && game2.ui.updateQuestTracker) {
-                          game2.ui.updateQuestTracker();
-                        }
-                        // Smoothly transition city lighting to warm Golden Hour (16:45)!
-                        let currentProgress = this.timeOfDay || 0.35;
-                        const targetProgress = 0.70; // Golden hour amber sunset
-                        const stepTime = () => {
-                          if (currentProgress < targetProgress) {
-                            currentProgress = Math.min(targetProgress, currentProgress + 0.035);
-                            this.updateAtmosphericTime(currentProgress);
-                            requestAnimationFrame(stepTime);
-                          }
-                        };
-                        stepTime();
+                s.act1Stage = Stages.JOB_HUNT_PIZZA;
+                game.state.questStep = 2;
+                game.state.activeObjective = '🍕 Try Pizzeria Bella for work — ask about a job';
+                if (game.storyRunner) {
+                  game.storyRunner.pendingStoryTarget = { sceneId: 'pizzeria_job', poi: 'B_PIZZA' };
+                }
+                if (game.ui && game.ui.updateQuestTracker) {
+                  game.ui.updateQuestTracker();
+                }
 
-                        // British thought bubble on golden hour beauty
-                        if (game2.ui && game2.ui.spawnWandererThought) {
-                          setTimeout(() => {
-                            game2.ui.spawnWandererThought(
-                              "The sun is going down. The city actually looks dead pretty in this golden light. Still completely broke, of course, but the scenery is lovely."
-                            );
-                          }, 1200);
-                        }
+                // Transition atmosphere to Baltic night (19:00, progress 0.88)
+                this.updateAtmosphericTime(0.88);
 
-                        this.isEnteringBuilding = false;
-                        this.inputDisabled = false;
-                        this.isShowingInteriorModal = false; // FIX CAMERA BUG
-                        if (window.FFH && window.FFH.saveGame) {
-                          window.FFH.saveGame(game2);
-                        }
-                        interiorPhase2.exitToCity();
-                      }
-                    }
-                  ]
-                });
-              }
-            },
-            {
-              label: 'Papiertonne (Blue Bin)',
-              subtext: 'Paper & Cardboard',
-              borderLeft: '#3498DB',
-              action: (game, interiorPhase) => {
-                if (game.sfx) game.sfx.playSfx('error');
-                if (game.ui && game.ui.spawnFloatingText) game.ui.spawnFloatingText('Wrong! Nico sighs loudly.', window.innerWidth/2, window.innerHeight*0.3, '#E76F51');
+                if (game.ui && game.ui.spawnWandererThought) {
+                  setTimeout(() => {
+                    game.ui.spawnWandererThought(
+                      "Great. It's pitch black, freezing cold, and I still don't have a job. Check the pizzeria for flyers."
+                    );
+                  }, 1200);
+                }
+
+                this.isEnteringBuilding = false;
+                this.inputDisabled = false;
+                this.isShowingInteriorModal = false;
+                if (window.FFH && window.FFH.saveGame) {
+                  window.FFH.saveGame(game);
+                }
+                interiorPhase.exitToCity();
               }
             }
           ]
         });
         return;
       }
-      targetNpc = 'NPC_LOKKER';
-      storyScene = 'lokker_kaution';
-    } else if (poiType.includes('Hostel') || poiType.includes('Dorm')) {
-      targetNpc = 'NPC_WEBER';
-      storyScene = 'the_circle_2';
-    } else if (poiType.includes('Ausländer') || poiType.includes('Office') || poiType.includes('Dom') || poiType === 'B_AUSLAENDER') {
-      targetNpc = 'NPC_LINDEMANN';
-      storyScene = 'act_five';
+
+      if (this.game.ui && this.game.ui.spawnWandererThought) {
+        this.game.ui.spawnWandererThought("I should drop my luggage at the student WG first before wandering onto campus.");
+      }
+      cancelAndExit();
+      return;
     }
 
+    // 4. PIZZERIA BELLA (Mathias Job Rejection)
+    if (poiType === 'B_PIZZA' || poiType.includes('Pizza')) {
+      if (curStage === Stages.JOB_HUNT_PIZZA) {
+        if (this.game.ui && this.game.ui.showPizzeriaJobModal) {
+          this.showInteriorModal(window.FFH.createPizzeriaRoom, 'NPC_MATHIAS', (cleanup) => {
+            this.game.ui.showPizzeriaJobModal(() => {
+              cleanup();
+              s.act1Stage = Stages.JOB_HUNT_BAKERY;
+              s.questStep = 3;
+              s.activeObjective = '🥐 Rejected at Pizzeria! Try Bakery Hansa for work.';
+              if (this.game.storyRunner) {
+                this.game.storyRunner.pendingStoryTarget = { sceneId: 'bakery_job', poi: 'B_BAKERY' };
+              }
+              if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+              this.isEnteringBuilding = false;
+              this.inputDisabled = false;
+              if (window.FFH && window.FFH.saveGame) {
+                window.FFH.saveGame(this.game);
+              }
+              this.startBuildingExit();
+            });
+          });
+          return;
+        }
+      }
+
+      if (this.game.ui && this.game.ui.spawnWandererThought) {
+        this.game.ui.spawnWandererThought("Smells of fresh garlic and oregano, but I have places to be right now.");
+      }
+      cancelAndExit();
+      return;
+    }
+
+    // 5. BÄCKEREI HANSA (Oma Martha Rejection & Kruma Reveal)
+    if (poiType === 'B_BAKERY' || poiType.includes('Bakery') || poiType.includes('Bäcker')) {
+      if (curStage === Stages.JOB_HUNT_BAKERY) {
+        if (this.game.ui && this.game.ui.showBakeryJobModal) {
+          this.showInteriorModal(window.FFH.createBakeryRoom, 'NPC_MARTHA', (cleanup) => {
+            this.game.ui.showBakeryJobModal(() => {
+              cleanup();
+              s.act1Stage = Stages.RETURN_TO_WG;
+              s.questStep = 4;
+              s.activeObjective = '🏠 Rejected at Bakery! Head back to WG to sleep.';
+              if (this.game.storyRunner) {
+                this.game.storyRunner.pendingStoryTarget = { sceneId: 'day1_sleep', poi: 'B_WG' };
+              }
+              if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+              this.isEnteringBuilding = false;
+              this.inputDisabled = false;
+              if (window.FFH && window.FFH.saveGame) {
+                window.FFH.saveGame(this.game);
+              }
+              this.startBuildingExit();
+            });
+          });
+          return;
+        }
+      }
+
+      if (this.game.ui && this.game.ui.spawnWandererThought) {
+        this.game.ui.spawnWandererThought("Warm crusty rye bread in the window. No time to browse pastries just yet.");
+      }
+      cancelAndExit();
+      return;
+    }
+
+    // 6. KRUMA EXPRESS DARK STORE
+    if (poiType === 'B_DARKSTORE' || poiType.includes('Kruma') || poiType.includes('Dark Store')) {
+      if (s.day >= 2 || curStage === Stages.DAY1_SLEEP) {
+        targetNpc = 'NPC_NINA';
+        storyScene = 'knot_money';
+      } else {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("Kruma Express warehouse. Shutter doors are down for the night. Opens tomorrow at 07:00.");
+        }
+        cancelAndExit();
+        return;
+      }
+    }
+
+    // 7. ZOB & TRANSIT HUB
     if (poiType === 'B_ZOB' || poiType.includes('ZOB') || poiType.includes('Station')) {
       if (this.game.ui && this.game.ui.spawnWandererThought) {
         this.game.ui.spawnWandererThought(
           "Bus Timetable: 'No buses inside town center. Walk.' Brilliant. Welcome to Germany, mate. Drag your 25kg suitcase across the cobblestones."
         );
       }
-      if (this.game.sfx && this.game.sfx.playSfx) {
-        this.game.sfx.playSfx('click');
-      }
-      this.isEnteringBuilding = false;
-      this.inputDisabled = false;
-      this.startBuildingExit();
+      cancelAndExit();
       return;
+    }
+
+    // 8. OTHER STORY & CIVIC BUILDINGS
+    if (poiType.includes('Hostel') || poiType.includes('Dorm')) {
+      targetNpc = 'NPC_WEBER';
+      storyScene = 'the_circle_2';
+    } else if (poiType.includes('Ausländer') || poiType.includes('Office') || poiType.includes('Dom') || poiType === 'B_AUSLAENDER') {
+      targetNpc = 'NPC_LINDEMANN';
+      storyScene = 'act_five';
     }
 
     if (sr && storyScene && (sr.scenesById ? sr.scenesById[storyScene] : sr.scenes[storyScene])) {
@@ -1565,10 +1564,7 @@ window.FFH.CityExplorationPhase = class {
       if (this.game.sfx && this.game.sfx.playSfx) {
         this.game.sfx.playSfx('success');
       }
-      // Since there's no scene transition, immediately bounce back out
-      this.isEnteringBuilding = false;
-      this.inputDisabled = false;
-      this.startBuildingExit();
+      cancelAndExit();
     }
   }
 
@@ -1583,11 +1579,19 @@ window.FFH.CityExplorationPhase = class {
     );
     
     if (dist > INTERACT_RADIUS) {
-      this.targetMovePos = { x: buildingPos.x, z: buildingPos.z };
+      this.setMoveTarget(buildingPos.x, buildingPos.z);
       return;
     }
 
-    this.startBuildingEntry(poiData.type || poiData.name, buildingPos);
+    const poiType = poiData.type || poiData.name || '';
+    if (poiType.startsWith('A')) {
+      if (this.game.ui && this.game.ui.spawnWandererThought) {
+        this.game.ui.spawnWandererThought("Just an ordinary townhouse. Better focus on finding my room.");
+      }
+      return;
+    }
+
+    this.startBuildingEntry(poiType, buildingPos);
   }
 
   checkBuildingCollision(posX, posZ) {
@@ -1605,42 +1609,37 @@ window.FFH.CityExplorationPhase = class {
   }
 
   startBuildingExit() {
-    this.isExitingBuilding = true;
     this.enteringTimer = 0;
-    this.inputDisabled = true;
-    
-    if (this.enteringPoiType && this.enteringBuildingPos) {
-      // We know exactly where the door is!
-      this.exitingStartPos = this.enteringBuildingPos.clone();
-      this.exitingTargetPos = this.enteringDoorPos.clone();
-      this.playerPos.copy(this.exitingStartPos);
-      
-      const dx = this.exitingTargetPos.x - this.exitingStartPos.x;
-      const dz = this.exitingTargetPos.z - this.exitingStartPos.z;
-      const heading = Math.atan2(dx, dz);
-      
-      if (this.courier) {
-        this.courier.scale.setScalar(0.01);
-        this.courier.rotation.y = heading;
-      }
-      this.manualCameraAngle = heading; // Camera looking back at player
-    } else {
-      // Fallback if enteringPoiType is lost (shouldn't happen)
-      if (this.courier) {
-        this.courier.scale.setScalar(0.01);
-        this.courier.rotation.y += Math.PI; 
-        this.exitingStartPos = this.playerPos.clone();
-        const exitDir = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.courier.rotation.y);
-        this.exitingTargetPos = this.playerPos.clone().add(exitDir.multiplyScalar(2.5));
-        this.manualCameraAngle = this.courier.rotation.y;
+    this.isEnteringBuilding = false;
+    this.isExitingBuilding = false;
+    this.inputDisabled = false;
+
+    if (this.enteringPoiType && this.enteringDoorPos) {
+      this.playerPos.copy(this.enteringDoorPos);
+    }
+
+    if (this.courier) {
+      this.courier.position.copy(this.playerPos);
+      this.courier.scale.setScalar(1.0);
+      if (this.courier.userData && this.courier.userData.playAction) {
+        this.courier.userData.playAction('idle');
       }
     }
-    
-    this.targetCamZoom = 1.25;
-    this.updateCamera(true); // Snap immediately
+
+    this.manualCameraAngle = undefined; // Return camera to normal isometric follow
+    this.targetCamZoom = 1.15;
+    this.updateCamera(false);
   }
 
   update(delta) {
+    // Decoupled Central Input Rule: input is enabled unless an active blocking animation is playing
+    if (this.inputDisabled && !this.isEnteringBuilding && !this.isExitingBuilding) {
+       const titleScreen = document.getElementById('title-screen');
+       if (!titleScreen || (titleScreen.style.display === 'none' && this.game.clock.getElapsedTime() > 4.0)) {
+           this.inputDisabled = false;
+       }
+    }
+
     if (this.isEnteringBuilding) {
       this.enteringTimer += delta;
       const progress = Math.min(this.enteringTimer / 1.5, 1.0);
@@ -1822,12 +1821,30 @@ window.FFH.CityExplorationPhase = class {
         const nextZ = this.playerPos.z + dirZ * step;
 
         const radius = this.playerRadius || 0.4;
+        const curX = this.playerPos.x;
+        const curZ = this.playerPos.z;
         const resolved = window.FFH.resolveSlidingMovement
-          ? window.FFH.resolveSlidingMovement(this.playerPos.x, this.playerPos.z, nextX, nextZ, radius)
+          ? window.FFH.resolveSlidingMovement(curX, curZ, nextX, nextZ, radius)
           : { x: nextX, z: nextZ };
 
         this.playerPos.x = resolved.x;
         this.playerPos.z = resolved.z;
+
+        // If player made zero progress due to wall collision, abort path after short delay
+        if (Math.abs(resolved.x - curX) < 0.001 && Math.abs(resolved.z - curZ) < 0.001) {
+          this.stuckTimer = (this.stuckTimer || 0) + delta;
+          if (this.stuckTimer > 0.3) {
+            this.playerPath = [];
+            this.targetMovePos = null;
+            if (this.targetMarker) this.targetMarker.visible = false;
+            this.stuckTimer = 0;
+            if (this.courier && this.courier.userData && this.courier.userData.playAction) {
+              this.courier.userData.playAction('idle');
+            }
+          }
+        } else {
+          this.stuckTimer = 0;
+        }
 
         if (this.courier) {
           this.courier.position.x = this.playerPos.x;
@@ -1887,11 +1904,23 @@ window.FFH.CityExplorationPhase = class {
     let targetMesh = null;
     const TUITION_GOAL = window.FFH.ECONOMY?.TUITION_GOAL || 250;
 
-    // --- Highest priority: story is waiting for player to travel to a new location ---
-    // --- Target navigation marker is exclusively active when pendingStoryTarget or activeDelivery is set ---
+    // --- Target navigation marker resolves using pendingStoryTarget OR canonical act1Stage ---
     const sr = this.game.storyRunner;
+    const Stages = window.FFH.ACT1_STAGES || {};
+    const curStage = this.game.state.act1Stage || Stages.ARRIVAL_ZOB;
+
     if (sr && sr.pendingStoryTarget) {
       targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
+    } else if (curStage === Stages.ARRIVAL_ZOB || curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_WG');
+    } else if (curStage === Stages.TRANSIT_TO_UNI || curStage === Stages.UNI_LOCKED) {
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
+    } else if (curStage === Stages.JOB_HUNT_PIZZA) {
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_PIZZA');
+    } else if (curStage === Stages.JOB_HUNT_BAKERY) {
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_BAKERY');
+    } else if (curStage === Stages.RETURN_TO_WG) {
+      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_WG');
     } else if (this.game.state.wallet >= TUITION_GOAL) {
       targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
     } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
@@ -2164,9 +2193,9 @@ window.FFH.CityExplorationPhase = class {
     const offsetY = baseHeight;
 
     const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
-    // Shift lookTarget Y down by 2.2 units so the player appears higher up (top 50% of screen)
-    // to prevent UI overlay overlapping the 3D character in portrait view.
-    const lookTargetY = this.playerPos.y - 2.2;
+    // Shift lookTarget Y UP by 1.8 units so the player appears lower down on the screen,
+    // ensuring the character sits in the visible lower-middle zone and the top HUD does not obscure the path ahead.
+    const lookTargetY = this.playerPos.y + 1.8;
     const lookTargetZ = this.playerPos.z + (this.cameraPanOffset ? this.cameraPanOffset.z : 0);
 
     const camX = lookTargetX + offsetX;

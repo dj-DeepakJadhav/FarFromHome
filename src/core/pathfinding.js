@@ -8,8 +8,8 @@ window.FFH.isTileWalkable = function(gx, gz) {
   if (!grid || gx < 0 || gx >= S || gz < 0 || gz >= S) return false;
   
   const type = grid[gz][gx];
-  // Water and buildings are UNWALKABLE obstacles
-  if (type === 'W' || type.startsWith('A') || type.startsWith('B_')) {
+  // Water, buildings, and trees are UNWALKABLE obstacles
+  if (type === 'W' || type === 'T' || type.startsWith('A') || type.startsWith('B_')) {
     return false;
   }
   return true;
