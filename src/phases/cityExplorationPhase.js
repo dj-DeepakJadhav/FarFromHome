@@ -1223,6 +1223,7 @@ window.FFH.CityExplorationPhase = class {
           }
           this.startBuildingExit();
         });
+        });
         return;
       } else if (!this.game.state.hasDoneMuelltrennung) {
         // Player tried to enter university before dropping luggage at WG
@@ -1257,6 +1258,7 @@ window.FFH.CityExplorationPhase = class {
             }
             this.startBuildingExit();
           });
+          });
         }
         return;
       } else if (!this.game.state.hasVisitedLockedUni) {
@@ -1290,6 +1292,7 @@ window.FFH.CityExplorationPhase = class {
               window.FFH.saveGame(this.game);
             }
             this.startBuildingExit();
+          });
           });
         }
         return;
@@ -1329,6 +1332,7 @@ window.FFH.CityExplorationPhase = class {
             window.FFH.saveGame(this.game);
           }
           this.triggerBuildingInteraction('B_WG_ENTERED');
+        });
         });
         return;
       }
@@ -1415,10 +1419,10 @@ window.FFH.CityExplorationPhase = class {
               }
               this.startBuildingExit();
             });
-            });
           } else {
             this.triggerBuildingInteraction('B_WG_ENTERED');
           }
+        });
         });
         return;
       }
