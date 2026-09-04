@@ -188,13 +188,16 @@ window.FFH.UI = class {
     this.showThoughtBubble(text, 3800);
   }
 
-  showThoughtBubble(text, duration = 4000) {
+  showThoughtBubble(text, duration = null) {
     const existing = document.getElementById('ffh-thought-bubble');
-    if (existing) existing.remove();
+    if (existing) {
+      if (existing._typewriterTimer) clearInterval(existing._typewriterTimer);
+      existing.remove();
+    }
 
     const el = document.createElement('div');
     el.id = 'ffh-thought-bubble';
-    el.innerHTML = `<span style="opacity:0.8; margin-right:4px;">💭</span><em>${text}</em>`;
+    el.innerHTML = `<span style="opacity:0.8; margin-right:4px;">💭</span><em id="thought-bubble-text" style="font-style:italic;"></em>`;
     
     // Position directly over player character head in 3D screen space if in CITY_EXPLORATION
     let screenX = window.innerWidth / 2;
@@ -212,28 +215,32 @@ window.FFH.UI = class {
       }
     }
 
+    // Clamp horizontally to stay cleanly visible on screen
+    screenX = Math.max(50, Math.min(window.innerWidth - 50, screenX));
+
     el.style.cssText = `
       position: fixed;
       left: ${screenX}px;
       top: ${screenY}px;
       transform: translate(-50%, -100%) scale(0.9);
-      background: rgba(18, 24, 38, 0.92);
+      background: rgba(18, 24, 38, 0.94);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border: 2px solid #FFD166;
       border-radius: 16px;
-      padding: 8px 14px;
+      padding: 10px 16px;
       color: #FFFFFF;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 700;
       letter-spacing: 0.2px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+      line-height: 1.4;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
       pointer-events: none;
       z-index: 99999;
       opacity: 0;
       transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-      max-width: 280px;
+      max-width: 300px;
       text-align: center;
     `;
     document.body.appendChild(el);
@@ -243,13 +250,36 @@ window.FFH.UI = class {
       el.style.transform = 'translate(-50%, -120%) scale(1.0)';
     });
 
+    const textTarget = el.querySelector('#thought-bubble-text');
+    let charIdx = 0;
+    const charDelay = 32; // Comfortable reading pace (~31 chars/sec)
+    
+    // Typewriter loop
+    el._typewriterTimer = setInterval(() => {
+      if (charIdx < text.length) {
+        textTarget.textContent += text[charIdx];
+        if (charIdx % 3 === 0 && this.game && this.game.speech) {
+          this.game.speech.playTalkBlip();
+        }
+        charIdx++;
+      } else {
+        clearInterval(el._typewriterTimer);
+      }
+    }, charDelay);
+
+    // Dynamic duration based on text length: typing time + generous reading time (minimum 4.0s)
+    const typingDuration = text.length * charDelay;
+    const readingTime = Math.max(3000, text.length * 50);
+    const totalDuration = duration || (typingDuration + readingTime);
+
     setTimeout(() => {
       if (el.parentNode) {
+        if (el._typewriterTimer) clearInterval(el._typewriterTimer);
         el.style.opacity = '0';
         el.style.transform = 'translate(-50%, -100%) scale(0.9)';
         setTimeout(() => el.remove(), 350);
       }
-    }, duration);
+    }, totalDuration);
   }
 
   showCompassUI(direction) {
@@ -442,8 +472,9 @@ window.FFH.UI = class {
         padding: 28px 24px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.4);
       ">
+        <div id="continue-row" style="display: none; flex-direction: row; gap: 8px; width: 100%; align-items: stretch;">
         <button id="btn-continue" style="
-          display: none;
+          display: block;
           background: #3A86FF;
           color: #FFF;
           border: none;
@@ -457,8 +488,26 @@ window.FFH.UI = class {
           transition: all 0.08s ease-in-out;
           font-family: monospace, monospace;
           text-transform: uppercase;
-          width: 100%;
+          flex: 1;
         ">▶ CONTINUE</button>
+
+        <button id="btn-delete-save" title="Wipe save & start fresh" style="
+          display: none;
+          background: rgba(231,111,81,0.18);
+          color: #E76F51;
+          border: 2px solid rgba(231,111,81,0.5);
+          border-radius: 10px;
+          width: 48px;
+          min-width: 48px;
+          font-size: 20px;
+          cursor: pointer;
+          transition: all 0.12s ease;
+          flex-shrink: 0;
+          line-height: 1;
+          padding: 0;
+        " onmouseover="this.style.background='rgba(231,111,81,0.35)';this.style.borderColor='#E76F51';"
+           onmouseout="this.style.background='rgba(231,111,81,0.18)';this.style.borderColor='rgba(231,111,81,0.5)';">🗑️</button>
+        </div>
 
         <button id="btn-new-game" style="
           background: #ECC238;
@@ -512,10 +561,47 @@ window.FFH.UI = class {
     const btnContinue = document.getElementById('btn-continue');
     const btnNewGame = document.getElementById('btn-new-game');
     const btnSound = document.getElementById('btn-sound');
-    
-    // Check if save exists
+    const btnDeleteSave = document.getElementById('btn-delete-save');
+    const continueRow = document.getElementById('continue-row');
+
+    // Show continue row only if a save exists
     if (localStorage.getItem('FFH_SAVE_GAME')) {
-      btnContinue.style.display = 'block';
+      continueRow.style.display = 'flex';
+      btnDeleteSave.style.display = 'block';
+    }
+
+    // Delete save: tap once to arm (turns red), tap again to confirm wipe
+    let deleteSaveArmed = false;
+    if (btnDeleteSave) {
+      btnDeleteSave.addEventListener('click', () => {
+        if (!deleteSaveArmed) {
+          deleteSaveArmed = true;
+          btnDeleteSave.textContent = '💀';
+          btnDeleteSave.style.background = '#E76F51';
+          btnDeleteSave.style.color = '#FFF';
+          btnDeleteSave.style.borderColor = '#C0392B';
+          btnDeleteSave.title = 'Tap again to confirm — save will be wiped!';
+          // Auto-disarm after 2s
+          setTimeout(() => {
+            if (deleteSaveArmed) {
+              deleteSaveArmed = false;
+              btnDeleteSave.textContent = '🗑️';
+              btnDeleteSave.style.background = 'rgba(231,111,81,0.18)';
+              btnDeleteSave.style.color = '#E76F51';
+              btnDeleteSave.style.borderColor = 'rgba(231,111,81,0.5)';
+              btnDeleteSave.title = 'Wipe save & start fresh';
+            }
+          }, 2000);
+        } else {
+          // Confirmed — wipe save
+          localStorage.removeItem('FFH_SAVE_GAME');
+          if (this.game.sfx) this.game.sfx.playSfx('wrong');
+          continueRow.style.display = 'none';
+          // Flash the new game button as a hint
+          btnNewGame.style.boxShadow = '0 5px 0 #9E7D1A, 0 0 20px rgba(236,194,56,0.8)';
+          setTimeout(() => { btnNewGame.style.boxShadow = '0 5px 0 #9E7D1A, 0 8px 20px rgba(236,194,56,0.4)'; }, 600);
+        }
+      });
     }
 
     if (btnNewGame) {
@@ -607,11 +693,69 @@ window.FFH.UI = class {
       });
       btnContinue.addEventListener('click', () => {
         this.game.sfx.playSfx('success');
-        const nextPhase = window.FFH.loadGame(this.game);
-        if (nextPhase) {
-          this.game.transitionTo(nextPhase);
-        } else {
-          this.game.transitionTo('CITY_EXPLORATION');
+        const loadResult = window.FFH.loadGame(this.game);
+        const nextPhase = (loadResult && loadResult.phaseKey) ? loadResult.phaseKey : 'CITY_EXPLORATION';
+        
+        // Clear title screen UI
+        this.clear();
+        this.game.clearTitleDiorama();
+
+        // Boot into target phase with restored position & lighting
+        this.game.transitionTo(nextPhase, {
+          spawnPos: loadResult ? loadResult.spawnPos : null,
+          timeOfDay: loadResult ? loadResult.timeOfDay : undefined
+        });
+
+        if (nextPhase === 'CITY_EXPLORATION') {
+          const cityPhase = this.game.phases.CITY_EXPLORATION;
+          if (cityPhase) {
+            cityPhase.inputDisabled = true;
+            cityPhase.camZoom = 0.52;
+            cityPhase.targetCamZoom = 0.52;
+
+            const targetPos = cityPhase.playerPos;
+            const cam = this.game.cameras.mainCamera;
+            const dx = cam.position.x - targetPos.x;
+            const dz = cam.position.z - targetPos.z;
+            cityPhase.camCurrentAngle = Math.atan2(dx, dz);
+            cityPhase.updateCamera(true);
+
+            const startAngle = cityPhase.camCurrentAngle;
+            let targetAngle = (Math.PI / 4) + Math.PI; // back-facing view
+            while (targetAngle - startAngle > Math.PI) targetAngle -= Math.PI * 2;
+            while (targetAngle - startAngle < -Math.PI) targetAngle += Math.PI * 2;
+
+            const startTime = Date.now();
+            const duration = 2400; // Snappy cinematic continue flight
+
+            const animLoop = () => {
+              const elapsed = Date.now() - startTime;
+              const t = Math.min(1.0, elapsed / duration);
+              const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+              cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
+              cityPhase.updateCamera(true);
+
+              if (t < 1.0) {
+                requestAnimationFrame(animLoop);
+              } else {
+                cityPhase.cameraHoldTimer = 3.0;
+                cityPhase.inputDisabled = false;
+
+                // Animate UI elements with the loaded stats
+                if (this.game.ui && this.game.ui.playObjectiveRevealSequence) {
+                  this.game.ui.playObjectiveRevealSequence(true);
+                }
+                if (this.game.ui && this.game.ui.refreshStats) {
+                  this.game.ui.refreshStats(this.game.state);
+                }
+              }
+            };
+
+            requestAnimationFrame(animLoop);
+          }
         }
       });
     }
@@ -1891,7 +2035,7 @@ window.FFH.UI = class {
             opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           ">
             <span style="font-size: 12px;">💶</span>
-            <div style="font-size: 11.5px; font-weight: 900; color: #E76F51; font-family: monospace;">
+            <div id="stat-val-wallet" style="font-size: 11.5px; font-weight: 900; color: #E76F51; font-family: monospace;">
               ${window.FFH.round2(s.wallet)}€
             </div>
           </div>
@@ -2228,7 +2372,7 @@ window.FFH.UI = class {
       box._typewriterTimer = setInterval(() => {
         if (charIndex < fullSpeech.length) {
           textTarget.textContent += fullSpeech[charIndex];
-          if (charIndex % 4 === 0 && this.game && this.game.speech) {
+          if (charIndex % 3 === 0 && this.game && this.game.speech) {
             this.game.speech.playTalkBlip(npcId);
           }
           charIndex++;
@@ -2239,7 +2383,7 @@ window.FFH.UI = class {
             scrollStream.scrollTop = scrollStream.scrollHeight;
           }
         }
-      }, 8);
+      }, 28);
 
       // Clicking anywhere on dialogue skips typewriter to end immediately
       box.addEventListener('click', (e) => {
@@ -2696,6 +2840,750 @@ window.FFH.UI = class {
     // Note: In 3D space, rotation might need offset depending on camera forward.
     const deg = (angleRad * 180 / Math.PI);
     document.getElementById('delivery-distance-arrow').style.transform = `rotate(${deg}deg)`;
+  }
+
+  showWGBuzzerModal(onSuccessCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('wg-buzzer-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'wg-buzzer-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3px solid #264653;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 330px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Header -->
+        <div style="background: #264653; padding: 14px 16px; color: #FFF; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">STUDENTEN-WG LÜBECK</div>
+            <div style="font-size: 16px; font-weight: 900;">🔔 Klingelanlage (Doorbell)</div>
+          </div>
+          <button id="btn-close-buzzer" style="background: none; border: none; color: #FFF; font-size: 20px; cursor: pointer;">✕</button>
+        </div>
+
+        <div id="buzzer-buttons-container" style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12.5px; color: #4A5568; line-height: 1.4;">
+            Which doorbell do you press to find your roommate Nico?
+          </div>
+        </div>
+
+        <div id="buzzer-status" style="display: none; padding: 10px 16px; font-size: 12px; font-weight: 800; text-align: center;"></div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    const statusEl = modal.querySelector('#buzzer-status');
+    const containerEl = modal.querySelector('#buzzer-buttons-container');
+
+    modal.querySelector('#btn-close-buzzer').onclick = () => {
+      modal.remove();
+    };
+
+    // Define the 3 doorbells as modular entries
+    const buzzerEntries = [
+      {
+        id: 'buzzer-btn-1',
+        label: '🔘 OG 1: Frau Meier',
+        subtext: '*Ruhezeit bitte beachten!*',
+        borderLeft: '#E76F51',
+        onClick: () => {
+          if (this.game.sfx) this.game.sfx.playSfx('doorbell_wrong');
+          if (window.FFH.NPCMemoryManager) {
+            window.FFH.NPCMemoryManager.recordEncounter('NPC_FRAU_MEIER', 'buzzed_at_wrong_hour', -20, this.game.state);
+          }
+          statusEl.style.display = 'block';
+          statusEl.style.background = '#FFE3E3';
+          statusEl.style.color = '#C92A2A';
+          statusEl.innerHTML = '🔊 Scratchy Intercom: <em>"NEIN! Ruhezeit! Wer wagt es?!"</em> (-1 Noise Strike)';
+        }
+      },
+      {
+        id: 'buzzer-btn-2',
+        label: '🔘 EG: Hausmeister Schmidt',
+        subtext: '*Sprechstunde Mi 14:00-14:15*',
+        borderLeft: '#457B9D',
+        onClick: () => {
+          if (this.game.sfx) this.game.sfx.playSfx('click');
+          statusEl.style.display = 'block';
+          statusEl.style.background = '#EDF2F7';
+          statusEl.style.color = '#4A5568';
+          statusEl.innerHTML = '🔊 Heavy static, a deep sigh, and the receiver hangs up.';
+        }
+      },
+      {
+        id: 'buzzer-btn-3',
+        label: '🔘 3. OG: WG 3B — Nico & Co.',
+        subtext: '*Handwritten note: New flatmate welcome!*',
+        borderLeft: '#2EC4B6',
+        onClick: () => {
+          if (this.game.sfx) this.game.sfx.playSfx('bell');
+          statusEl.style.display = 'block';
+          statusEl.style.background = '#D3F9D8';
+          statusEl.style.color = '#2B8A3E';
+          statusEl.innerHTML = '⚡ <strong>BZZZZZZT!</strong> The heavy oak latch clicks open!';
+
+          setTimeout(() => {
+            modal.remove();
+            if (onSuccessCallback) onSuccessCallback();
+          }, 700);
+        }
+      }
+    ];
+
+    // Fisher-Yates shuffle to randomize button order on every visit
+    const shuffled = [...buzzerEntries];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // Render the randomly positioned buttons
+    shuffled.forEach(item => {
+      const btn = document.createElement('button');
+      btn.id = item.id;
+      btn.style.cssText = `
+        background: #F8F9FA;
+        border: 2px solid #CBD5E0;
+        border-left: 6px solid ${item.borderLeft};
+        border-radius: 10px;
+        padding: 12px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+      `;
+      btn.innerHTML = `
+        <div style="font-size: 13px; font-weight: 900; color: #2D3748;">${item.label}</div>
+        <div style="font-size: 10.5px; color: #718096;">${item.subtext}</div>
+      `;
+      btn.onclick = item.onClick;
+      containerEl.appendChild(btn);
+    });
+  }
+
+  showMuelltrennungModal(onCompleteCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('muelltrennung-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'muelltrennung-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3px solid #264653;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 340px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Header -->
+        <div style="background: #2A9D8F; padding: 14px 16px; color: #FFF;">
+          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">KÜCHEN-NOTFALL (KITCHEN CRISIS)</div>
+          <div style="font-size: 16px; font-weight: 900;">♻️ Nico's Mülltrennung Test!</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px; background: #F8F9FA; padding: 10px; border-radius: 10px; border: 1.5px dashed #CBD5E0;">
+            <div style="font-size: 32px;">🥛</div>
+            <div style="font-size: 12px; color: #2D3748; line-height: 1.4;">
+              <strong>Nico holds an empty plastic yogurt pot with foil lid:</strong><br>
+              <em>"Quick! Before Herr Becker inspects the bins, where does this go?!"</em>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Bin 1: Blue (Paper) -->
+            <button id="bin-blue" style="
+              background: #F0F7FF;
+              border: 2px solid #3A86FF;
+              border-left: 8px solid #3A86FF;
+              border-radius: 10px;
+              padding: 10px 12px;
+              text-align: left;
+              cursor: pointer;
+            ">
+              <div style="font-size: 13px; font-weight: 900; color: #1D3557;">🟦 Blaue Tonne (Papiermüll)</div>
+              <div style="font-size: 10.5px; color: #4A5568;">Paper, newspapers, cardboard boxes</div>
+            </button>
+
+            <!-- Bin 2: Yellow (Gelber Sack / Plastic & Metal) -->
+            <button id="bin-yellow" style="
+              background: #FFFDF0;
+              border: 2px solid #ECC238;
+              border-left: 8px solid #ECC238;
+              border-radius: 10px;
+              padding: 10px 12px;
+              text-align: left;
+              cursor: pointer;
+            ">
+              <div style="font-size: 13px; font-weight: 900; color: #7A5E0B;">🟨 Gelber Sack (Plastic & Foil Packaging)</div>
+              <div style="font-size: 10.5px; color: #4A5568;">Plastic pots, metal cans, foil lids</div>
+            </button>
+
+            <!-- Bin 3: Black (Restmüll) -->
+            <button id="bin-black" style="
+              background: #F8F9FA;
+              border: 2px solid #4A5568;
+              border-left: 8px solid #4A5568;
+              border-radius: 10px;
+              padding: 10px 12px;
+              text-align: left;
+              cursor: pointer;
+            ">
+              <div style="font-size: 13px; font-weight: 900; color: #2D3748;">⬛ Restmüll (Residual Waste)</div>
+              <div style="font-size: 10.5px; color: #4A5568;">Non-recyclable household waste</div>
+            </button>
+          </div>
+
+          <div id="bin-feedback" style="display: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 800; text-align: center;"></div>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    const feedbackEl = modal.querySelector('#bin-feedback');
+
+    const handleChoice = (isCorrect, message, bg, color) => {
+      feedbackEl.style.display = 'block';
+      feedbackEl.style.background = bg;
+      feedbackEl.style.color = color;
+      feedbackEl.innerHTML = message;
+
+      if (window.FFH.NPCMemoryManager) {
+        if (isCorrect) {
+          window.FFH.NPCMemoryManager.recordEncounter('NPC_NICO', 'trash_master', 20, this.game.state);
+        } else {
+          window.FFH.NPCMemoryManager.recordEncounter('NPC_NICO', 'trash_disaster', -15, this.game.state);
+        }
+      }
+
+      if (this.game.sfx) {
+        this.game.sfx.playSfx(isCorrect ? 'success' : 'wrong');
+      }
+
+      setTimeout(() => {
+        modal.remove();
+        if (onCompleteCallback) onCompleteCallback(isCorrect);
+      }, 1200);
+    };
+
+    modal.querySelector('#bin-blue').onclick = () => {
+      handleChoice(false, '❌ Nico screams in a whisper: <em>"NO! Plastic in the paper bin?! Becker will evict us!"</em>', '#FFE3E3', '#C92A2A');
+    };
+
+    modal.querySelector('#bin-yellow').onclick = () => {
+      handleChoice(true, '🎉 Nico sighs with massive relief: <em>"Brilliant! You\'re a legend. We live to see tomorrow!"</em> (+2 Trust)', '#D3F9D8', '#2B8A3E');
+    };
+
+    modal.querySelector('#bin-black').onclick = () => {
+      handleChoice(false, '❌ Nico snatches the pot: <em>"Wrong! Gelber Sack! You almost caused a diplomatic crisis!"</em>', '#FFE3E3', '#C92A2A');
+    };
+  }
+
+  showTuitionLetterModal(onAcknowledgeCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('tuition-letter-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'tuition-letter-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFDF9;
+        border: 3px solid #264653;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 330px;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.45);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Letter Stamp Header -->
+        <div style="background: #264653; padding: 12px 16px; color: #FFF; border-bottom: 3px solid #E76F51; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 10px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">OFFICIAL NOTIFICATION</div>
+            <div style="font-size: 15px; font-weight: 900;">🏛️ Hochschule Lübeck — Kasse</div>
+          </div>
+          <div style="font-size: 22px;">📜</div>
+        </div>
+
+        <div style="padding: 18px 16px; display: flex; flex-direction: column; gap: 12px;">
+          <!-- Official Notice Box -->
+          <div style="background: #F8F9FA; border: 1.5px solid #CBD5E0; border-radius: 8px; padding: 12px; font-family: monospace, sans-serif; font-size: 11.5px; color: #2D3748; line-height: 1.5;">
+            <div><strong>BETREFF:</strong> Semesterbeitrag (Tuition)</div>
+            <div><strong>FÄLLIGKEIT:</strong> Freitag, 17:00 Uhr</div>
+            <div style="border-top: 1px dashed #CBD5E0; margin: 8px 0;"></div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Tuition Fee Due:</span>
+              <span style="font-weight: 900; color: #E76F51;">250.00 €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Current Cash in Pocket:</span>
+              <span style="font-weight: 900; color: #2A9D8F;">${(this.game.state.wallet || 20).toFixed(2)} €</span>
+            </div>
+            <div style="border-top: 1px dashed #CBD5E0; margin: 8px 0;"></div>
+            <div style="font-size: 10px; color: #C92A2A; font-weight: 800;">
+              *Achtung: Exmatrikulation upon failure to pay.
+            </div>
+          </div>
+
+          <!-- British Thought Commentary -->
+          <div style="background: #FFE8D6; border-left: 4px solid #E76F51; border-radius: 6px; padding: 10px; font-size: 12px; color: #7B241C; line-height: 1.4;">
+            💭 <em>"Two hundred and fifty quid?! I’ve got twenty euros and a used yogurt lid. I need to sprint to the University admissions office before they cancel my visa."</em>
+          </div>
+
+          <!-- Action Button -->
+          <button id="btn-ack-letter" style="
+            background: #2EC4B6;
+            color: #FFF;
+            border: 2px solid #264653;
+            border-bottom: 4px solid #1A7A73;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            🏃 Sprint to University (Before 17:00)
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-ack-letter').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('click');
+      modal.remove();
+      if (onAcknowledgeCallback) onAcknowledgeCallback();
+    };
+  }
+
+  showLockedUniModal(onLeaveCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('locked-uni-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'locked-uni-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3px solid #264653;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 340px;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.45);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Door Header -->
+        <div style="background: #264653; padding: 14px 16px; color: #FFF; border-bottom: 3px solid #E76F51; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">UNIVERSITÄT LÜBECK</div>
+            <div style="font-size: 16px; font-weight: 900;">🔒 Geschlossen (Closed: 17:01)</div>
+          </div>
+          <div style="font-size: 24px;">🚪</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <!-- Sign on Door -->
+          <div style="background: #FFFBEA; border: 2px solid #ECC238; border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="font-size: 14px; font-weight: 900; color: #7A5E0B;">ÖFFNUNGSZEITEN</div>
+            <div style="font-size: 12px; color: #2D3748; margin-top: 4px;">
+              Dienstag & Donnerstag: 10:00 – 11:30 Uhr<br>
+              <strong>Freitags geschlossen.</strong>
+            </div>
+            <div style="margin-top: 6px; font-size: 11px; color: #C92A2A; font-weight: 800;">
+              *Heavy brass padlock on door handles*
+            </div>
+          </div>
+
+          <!-- Frau Klein Encounter -->
+          <div style="display: flex; gap: 10px; background: #F8F9FA; border: 1.5px solid #CBD5E0; border-radius: 10px; padding: 10px;">
+            <div style="font-size: 28px;">🥔</div>
+            <div style="font-size: 12px; color: #2D3748; line-height: 1.4;">
+              <strong>Frau Klein (passing by with potatoes):</strong><br>
+              <em>"Looking for the registrar, boy? In Germany, at 16:59:59 the pen leaves the hand! At 17:01, they are already on the sofa drinking herbal tea. Come back tomorrow!"</em>
+            </div>
+          </div>
+
+          <!-- British Thought -->
+          <div style="background: #FFE8D6; border-left: 4px solid #E76F51; border-radius: 6px; padding: 10px; font-size: 11.5px; color: #7B241C; line-height: 1.35;">
+            💭 <em>"A ninety-minute work week! Truly the backbone of the republic. Well, I have no money, no enrollment, and night is falling."</em>
+          </div>
+
+          <!-- Leave Button -->
+          <button id="btn-leave-uni" style="
+            background: #E76F51;
+            color: #FFF;
+            border: 2px solid #264653;
+            border-bottom: 4px solid #B2462E;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            🌙 Walk into the Evening (Find Work)
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-leave-uni').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('click');
+      // Record Frau Klein Shadow of Mordor memory
+      if (window.FFH.NPCMemoryManager) {
+        window.FFH.NPCMemoryManager.recordEncounter('NPC_FRAU_KLEIN', 'met_at_locked_uni', 10, this.game.state);
+      }
+      modal.remove();
+      if (onLeaveCallback) onLeaveCallback();
+    };
+  }
+
+  showDayRecapModal(onSleepCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('day-recap-modal');
+    if (prev) prev.remove();
+
+    const s = this.game.state;
+    const wallet = (s.wallet !== undefined ? s.wallet : 20.0).toFixed(2);
+    const goal = (window.FFH.ECONOMY?.TUITION_GOAL || 250).toFixed(2);
+    const deficit = Math.max(0, (window.FFH.ECONOMY?.TUITION_GOAL || 250) - (s.wallet || 20)).toFixed(2);
+
+    const modal = document.createElement('div');
+    modal.id = 'day-recap-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 15, 26, 0.94);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.4s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #1D2D44;
+        border: 3px solid #FFD166;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 340px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        color: #FFFFFF;
+      ">
+        <!-- Night Header -->
+        <div style="background: #0D1B2A; padding: 16px; text-align: center; border-bottom: 2px solid #415A77;">
+          <div style="font-size: 28px; margin-bottom: 4px;">🌙</div>
+          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 2px;">TAG 1 VORBEI (DAY 1 CONCLUDED)</div>
+          <div style="font-size: 18px; font-weight: 900; margin-top: 2px;">22:00 Uhr — Gesetzliche Ruhezeit</div>
+        </div>
+
+        <div style="padding: 18px 16px; display: flex; flex-direction: column; gap: 12px;">
+          <!-- Financial Reality Box -->
+          <div style="background: rgba(255,255,255,0.06); border: 1px solid #415A77; border-radius: 10px; padding: 12px; font-family: monospace, sans-serif; font-size: 12px; line-height: 1.6;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Current Wallet:</span>
+              <span style="font-weight: 900; color: #2EC4B6;">${wallet} €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Tuition Needed:</span>
+              <span style="font-weight: 900; color: #FFD166;">${goal} €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Remaining Deficit:</span>
+              <span style="font-weight: 900; color: #E76F51;">-${deficit} €</span>
+            </div>
+            <div style="border-top: 1px dashed #415A77; margin: 8px 0;"></div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Days until Deadline:</span>
+              <span style="font-weight: 900; color: #FFF;">6 Days</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Pizzeria Rejection:</span>
+              <span style="font-weight: 900; color: #E76F51;">1 ("No Italian")</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Bakery Rejection:</span>
+              <span style="font-weight: 900; color: #E76F51;">1 ("B1 German")</span>
+            </div>
+          </div>
+
+          <!-- British Monologue -->
+          <div style="background: rgba(255, 209, 102, 0.1); border-left: 4px solid #FFD166; border-radius: 6px; padding: 10px; font-size: 11.5px; color: #FFE8D6; line-height: 1.35;">
+            💭 <em>"Turned down at the pizzeria for being too English, rejected at the bakery for missing a B1 certificate. Nina at Kruma Express is my only hope tomorrow morning."</em>
+          </div>
+
+          <!-- Sleep Button -->
+          <button id="btn-sleep-morning" style="
+            background: #2EC4B6;
+            color: #0D1B2A;
+            border: 2px solid #FFD166;
+            border-bottom: 5px solid #1A7A73;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          ">
+            😴 SLEEP (END OF DAY 1)
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-sleep-morning').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('bell');
+      modal.remove();
+      // Show Act 1 Completed Celebration Banner
+      if (this.spawnFloatingText) {
+        this.spawnFloatingText('🎉 ACT 1 COMPLETED! (DAY 1 SURVIVED)', window.innerWidth / 2, window.innerHeight * 0.4, '#FFD166');
+      }
+      if (onSleepCallback) onSleepCallback();
+    };
+  }
+
+  showPizzeriaJobModal(onAcknowledgeCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('pizzeria-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'pizzeria-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFDF9;
+        border: 3px solid #264653;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 320px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <div style="background: #264653; padding: 14px 16px; color: #FFF; text-align: center; border-bottom: 2px solid #E76F51;">
+          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">LA BELLA NAPOLI</div>
+          <div style="font-size: 18px; font-weight: 900; margin-top: 2px;">🍕 Job Inquiry</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="font-size: 13.5px; color: #2D3748; line-height: 1.5;">
+            You walk into the pizzeria, taking a deep breath of fresh garlic and oregano. You ask the owner if he needs a delivery driver.
+          </div>
+          
+          <div style="background: #F4E8D8; border-left: 5px solid #E76F51; border-radius: 4px; padding: 12px; font-size: 13px; color: #2D3748; font-style: italic;">
+            "No Italian, no pizza flipping, and your German sounds like a broken lawnmower! Try the bakery down the street, kid!"<br>
+            <strong style="display: block; margin-top: 6px; font-style: normal; font-size: 11px; color: #E76F51;">— Mathias Becker (Owner)</strong>
+          </div>
+
+          <button id="btn-leave-pizzeria" style="
+            background: #E76F51;
+            color: #FFFFFF;
+            border: none;
+            border-bottom: 4px solid #C0392B;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            Walk Away
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-leave-pizzeria').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('wrong');
+      modal.remove();
+      if (onAcknowledgeCallback) onAcknowledgeCallback();
+    };
+  }
+
+  showBakeryJobModal(onAcknowledgeCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('bakery-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'bakery-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFDF9;
+        border: 3px solid #264653;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 320px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <div style="background: #264653; padding: 14px 16px; color: #FFF; text-align: center; border-bottom: 2px solid #E76F51;">
+          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">BÄCKEREI HANSA</div>
+          <div style="font-size: 18px; font-weight: 900; margin-top: 2px;">🥨 Job Inquiry</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="font-size: 13.5px; color: #2D3748; line-height: 1.5;">
+            You enter the bakery, eyeing the warm crusty rye bread. You ask the old lady behind the counter if she needs any help.
+          </div>
+          
+          <div style="background: #F4E8D8; border-left: 5px solid #E76F51; border-radius: 4px; padding: 12px; font-size: 13px; color: #2D3748; font-style: italic;">
+            "You want to knead rye bread? You need a B1 German certificate and five years of flour apprenticeship! But Nina at Kruma Express warehouse hires anyone who can cycle without fainting!"<br>
+            <strong style="display: block; margin-top: 6px; font-style: normal; font-size: 11px; color: #E76F51;">— Oma Martha</strong>
+          </div>
+
+          <button id="btn-leave-bakery" style="
+            background: #E76F51;
+            color: #FFFFFF;
+            border: none;
+            border-bottom: 4px solid #C0392B;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            Walk Away
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-leave-bakery').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('wrong');
+      modal.remove();
+      if (onAcknowledgeCallback) onAcknowledgeCallback();
+    };
   }
 };
 

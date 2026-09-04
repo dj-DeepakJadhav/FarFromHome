@@ -94,6 +94,12 @@ window.FFH.CityExplorationPhase = class {
 
     // Setup Atmosphere & Dynamic Day-Night Lights
     this.setupAtmosphere();
+    if (data && data.timeOfDay !== undefined) {
+      this.updateAtmosphericTime(data.timeOfDay);
+    }
+    if (data && data.spawnPos) {
+      this.playerPos.set(data.spawnPos.x, data.spawnPos.y !== undefined ? data.spawnPos.y : 0.05, data.spawnPos.z);
+    }
 
     // Build city world with scaled proportions
     const { worldGroup, interactiveMeshes, waterMat, clouds, butterflies, birds } = window.FFH.buildLubeckCityWorld();
@@ -183,6 +189,29 @@ window.FFH.CityExplorationPhase = class {
     
     // Initialize Minimap Data
     this.setupMinimap();
+
+    // Initialize 3D Pfand Bottle Collectibles (€0.25 each)
+    this.setupPfandCollectibles();
+
+    // Step 1: Station Arrival Auto-Trigger for British Comedy Storyline
+    if (!this.game.state.hasShownStationArrivalThought && (!data || !data.fromBuildingExit)) {
+      this.game.state.hasShownStationArrivalThought = true;
+      setTimeout(() => {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought(
+            "So this is Germany. Clean. Tidy. And possessing a bus shelter roughly the size of a toaster. If I try to stand in there, my knees will be in Austria."
+          );
+        }
+        // Then 3.5s later, trigger the initial objective reveal and compass pointing South to WG
+        setTimeout(() => {
+          if (!this.game.state.firstObjectiveRevealed && this.game.ui && this.game.ui.triggerFirstObjectiveReveal) {
+            this.game.ui.triggerFirstObjectiveReveal();
+          } else {
+            this.revealCompass();
+          }
+        }, 3600);
+      }, 2500);
+    }
 
     if (data && data.fromBuildingExit) {
       this.startBuildingExit();
@@ -600,6 +629,160 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
+  // --- COLLECTIBLE PFAND BOTTLES SYSTEM (€0.25 each, €1.25 max) ---
+  setupPfandCollectibles() {
+    this.pfandCollectibles = [];
+    if (!this.game.state.collectedPfandIds) {
+      this.game.state.collectedPfandIds = [];
+    }
+
+    // 5 strategically placed bottles along sidewalks/roads across the town
+    // Total: 5 x €0.25 = €1.25 (player discovers them accidentally while walking)
+    const bottleSpawns = [
+      { id: 'pfand_station', x: 12.0, z: 8.5 },      // Just south of ZOB on the walking path
+      { id: 'pfand_bridge', x: 14.5, z: 18.0 },       // Near bridge approach
+      { id: 'pfand_wg_bench', x: 9.2, z: 24.5 },      // Outside near WG dorm
+      { id: 'pfand_market', x: 21.0, z: 24.0 },        // Corner of Rathaus / Market
+      { id: 'pfand_bakery', x: 6.5, z: 19.5 }         // Near Bakery Hansa entrance
+    ];
+
+    const bottleGroup = new THREE.Group();
+    bottleGroup.name = 'pfand_collectibles_group';
+
+    // Materials: Dark green glass with subtle shine, yellow metal cap, golden glowing ground ring
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0x2D6A4F, transparent: true, opacity: 0.88 });
+    const capMat = new THREE.MeshLambertMaterial({ color: 0xFFD166 });
+    const ringMat = new THREE.MeshBasicMaterial({ 
+      color: 0xFFD166, 
+      side: THREE.DoubleSide, 
+      transparent: true, 
+      opacity: 0.65,
+      depthWrite: false 
+    });
+
+    const bodyGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.28, 10);
+    const neckGeo = new THREE.CylinderGeometry(0.035, 0.06, 0.12, 8);
+    const capGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8);
+    const ringGeo = new THREE.RingGeometry(0.22, 0.40, 16);
+
+    bottleSpawns.forEach(spawn => {
+      // Skip if already collected on this save
+      if (this.game.state.collectedPfandIds.includes(spawn.id)) return;
+
+      const itemContainer = new THREE.Group();
+      itemContainer.position.set(spawn.x, 0.06, spawn.z);
+
+      // 1. Ground Pulsing Ring
+      const groundRing = new THREE.Mesh(ringGeo, ringMat.clone());
+      groundRing.rotation.x = -Math.PI / 2;
+      groundRing.position.y = 0.01;
+      itemContainer.add(groundRing);
+
+      // 2. Floating Bottle Mesh
+      const bottleMesh = new THREE.Group();
+      const bodyMesh = new THREE.Mesh(bodyGeo, glassMat);
+      bodyMesh.position.y = 0.14;
+      const neckMesh = new THREE.Mesh(neckGeo, glassMat);
+      neckMesh.position.y = 0.32;
+      const capMesh = new THREE.Mesh(capGeo, capMat);
+      capMesh.position.y = 0.39;
+      
+      bottleMesh.add(bodyMesh, neckMesh, capMesh);
+      bottleMesh.position.y = 0.12;
+      itemContainer.add(bottleMesh);
+
+      bottleGroup.add(itemContainer);
+
+      this.pfandCollectibles.push({
+        id: spawn.id,
+        x: spawn.x,
+        z: spawn.z,
+        container: itemContainer,
+        bottleMesh: bottleMesh,
+        groundRing: groundRing,
+        collected: false
+      });
+    });
+
+    this.game.scene.add(bottleGroup);
+    this.pfandGroup = bottleGroup;
+  }
+
+  updatePfandCollectibles(delta, timeSec) {
+    if (!this.pfandCollectibles || this.pfandCollectibles.length === 0) return;
+
+    const px = this.playerPos.x;
+    const pz = this.playerPos.z;
+    const PICKUP_RADIUS = 1.35; // Player touches / walks near it accidentally
+
+    for (let i = this.pfandCollectibles.length - 1; i >= 0; i--) {
+      const item = this.pfandCollectibles[i];
+      if (item.collected) continue;
+
+      // Animate rotation & bobbing
+      item.bottleMesh.rotation.y += delta * 2.2;
+      item.bottleMesh.position.y = 0.14 + Math.sin(timeSec * 4 + i) * 0.04;
+      
+      // Animate ground ring pulse
+      const ringScale = 1.0 + Math.sin(timeSec * 5 + i) * 0.18;
+      item.groundRing.scale.set(ringScale, ringScale, ringScale);
+      item.groundRing.material.opacity = 0.45 + Math.sin(timeSec * 5 + i) * 0.25;
+
+      // Proximity check
+      const dist = Math.hypot(px - item.x, pz - item.z);
+      if (dist < PICKUP_RADIUS) {
+        // Collect!
+        item.collected = true;
+        this.game.state.collectedPfandIds.push(item.id);
+        
+        // Canonical Economy: +€0.25
+        this.game.state.wallet = window.FFH.round2((this.game.state.wallet || 20) + 0.25);
+        if (this.game.ui && this.game.ui.refreshStats) {
+          this.game.ui.refreshStats(this.game.state);
+        }
+        if (this.game.ui && this.game.ui.updatePersistentHUD) {
+          this.game.ui.updatePersistentHUD(this.game.state);
+        }
+
+        // SFX feedback
+        if (this.game.sfx && this.game.sfx.playSfx) {
+          this.game.sfx.playSfx('register');
+        }
+
+        // Visual floating text feedback
+        if (this.game.ui && this.game.ui.spawnFloatingText) {
+          this.game.ui.spawnFloatingText('+0.25€ Pfand Deposit! 🍾', window.innerWidth / 2, window.innerHeight * 0.45, '#4CAF50');
+        }
+
+        // British Comedy discovery thoughts
+        const pfandThoughts = [
+          "Wait... there's 25 cents on this empty bottle? In London this is rubbish. Here I'm practically an investment banker.",
+          "Another Pfand bottle! That's 25 cents closer to paying university tuition.",
+          "Picking up beer bottles on the street... my parents would be so proud of my academic progress."
+        ];
+        const randomThought = pfandThoughts[Math.floor(Math.random() * pfandThoughts.length)];
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought(randomThought);
+        }
+
+        // Quick shrink animation before removing from scene
+        let shrinkTimer = 0.25;
+        const shrinkInterval = setInterval(() => {
+          shrinkTimer -= 0.05;
+          if (shrinkTimer <= 0) {
+            clearInterval(shrinkInterval);
+            if (item.container.parent) {
+              item.container.parent.remove(item.container);
+            }
+          } else {
+            const s = shrinkTimer / 0.25;
+            item.container.scale.set(s, s, s);
+          }
+        }, 30);
+      }
+    }
+  }
+
   // --- TOUCH & POINTER GESTURE HANDLING ---
 
   onTouchStart(e) {
@@ -907,10 +1090,12 @@ window.FFH.CityExplorationPhase = class {
 
   triggerBuildingInteraction(poiType) {
     const sr = this.game.storyRunner;
-    
+    const s = this.game.state;
+    console.log(`[TBI] poi=${poiType} | buzzed=${s.hasBuzzedWG} | mull=${s.hasDoneMuelltrennung} | uni=${s.hasVisitedLockedUni} | pending=${sr && sr.pendingStoryTarget ? sr.pendingStoryTarget.poi : 'none'}`);
+
     // Check if it's the pending story target
     if (sr && sr.pendingStoryTarget && poiType === sr.pendingStoryTarget.poi) {
-      const nextSceneId = sr.pendingStoryTarget.sceneId;
+      const nextSceneId = sr.resolveSceneId ? sr.resolveSceneId(sr.pendingStoryTarget.sceneId) : sr.pendingStoryTarget.sceneId;
       sr.pendingStoryTarget = null;
       if (this.game.ui && this.game.ui.hideCompassUI) {
         this.game.ui.hideCompassUI();
@@ -926,19 +1111,253 @@ window.FFH.CityExplorationPhase = class {
     let targetNpc = null;
     let storyScene = null;
 
+    // Clean display name mapping for any technical poi names
+    const friendlyPoiNames = {
+      'B_ZOB': 'Train Station (ZOB)',
+      'B_WG': 'Student WG (Apartment)',
+      'B_UNI': 'University Campus',
+      'B_PIZZA': 'Pizzeria Bella',
+      'B_BAKERY': 'Bakery Hansa',
+      'B_DARKSTORE': 'Kruma Express Hub',
+      'B_RATHAUS': 'Rathaus (City Hall)',
+      'B_AUSLAENDER': 'Ausländerbehörde',
+      'B_SUPERMARKET': 'Supermarket',
+      'LM_MARKTPLATZ': 'Marktplatz'
+    };
+    const cleanPoiName = friendlyPoiNames[poiType] || poiType.replace(/^B_/, '').replace(/_/g, ' ');
+
     if (poiType.includes('Universität') || poiType.includes('University') || poiType === 'B_UNI') {
+      // University is only relevant once player has finished WG arrival and discovered tuition
+      if (this.game.state.hasDoneMuelltrennung && !this.game.state.hasVisitedLockedUni && this.game.ui && this.game.ui.showLockedUniModal) {
+        this.game.ui.showLockedUniModal(() => {
+          this.game.state.hasVisitedLockedUni = true;
+          this.game.state.questStep = 2; // Advance to finding work
+          this.game.state.activeObjective = '🍕 Try Pizzeria Bella for work — ask about a job';
+          if (this.game.storyRunner) {
+            this.game.storyRunner.pendingStoryTarget = { sceneId: 'pizzeria_job', poi: 'B_PIZZA' };
+          }
+          if (this.game.ui && this.game.ui.updateQuestTracker) {
+            this.game.ui.updateQuestTracker();
+          }
+
+          // Step 9: Smoothly transition atmosphere to Night Mode (19:00, progress 0.85)!
+          let currentProgress = this.timeOfDay || 0.70;
+          const targetProgress = 0.88; // Deep Baltic night
+          const stepNight = () => {
+            if (currentProgress < targetProgress) {
+              currentProgress = Math.min(targetProgress, currentProgress + 0.03);
+              this.updateAtmosphericTime(currentProgress);
+              requestAnimationFrame(stepNight);
+            }
+          };
+          stepNight();
+
+          // British thought on freezing cold night and hunger
+          if (this.game.ui && this.game.ui.spawnWandererThought) {
+            setTimeout(() => {
+              this.game.ui.spawnWandererThought(
+                "Great. It's pitch black, freezing cold, and I still don't have a job. Check the lamp posts for flyers."
+              );
+            }, 1200);
+          }
+
+          this.isEnteringBuilding = false;
+          this.inputDisabled = false;
+          if (window.FFH && window.FFH.saveGame) {
+            window.FFH.saveGame(this.game);
+          }
+          this.startBuildingExit();
+        });
+        return;
+      } else if (!this.game.state.hasDoneMuelltrennung) {
+        // Player tried to enter university before dropping luggage at WG
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("I should drop off my luggage at the student WG first before heading to campus.");
+        }
+        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+        this.isEnteringBuilding = false;
+        this.inputDisabled = false;
+        this.startBuildingExit();
+        return;
+      }
       targetNpc = 'NPC_RITA';
       storyScene = 'rita_first';
     } else if (poiType.includes('Pizzeria') || poiType.includes('Pizza') || poiType === 'B_PIZZA') {
+      if (this.game.state.hasVisitedLockedUni && !this.game.state.hasVisitedPizzeriaJob) {
+        if (this.game.ui && this.game.ui.showPizzeriaJobModal) {
+          this.game.ui.showPizzeriaJobModal(() => {
+            this.game.state.hasVisitedPizzeriaJob = true;
+            this.game.state.questStep = 3;
+            this.game.state.activeObjective = '🥐 Rejected at Pizzeria! Try Bakery Hansa for work.';
+            if (this.game.storyRunner) {
+              this.game.storyRunner.pendingStoryTarget = { sceneId: 'bakery_job', poi: 'B_BAKERY' };
+            }
+            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+            this.isEnteringBuilding = false;
+            this.inputDisabled = false;
+            if (window.FFH && window.FFH.saveGame) {
+              window.FFH.saveGame(this.game);
+            }
+            this.startBuildingExit();
+          });
+        }
+        return;
+      } else if (!this.game.state.hasVisitedLockedUni) {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("The smells of fresh garlic and oregano are intoxicating, but I have places to be right now.");
+        }
+        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+        this.isEnteringBuilding = false;
+        this.inputDisabled = false;
+        this.startBuildingExit();
+        return;
+      }
       targetNpc = 'NPC_MATHIAS';
       storyScene = 'mathias_loan';
     } else if (poiType.includes('Bakery') || poiType.includes('Bäcker') || poiType === 'B_BAKERY') {
+      if (this.game.state.hasVisitedPizzeriaJob && !this.game.state.hasVisitedBakeryJob) {
+        if (this.game.ui && this.game.ui.showBakeryJobModal) {
+          this.game.ui.showBakeryJobModal(() => {
+            this.game.state.hasVisitedBakeryJob = true;
+            this.game.state.questStep = 4;
+            this.game.state.activeObjective = '🏠 Rejected at Bakery! Head back to WG to sleep.';
+            if (this.game.storyRunner) {
+              this.game.storyRunner.pendingStoryTarget = { sceneId: 'day1_sleep', poi: 'B_WG' };
+            }
+            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+            this.isEnteringBuilding = false;
+            this.inputDisabled = false;
+            if (window.FFH && window.FFH.saveGame) {
+              window.FFH.saveGame(this.game);
+            }
+            this.startBuildingExit();
+          });
+        }
+        return;
+      } else if (!this.game.state.hasVisitedPizzeriaJob) {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("Warm crusty rye bread in the window. No time to browse pastries just yet.");
+        }
+        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+        this.isEnteringBuilding = false;
+        this.inputDisabled = false;
+        this.startBuildingExit();
+        return;
+      }
       targetNpc = 'NPC_MARTHA';
       storyScene = 'martha';
     } else if (poiType.includes('Dark Store') || poiType.includes('Kruma') || poiType === 'B_DARKSTORE') {
-      targetNpc = 'NPC_NINA';
-      storyScene = 'knot_money';
-    } else if (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG') {
+      if (this.game.state.day >= 2 || this.game.state.hasSleptDay1) {
+        targetNpc = 'NPC_NINA';
+        storyScene = 'knot_money';
+      } else {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("Kruma Express warehouse. Shutter doors are down for the night. Opens tomorrow at 07:00.");
+        }
+        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+        this.isEnteringBuilding = false;
+        this.inputDisabled = false;
+        this.startBuildingExit();
+        return;
+      }
+    } else if (poiType !== 'B_WG_ENTERED' && (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG')) {
+      if (!this.game.state.hasBuzzedWG && this.game.ui && this.game.ui.showWGBuzzerModal) {
+        this.game.ui.showWGBuzzerModal(() => {
+          this.game.state.hasBuzzedWG = true;
+          if (window.FFH && window.FFH.saveGame) {
+            window.FFH.saveGame(this.game);
+          }
+          this.triggerBuildingInteraction('B_WG_ENTERED');
+        });
+        return;
+      }
+      // Buzzed but haven't done Mülltrennung yet — Nico is waiting inside!
+      if (this.game.state.hasBuzzedWG && !this.game.state.hasDoneMuelltrennung) {
+        this.triggerBuildingInteraction('B_WG_ENTERED');
+        return;
+      }
+      // If returning to WG at night after job hunting, trigger Day 1 sleep cycle!
+      if (this.game.state.hasVisitedLockedUni && !this.game.state.hasSleptDay1 && this.game.ui && this.game.ui.showDayRecapModal) {
+        this.game.ui.showDayRecapModal(() => {
+          this.game.state.hasSleptDay1 = true;
+          this.game.state.day = 2;
+          this.game.state.questStep = 4;
+          this.game.state.activeObjective = 'Tag 2 (07:00): Head to Kruma Express Dark Store for Shift 1!';
+          if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+          if (this.game.ui && this.game.ui.refreshStats) this.game.ui.refreshStats(this.game.state);
+
+          // Transition lighting to Day 2 morning dawn (progress 0.30)!
+          let currentProgress = this.timeOfDay || 0.88;
+          const targetProgress = 0.30;
+          this.updateAtmosphericTime(targetProgress);
+
+          if (this.game.ui && this.game.ui.spawnWandererThought) {
+            this.game.ui.spawnWandererThought(
+              "Day 2. Sun is up, tea is drunk, and my landlord is still threatening eviction. Time to tackle Kruma Express."
+            );
+          }
+
+          this.isEnteringBuilding = false;
+          this.inputDisabled = false;
+          if (window.FFH && window.FFH.saveGame) {
+            window.FFH.saveGame(this.game);
+          }
+          this.startBuildingExit();
+        });
+        return;
+      }
+      targetNpc = 'NPC_LOKKER';
+      storyScene = 'lokker_kaution';
+    } else if (poiType === 'B_WG_ENTERED') {
+      if (!this.game.state.hasDoneMuelltrennung && this.game.ui && this.game.ui.showMuelltrennungModal) {
+        this.game.ui.showMuelltrennungModal((isCorrect) => {
+          this.game.state.hasDoneMuelltrennung = true;
+          // Trigger the Tuition Notice letter on the desk right after!
+          if (this.game.ui && this.game.ui.showTuitionLetterModal) {
+            this.game.ui.showTuitionLetterModal(() => {
+              this.game.state.questStep = 1; // Direct player to Chapter 2: University
+              this.game.state.activeObjective = '🎓 Sprint to University Campus before 17:00!';
+              if (this.game.storyRunner) {
+                this.game.storyRunner.pendingStoryTarget = { sceneId: 'uni_closed', poi: 'B_UNI' };
+              }
+              if (this.game.ui && this.game.ui.updateQuestTracker) {
+                this.game.ui.updateQuestTracker();
+              }
+              // Smoothly transition city lighting to warm Golden Hour (16:45)!
+              let currentProgress = this.timeOfDay || 0.35;
+              const targetProgress = 0.70; // Golden hour amber sunset
+              const stepTime = () => {
+                if (currentProgress < targetProgress) {
+                  currentProgress = Math.min(targetProgress, currentProgress + 0.035);
+                  this.updateAtmosphericTime(currentProgress);
+                  requestAnimationFrame(stepTime);
+                }
+              };
+              stepTime();
+
+              // British thought bubble on golden hour beauty
+              if (this.game.ui && this.game.ui.spawnWandererThought) {
+                setTimeout(() => {
+                  this.game.ui.spawnWandererThought(
+                    "The sun is going down. The city actually looks dead pretty in this golden light. Still completely broke, of course, but the scenery is lovely."
+                  );
+                }, 1200);
+              }
+
+              // Bounce back out to city so player walks to University
+              this.isEnteringBuilding = false;
+              this.inputDisabled = false;
+              if (window.FFH && window.FFH.saveGame) {
+                window.FFH.saveGame(this.game);
+              }
+              this.startBuildingExit();
+            });
+          } else {
+            this.triggerBuildingInteraction('B_WG_ENTERED');
+          }
+        });
+        return;
+      }
       targetNpc = 'NPC_LOKKER';
       storyScene = 'lokker_kaution';
     } else if (poiType.includes('Hostel') || poiType.includes('Dorm')) {
@@ -949,12 +1368,27 @@ window.FFH.CityExplorationPhase = class {
       storyScene = 'act_five';
     }
 
+    if (poiType === 'B_ZOB' || poiType.includes('ZOB') || poiType.includes('Station')) {
+      if (this.game.ui && this.game.ui.spawnWandererThought) {
+        this.game.ui.spawnWandererThought(
+          "Bus Timetable: 'No buses inside town center. Walk.' Brilliant. Welcome to Germany, mate. Drag your 25kg suitcase across the cobblestones."
+        );
+      }
+      if (this.game.sfx && this.game.sfx.playSfx) {
+        this.game.sfx.playSfx('click');
+      }
+      this.isEnteringBuilding = false;
+      this.inputDisabled = false;
+      this.startBuildingExit();
+      return;
+    }
+
     if (sr && storyScene && (sr.scenesById ? sr.scenesById[storyScene] : sr.scenes[storyScene])) {
       sr.startScene(storyScene);
     } else if (targetNpc) {
       this.game.transitionTo('DIALOGUE', { npcKey: targetNpc });
     } else {
-      this.game.ui.spawnFloatingText(`Visited: ${poiType}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+      this.game.ui.spawnFloatingText(`Visited: ${cleanPoiName}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
       if (this.game.sfx && this.game.sfx.playSfx) {
         this.game.sfx.playSfx('success');
       }
@@ -1267,6 +1701,9 @@ window.FFH.CityExplorationPhase = class {
     // Check contextual location triggers for Wanderer's Thoughts
     this.updateWandererThoughts(delta);
 
+    // Update 3D Pfand Bottle Collectibles (Rotation, Bobbing, and Proximity Pickup)
+    this.updatePfandCollectibles(delta, timeSec);
+
     // Pulse target marker ring
     if (this.targetMarker && this.targetMarker.visible) {
       const scale = 1.0 + Math.sin(timeSec * 8) * 0.15;
@@ -1399,7 +1836,9 @@ window.FFH.CityExplorationPhase = class {
     this.updateMinimap(timeSec);
 
     // 7. Update Distance Indicator and Freshness Decay
-    if (this.game.state.activeDelivery && targetMesh) {
+    const isDelivery = !!this.game.state.activeDelivery;
+    const hasStoryTarget = !!(sr && sr.pendingStoryTarget);
+    if ((isDelivery || hasStoryTarget) && targetMesh) {
       const dx = targetMesh.position.x - this.playerPos.x;
       const dz = targetMesh.position.z - this.playerPos.z;
       const dist = Math.sqrt(dx*dx + dz*dz);
@@ -1409,21 +1848,28 @@ window.FFH.CityExplorationPhase = class {
         this.game.ui.updateCityExplorerHUD(dist, angle, true);
       }
       
-      // Decay freshness
-      const decayRate = this.game.state.upgrades?.thermalBag ? 1.0 : 2.0;
-      this.game.state.freshness = Math.max(0, this.game.state.freshness - (delta * decayRate));
-      
-      // Doorway Dialogue Handoff (auto transition when near)
-      if (dist < 2.0) {
-        // We've stepped up to the customer's doorway!
-        this.game.transitionTo('DIALOGUE', { isDelivery: true });
+      if (isDelivery) {
+        // Decay freshness
+        const decayRate = this.game.state.upgrades?.thermalBag ? 1.0 : 2.0;
+        this.game.state.freshness = Math.max(0, this.game.state.freshness - (delta * decayRate));
+        
+        // Doorway Dialogue Handoff (auto transition when near)
+        if (dist < 2.0) {
+          // We've stepped up to the customer's doorway!
+          this.game.transitionTo('DIALOGUE', { isDelivery: true });
+        }
       }
     } else {
       if (this.game.ui.updateCityExplorerHUD) {
         this.game.ui.updateCityExplorerHUD(0, 0, false);
       }
-
     }
+
+    // 8. Update Collectible Pfand Bottles (€0.25 pickups)
+    this.updatePfandCollectibles(delta, timeSec);
+
+    // 9. Update Location-based Ambient Thoughts
+    this.updateWandererThoughts(delta);
   }
 
   updateWandererThoughts(delta) {
@@ -1435,34 +1881,39 @@ window.FFH.CityExplorationPhase = class {
 
     const thoughts = [
       {
-        id: 'holstentor',
-        condition: () => Math.hypot(px - 18.2, pz - 33.8) < 6.0,
-        text: "Holstentor... built in 1464. I arrived here 562 years later with €20."
+        id: 'canal_bridge',
+        condition: () => (pz > 10 && pz < 13) || (pz > 47 && pz < 50),
+        text: "Look at this river. So flat it looks like someone ironed it with heavy starch. I bet even the fish swim in strict single file."
       },
       {
-        id: 'canal_bridge',
-        condition: () => (pz > 10 && pz < 12) || (pz > 48 && pz < 50),
-        text: "The water is so still today. Back home, the river moved faster."
+        id: 'blocky_crowd',
+        condition: () => Math.hypot(px - 16.0, pz - 20.0) < 5.5,
+        text: "Everyone here walks in exact right angles like toy soldiers. Don't look suspicious, mate. Look like you pay taxes."
+      },
+      {
+        id: 'holstentor',
+        condition: () => Math.hypot(px - 18.2, pz - 33.8) < 6.0,
+        text: "Holstentor... built in 1464. Looks like two giant brick salt shakers guarding the road."
       },
       {
         id: 'forest_edge',
         condition: () => px < 8 || px > 54 || pz < 8 || pz > 54,
-        text: "I can hear the forest birds from here... peaceful."
+        text: "The local trees are so square and disciplined, they probably file quarterly foliage reports."
       },
       {
         id: 'bakery',
         condition: () => Math.hypot(px - 5.2, pz - 18.2) < 5.0,
-        text: "Smells like fresh Franzbrötchen and warm cinnamon..."
+        text: "Smells like warm cinnamon and sugar... though Oma Martha's rolling pin looks like a lethal weapon."
       },
       {
         id: 'uni',
         condition: () => Math.hypot(px - 54.6, pz - 33.8) < 5.0,
-        text: "Universität Lübeck. €250 for tuition... almost there."
+        text: "Universität Lübeck. €250 tuition fee. If I don't pay by Friday, my student life ends before it even begins."
       },
       {
         id: 'darkstore',
         condition: () => Math.hypot(px - 5.2, pz - 46.8) < 5.0,
-        text: "Kruma Express. Dispatcher Nina is probably on her 4th espresso."
+        text: "Kruma Express. Where German nouns have genders and couriers sprint for rent money."
       }
     ];
 
@@ -1539,7 +1990,9 @@ window.FFH.CityExplorationPhase = class {
     const offsetY = baseHeight;
 
     const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
-    const lookTargetY = this.playerPos.y + 0.6; // look at chest/head height
+    // Shift lookTarget Y down by 2.2 units so the player appears higher up (top 50% of screen)
+    // to prevent UI overlay overlapping the 3D character in portrait view.
+    const lookTargetY = this.playerPos.y - 2.2;
     const lookTargetZ = this.playerPos.z + (this.cameraPanOffset ? this.cameraPanOffset.z : 0);
 
     const camX = lookTargetX + offsetX;

@@ -113,16 +113,16 @@
         "tram_bell_distant"
       ],
       "prose": [
-        "Luebeck. Six in the evening , already dark.",
-        "Twenty euros in your jacket pocket. A visa that stops working in twenty-eight days. A slip of paper with a room number on it: 4."
+        "So this is Germany. Clean. Tidy. And possessing a bus shelter roughly the size of a toaster.",
+        "Twenty euros in my jacket pocket. A visa that expires in four weeks. And a slip of paper with 'Room 4' written on it."
       ],
       "choices": [
         {
-          "label": "Take the scenic river path (Longer)",
+          "label": "Take the canal path (Scenic walk along the ironed river)",
           "to": "wg_door_scenic"
         },
         {
-          "label": "Take the fast street path (Direct)",
+          "label": "Take the cobblestone alley (Direct, but watch your ankles)",
           "to": "wg_door_fast"
         }
       ],

@@ -14,12 +14,60 @@ window.FFH.StoryRunner = class {
     this.pendingStoryTarget = null;
   }
 
+  // Modular Story Channel & Identifier Resolver
+  // Routes to 'b_' (British Comedy) storyboard when activeStoryChannel is 'british',
+  // with fallback to legacy scenes if configured or when no 'b_' override exists.
+  resolveSceneId(sceneId) {
+    if (!sceneId) return null;
+    const channel = (this.game && this.game.state && this.game.state.activeStoryChannel) || 'british';
+    const prefix = (this.game && this.game.state && this.game.state.storyChannelPrefix) || 'b_';
+
+    if (channel === 'british') {
+      // If already prefixed with b_, check direct
+      if (sceneId.startsWith(prefix)) {
+        return sceneId;
+      }
+      // Check if a dedicated b_ override scene exists in our registry or scenes
+      const britishCandidate = `${prefix}${sceneId}`;
+      if (this.scenesById && this.scenesById[britishCandidate]) {
+        return britishCandidate;
+      }
+      // Explicit mapping for Act 1 British Comedy Storyboard beats
+      const britishBeatMap = {
+        'act_one': 'b_act_one',
+        'wg_door': 'b_wg_door',
+        'wg_door_scenic': 'b_wg_door',
+        'wg_door_fast': 'b_wg_door',
+        'nico_kitchen': 'b_wg_door',
+        'nico_sends_kruma': 'b_uni_locked',
+        'uni_closed': 'b_uni_locked',
+        'pizzeria_job': 'b_pizzeria_job',
+        'bakery_job': 'b_bakery_job',
+        'shift_1_teach': 'b_shift_1_teach'
+      };
+      if (britishBeatMap[sceneId]) {
+        return britishBeatMap[sceneId];
+      }
+    }
+    return sceneId;
+  }
+
   // Lookup table of which POI each scene id belongs to.
   // When the target scene is at a DIFFERENT location from the current scene,
   // we break the dialogue chain and drop the player into city exploration.
   _getSceneLoc(sceneId) {
-    const scene = this.scenesById && this.scenesById[sceneId];
-    return scene && scene.stage && scene.stage.loc ? scene.stage.loc : null;
+    const resolvedId = this.resolveSceneId(sceneId);
+    const scene = this.scenesById && (this.scenesById[resolvedId] || this.scenesById[sceneId]);
+    if (scene && scene.stage && scene.stage.loc) {
+      return scene.stage.loc;
+    }
+    // Fallback POI mappings for British comedy beats
+    if (resolvedId === 'b_wg_door') return 'B_WG';
+    if (resolvedId === 'b_uni_locked') return 'B_UNI';
+    if (resolvedId === 'b_pizzeria_job') return 'B_PIZZA';
+    if (resolvedId === 'b_bakery_job') return 'B_BAKERY';
+    if (resolvedId === 'b_shift_1_teach') return 'B_DARKSTORE';
+    return null;
   }
 
   init() {
@@ -162,15 +210,68 @@ window.FFH.StoryRunner = class {
     if (!this.scenesById) {
       this.initSceneMap();
     }
-    const scene = this.scenesById ? this.scenesById[sceneId] : null;
+
+    const resolvedId = this.resolveSceneId(sceneId);
+    const channel = (this.game && this.game.state && this.game.state.activeStoryChannel) || 'british';
+
+    if (channel === 'british') {
+      if (resolvedId === 'b_wg_door') {
+        // Scene 3 WG Buzzer -> Scene 4 Muelltrennung -> Scene 5 Tuition Letter
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
+          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_WG');
+          return;
+        }
+      } else if (resolvedId === 'b_uni_locked') {
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
+          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_UNI');
+          return;
+        }
+      } else if (resolvedId === 'b_pizzeria_job') {
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
+          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_PIZZA');
+          return;
+        }
+      } else if (resolvedId === 'b_bakery_job') {
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
+          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_BAKERY');
+          return;
+        }
+      } else if (resolvedId === 'day1_sleep' || resolvedId === 'b_day1_sleep') {
+        // WG beacon arrived — clear building entry guard and fire Day 1 Recap directly
+        const cx = this.game.phases && this.game.phases.CITY_EXPLORATION;
+        if (cx) {
+          cx.isEnteringBuilding = false;
+          cx.inputDisabled = false;
+        }
+        if (this.game.ui && this.game.ui.showDayRecapModal && cx && this.game.state.hasVisitedLockedUni && !this.game.state.hasSleptDay1) {
+          this.game.ui.showDayRecapModal(() => {
+            this.game.state.hasSleptDay1 = true;
+            this.game.state.day = 2;
+            this.game.state.questStep = 4;
+            this.game.state.activeObjective = 'Tag 2 (07:00): Head to Kruma Express Dark Store for Shift 1!';
+            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+            if (this.game.ui && this.game.ui.refreshStats) this.game.ui.refreshStats(this.game.state);
+            cx.updateAtmosphericTime && cx.updateAtmosphericTime(0.30);
+            if (this.game.ui && this.game.ui.spawnWandererThought) {
+              this.game.ui.spawnWandererThought("Day 2. Sun is up, tea is drunk, and my landlord is still threatening eviction. Time to tackle Kruma Express.");
+            }
+            if (window.FFH && window.FFH.saveGame) window.FFH.saveGame(this.game);
+            cx.startBuildingExit && cx.startBuildingExit();
+          });
+        }
+        return;
+      }
+    }
+
+    const scene = this.scenesById ? (this.scenesById[resolvedId] || this.scenesById[sceneId]) : null;
     if (!scene) {
-      console.error(`StoryRunner: Scene "${sceneId}" not found in story.json.`);
+      console.error(`StoryRunner: Scene "${sceneId}" (resolved as "${resolvedId}") not found in story.json.`);
       return;
     }
 
-    this.currentSceneId = sceneId;
+    this.currentSceneId = resolvedId;
     this.currentScene = scene;
-    this.history.push(sceneId);
+    this.history.push(resolvedId);
 
     if (scene.effects && scene.effects.length) {
       this.applyEffects(scene.effects);
@@ -313,12 +414,13 @@ window.FFH.StoryRunner = class {
     let delay = 0;
     if (processedProse.length) {
       processedProse.forEach((line) => {
+        const lineTime = (line.length * 32) + Math.max(2800, line.length * 40);
         setTimeout(() => {
           if (this.game.ui && this.game.ui.showThoughtBubble) {
-            this.game.ui.showThoughtBubble(line, 2800);
+            this.game.ui.showThoughtBubble(line, lineTime);
           }
         }, delay);
-        delay += 3000;
+        delay += lineTime + 400; // Small breath between thoughts
       });
     }
 
@@ -340,6 +442,14 @@ window.FFH.StoryRunner = class {
           const choice = choices[choiceIndex];
           if (scene.id === 'act_one') {
             this.game.state.actOneChoiceDone = true;
+            // Witty British meta-joke on the illusion of choice vs navigation line
+            setTimeout(() => {
+              if (this.game.ui && this.game.ui.spawnWandererThought) {
+                this.game.ui.spawnWandererThought(
+                  "Why did I even bother choosing? The GPS navigation arrow is just going to force-feed me the shortest path anyway. The illusion of free will in Germany is very tidy."
+                );
+              }
+            }, 800);
           }
           this.selectChoice(choice);
         });
@@ -491,6 +601,8 @@ window.FFH.StoryRunner = class {
 
       if (TRAVEL_REQUIRED) {
         const objectiveMap = {
+          'act_one':          '🧳 Find Room 4 — Student WG (drag your suitcase south)',
+          'b_act_one':        '🧳 Find Room 4 — Student WG (drag your suitcase south)',
           'wg_door':          '🏠 Find Room 4 — Student WG (south)',
           'wg_door_scenic':   '🏠 Find Room 4 — Student WG (south)',
           'wg_door_fast':     '🏠 Find Room 4 — Student WG (south)',
@@ -500,7 +612,22 @@ window.FFH.StoryRunner = class {
           'bakery_job':       '🥐 Try the bakery — ask about work',
           'shift_1_teach':    '📦 Kruma Express — Nina is expecting you (behind the Holstentor)',
         };
-        const objective = objectiveMap[target] || `Go to ${targetLoc}`;
+        const locNames = {
+          'B_ZOB': 'Train Station (ZOB)',
+          'B_WG': 'Student WG (Room 4)',
+          'B_UNI': 'Lübeck University',
+          'B_PIZZA': 'Pizzeria Bella',
+          'B_BAKERY': 'Bakery Hansa',
+          'B_DARKSTORE': 'Kruma Express Dark Store',
+          'B_BANK': 'Sparkasse Bank',
+          'B_RATHAUS': 'Bürgeramt (Town Hall)',
+          'B_AUSLAENDER': 'Ausländerbehörde (Immigration)',
+          'LM_MARKTPLATZ': 'Marktplatz (Town Square)',
+          'LM_CANAL': 'Canal Bridge',
+          'LM_ALTSTADT': 'Altstadt Center'
+        };
+        const prettyLoc = locNames[targetLoc] || 'Town';
+        const objective = objectiveMap[target] || `Head towards ${prettyLoc}`;
         console.log(`[StoryRunner] TRAVEL_REQUIRED to scene '${target}' at '${targetLoc}'. Setting objective: ${objective}`);
 
         this.pendingStoryTarget = { sceneId: target, poi: targetLoc, objective };

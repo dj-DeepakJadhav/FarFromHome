@@ -1,6 +1,19 @@
 // 3D Cinematic In-World Conversation Phase
 window.FFH = window.FFH || {};
 
+// Reusable 50/50 Split View Template for Diorama & Modal UI phases
+window.FFH.DIORAMA_VIEW_TEMPLATE = {
+  // Center of the upper 50% visual viewport in world coordinates
+  // Moving the camera lookAt down along the projection plane positions the 3D room cleanly in the top 50% (51.5% to 94.1% viewport height)
+  target: new THREE.Vector3(0, -2.4, 0),
+  // Camera offset preserving true 45-degree isometric projection angle
+  zoomOffset: new THREE.Vector3(10.0, 13.5, 10.0),
+  // Balanced zoom factor keeping the entire room, floor edges, and character neatly framed in upper half with zero UI overlap
+  zoom: 2.1,
+  // Standard CSS bottom modal height (exactly 48vh)
+  uiHeight: '48vh'
+};
+
 window.FFH.DialoguePhase = class {
   constructor(game) {
     this.game = game;
@@ -96,14 +109,14 @@ window.FFH.DialoguePhase = class {
       this.game.scene.add(this.npcGroup);
     }
 
-    // 3. Setup Cinematic Isometric View perfectly fitted inside upper 60% viewport
+    // 3. Setup Cinematic Isometric View using Reusable 50/50 Template
+    const template = window.FFH.DIORAMA_VIEW_TEMPLATE;
     const cam = this.game.cameras.mainCamera;
     
-    // Target (0, -0.95, 0) with zoom 2.15 frames the complete diorama room with full edges visible
-    this.endCamTarget = new THREE.Vector3(0, -0.95, 0);
-    const zoomOffset = new THREE.Vector3(10.0, 13.5, 10.0);
-    this.endCamPos = new THREE.Vector3().copy(this.endCamTarget).add(zoomOffset);
-    this.endCamZoom = 2.15;
+    // Target moves camera down in world space so 3D room renders high up in upper 50%
+    this.endCamTarget = template.target.clone();
+    this.endCamPos = new THREE.Vector3().copy(this.endCamTarget).add(template.zoomOffset);
+    this.endCamZoom = template.zoom;
 
     // Direct snap: clean focus without pan jitter
     cam.position.copy(this.endCamPos);

@@ -156,6 +156,9 @@ window.FFH.createRunState = function () {
     klaus_quit: false,
     told_truth_home: false,
     fined_trennung: false,
+    // Modular Story Channel Architecture ('british' with 'b_' identifier vs 'legacy' fallback)
+    activeStoryChannel: 'british',
+    storyChannelPrefix: 'b_',
     // Story Quest and Progression State
     questStep: 0,
     activeQuests: ['main_visa_survival'],
@@ -304,10 +307,61 @@ window.FFH.state = window.FFH.createRunState();
 
 window.FFH.saveGame = function(game) {
   try {
+    let spawnPos = null;
+    let timeOfDay = 0.35;
+    if (game.phases && game.phases.CITY_EXPLORATION) {
+      const cp = game.phases.CITY_EXPLORATION;
+      if (cp.playerPos) {
+        spawnPos = { x: cp.playerPos.x, y: cp.playerPos.y, z: cp.playerPos.z };
+      }
+      if (cp.timeOfDay !== undefined) {
+        timeOfDay = cp.timeOfDay;
+      }
+    }
+
+    // Determine target spawn based on current finished objectives / story progress
+    const s = game.state;
+    let objectiveStage = 'start';
+    if (s.day >= 2 || s.hasSleptDay1) {
+      objectiveStage = 'day2_kruma';
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // Outside WG facing south to Kruma
+    } else if (s.hasVisitedBakeryJob) {
+      objectiveStage = 'return_to_wg_sleep';
+      if (!spawnPos) spawnPos = { x: 7.8, z: 20.0 }; // Outside Bakery
+    } else if (s.hasVisitedPizzeriaJob) {
+      objectiveStage = 'bakery_hunt';
+      if (!spawnPos) spawnPos = { x: 28.6, z: 25.0 }; // Outside Pizzeria
+    } else if (s.hasVisitedLockedUni) {
+      objectiveStage = 'pizzeria_hunt';
+      if (!spawnPos) spawnPos = { x: 20.8, z: 18.0 }; // Outside Uni
+    } else if (s.hasDoneMuelltrennung) {
+      objectiveStage = 'uni_rush';
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // Outside WG
+    } else if (s.hasBuzzedWG) {
+      objectiveStage = 'nico_room4';
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // At Nico's WG door
+    }
+
+    // Count finished milestones
+    let finishedObjectivesCount = 0;
+    if (s.hasBuzzedWG) finishedObjectivesCount++;
+    if (s.hasDoneMuelltrennung) finishedObjectivesCount++;
+    if (s.hasVisitedLockedUni) finishedObjectivesCount++;
+    if (s.hasVisitedPizzeriaJob) finishedObjectivesCount++;
+    if (s.hasVisitedBakeryJob) finishedObjectivesCount++;
+    if (s.hasSleptDay1) finishedObjectivesCount++;
+
     const saveData = {
       state: game.state,
-      phaseKey: game.currentPhase ? game.currentPhase.constructor.name : 'ROOM_HUB'
+      spawnPos: spawnPos,
+      timeOfDay: timeOfDay,
+      objectiveStage: objectiveStage,
+      finishedObjectivesCount: finishedObjectivesCount,
+      activeObjective: game.state.activeObjective || null,
+      pendingStoryTarget: (game.storyRunner && game.storyRunner.pendingStoryTarget) ? game.storyRunner.pendingStoryTarget : null,
+      phaseKey: game.currentPhase ? game.currentPhase.constructor.name : 'CITY_EXPLORATION'
     };
+
     if (saveData.phaseKey === 'DialoguePhase') {
       saveData.phaseKey = 'CITY_EXPLORATION';
     } else if (saveData.phaseKey === 'CityExplorationPhase') {
@@ -319,7 +373,9 @@ window.FFH.saveGame = function(game) {
     } else if (saveData.phaseKey === 'ShopPhase') {
       saveData.phaseKey = 'SHOP';
     }
+
     localStorage.setItem('FFH_SAVE_GAME', JSON.stringify(saveData));
+    console.log(`[SaveSystem] Saved successfully at stage '${objectiveStage}' (${finishedObjectivesCount} completed). Spawn:`, spawnPos);
   } catch(e) {
     console.error("Failed to save game:", e);
   }
@@ -332,9 +388,31 @@ window.FFH.loadGame = function(game) {
     const saveData = JSON.parse(raw);
     if (!saveData || !saveData.state) return false;
     
+    // Merge clean run state with saved attributes
     game.state = Object.assign(window.FFH.createRunState(), saveData.state);
     window.FFH.state = game.state;
-    return saveData.phaseKey || 'CITY_EXPLORATION';
+
+    // Restore pending story target if present
+    if (saveData.pendingStoryTarget && game.storyRunner) {
+      game.storyRunner.pendingStoryTarget = saveData.pendingStoryTarget;
+    }
+    if (saveData.activeObjective) {
+      game.state.activeObjective = saveData.activeObjective;
+    }
+
+    // If the save was mid-WG-entry (buzzed but Mülltrennung not done),
+    // reset the buzzer flag so the full Nico sequence fires again on re-entry.
+    if (saveData.objectiveStage === 'nico_room4' && !game.state.hasDoneMuelltrennung) {
+      game.state.hasBuzzedWG = false;
+    }
+
+    return {
+      phaseKey: saveData.phaseKey || 'CITY_EXPLORATION',
+      spawnPos: saveData.spawnPos,
+      timeOfDay: saveData.timeOfDay,
+      objectiveStage: saveData.objectiveStage,
+      finishedObjectivesCount: saveData.finishedObjectivesCount || 0
+    };
   } catch(e) {
     console.error("Failed to load game:", e);
     return false;

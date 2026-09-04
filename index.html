@@ -17674,16 +17674,16 @@ window.FFH.storyData = {
         "tram_bell_distant"
       ],
       "prose": [
-        "Luebeck. Six in the evening , already dark.",
-        "Twenty euros in your jacket pocket. A visa that stops working in twenty-eight days. A slip of paper with a room number on it: 4."
+        "So this is Germany. Clean. Tidy. And possessing a bus shelter roughly the size of a toaster.",
+        "Twenty euros in my jacket pocket. A visa that expires in four weeks. And a slip of paper with 'Room 4' written on it."
       ],
       "choices": [
         {
-          "label": "Take the scenic river path (Longer)",
+          "label": "Take the canal path (Scenic walk along the ironed river)",
           "to": "wg_door_scenic"
         },
         {
-          "label": "Take the fast street path (Direct)",
+          "label": "Take the cobblestone alley (Direct, but watch your ankles)",
           "to": "wg_door_fast"
         }
       ],
@@ -22926,6 +22926,9 @@ window.FFH.createRunState = function () {
     klaus_quit: false,
     told_truth_home: false,
     fined_trennung: false,
+    // Modular Story Channel Architecture ('british' with 'b_' identifier vs 'legacy' fallback)
+    activeStoryChannel: 'british',
+    storyChannelPrefix: 'b_',
     // Story Quest and Progression State
     questStep: 0,
     activeQuests: ['main_visa_survival'],
@@ -23074,10 +23077,61 @@ window.FFH.state = window.FFH.createRunState();
 
 window.FFH.saveGame = function(game) {
   try {
+    let spawnPos = null;
+    let timeOfDay = 0.35;
+    if (game.phases && game.phases.CITY_EXPLORATION) {
+      const cp = game.phases.CITY_EXPLORATION;
+      if (cp.playerPos) {
+        spawnPos = { x: cp.playerPos.x, y: cp.playerPos.y, z: cp.playerPos.z };
+      }
+      if (cp.timeOfDay !== undefined) {
+        timeOfDay = cp.timeOfDay;
+      }
+    }
+
+    // Determine target spawn based on current finished objectives / story progress
+    const s = game.state;
+    let objectiveStage = 'start';
+    if (s.day >= 2 || s.hasSleptDay1) {
+      objectiveStage = 'day2_kruma';
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // Outside WG facing south to Kruma
+    } else if (s.hasVisitedBakeryJob) {
+      objectiveStage = 'return_to_wg_sleep';
+      if (!spawnPos) spawnPos = { x: 7.8, z: 20.0 }; // Outside Bakery
+    } else if (s.hasVisitedPizzeriaJob) {
+      objectiveStage = 'bakery_hunt';
+      if (!spawnPos) spawnPos = { x: 28.6, z: 25.0 }; // Outside Pizzeria
+    } else if (s.hasVisitedLockedUni) {
+      objectiveStage = 'pizzeria_hunt';
+      if (!spawnPos) spawnPos = { x: 20.8, z: 18.0 }; // Outside Uni
+    } else if (s.hasDoneMuelltrennung) {
+      objectiveStage = 'uni_rush';
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // Outside WG
+    } else if (s.hasBuzzedWG) {
+      objectiveStage = 'nico_room4';
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // At Nico's WG door
+    }
+
+    // Count finished milestones
+    let finishedObjectivesCount = 0;
+    if (s.hasBuzzedWG) finishedObjectivesCount++;
+    if (s.hasDoneMuelltrennung) finishedObjectivesCount++;
+    if (s.hasVisitedLockedUni) finishedObjectivesCount++;
+    if (s.hasVisitedPizzeriaJob) finishedObjectivesCount++;
+    if (s.hasVisitedBakeryJob) finishedObjectivesCount++;
+    if (s.hasSleptDay1) finishedObjectivesCount++;
+
     const saveData = {
       state: game.state,
-      phaseKey: game.currentPhase ? game.currentPhase.constructor.name : 'ROOM_HUB'
+      spawnPos: spawnPos,
+      timeOfDay: timeOfDay,
+      objectiveStage: objectiveStage,
+      finishedObjectivesCount: finishedObjectivesCount,
+      activeObjective: game.state.activeObjective || null,
+      pendingStoryTarget: (game.storyRunner && game.storyRunner.pendingStoryTarget) ? game.storyRunner.pendingStoryTarget : null,
+      phaseKey: game.currentPhase ? game.currentPhase.constructor.name : 'CITY_EXPLORATION'
     };
+
     if (saveData.phaseKey === 'DialoguePhase') {
       saveData.phaseKey = 'CITY_EXPLORATION';
     } else if (saveData.phaseKey === 'CityExplorationPhase') {
@@ -23089,7 +23143,9 @@ window.FFH.saveGame = function(game) {
     } else if (saveData.phaseKey === 'ShopPhase') {
       saveData.phaseKey = 'SHOP';
     }
+
     localStorage.setItem('FFH_SAVE_GAME', JSON.stringify(saveData));
+    console.log(`[SaveSystem] Saved successfully at stage '${objectiveStage}' (${finishedObjectivesCount} completed). Spawn:`, spawnPos);
   } catch(e) {
     console.error("Failed to save game:", e);
   }
@@ -23102,9 +23158,31 @@ window.FFH.loadGame = function(game) {
     const saveData = JSON.parse(raw);
     if (!saveData || !saveData.state) return false;
     
+    // Merge clean run state with saved attributes
     game.state = Object.assign(window.FFH.createRunState(), saveData.state);
     window.FFH.state = game.state;
-    return saveData.phaseKey || 'CITY_EXPLORATION';
+
+    // Restore pending story target if present
+    if (saveData.pendingStoryTarget && game.storyRunner) {
+      game.storyRunner.pendingStoryTarget = saveData.pendingStoryTarget;
+    }
+    if (saveData.activeObjective) {
+      game.state.activeObjective = saveData.activeObjective;
+    }
+
+    // If the save was mid-WG-entry (buzzed but Mülltrennung not done),
+    // reset the buzzer flag so the full Nico sequence fires again on re-entry.
+    if (saveData.objectiveStage === 'nico_room4' && !game.state.hasDoneMuelltrennung) {
+      game.state.hasBuzzedWG = false;
+    }
+
+    return {
+      phaseKey: saveData.phaseKey || 'CITY_EXPLORATION',
+      spawnPos: saveData.spawnPos,
+      timeOfDay: saveData.timeOfDay,
+      objectiveStage: saveData.objectiveStage,
+      finishedObjectivesCount: saveData.finishedObjectivesCount || 0
+    };
   } catch(e) {
     console.error("Failed to load game:", e);
     return false;
@@ -23129,12 +23207,60 @@ window.FFH.StoryRunner = class {
     this.pendingStoryTarget = null;
   }
 
+  // Modular Story Channel & Identifier Resolver
+  // Routes to 'b_' (British Comedy) storyboard when activeStoryChannel is 'british',
+  // with fallback to legacy scenes if configured or when no 'b_' override exists.
+  resolveSceneId(sceneId) {
+    if (!sceneId) return null;
+    const channel = (this.game && this.game.state && this.game.state.activeStoryChannel) || 'british';
+    const prefix = (this.game && this.game.state && this.game.state.storyChannelPrefix) || 'b_';
+
+    if (channel === 'british') {
+      // If already prefixed with b_, check direct
+      if (sceneId.startsWith(prefix)) {
+        return sceneId;
+      }
+      // Check if a dedicated b_ override scene exists in our registry or scenes
+      const britishCandidate = `${prefix}${sceneId}`;
+      if (this.scenesById && this.scenesById[britishCandidate]) {
+        return britishCandidate;
+      }
+      // Explicit mapping for Act 1 British Comedy Storyboard beats
+      const britishBeatMap = {
+        'act_one': 'b_act_one',
+        'wg_door': 'b_wg_door',
+        'wg_door_scenic': 'b_wg_door',
+        'wg_door_fast': 'b_wg_door',
+        'nico_kitchen': 'b_wg_door',
+        'nico_sends_kruma': 'b_uni_locked',
+        'uni_closed': 'b_uni_locked',
+        'pizzeria_job': 'b_pizzeria_job',
+        'bakery_job': 'b_bakery_job',
+        'shift_1_teach': 'b_shift_1_teach'
+      };
+      if (britishBeatMap[sceneId]) {
+        return britishBeatMap[sceneId];
+      }
+    }
+    return sceneId;
+  }
+
   // Lookup table of which POI each scene id belongs to.
   // When the target scene is at a DIFFERENT location from the current scene,
   // we break the dialogue chain and drop the player into city exploration.
   _getSceneLoc(sceneId) {
-    const scene = this.scenesById && this.scenesById[sceneId];
-    return scene && scene.stage && scene.stage.loc ? scene.stage.loc : null;
+    const resolvedId = this.resolveSceneId(sceneId);
+    const scene = this.scenesById && (this.scenesById[resolvedId] || this.scenesById[sceneId]);
+    if (scene && scene.stage && scene.stage.loc) {
+      return scene.stage.loc;
+    }
+    // Fallback POI mappings for British comedy beats
+    if (resolvedId === 'b_wg_door') return 'B_WG';
+    if (resolvedId === 'b_uni_locked') return 'B_UNI';
+    if (resolvedId === 'b_pizzeria_job') return 'B_PIZZA';
+    if (resolvedId === 'b_bakery_job') return 'B_BAKERY';
+    if (resolvedId === 'b_shift_1_teach') return 'B_DARKSTORE';
+    return null;
   }
 
   init() {
@@ -23277,15 +23403,68 @@ window.FFH.StoryRunner = class {
     if (!this.scenesById) {
       this.initSceneMap();
     }
-    const scene = this.scenesById ? this.scenesById[sceneId] : null;
+
+    const resolvedId = this.resolveSceneId(sceneId);
+    const channel = (this.game && this.game.state && this.game.state.activeStoryChannel) || 'british';
+
+    if (channel === 'british') {
+      if (resolvedId === 'b_wg_door') {
+        // Scene 3 WG Buzzer -> Scene 4 Muelltrennung -> Scene 5 Tuition Letter
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
+          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_WG');
+          return;
+        }
+      } else if (resolvedId === 'b_uni_locked') {
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
+          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_UNI');
+          return;
+        }
+      } else if (resolvedId === 'b_pizzeria_job') {
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
+          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_PIZZA');
+          return;
+        }
+      } else if (resolvedId === 'b_bakery_job') {
+        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
+          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_BAKERY');
+          return;
+        }
+      } else if (resolvedId === 'day1_sleep' || resolvedId === 'b_day1_sleep') {
+        // WG beacon arrived — clear building entry guard and fire Day 1 Recap directly
+        const cx = this.game.phases && this.game.phases.CITY_EXPLORATION;
+        if (cx) {
+          cx.isEnteringBuilding = false;
+          cx.inputDisabled = false;
+        }
+        if (this.game.ui && this.game.ui.showDayRecapModal && cx && this.game.state.hasVisitedLockedUni && !this.game.state.hasSleptDay1) {
+          this.game.ui.showDayRecapModal(() => {
+            this.game.state.hasSleptDay1 = true;
+            this.game.state.day = 2;
+            this.game.state.questStep = 4;
+            this.game.state.activeObjective = 'Tag 2 (07:00): Head to Kruma Express Dark Store for Shift 1!';
+            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+            if (this.game.ui && this.game.ui.refreshStats) this.game.ui.refreshStats(this.game.state);
+            cx.updateAtmosphericTime && cx.updateAtmosphericTime(0.30);
+            if (this.game.ui && this.game.ui.spawnWandererThought) {
+              this.game.ui.spawnWandererThought("Day 2. Sun is up, tea is drunk, and my landlord is still threatening eviction. Time to tackle Kruma Express.");
+            }
+            if (window.FFH && window.FFH.saveGame) window.FFH.saveGame(this.game);
+            cx.startBuildingExit && cx.startBuildingExit();
+          });
+        }
+        return;
+      }
+    }
+
+    const scene = this.scenesById ? (this.scenesById[resolvedId] || this.scenesById[sceneId]) : null;
     if (!scene) {
-      console.error(`StoryRunner: Scene "${sceneId}" not found in story.json.`);
+      console.error(`StoryRunner: Scene "${sceneId}" (resolved as "${resolvedId}") not found in story.json.`);
       return;
     }
 
-    this.currentSceneId = sceneId;
+    this.currentSceneId = resolvedId;
     this.currentScene = scene;
-    this.history.push(sceneId);
+    this.history.push(resolvedId);
 
     if (scene.effects && scene.effects.length) {
       this.applyEffects(scene.effects);
@@ -23428,12 +23607,13 @@ window.FFH.StoryRunner = class {
     let delay = 0;
     if (processedProse.length) {
       processedProse.forEach((line) => {
+        const lineTime = (line.length * 32) + Math.max(2800, line.length * 40);
         setTimeout(() => {
           if (this.game.ui && this.game.ui.showThoughtBubble) {
-            this.game.ui.showThoughtBubble(line, 2800);
+            this.game.ui.showThoughtBubble(line, lineTime);
           }
         }, delay);
-        delay += 3000;
+        delay += lineTime + 400; // Small breath between thoughts
       });
     }
 
@@ -23455,6 +23635,14 @@ window.FFH.StoryRunner = class {
           const choice = choices[choiceIndex];
           if (scene.id === 'act_one') {
             this.game.state.actOneChoiceDone = true;
+            // Witty British meta-joke on the illusion of choice vs navigation line
+            setTimeout(() => {
+              if (this.game.ui && this.game.ui.spawnWandererThought) {
+                this.game.ui.spawnWandererThought(
+                  "Why did I even bother choosing? The GPS navigation arrow is just going to force-feed me the shortest path anyway. The illusion of free will in Germany is very tidy."
+                );
+              }
+            }, 800);
           }
           this.selectChoice(choice);
         });
@@ -23606,6 +23794,8 @@ window.FFH.StoryRunner = class {
 
       if (TRAVEL_REQUIRED) {
         const objectiveMap = {
+          'act_one':          '🧳 Find Room 4 — Student WG (drag your suitcase south)',
+          'b_act_one':        '🧳 Find Room 4 — Student WG (drag your suitcase south)',
           'wg_door':          '🏠 Find Room 4 — Student WG (south)',
           'wg_door_scenic':   '🏠 Find Room 4 — Student WG (south)',
           'wg_door_fast':     '🏠 Find Room 4 — Student WG (south)',
@@ -23615,7 +23805,22 @@ window.FFH.StoryRunner = class {
           'bakery_job':       '🥐 Try the bakery — ask about work',
           'shift_1_teach':    '📦 Kruma Express — Nina is expecting you (behind the Holstentor)',
         };
-        const objective = objectiveMap[target] || `Go to ${targetLoc}`;
+        const locNames = {
+          'B_ZOB': 'Train Station (ZOB)',
+          'B_WG': 'Student WG (Room 4)',
+          'B_UNI': 'Lübeck University',
+          'B_PIZZA': 'Pizzeria Bella',
+          'B_BAKERY': 'Bakery Hansa',
+          'B_DARKSTORE': 'Kruma Express Dark Store',
+          'B_BANK': 'Sparkasse Bank',
+          'B_RATHAUS': 'Bürgeramt (Town Hall)',
+          'B_AUSLAENDER': 'Ausländerbehörde (Immigration)',
+          'LM_MARKTPLATZ': 'Marktplatz (Town Square)',
+          'LM_CANAL': 'Canal Bridge',
+          'LM_ALTSTADT': 'Altstadt Center'
+        };
+        const prettyLoc = locNames[targetLoc] || 'Town';
+        const objective = objectiveMap[target] || `Head towards ${prettyLoc}`;
         console.log(`[StoryRunner] TRAVEL_REQUIRED to scene '${target}' at '${targetLoc}'. Setting objective: ${objective}`);
 
         this.pendingStoryTarget = { sceneId: target, poi: targetLoc, objective };
@@ -31923,13 +32128,16 @@ window.FFH.UI = class {
     this.showThoughtBubble(text, 3800);
   }
 
-  showThoughtBubble(text, duration = 4000) {
+  showThoughtBubble(text, duration = null) {
     const existing = document.getElementById('ffh-thought-bubble');
-    if (existing) existing.remove();
+    if (existing) {
+      if (existing._typewriterTimer) clearInterval(existing._typewriterTimer);
+      existing.remove();
+    }
 
     const el = document.createElement('div');
     el.id = 'ffh-thought-bubble';
-    el.innerHTML = `<span style="opacity:0.8; margin-right:4px;">💭</span><em>${text}</em>`;
+    el.innerHTML = `<span style="opacity:0.8; margin-right:4px;">💭</span><em id="thought-bubble-text" style="font-style:italic;"></em>`;
     
     // Position directly over player character head in 3D screen space if in CITY_EXPLORATION
     let screenX = window.innerWidth / 2;
@@ -31947,28 +32155,32 @@ window.FFH.UI = class {
       }
     }
 
+    // Clamp horizontally to stay cleanly visible on screen
+    screenX = Math.max(50, Math.min(window.innerWidth - 50, screenX));
+
     el.style.cssText = `
       position: fixed;
       left: ${screenX}px;
       top: ${screenY}px;
       transform: translate(-50%, -100%) scale(0.9);
-      background: rgba(18, 24, 38, 0.92);
+      background: rgba(18, 24, 38, 0.94);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border: 2px solid #FFD166;
       border-radius: 16px;
-      padding: 8px 14px;
+      padding: 10px 16px;
       color: #FFFFFF;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 700;
       letter-spacing: 0.2px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+      line-height: 1.4;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
       pointer-events: none;
       z-index: 99999;
       opacity: 0;
       transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-      max-width: 280px;
+      max-width: 300px;
       text-align: center;
     `;
     document.body.appendChild(el);
@@ -31978,13 +32190,36 @@ window.FFH.UI = class {
       el.style.transform = 'translate(-50%, -120%) scale(1.0)';
     });
 
+    const textTarget = el.querySelector('#thought-bubble-text');
+    let charIdx = 0;
+    const charDelay = 32; // Comfortable reading pace (~31 chars/sec)
+    
+    // Typewriter loop
+    el._typewriterTimer = setInterval(() => {
+      if (charIdx < text.length) {
+        textTarget.textContent += text[charIdx];
+        if (charIdx % 3 === 0 && this.game && this.game.speech) {
+          this.game.speech.playTalkBlip();
+        }
+        charIdx++;
+      } else {
+        clearInterval(el._typewriterTimer);
+      }
+    }, charDelay);
+
+    // Dynamic duration based on text length: typing time + generous reading time (minimum 4.0s)
+    const typingDuration = text.length * charDelay;
+    const readingTime = Math.max(3000, text.length * 50);
+    const totalDuration = duration || (typingDuration + readingTime);
+
     setTimeout(() => {
       if (el.parentNode) {
+        if (el._typewriterTimer) clearInterval(el._typewriterTimer);
         el.style.opacity = '0';
         el.style.transform = 'translate(-50%, -100%) scale(0.9)';
         setTimeout(() => el.remove(), 350);
       }
-    }, duration);
+    }, totalDuration);
   }
 
   showCompassUI(direction) {
@@ -32177,8 +32412,9 @@ window.FFH.UI = class {
         padding: 28px 24px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.4);
       ">
+        <div id="continue-row" style="display: none; flex-direction: row; gap: 8px; width: 100%; align-items: stretch;">
         <button id="btn-continue" style="
-          display: none;
+          display: block;
           background: #3A86FF;
           color: #FFF;
           border: none;
@@ -32192,8 +32428,26 @@ window.FFH.UI = class {
           transition: all 0.08s ease-in-out;
           font-family: monospace, monospace;
           text-transform: uppercase;
-          width: 100%;
+          flex: 1;
         ">▶ CONTINUE</button>
+
+        <button id="btn-delete-save" title="Wipe save & start fresh" style="
+          display: none;
+          background: rgba(231,111,81,0.18);
+          color: #E76F51;
+          border: 2px solid rgba(231,111,81,0.5);
+          border-radius: 10px;
+          width: 48px;
+          min-width: 48px;
+          font-size: 20px;
+          cursor: pointer;
+          transition: all 0.12s ease;
+          flex-shrink: 0;
+          line-height: 1;
+          padding: 0;
+        " onmouseover="this.style.background='rgba(231,111,81,0.35)';this.style.borderColor='#E76F51';"
+           onmouseout="this.style.background='rgba(231,111,81,0.18)';this.style.borderColor='rgba(231,111,81,0.5)';">🗑️</button>
+        </div>
 
         <button id="btn-new-game" style="
           background: #ECC238;
@@ -32247,10 +32501,47 @@ window.FFH.UI = class {
     const btnContinue = document.getElementById('btn-continue');
     const btnNewGame = document.getElementById('btn-new-game');
     const btnSound = document.getElementById('btn-sound');
-    
-    // Check if save exists
+    const btnDeleteSave = document.getElementById('btn-delete-save');
+    const continueRow = document.getElementById('continue-row');
+
+    // Show continue row only if a save exists
     if (localStorage.getItem('FFH_SAVE_GAME')) {
-      btnContinue.style.display = 'block';
+      continueRow.style.display = 'flex';
+      btnDeleteSave.style.display = 'block';
+    }
+
+    // Delete save: tap once to arm (turns red), tap again to confirm wipe
+    let deleteSaveArmed = false;
+    if (btnDeleteSave) {
+      btnDeleteSave.addEventListener('click', () => {
+        if (!deleteSaveArmed) {
+          deleteSaveArmed = true;
+          btnDeleteSave.textContent = '💀';
+          btnDeleteSave.style.background = '#E76F51';
+          btnDeleteSave.style.color = '#FFF';
+          btnDeleteSave.style.borderColor = '#C0392B';
+          btnDeleteSave.title = 'Tap again to confirm — save will be wiped!';
+          // Auto-disarm after 2s
+          setTimeout(() => {
+            if (deleteSaveArmed) {
+              deleteSaveArmed = false;
+              btnDeleteSave.textContent = '🗑️';
+              btnDeleteSave.style.background = 'rgba(231,111,81,0.18)';
+              btnDeleteSave.style.color = '#E76F51';
+              btnDeleteSave.style.borderColor = 'rgba(231,111,81,0.5)';
+              btnDeleteSave.title = 'Wipe save & start fresh';
+            }
+          }, 2000);
+        } else {
+          // Confirmed — wipe save
+          localStorage.removeItem('FFH_SAVE_GAME');
+          if (this.game.sfx) this.game.sfx.playSfx('wrong');
+          continueRow.style.display = 'none';
+          // Flash the new game button as a hint
+          btnNewGame.style.boxShadow = '0 5px 0 #9E7D1A, 0 0 20px rgba(236,194,56,0.8)';
+          setTimeout(() => { btnNewGame.style.boxShadow = '0 5px 0 #9E7D1A, 0 8px 20px rgba(236,194,56,0.4)'; }, 600);
+        }
+      });
     }
 
     if (btnNewGame) {
@@ -32342,11 +32633,69 @@ window.FFH.UI = class {
       });
       btnContinue.addEventListener('click', () => {
         this.game.sfx.playSfx('success');
-        const nextPhase = window.FFH.loadGame(this.game);
-        if (nextPhase) {
-          this.game.transitionTo(nextPhase);
-        } else {
-          this.game.transitionTo('CITY_EXPLORATION');
+        const loadResult = window.FFH.loadGame(this.game);
+        const nextPhase = (loadResult && loadResult.phaseKey) ? loadResult.phaseKey : 'CITY_EXPLORATION';
+        
+        // Clear title screen UI
+        this.clear();
+        this.game.clearTitleDiorama();
+
+        // Boot into target phase with restored position & lighting
+        this.game.transitionTo(nextPhase, {
+          spawnPos: loadResult ? loadResult.spawnPos : null,
+          timeOfDay: loadResult ? loadResult.timeOfDay : undefined
+        });
+
+        if (nextPhase === 'CITY_EXPLORATION') {
+          const cityPhase = this.game.phases.CITY_EXPLORATION;
+          if (cityPhase) {
+            cityPhase.inputDisabled = true;
+            cityPhase.camZoom = 0.52;
+            cityPhase.targetCamZoom = 0.52;
+
+            const targetPos = cityPhase.playerPos;
+            const cam = this.game.cameras.mainCamera;
+            const dx = cam.position.x - targetPos.x;
+            const dz = cam.position.z - targetPos.z;
+            cityPhase.camCurrentAngle = Math.atan2(dx, dz);
+            cityPhase.updateCamera(true);
+
+            const startAngle = cityPhase.camCurrentAngle;
+            let targetAngle = (Math.PI / 4) + Math.PI; // back-facing view
+            while (targetAngle - startAngle > Math.PI) targetAngle -= Math.PI * 2;
+            while (targetAngle - startAngle < -Math.PI) targetAngle += Math.PI * 2;
+
+            const startTime = Date.now();
+            const duration = 2400; // Snappy cinematic continue flight
+
+            const animLoop = () => {
+              const elapsed = Date.now() - startTime;
+              const t = Math.min(1.0, elapsed / duration);
+              const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+              cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
+              cityPhase.updateCamera(true);
+
+              if (t < 1.0) {
+                requestAnimationFrame(animLoop);
+              } else {
+                cityPhase.cameraHoldTimer = 3.0;
+                cityPhase.inputDisabled = false;
+
+                // Animate UI elements with the loaded stats
+                if (this.game.ui && this.game.ui.playObjectiveRevealSequence) {
+                  this.game.ui.playObjectiveRevealSequence(true);
+                }
+                if (this.game.ui && this.game.ui.refreshStats) {
+                  this.game.ui.refreshStats(this.game.state);
+                }
+              }
+            };
+
+            requestAnimationFrame(animLoop);
+          }
         }
       });
     }
@@ -33626,7 +33975,7 @@ window.FFH.UI = class {
             opacity: ${s.firstObjectiveRevealed ? 1 : 0};
           ">
             <span style="font-size: 12px;">💶</span>
-            <div style="font-size: 11.5px; font-weight: 900; color: #E76F51; font-family: monospace;">
+            <div id="stat-val-wallet" style="font-size: 11.5px; font-weight: 900; color: #E76F51; font-family: monospace;">
               ${window.FFH.round2(s.wallet)}€
             </div>
           </div>
@@ -33963,7 +34312,7 @@ window.FFH.UI = class {
       box._typewriterTimer = setInterval(() => {
         if (charIndex < fullSpeech.length) {
           textTarget.textContent += fullSpeech[charIndex];
-          if (charIndex % 4 === 0 && this.game && this.game.speech) {
+          if (charIndex % 3 === 0 && this.game && this.game.speech) {
             this.game.speech.playTalkBlip(npcId);
           }
           charIndex++;
@@ -33974,7 +34323,7 @@ window.FFH.UI = class {
             scrollStream.scrollTop = scrollStream.scrollHeight;
           }
         }
-      }, 8);
+      }, 28);
 
       // Clicking anywhere on dialogue skips typewriter to end immediately
       box.addEventListener('click', (e) => {
@@ -34431,6 +34780,750 @@ window.FFH.UI = class {
     // Note: In 3D space, rotation might need offset depending on camera forward.
     const deg = (angleRad * 180 / Math.PI);
     document.getElementById('delivery-distance-arrow').style.transform = `rotate(${deg}deg)`;
+  }
+
+  showWGBuzzerModal(onSuccessCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('wg-buzzer-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'wg-buzzer-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3px solid #264653;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 330px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Header -->
+        <div style="background: #264653; padding: 14px 16px; color: #FFF; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">STUDENTEN-WG LÜBECK</div>
+            <div style="font-size: 16px; font-weight: 900;">🔔 Klingelanlage (Doorbell)</div>
+          </div>
+          <button id="btn-close-buzzer" style="background: none; border: none; color: #FFF; font-size: 20px; cursor: pointer;">✕</button>
+        </div>
+
+        <div id="buzzer-buttons-container" style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12.5px; color: #4A5568; line-height: 1.4;">
+            Which doorbell do you press to find your roommate Nico?
+          </div>
+        </div>
+
+        <div id="buzzer-status" style="display: none; padding: 10px 16px; font-size: 12px; font-weight: 800; text-align: center;"></div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    const statusEl = modal.querySelector('#buzzer-status');
+    const containerEl = modal.querySelector('#buzzer-buttons-container');
+
+    modal.querySelector('#btn-close-buzzer').onclick = () => {
+      modal.remove();
+    };
+
+    // Define the 3 doorbells as modular entries
+    const buzzerEntries = [
+      {
+        id: 'buzzer-btn-1',
+        label: '🔘 OG 1: Frau Meier',
+        subtext: '*Ruhezeit bitte beachten!*',
+        borderLeft: '#E76F51',
+        onClick: () => {
+          if (this.game.sfx) this.game.sfx.playSfx('doorbell_wrong');
+          if (window.FFH.NPCMemoryManager) {
+            window.FFH.NPCMemoryManager.recordEncounter('NPC_FRAU_MEIER', 'buzzed_at_wrong_hour', -20, this.game.state);
+          }
+          statusEl.style.display = 'block';
+          statusEl.style.background = '#FFE3E3';
+          statusEl.style.color = '#C92A2A';
+          statusEl.innerHTML = '🔊 Scratchy Intercom: <em>"NEIN! Ruhezeit! Wer wagt es?!"</em> (-1 Noise Strike)';
+        }
+      },
+      {
+        id: 'buzzer-btn-2',
+        label: '🔘 EG: Hausmeister Schmidt',
+        subtext: '*Sprechstunde Mi 14:00-14:15*',
+        borderLeft: '#457B9D',
+        onClick: () => {
+          if (this.game.sfx) this.game.sfx.playSfx('click');
+          statusEl.style.display = 'block';
+          statusEl.style.background = '#EDF2F7';
+          statusEl.style.color = '#4A5568';
+          statusEl.innerHTML = '🔊 Heavy static, a deep sigh, and the receiver hangs up.';
+        }
+      },
+      {
+        id: 'buzzer-btn-3',
+        label: '🔘 3. OG: WG 3B — Nico & Co.',
+        subtext: '*Handwritten note: New flatmate welcome!*',
+        borderLeft: '#2EC4B6',
+        onClick: () => {
+          if (this.game.sfx) this.game.sfx.playSfx('bell');
+          statusEl.style.display = 'block';
+          statusEl.style.background = '#D3F9D8';
+          statusEl.style.color = '#2B8A3E';
+          statusEl.innerHTML = '⚡ <strong>BZZZZZZT!</strong> The heavy oak latch clicks open!';
+
+          setTimeout(() => {
+            modal.remove();
+            if (onSuccessCallback) onSuccessCallback();
+          }, 700);
+        }
+      }
+    ];
+
+    // Fisher-Yates shuffle to randomize button order on every visit
+    const shuffled = [...buzzerEntries];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // Render the randomly positioned buttons
+    shuffled.forEach(item => {
+      const btn = document.createElement('button');
+      btn.id = item.id;
+      btn.style.cssText = `
+        background: #F8F9FA;
+        border: 2px solid #CBD5E0;
+        border-left: 6px solid ${item.borderLeft};
+        border-radius: 10px;
+        padding: 12px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+      `;
+      btn.innerHTML = `
+        <div style="font-size: 13px; font-weight: 900; color: #2D3748;">${item.label}</div>
+        <div style="font-size: 10.5px; color: #718096;">${item.subtext}</div>
+      `;
+      btn.onclick = item.onClick;
+      containerEl.appendChild(btn);
+    });
+  }
+
+  showMuelltrennungModal(onCompleteCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('muelltrennung-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'muelltrennung-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3px solid #264653;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 340px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Header -->
+        <div style="background: #2A9D8F; padding: 14px 16px; color: #FFF;">
+          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">KÜCHEN-NOTFALL (KITCHEN CRISIS)</div>
+          <div style="font-size: 16px; font-weight: 900;">♻️ Nico's Mülltrennung Test!</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px; background: #F8F9FA; padding: 10px; border-radius: 10px; border: 1.5px dashed #CBD5E0;">
+            <div style="font-size: 32px;">🥛</div>
+            <div style="font-size: 12px; color: #2D3748; line-height: 1.4;">
+              <strong>Nico holds an empty plastic yogurt pot with foil lid:</strong><br>
+              <em>"Quick! Before Herr Becker inspects the bins, where does this go?!"</em>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Bin 1: Blue (Paper) -->
+            <button id="bin-blue" style="
+              background: #F0F7FF;
+              border: 2px solid #3A86FF;
+              border-left: 8px solid #3A86FF;
+              border-radius: 10px;
+              padding: 10px 12px;
+              text-align: left;
+              cursor: pointer;
+            ">
+              <div style="font-size: 13px; font-weight: 900; color: #1D3557;">🟦 Blaue Tonne (Papiermüll)</div>
+              <div style="font-size: 10.5px; color: #4A5568;">Paper, newspapers, cardboard boxes</div>
+            </button>
+
+            <!-- Bin 2: Yellow (Gelber Sack / Plastic & Metal) -->
+            <button id="bin-yellow" style="
+              background: #FFFDF0;
+              border: 2px solid #ECC238;
+              border-left: 8px solid #ECC238;
+              border-radius: 10px;
+              padding: 10px 12px;
+              text-align: left;
+              cursor: pointer;
+            ">
+              <div style="font-size: 13px; font-weight: 900; color: #7A5E0B;">🟨 Gelber Sack (Plastic & Foil Packaging)</div>
+              <div style="font-size: 10.5px; color: #4A5568;">Plastic pots, metal cans, foil lids</div>
+            </button>
+
+            <!-- Bin 3: Black (Restmüll) -->
+            <button id="bin-black" style="
+              background: #F8F9FA;
+              border: 2px solid #4A5568;
+              border-left: 8px solid #4A5568;
+              border-radius: 10px;
+              padding: 10px 12px;
+              text-align: left;
+              cursor: pointer;
+            ">
+              <div style="font-size: 13px; font-weight: 900; color: #2D3748;">⬛ Restmüll (Residual Waste)</div>
+              <div style="font-size: 10.5px; color: #4A5568;">Non-recyclable household waste</div>
+            </button>
+          </div>
+
+          <div id="bin-feedback" style="display: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 800; text-align: center;"></div>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    const feedbackEl = modal.querySelector('#bin-feedback');
+
+    const handleChoice = (isCorrect, message, bg, color) => {
+      feedbackEl.style.display = 'block';
+      feedbackEl.style.background = bg;
+      feedbackEl.style.color = color;
+      feedbackEl.innerHTML = message;
+
+      if (window.FFH.NPCMemoryManager) {
+        if (isCorrect) {
+          window.FFH.NPCMemoryManager.recordEncounter('NPC_NICO', 'trash_master', 20, this.game.state);
+        } else {
+          window.FFH.NPCMemoryManager.recordEncounter('NPC_NICO', 'trash_disaster', -15, this.game.state);
+        }
+      }
+
+      if (this.game.sfx) {
+        this.game.sfx.playSfx(isCorrect ? 'success' : 'wrong');
+      }
+
+      setTimeout(() => {
+        modal.remove();
+        if (onCompleteCallback) onCompleteCallback(isCorrect);
+      }, 1200);
+    };
+
+    modal.querySelector('#bin-blue').onclick = () => {
+      handleChoice(false, '❌ Nico screams in a whisper: <em>"NO! Plastic in the paper bin?! Becker will evict us!"</em>', '#FFE3E3', '#C92A2A');
+    };
+
+    modal.querySelector('#bin-yellow').onclick = () => {
+      handleChoice(true, '🎉 Nico sighs with massive relief: <em>"Brilliant! You\'re a legend. We live to see tomorrow!"</em> (+2 Trust)', '#D3F9D8', '#2B8A3E');
+    };
+
+    modal.querySelector('#bin-black').onclick = () => {
+      handleChoice(false, '❌ Nico snatches the pot: <em>"Wrong! Gelber Sack! You almost caused a diplomatic crisis!"</em>', '#FFE3E3', '#C92A2A');
+    };
+  }
+
+  showTuitionLetterModal(onAcknowledgeCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('tuition-letter-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'tuition-letter-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFDF9;
+        border: 3px solid #264653;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 330px;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.45);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Letter Stamp Header -->
+        <div style="background: #264653; padding: 12px 16px; color: #FFF; border-bottom: 3px solid #E76F51; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 10px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">OFFICIAL NOTIFICATION</div>
+            <div style="font-size: 15px; font-weight: 900;">🏛️ Hochschule Lübeck — Kasse</div>
+          </div>
+          <div style="font-size: 22px;">📜</div>
+        </div>
+
+        <div style="padding: 18px 16px; display: flex; flex-direction: column; gap: 12px;">
+          <!-- Official Notice Box -->
+          <div style="background: #F8F9FA; border: 1.5px solid #CBD5E0; border-radius: 8px; padding: 12px; font-family: monospace, sans-serif; font-size: 11.5px; color: #2D3748; line-height: 1.5;">
+            <div><strong>BETREFF:</strong> Semesterbeitrag (Tuition)</div>
+            <div><strong>FÄLLIGKEIT:</strong> Freitag, 17:00 Uhr</div>
+            <div style="border-top: 1px dashed #CBD5E0; margin: 8px 0;"></div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Tuition Fee Due:</span>
+              <span style="font-weight: 900; color: #E76F51;">250.00 €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Current Cash in Pocket:</span>
+              <span style="font-weight: 900; color: #2A9D8F;">${(this.game.state.wallet || 20).toFixed(2)} €</span>
+            </div>
+            <div style="border-top: 1px dashed #CBD5E0; margin: 8px 0;"></div>
+            <div style="font-size: 10px; color: #C92A2A; font-weight: 800;">
+              *Achtung: Exmatrikulation upon failure to pay.
+            </div>
+          </div>
+
+          <!-- British Thought Commentary -->
+          <div style="background: #FFE8D6; border-left: 4px solid #E76F51; border-radius: 6px; padding: 10px; font-size: 12px; color: #7B241C; line-height: 1.4;">
+            💭 <em>"Two hundred and fifty quid?! I’ve got twenty euros and a used yogurt lid. I need to sprint to the University admissions office before they cancel my visa."</em>
+          </div>
+
+          <!-- Action Button -->
+          <button id="btn-ack-letter" style="
+            background: #2EC4B6;
+            color: #FFF;
+            border: 2px solid #264653;
+            border-bottom: 4px solid #1A7A73;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            🏃 Sprint to University (Before 17:00)
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-ack-letter').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('click');
+      modal.remove();
+      if (onAcknowledgeCallback) onAcknowledgeCallback();
+    };
+  }
+
+  showLockedUniModal(onLeaveCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('locked-uni-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'locked-uni-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3px solid #264653;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 340px;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.45);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Door Header -->
+        <div style="background: #264653; padding: 14px 16px; color: #FFF; border-bottom: 3px solid #E76F51; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">UNIVERSITÄT LÜBECK</div>
+            <div style="font-size: 16px; font-weight: 900;">🔒 Geschlossen (Closed: 17:01)</div>
+          </div>
+          <div style="font-size: 24px;">🚪</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <!-- Sign on Door -->
+          <div style="background: #FFFBEA; border: 2px solid #ECC238; border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="font-size: 14px; font-weight: 900; color: #7A5E0B;">ÖFFNUNGSZEITEN</div>
+            <div style="font-size: 12px; color: #2D3748; margin-top: 4px;">
+              Dienstag & Donnerstag: 10:00 – 11:30 Uhr<br>
+              <strong>Freitags geschlossen.</strong>
+            </div>
+            <div style="margin-top: 6px; font-size: 11px; color: #C92A2A; font-weight: 800;">
+              *Heavy brass padlock on door handles*
+            </div>
+          </div>
+
+          <!-- Frau Klein Encounter -->
+          <div style="display: flex; gap: 10px; background: #F8F9FA; border: 1.5px solid #CBD5E0; border-radius: 10px; padding: 10px;">
+            <div style="font-size: 28px;">🥔</div>
+            <div style="font-size: 12px; color: #2D3748; line-height: 1.4;">
+              <strong>Frau Klein (passing by with potatoes):</strong><br>
+              <em>"Looking for the registrar, boy? In Germany, at 16:59:59 the pen leaves the hand! At 17:01, they are already on the sofa drinking herbal tea. Come back tomorrow!"</em>
+            </div>
+          </div>
+
+          <!-- British Thought -->
+          <div style="background: #FFE8D6; border-left: 4px solid #E76F51; border-radius: 6px; padding: 10px; font-size: 11.5px; color: #7B241C; line-height: 1.35;">
+            💭 <em>"A ninety-minute work week! Truly the backbone of the republic. Well, I have no money, no enrollment, and night is falling."</em>
+          </div>
+
+          <!-- Leave Button -->
+          <button id="btn-leave-uni" style="
+            background: #E76F51;
+            color: #FFF;
+            border: 2px solid #264653;
+            border-bottom: 4px solid #B2462E;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            🌙 Walk into the Evening (Find Work)
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-leave-uni').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('click');
+      // Record Frau Klein Shadow of Mordor memory
+      if (window.FFH.NPCMemoryManager) {
+        window.FFH.NPCMemoryManager.recordEncounter('NPC_FRAU_KLEIN', 'met_at_locked_uni', 10, this.game.state);
+      }
+      modal.remove();
+      if (onLeaveCallback) onLeaveCallback();
+    };
+  }
+
+  showDayRecapModal(onSleepCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('day-recap-modal');
+    if (prev) prev.remove();
+
+    const s = this.game.state;
+    const wallet = (s.wallet !== undefined ? s.wallet : 20.0).toFixed(2);
+    const goal = (window.FFH.ECONOMY?.TUITION_GOAL || 250).toFixed(2);
+    const deficit = Math.max(0, (window.FFH.ECONOMY?.TUITION_GOAL || 250) - (s.wallet || 20)).toFixed(2);
+
+    const modal = document.createElement('div');
+    modal.id = 'day-recap-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 15, 26, 0.94);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.4s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #1D2D44;
+        border: 3px solid #FFD166;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 340px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        color: #FFFFFF;
+      ">
+        <!-- Night Header -->
+        <div style="background: #0D1B2A; padding: 16px; text-align: center; border-bottom: 2px solid #415A77;">
+          <div style="font-size: 28px; margin-bottom: 4px;">🌙</div>
+          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 2px;">TAG 1 VORBEI (DAY 1 CONCLUDED)</div>
+          <div style="font-size: 18px; font-weight: 900; margin-top: 2px;">22:00 Uhr — Gesetzliche Ruhezeit</div>
+        </div>
+
+        <div style="padding: 18px 16px; display: flex; flex-direction: column; gap: 12px;">
+          <!-- Financial Reality Box -->
+          <div style="background: rgba(255,255,255,0.06); border: 1px solid #415A77; border-radius: 10px; padding: 12px; font-family: monospace, sans-serif; font-size: 12px; line-height: 1.6;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Current Wallet:</span>
+              <span style="font-weight: 900; color: #2EC4B6;">${wallet} €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Tuition Needed:</span>
+              <span style="font-weight: 900; color: #FFD166;">${goal} €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Remaining Deficit:</span>
+              <span style="font-weight: 900; color: #E76F51;">-${deficit} €</span>
+            </div>
+            <div style="border-top: 1px dashed #415A77; margin: 8px 0;"></div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Days until Deadline:</span>
+              <span style="font-weight: 900; color: #FFF;">6 Days</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Pizzeria Rejection:</span>
+              <span style="font-weight: 900; color: #E76F51;">1 ("No Italian")</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #A0AEC0;">Bakery Rejection:</span>
+              <span style="font-weight: 900; color: #E76F51;">1 ("B1 German")</span>
+            </div>
+          </div>
+
+          <!-- British Monologue -->
+          <div style="background: rgba(255, 209, 102, 0.1); border-left: 4px solid #FFD166; border-radius: 6px; padding: 10px; font-size: 11.5px; color: #FFE8D6; line-height: 1.35;">
+            💭 <em>"Turned down at the pizzeria for being too English, rejected at the bakery for missing a B1 certificate. Nina at Kruma Express is my only hope tomorrow morning."</em>
+          </div>
+
+          <!-- Sleep Button -->
+          <button id="btn-sleep-morning" style="
+            background: #2EC4B6;
+            color: #0D1B2A;
+            border: 2px solid #FFD166;
+            border-bottom: 5px solid #1A7A73;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          ">
+            😴 SLEEP (END OF DAY 1)
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-sleep-morning').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('bell');
+      modal.remove();
+      // Show Act 1 Completed Celebration Banner
+      if (this.spawnFloatingText) {
+        this.spawnFloatingText('🎉 ACT 1 COMPLETED! (DAY 1 SURVIVED)', window.innerWidth / 2, window.innerHeight * 0.4, '#FFD166');
+      }
+      if (onSleepCallback) onSleepCallback();
+    };
+  }
+
+  showPizzeriaJobModal(onAcknowledgeCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('pizzeria-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'pizzeria-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFDF9;
+        border: 3px solid #264653;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 320px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <div style="background: #264653; padding: 14px 16px; color: #FFF; text-align: center; border-bottom: 2px solid #E76F51;">
+          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">LA BELLA NAPOLI</div>
+          <div style="font-size: 18px; font-weight: 900; margin-top: 2px;">🍕 Job Inquiry</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="font-size: 13.5px; color: #2D3748; line-height: 1.5;">
+            You walk into the pizzeria, taking a deep breath of fresh garlic and oregano. You ask the owner if he needs a delivery driver.
+          </div>
+          
+          <div style="background: #F4E8D8; border-left: 5px solid #E76F51; border-radius: 4px; padding: 12px; font-size: 13px; color: #2D3748; font-style: italic;">
+            "No Italian, no pizza flipping, and your German sounds like a broken lawnmower! Try the bakery down the street, kid!"<br>
+            <strong style="display: block; margin-top: 6px; font-style: normal; font-size: 11px; color: #E76F51;">— Mathias Becker (Owner)</strong>
+          </div>
+
+          <button id="btn-leave-pizzeria" style="
+            background: #E76F51;
+            color: #FFFFFF;
+            border: none;
+            border-bottom: 4px solid #C0392B;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            Walk Away
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-leave-pizzeria').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('wrong');
+      modal.remove();
+      if (onAcknowledgeCallback) onAcknowledgeCallback();
+    };
+  }
+
+  showBakeryJobModal(onAcknowledgeCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('bakery-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'bakery-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 24, 38, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFDF9;
+        border: 3px solid #264653;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 320px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <div style="background: #264653; padding: 14px 16px; color: #FFF; text-align: center; border-bottom: 2px solid #E76F51;">
+          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">BÄCKEREI HANSA</div>
+          <div style="font-size: 18px; font-weight: 900; margin-top: 2px;">🥨 Job Inquiry</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="font-size: 13.5px; color: #2D3748; line-height: 1.5;">
+            You enter the bakery, eyeing the warm crusty rye bread. You ask the old lady behind the counter if she needs any help.
+          </div>
+          
+          <div style="background: #F4E8D8; border-left: 5px solid #E76F51; border-radius: 4px; padding: 12px; font-size: 13px; color: #2D3748; font-style: italic;">
+            "You want to knead rye bread? You need a B1 German certificate and five years of flour apprenticeship! But Nina at Kruma Express warehouse hires anyone who can cycle without fainting!"<br>
+            <strong style="display: block; margin-top: 6px; font-style: normal; font-size: 11px; color: #E76F51;">— Oma Martha</strong>
+          </div>
+
+          <button id="btn-leave-bakery" style="
+            background: #E76F51;
+            color: #FFFFFF;
+            border: none;
+            border-bottom: 4px solid #C0392B;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">
+            Walk Away
+          </button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    modal.querySelector('#btn-leave-bakery').onclick = () => {
+      if (this.game.sfx) this.game.sfx.playSfx('wrong');
+      modal.remove();
+      if (onAcknowledgeCallback) onAcknowledgeCallback();
+    };
   }
 };
 
@@ -35729,6 +36822,12 @@ window.FFH.CityExplorationPhase = class {
 
     // Setup Atmosphere & Dynamic Day-Night Lights
     this.setupAtmosphere();
+    if (data && data.timeOfDay !== undefined) {
+      this.updateAtmosphericTime(data.timeOfDay);
+    }
+    if (data && data.spawnPos) {
+      this.playerPos.set(data.spawnPos.x, data.spawnPos.y !== undefined ? data.spawnPos.y : 0.05, data.spawnPos.z);
+    }
 
     // Build city world with scaled proportions
     const { worldGroup, interactiveMeshes, waterMat, clouds, butterflies, birds } = window.FFH.buildLubeckCityWorld();
@@ -35818,6 +36917,29 @@ window.FFH.CityExplorationPhase = class {
     
     // Initialize Minimap Data
     this.setupMinimap();
+
+    // Initialize 3D Pfand Bottle Collectibles (€0.25 each)
+    this.setupPfandCollectibles();
+
+    // Step 1: Station Arrival Auto-Trigger for British Comedy Storyline
+    if (!this.game.state.hasShownStationArrivalThought && (!data || !data.fromBuildingExit)) {
+      this.game.state.hasShownStationArrivalThought = true;
+      setTimeout(() => {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought(
+            "So this is Germany. Clean. Tidy. And possessing a bus shelter roughly the size of a toaster. If I try to stand in there, my knees will be in Austria."
+          );
+        }
+        // Then 3.5s later, trigger the initial objective reveal and compass pointing South to WG
+        setTimeout(() => {
+          if (!this.game.state.firstObjectiveRevealed && this.game.ui && this.game.ui.triggerFirstObjectiveReveal) {
+            this.game.ui.triggerFirstObjectiveReveal();
+          } else {
+            this.revealCompass();
+          }
+        }, 3600);
+      }, 2500);
+    }
 
     if (data && data.fromBuildingExit) {
       this.startBuildingExit();
@@ -36235,6 +37357,160 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
+  // --- COLLECTIBLE PFAND BOTTLES SYSTEM (€0.25 each, €1.25 max) ---
+  setupPfandCollectibles() {
+    this.pfandCollectibles = [];
+    if (!this.game.state.collectedPfandIds) {
+      this.game.state.collectedPfandIds = [];
+    }
+
+    // 5 strategically placed bottles along sidewalks/roads across the town
+    // Total: 5 x €0.25 = €1.25 (player discovers them accidentally while walking)
+    const bottleSpawns = [
+      { id: 'pfand_station', x: 12.0, z: 8.5 },      // Just south of ZOB on the walking path
+      { id: 'pfand_bridge', x: 14.5, z: 18.0 },       // Near bridge approach
+      { id: 'pfand_wg_bench', x: 9.2, z: 24.5 },      // Outside near WG dorm
+      { id: 'pfand_market', x: 21.0, z: 24.0 },        // Corner of Rathaus / Market
+      { id: 'pfand_bakery', x: 6.5, z: 19.5 }         // Near Bakery Hansa entrance
+    ];
+
+    const bottleGroup = new THREE.Group();
+    bottleGroup.name = 'pfand_collectibles_group';
+
+    // Materials: Dark green glass with subtle shine, yellow metal cap, golden glowing ground ring
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0x2D6A4F, transparent: true, opacity: 0.88 });
+    const capMat = new THREE.MeshLambertMaterial({ color: 0xFFD166 });
+    const ringMat = new THREE.MeshBasicMaterial({ 
+      color: 0xFFD166, 
+      side: THREE.DoubleSide, 
+      transparent: true, 
+      opacity: 0.65,
+      depthWrite: false 
+    });
+
+    const bodyGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.28, 10);
+    const neckGeo = new THREE.CylinderGeometry(0.035, 0.06, 0.12, 8);
+    const capGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8);
+    const ringGeo = new THREE.RingGeometry(0.22, 0.40, 16);
+
+    bottleSpawns.forEach(spawn => {
+      // Skip if already collected on this save
+      if (this.game.state.collectedPfandIds.includes(spawn.id)) return;
+
+      const itemContainer = new THREE.Group();
+      itemContainer.position.set(spawn.x, 0.06, spawn.z);
+
+      // 1. Ground Pulsing Ring
+      const groundRing = new THREE.Mesh(ringGeo, ringMat.clone());
+      groundRing.rotation.x = -Math.PI / 2;
+      groundRing.position.y = 0.01;
+      itemContainer.add(groundRing);
+
+      // 2. Floating Bottle Mesh
+      const bottleMesh = new THREE.Group();
+      const bodyMesh = new THREE.Mesh(bodyGeo, glassMat);
+      bodyMesh.position.y = 0.14;
+      const neckMesh = new THREE.Mesh(neckGeo, glassMat);
+      neckMesh.position.y = 0.32;
+      const capMesh = new THREE.Mesh(capGeo, capMat);
+      capMesh.position.y = 0.39;
+      
+      bottleMesh.add(bodyMesh, neckMesh, capMesh);
+      bottleMesh.position.y = 0.12;
+      itemContainer.add(bottleMesh);
+
+      bottleGroup.add(itemContainer);
+
+      this.pfandCollectibles.push({
+        id: spawn.id,
+        x: spawn.x,
+        z: spawn.z,
+        container: itemContainer,
+        bottleMesh: bottleMesh,
+        groundRing: groundRing,
+        collected: false
+      });
+    });
+
+    this.game.scene.add(bottleGroup);
+    this.pfandGroup = bottleGroup;
+  }
+
+  updatePfandCollectibles(delta, timeSec) {
+    if (!this.pfandCollectibles || this.pfandCollectibles.length === 0) return;
+
+    const px = this.playerPos.x;
+    const pz = this.playerPos.z;
+    const PICKUP_RADIUS = 1.35; // Player touches / walks near it accidentally
+
+    for (let i = this.pfandCollectibles.length - 1; i >= 0; i--) {
+      const item = this.pfandCollectibles[i];
+      if (item.collected) continue;
+
+      // Animate rotation & bobbing
+      item.bottleMesh.rotation.y += delta * 2.2;
+      item.bottleMesh.position.y = 0.14 + Math.sin(timeSec * 4 + i) * 0.04;
+      
+      // Animate ground ring pulse
+      const ringScale = 1.0 + Math.sin(timeSec * 5 + i) * 0.18;
+      item.groundRing.scale.set(ringScale, ringScale, ringScale);
+      item.groundRing.material.opacity = 0.45 + Math.sin(timeSec * 5 + i) * 0.25;
+
+      // Proximity check
+      const dist = Math.hypot(px - item.x, pz - item.z);
+      if (dist < PICKUP_RADIUS) {
+        // Collect!
+        item.collected = true;
+        this.game.state.collectedPfandIds.push(item.id);
+        
+        // Canonical Economy: +€0.25
+        this.game.state.wallet = window.FFH.round2((this.game.state.wallet || 20) + 0.25);
+        if (this.game.ui && this.game.ui.refreshStats) {
+          this.game.ui.refreshStats(this.game.state);
+        }
+        if (this.game.ui && this.game.ui.updatePersistentHUD) {
+          this.game.ui.updatePersistentHUD(this.game.state);
+        }
+
+        // SFX feedback
+        if (this.game.sfx && this.game.sfx.playSfx) {
+          this.game.sfx.playSfx('register');
+        }
+
+        // Visual floating text feedback
+        if (this.game.ui && this.game.ui.spawnFloatingText) {
+          this.game.ui.spawnFloatingText('+0.25€ Pfand Deposit! 🍾', window.innerWidth / 2, window.innerHeight * 0.45, '#4CAF50');
+        }
+
+        // British Comedy discovery thoughts
+        const pfandThoughts = [
+          "Wait... there's 25 cents on this empty bottle? In London this is rubbish. Here I'm practically an investment banker.",
+          "Another Pfand bottle! That's 25 cents closer to paying university tuition.",
+          "Picking up beer bottles on the street... my parents would be so proud of my academic progress."
+        ];
+        const randomThought = pfandThoughts[Math.floor(Math.random() * pfandThoughts.length)];
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought(randomThought);
+        }
+
+        // Quick shrink animation before removing from scene
+        let shrinkTimer = 0.25;
+        const shrinkInterval = setInterval(() => {
+          shrinkTimer -= 0.05;
+          if (shrinkTimer <= 0) {
+            clearInterval(shrinkInterval);
+            if (item.container.parent) {
+              item.container.parent.remove(item.container);
+            }
+          } else {
+            const s = shrinkTimer / 0.25;
+            item.container.scale.set(s, s, s);
+          }
+        }, 30);
+      }
+    }
+  }
+
   // --- TOUCH & POINTER GESTURE HANDLING ---
 
   onTouchStart(e) {
@@ -36542,10 +37818,12 @@ window.FFH.CityExplorationPhase = class {
 
   triggerBuildingInteraction(poiType) {
     const sr = this.game.storyRunner;
-    
+    const s = this.game.state;
+    console.log(`[TBI] poi=${poiType} | buzzed=${s.hasBuzzedWG} | mull=${s.hasDoneMuelltrennung} | uni=${s.hasVisitedLockedUni} | pending=${sr && sr.pendingStoryTarget ? sr.pendingStoryTarget.poi : 'none'}`);
+
     // Check if it's the pending story target
     if (sr && sr.pendingStoryTarget && poiType === sr.pendingStoryTarget.poi) {
-      const nextSceneId = sr.pendingStoryTarget.sceneId;
+      const nextSceneId = sr.resolveSceneId ? sr.resolveSceneId(sr.pendingStoryTarget.sceneId) : sr.pendingStoryTarget.sceneId;
       sr.pendingStoryTarget = null;
       if (this.game.ui && this.game.ui.hideCompassUI) {
         this.game.ui.hideCompassUI();
@@ -36561,19 +37839,253 @@ window.FFH.CityExplorationPhase = class {
     let targetNpc = null;
     let storyScene = null;
 
+    // Clean display name mapping for any technical poi names
+    const friendlyPoiNames = {
+      'B_ZOB': 'Train Station (ZOB)',
+      'B_WG': 'Student WG (Apartment)',
+      'B_UNI': 'University Campus',
+      'B_PIZZA': 'Pizzeria Bella',
+      'B_BAKERY': 'Bakery Hansa',
+      'B_DARKSTORE': 'Kruma Express Hub',
+      'B_RATHAUS': 'Rathaus (City Hall)',
+      'B_AUSLAENDER': 'Ausländerbehörde',
+      'B_SUPERMARKET': 'Supermarket',
+      'LM_MARKTPLATZ': 'Marktplatz'
+    };
+    const cleanPoiName = friendlyPoiNames[poiType] || poiType.replace(/^B_/, '').replace(/_/g, ' ');
+
     if (poiType.includes('Universität') || poiType.includes('University') || poiType === 'B_UNI') {
+      // University is only relevant once player has finished WG arrival and discovered tuition
+      if (this.game.state.hasDoneMuelltrennung && !this.game.state.hasVisitedLockedUni && this.game.ui && this.game.ui.showLockedUniModal) {
+        this.game.ui.showLockedUniModal(() => {
+          this.game.state.hasVisitedLockedUni = true;
+          this.game.state.questStep = 2; // Advance to finding work
+          this.game.state.activeObjective = '🍕 Try Pizzeria Bella for work — ask about a job';
+          if (this.game.storyRunner) {
+            this.game.storyRunner.pendingStoryTarget = { sceneId: 'pizzeria_job', poi: 'B_PIZZA' };
+          }
+          if (this.game.ui && this.game.ui.updateQuestTracker) {
+            this.game.ui.updateQuestTracker();
+          }
+
+          // Step 9: Smoothly transition atmosphere to Night Mode (19:00, progress 0.85)!
+          let currentProgress = this.timeOfDay || 0.70;
+          const targetProgress = 0.88; // Deep Baltic night
+          const stepNight = () => {
+            if (currentProgress < targetProgress) {
+              currentProgress = Math.min(targetProgress, currentProgress + 0.03);
+              this.updateAtmosphericTime(currentProgress);
+              requestAnimationFrame(stepNight);
+            }
+          };
+          stepNight();
+
+          // British thought on freezing cold night and hunger
+          if (this.game.ui && this.game.ui.spawnWandererThought) {
+            setTimeout(() => {
+              this.game.ui.spawnWandererThought(
+                "Great. It's pitch black, freezing cold, and I still don't have a job. Check the lamp posts for flyers."
+              );
+            }, 1200);
+          }
+
+          this.isEnteringBuilding = false;
+          this.inputDisabled = false;
+          if (window.FFH && window.FFH.saveGame) {
+            window.FFH.saveGame(this.game);
+          }
+          this.startBuildingExit();
+        });
+        return;
+      } else if (!this.game.state.hasDoneMuelltrennung) {
+        // Player tried to enter university before dropping luggage at WG
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("I should drop off my luggage at the student WG first before heading to campus.");
+        }
+        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+        this.isEnteringBuilding = false;
+        this.inputDisabled = false;
+        this.startBuildingExit();
+        return;
+      }
       targetNpc = 'NPC_RITA';
       storyScene = 'rita_first';
     } else if (poiType.includes('Pizzeria') || poiType.includes('Pizza') || poiType === 'B_PIZZA') {
+      if (this.game.state.hasVisitedLockedUni && !this.game.state.hasVisitedPizzeriaJob) {
+        if (this.game.ui && this.game.ui.showPizzeriaJobModal) {
+          this.game.ui.showPizzeriaJobModal(() => {
+            this.game.state.hasVisitedPizzeriaJob = true;
+            this.game.state.questStep = 3;
+            this.game.state.activeObjective = '🥐 Rejected at Pizzeria! Try Bakery Hansa for work.';
+            if (this.game.storyRunner) {
+              this.game.storyRunner.pendingStoryTarget = { sceneId: 'bakery_job', poi: 'B_BAKERY' };
+            }
+            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+            this.isEnteringBuilding = false;
+            this.inputDisabled = false;
+            if (window.FFH && window.FFH.saveGame) {
+              window.FFH.saveGame(this.game);
+            }
+            this.startBuildingExit();
+          });
+        }
+        return;
+      } else if (!this.game.state.hasVisitedLockedUni) {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("The smells of fresh garlic and oregano are intoxicating, but I have places to be right now.");
+        }
+        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+        this.isEnteringBuilding = false;
+        this.inputDisabled = false;
+        this.startBuildingExit();
+        return;
+      }
       targetNpc = 'NPC_MATHIAS';
       storyScene = 'mathias_loan';
     } else if (poiType.includes('Bakery') || poiType.includes('Bäcker') || poiType === 'B_BAKERY') {
+      if (this.game.state.hasVisitedPizzeriaJob && !this.game.state.hasVisitedBakeryJob) {
+        if (this.game.ui && this.game.ui.showBakeryJobModal) {
+          this.game.ui.showBakeryJobModal(() => {
+            this.game.state.hasVisitedBakeryJob = true;
+            this.game.state.questStep = 4;
+            this.game.state.activeObjective = '🏠 Rejected at Bakery! Head back to WG to sleep.';
+            if (this.game.storyRunner) {
+              this.game.storyRunner.pendingStoryTarget = { sceneId: 'day1_sleep', poi: 'B_WG' };
+            }
+            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+            this.isEnteringBuilding = false;
+            this.inputDisabled = false;
+            if (window.FFH && window.FFH.saveGame) {
+              window.FFH.saveGame(this.game);
+            }
+            this.startBuildingExit();
+          });
+        }
+        return;
+      } else if (!this.game.state.hasVisitedPizzeriaJob) {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("Warm crusty rye bread in the window. No time to browse pastries just yet.");
+        }
+        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+        this.isEnteringBuilding = false;
+        this.inputDisabled = false;
+        this.startBuildingExit();
+        return;
+      }
       targetNpc = 'NPC_MARTHA';
       storyScene = 'martha';
     } else if (poiType.includes('Dark Store') || poiType.includes('Kruma') || poiType === 'B_DARKSTORE') {
-      targetNpc = 'NPC_NINA';
-      storyScene = 'knot_money';
-    } else if (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG') {
+      if (this.game.state.day >= 2 || this.game.state.hasSleptDay1) {
+        targetNpc = 'NPC_NINA';
+        storyScene = 'knot_money';
+      } else {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("Kruma Express warehouse. Shutter doors are down for the night. Opens tomorrow at 07:00.");
+        }
+        if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
+        this.isEnteringBuilding = false;
+        this.inputDisabled = false;
+        this.startBuildingExit();
+        return;
+      }
+    } else if (poiType !== 'B_WG_ENTERED' && (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG')) {
+      if (!this.game.state.hasBuzzedWG && this.game.ui && this.game.ui.showWGBuzzerModal) {
+        this.game.ui.showWGBuzzerModal(() => {
+          this.game.state.hasBuzzedWG = true;
+          if (window.FFH && window.FFH.saveGame) {
+            window.FFH.saveGame(this.game);
+          }
+          this.triggerBuildingInteraction('B_WG_ENTERED');
+        });
+        return;
+      }
+      // Buzzed but haven't done Mülltrennung yet — Nico is waiting inside!
+      if (this.game.state.hasBuzzedWG && !this.game.state.hasDoneMuelltrennung) {
+        this.triggerBuildingInteraction('B_WG_ENTERED');
+        return;
+      }
+      // If returning to WG at night after job hunting, trigger Day 1 sleep cycle!
+      if (this.game.state.hasVisitedLockedUni && !this.game.state.hasSleptDay1 && this.game.ui && this.game.ui.showDayRecapModal) {
+        this.game.ui.showDayRecapModal(() => {
+          this.game.state.hasSleptDay1 = true;
+          this.game.state.day = 2;
+          this.game.state.questStep = 4;
+          this.game.state.activeObjective = 'Tag 2 (07:00): Head to Kruma Express Dark Store for Shift 1!';
+          if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
+          if (this.game.ui && this.game.ui.refreshStats) this.game.ui.refreshStats(this.game.state);
+
+          // Transition lighting to Day 2 morning dawn (progress 0.30)!
+          let currentProgress = this.timeOfDay || 0.88;
+          const targetProgress = 0.30;
+          this.updateAtmosphericTime(targetProgress);
+
+          if (this.game.ui && this.game.ui.spawnWandererThought) {
+            this.game.ui.spawnWandererThought(
+              "Day 2. Sun is up, tea is drunk, and my landlord is still threatening eviction. Time to tackle Kruma Express."
+            );
+          }
+
+          this.isEnteringBuilding = false;
+          this.inputDisabled = false;
+          if (window.FFH && window.FFH.saveGame) {
+            window.FFH.saveGame(this.game);
+          }
+          this.startBuildingExit();
+        });
+        return;
+      }
+      targetNpc = 'NPC_LOKKER';
+      storyScene = 'lokker_kaution';
+    } else if (poiType === 'B_WG_ENTERED') {
+      if (!this.game.state.hasDoneMuelltrennung && this.game.ui && this.game.ui.showMuelltrennungModal) {
+        this.game.ui.showMuelltrennungModal((isCorrect) => {
+          this.game.state.hasDoneMuelltrennung = true;
+          // Trigger the Tuition Notice letter on the desk right after!
+          if (this.game.ui && this.game.ui.showTuitionLetterModal) {
+            this.game.ui.showTuitionLetterModal(() => {
+              this.game.state.questStep = 1; // Direct player to Chapter 2: University
+              this.game.state.activeObjective = '🎓 Sprint to University Campus before 17:00!';
+              if (this.game.storyRunner) {
+                this.game.storyRunner.pendingStoryTarget = { sceneId: 'uni_closed', poi: 'B_UNI' };
+              }
+              if (this.game.ui && this.game.ui.updateQuestTracker) {
+                this.game.ui.updateQuestTracker();
+              }
+              // Smoothly transition city lighting to warm Golden Hour (16:45)!
+              let currentProgress = this.timeOfDay || 0.35;
+              const targetProgress = 0.70; // Golden hour amber sunset
+              const stepTime = () => {
+                if (currentProgress < targetProgress) {
+                  currentProgress = Math.min(targetProgress, currentProgress + 0.035);
+                  this.updateAtmosphericTime(currentProgress);
+                  requestAnimationFrame(stepTime);
+                }
+              };
+              stepTime();
+
+              // British thought bubble on golden hour beauty
+              if (this.game.ui && this.game.ui.spawnWandererThought) {
+                setTimeout(() => {
+                  this.game.ui.spawnWandererThought(
+                    "The sun is going down. The city actually looks dead pretty in this golden light. Still completely broke, of course, but the scenery is lovely."
+                  );
+                }, 1200);
+              }
+
+              // Bounce back out to city so player walks to University
+              this.isEnteringBuilding = false;
+              this.inputDisabled = false;
+              if (window.FFH && window.FFH.saveGame) {
+                window.FFH.saveGame(this.game);
+              }
+              this.startBuildingExit();
+            });
+          } else {
+            this.triggerBuildingInteraction('B_WG_ENTERED');
+          }
+        });
+        return;
+      }
       targetNpc = 'NPC_LOKKER';
       storyScene = 'lokker_kaution';
     } else if (poiType.includes('Hostel') || poiType.includes('Dorm')) {
@@ -36584,12 +38096,27 @@ window.FFH.CityExplorationPhase = class {
       storyScene = 'act_five';
     }
 
+    if (poiType === 'B_ZOB' || poiType.includes('ZOB') || poiType.includes('Station')) {
+      if (this.game.ui && this.game.ui.spawnWandererThought) {
+        this.game.ui.spawnWandererThought(
+          "Bus Timetable: 'No buses inside town center. Walk.' Brilliant. Welcome to Germany, mate. Drag your 25kg suitcase across the cobblestones."
+        );
+      }
+      if (this.game.sfx && this.game.sfx.playSfx) {
+        this.game.sfx.playSfx('click');
+      }
+      this.isEnteringBuilding = false;
+      this.inputDisabled = false;
+      this.startBuildingExit();
+      return;
+    }
+
     if (sr && storyScene && (sr.scenesById ? sr.scenesById[storyScene] : sr.scenes[storyScene])) {
       sr.startScene(storyScene);
     } else if (targetNpc) {
       this.game.transitionTo('DIALOGUE', { npcKey: targetNpc });
     } else {
-      this.game.ui.spawnFloatingText(`Visited: ${poiType}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
+      this.game.ui.spawnFloatingText(`Visited: ${cleanPoiName}`, window.innerWidth / 2, window.innerHeight / 2, '#2EC4B6');
       if (this.game.sfx && this.game.sfx.playSfx) {
         this.game.sfx.playSfx('success');
       }
@@ -36902,6 +38429,9 @@ window.FFH.CityExplorationPhase = class {
     // Check contextual location triggers for Wanderer's Thoughts
     this.updateWandererThoughts(delta);
 
+    // Update 3D Pfand Bottle Collectibles (Rotation, Bobbing, and Proximity Pickup)
+    this.updatePfandCollectibles(delta, timeSec);
+
     // Pulse target marker ring
     if (this.targetMarker && this.targetMarker.visible) {
       const scale = 1.0 + Math.sin(timeSec * 8) * 0.15;
@@ -37034,7 +38564,9 @@ window.FFH.CityExplorationPhase = class {
     this.updateMinimap(timeSec);
 
     // 7. Update Distance Indicator and Freshness Decay
-    if (this.game.state.activeDelivery && targetMesh) {
+    const isDelivery = !!this.game.state.activeDelivery;
+    const hasStoryTarget = !!(sr && sr.pendingStoryTarget);
+    if ((isDelivery || hasStoryTarget) && targetMesh) {
       const dx = targetMesh.position.x - this.playerPos.x;
       const dz = targetMesh.position.z - this.playerPos.z;
       const dist = Math.sqrt(dx*dx + dz*dz);
@@ -37044,21 +38576,28 @@ window.FFH.CityExplorationPhase = class {
         this.game.ui.updateCityExplorerHUD(dist, angle, true);
       }
       
-      // Decay freshness
-      const decayRate = this.game.state.upgrades?.thermalBag ? 1.0 : 2.0;
-      this.game.state.freshness = Math.max(0, this.game.state.freshness - (delta * decayRate));
-      
-      // Doorway Dialogue Handoff (auto transition when near)
-      if (dist < 2.0) {
-        // We've stepped up to the customer's doorway!
-        this.game.transitionTo('DIALOGUE', { isDelivery: true });
+      if (isDelivery) {
+        // Decay freshness
+        const decayRate = this.game.state.upgrades?.thermalBag ? 1.0 : 2.0;
+        this.game.state.freshness = Math.max(0, this.game.state.freshness - (delta * decayRate));
+        
+        // Doorway Dialogue Handoff (auto transition when near)
+        if (dist < 2.0) {
+          // We've stepped up to the customer's doorway!
+          this.game.transitionTo('DIALOGUE', { isDelivery: true });
+        }
       }
     } else {
       if (this.game.ui.updateCityExplorerHUD) {
         this.game.ui.updateCityExplorerHUD(0, 0, false);
       }
-
     }
+
+    // 8. Update Collectible Pfand Bottles (€0.25 pickups)
+    this.updatePfandCollectibles(delta, timeSec);
+
+    // 9. Update Location-based Ambient Thoughts
+    this.updateWandererThoughts(delta);
   }
 
   updateWandererThoughts(delta) {
@@ -37070,34 +38609,39 @@ window.FFH.CityExplorationPhase = class {
 
     const thoughts = [
       {
-        id: 'holstentor',
-        condition: () => Math.hypot(px - 18.2, pz - 33.8) < 6.0,
-        text: "Holstentor... built in 1464. I arrived here 562 years later with €20."
+        id: 'canal_bridge',
+        condition: () => (pz > 10 && pz < 13) || (pz > 47 && pz < 50),
+        text: "Look at this river. So flat it looks like someone ironed it with heavy starch. I bet even the fish swim in strict single file."
       },
       {
-        id: 'canal_bridge',
-        condition: () => (pz > 10 && pz < 12) || (pz > 48 && pz < 50),
-        text: "The water is so still today. Back home, the river moved faster."
+        id: 'blocky_crowd',
+        condition: () => Math.hypot(px - 16.0, pz - 20.0) < 5.5,
+        text: "Everyone here walks in exact right angles like toy soldiers. Don't look suspicious, mate. Look like you pay taxes."
+      },
+      {
+        id: 'holstentor',
+        condition: () => Math.hypot(px - 18.2, pz - 33.8) < 6.0,
+        text: "Holstentor... built in 1464. Looks like two giant brick salt shakers guarding the road."
       },
       {
         id: 'forest_edge',
         condition: () => px < 8 || px > 54 || pz < 8 || pz > 54,
-        text: "I can hear the forest birds from here... peaceful."
+        text: "The local trees are so square and disciplined, they probably file quarterly foliage reports."
       },
       {
         id: 'bakery',
         condition: () => Math.hypot(px - 5.2, pz - 18.2) < 5.0,
-        text: "Smells like fresh Franzbrötchen and warm cinnamon..."
+        text: "Smells like warm cinnamon and sugar... though Oma Martha's rolling pin looks like a lethal weapon."
       },
       {
         id: 'uni',
         condition: () => Math.hypot(px - 54.6, pz - 33.8) < 5.0,
-        text: "Universität Lübeck. €250 for tuition... almost there."
+        text: "Universität Lübeck. €250 tuition fee. If I don't pay by Friday, my student life ends before it even begins."
       },
       {
         id: 'darkstore',
         condition: () => Math.hypot(px - 5.2, pz - 46.8) < 5.0,
-        text: "Kruma Express. Dispatcher Nina is probably on her 4th espresso."
+        text: "Kruma Express. Where German nouns have genders and couriers sprint for rent money."
       }
     ];
 
@@ -37174,7 +38718,9 @@ window.FFH.CityExplorationPhase = class {
     const offsetY = baseHeight;
 
     const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
-    const lookTargetY = this.playerPos.y + 0.6; // look at chest/head height
+    // Shift lookTarget Y down by 2.2 units so the player appears higher up (top 50% of screen)
+    // to prevent UI overlay overlapping the 3D character in portrait view.
+    const lookTargetY = this.playerPos.y - 2.2;
     const lookTargetZ = this.playerPos.z + (this.cameraPanOffset ? this.cameraPanOffset.z : 0);
 
     const camX = lookTargetX + offsetX;
@@ -37254,6 +38800,19 @@ window.FFH.CityExplorationPhase = class {
 /* --- FILE: src/phases/dialoguePhase.js --- */
 // 3D Cinematic In-World Conversation Phase
 window.FFH = window.FFH || {};
+
+// Reusable 50/50 Split View Template for Diorama & Modal UI phases
+window.FFH.DIORAMA_VIEW_TEMPLATE = {
+  // Center of the upper 50% visual viewport in world coordinates
+  // Moving the camera lookAt down along the projection plane positions the 3D room cleanly in the top 50% (51.5% to 94.1% viewport height)
+  target: new THREE.Vector3(0, -2.4, 0),
+  // Camera offset preserving true 45-degree isometric projection angle
+  zoomOffset: new THREE.Vector3(10.0, 13.5, 10.0),
+  // Balanced zoom factor keeping the entire room, floor edges, and character neatly framed in upper half with zero UI overlap
+  zoom: 2.1,
+  // Standard CSS bottom modal height (exactly 48vh)
+  uiHeight: '48vh'
+};
 
 window.FFH.DialoguePhase = class {
   constructor(game) {
@@ -37350,14 +38909,14 @@ window.FFH.DialoguePhase = class {
       this.game.scene.add(this.npcGroup);
     }
 
-    // 3. Setup Cinematic Isometric View perfectly fitted inside upper 60% viewport
+    // 3. Setup Cinematic Isometric View using Reusable 50/50 Template
+    const template = window.FFH.DIORAMA_VIEW_TEMPLATE;
     const cam = this.game.cameras.mainCamera;
     
-    // Target (0, -0.95, 0) with zoom 2.15 frames the complete diorama room with full edges visible
-    this.endCamTarget = new THREE.Vector3(0, -0.95, 0);
-    const zoomOffset = new THREE.Vector3(10.0, 13.5, 10.0);
-    this.endCamPos = new THREE.Vector3().copy(this.endCamTarget).add(zoomOffset);
-    this.endCamZoom = 2.15;
+    // Target moves camera down in world space so 3D room renders high up in upper 50%
+    this.endCamTarget = template.target.clone();
+    this.endCamPos = new THREE.Vector3().copy(this.endCamTarget).add(template.zoomOffset);
+    this.endCamZoom = template.zoom;
 
     // Direct snap: clean focus without pan jitter
     cam.position.copy(this.endCamPos);
