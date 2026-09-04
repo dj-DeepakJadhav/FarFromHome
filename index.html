@@ -34791,37 +34791,32 @@ window.FFH.UI = class {
     modal.id = 'wg-buzzer-modal';
     modal.style.cssText = `
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(18, 24, 38, 0.85);
-      backdrop-filter: blur(8px);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
+      z-index: 9500;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 9999;
+      flex-direction: column;
       pointer-events: auto;
-      animation: fadeIn 0.3s ease-out;
-    `;
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+`;
 
     modal.innerHTML = `
-      <div style="
-        background: #FFFFFF;
-        border: 3px solid #264653;
-        border-radius: 16px;
-        width: 100%;
-        max-width: 330px;
-        box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      ">
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
         <!-- Header -->
-        <div style="background: #264653; padding: 14px 16px; color: #FFF; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; padding-bottom: 8px; border-bottom: 2px solid #F0F4F8; margin-bottom: 8px;">
           <div>
-            <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">STUDENTEN-WG LÜBECK</div>
+            <div style="font-size: 11px; color: #E76F51; font-weight: 800; letter-spacing: 1px;">STUDENTEN-WG LÜBECK</div>
             <div style="font-size: 16px; font-weight: 900;">🔔 Klingelanlage (Doorbell)</div>
           </div>
-          <button id="btn-close-buzzer" style="background: none; border: none; color: #FFF; font-size: 20px; cursor: pointer;">✕</button>
+          <button id="btn-close-buzzer" style="background: none; border: none; color: #1D3557; font-size: 20px; cursor: pointer;">✕</button>
         </div>
 
         <div id="buzzer-buttons-container" style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
@@ -34933,33 +34928,28 @@ window.FFH.UI = class {
     modal.id = 'muelltrennung-modal';
     modal.style.cssText = `
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(18, 24, 38, 0.88);
-      backdrop-filter: blur(8px);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
+      z-index: 9500;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 9999;
+      flex-direction: column;
       pointer-events: auto;
-      animation: fadeIn 0.3s ease-out;
-    `;
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+`;
 
     modal.innerHTML = `
-      <div style="
-        background: #FFFFFF;
-        border: 3px solid #264653;
-        border-radius: 16px;
-        width: 100%;
-        max-width: 340px;
-        box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      ">
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
         <!-- Header -->
-        <div style="background: #2A9D8F; padding: 14px 16px; color: #FFF;">
-          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">KÜCHEN-NOTFALL (KITCHEN CRISIS)</div>
+        <div style="display: flex; flex-direction: column; padding-bottom: 8px; border-bottom: 2px solid #F0F4F8; margin-bottom: 8px;">
+          <div style="font-size: 11px; color: #E76F51; font-weight: 800; letter-spacing: 1px;">KÜCHEN-NOTFALL (KITCHEN CRISIS)</div>
           <div style="font-size: 16px; font-weight: 900;">♻️ Nico's Mülltrennung Test!</div>
         </div>
 
@@ -35071,34 +35061,29 @@ window.FFH.UI = class {
     modal.id = 'tuition-letter-modal';
     modal.style.cssText = `
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(18, 24, 38, 0.88);
-      backdrop-filter: blur(8px);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
+      z-index: 9500;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 9999;
+      flex-direction: column;
       pointer-events: auto;
-      animation: fadeIn 0.3s ease-out;
-    `;
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+`;
 
     modal.innerHTML = `
-      <div style="
-        background: #FFFDF9;
-        border: 3px solid #264653;
-        border-radius: 14px;
-        width: 100%;
-        max-width: 330px;
-        box-shadow: 0 14px 36px rgba(0,0,0,0.45);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      ">
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
         <!-- Letter Stamp Header -->
-        <div style="background: #264653; padding: 12px 16px; color: #FFF; border-bottom: 3px solid #E76F51; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; padding-bottom: 8px; border-bottom: 2px solid #F0F4F8; margin-bottom: 8px;">
           <div>
-            <div style="font-size: 10px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">OFFICIAL NOTIFICATION</div>
+            <div style="font-size: 10px; color: #E76F51; font-weight: 800; letter-spacing: 1.5px;">OFFICIAL NOTIFICATION</div>
             <div style="font-size: 15px; font-weight: 900;">🏛️ Hochschule Lübeck — Kasse</div>
           </div>
           <div style="font-size: 22px;">📜</div>
@@ -35132,7 +35117,7 @@ window.FFH.UI = class {
           <!-- Action Button -->
           <button id="btn-ack-letter" style="
             background: #2EC4B6;
-            color: #FFF;
+            color: #1D3557;
             border: 2px solid #264653;
             border-bottom: 4px solid #1A7A73;
             border-radius: 10px;
@@ -35167,34 +35152,29 @@ window.FFH.UI = class {
     modal.id = 'locked-uni-modal';
     modal.style.cssText = `
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(18, 24, 38, 0.88);
-      backdrop-filter: blur(8px);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
+      z-index: 9500;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 9999;
+      flex-direction: column;
       pointer-events: auto;
-      animation: fadeIn 0.3s ease-out;
-    `;
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+`;
 
     modal.innerHTML = `
-      <div style="
-        background: #FFFFFF;
-        border: 3px solid #264653;
-        border-radius: 16px;
-        width: 100%;
-        max-width: 340px;
-        box-shadow: 0 14px 36px rgba(0,0,0,0.45);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      ">
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
         <!-- Door Header -->
-        <div style="background: #264653; padding: 14px 16px; color: #FFF; border-bottom: 3px solid #E76F51; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; padding-bottom: 8px; border-bottom: 2px solid #F0F4F8; margin-bottom: 8px;">
           <div>
-            <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1px;">UNIVERSITÄT LÜBECK</div>
+            <div style="font-size: 11px; color: #E76F51; font-weight: 800; letter-spacing: 1px;">UNIVERSITÄT LÜBECK</div>
             <div style="font-size: 16px; font-weight: 900;">🔒 Geschlossen (Closed: 17:01)</div>
           </div>
           <div style="font-size: 24px;">🚪</div>
@@ -35230,7 +35210,7 @@ window.FFH.UI = class {
           <!-- Leave Button -->
           <button id="btn-leave-uni" style="
             background: #E76F51;
-            color: #FFF;
+            color: #1D3557;
             border: 2px solid #264653;
             border-bottom: 4px solid #B2462E;
             border-radius: 10px;
@@ -35383,32 +35363,27 @@ window.FFH.UI = class {
     modal.id = 'pizzeria-modal';
     modal.style.cssText = `
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(18, 24, 38, 0.88);
-      backdrop-filter: blur(8px);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
+      z-index: 9500;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 9999;
+      flex-direction: column;
       pointer-events: auto;
-      animation: fadeIn 0.3s ease-out;
-    `;
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+`;
 
     modal.innerHTML = `
-      <div style="
-        background: #FFFDF9;
-        border: 3px solid #264653;
-        border-radius: 14px;
-        width: 100%;
-        max-width: 320px;
-        box-shadow: 0 16px 40px rgba(0,0,0,0.4);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      ">
-        <div style="background: #264653; padding: 14px 16px; color: #FFF; text-align: center; border-bottom: 2px solid #E76F51;">
-          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">LA BELLA NAPOLI</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+        <div style="display: flex; flex-direction: column; padding-bottom: 8px; border-bottom: 2px solid #F0F4F8; margin-bottom: 8px;">
+          <div style="font-size: 11px; color: #E76F51; font-weight: 800; letter-spacing: 1.5px;">LA BELLA NAPOLI</div>
           <div style="font-size: 18px; font-weight: 900; margin-top: 2px;">🍕 Job Inquiry</div>
         </div>
 
@@ -35459,32 +35434,27 @@ window.FFH.UI = class {
     modal.id = 'bakery-modal';
     modal.style.cssText = `
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(18, 24, 38, 0.88);
-      backdrop-filter: blur(8px);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
+      z-index: 9500;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 9999;
+      flex-direction: column;
       pointer-events: auto;
-      animation: fadeIn 0.3s ease-out;
-    `;
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+`;
 
     modal.innerHTML = `
-      <div style="
-        background: #FFFDF9;
-        border: 3px solid #264653;
-        border-radius: 14px;
-        width: 100%;
-        max-width: 320px;
-        box-shadow: 0 16px 40px rgba(0,0,0,0.4);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      ">
-        <div style="background: #264653; padding: 14px 16px; color: #FFF; text-align: center; border-bottom: 2px solid #E76F51;">
-          <div style="font-size: 11px; color: #FFD166; font-weight: 800; letter-spacing: 1.5px;">BÄCKEREI HANSA</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+        <div style="display: flex; flex-direction: column; padding-bottom: 8px; border-bottom: 2px solid #F0F4F8; margin-bottom: 8px;">
+          <div style="font-size: 11px; color: #E76F51; font-weight: 800; letter-spacing: 1.5px;">BÄCKEREI HANSA</div>
           <div style="font-size: 18px; font-weight: 900; margin-top: 2px;">🥨 Job Inquiry</div>
         </div>
 
