@@ -34889,12 +34889,7 @@ window.FFH.UI = class {
       }
     ];
 
-    // Fisher-Yates shuffle to randomize button order on every visit
-    const shuffled = [...buzzerEntries];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
+    const shuffled = buzzerEntries;
 
     // Render the randomly positioned buttons
     shuffled.forEach(item => {
@@ -37835,6 +37830,7 @@ window.FFH.CityExplorationPhase = class {
   startBuildingEntry(poiType, buildingPos) {
     if (this.isEnteringBuilding) return;
     this.isEnteringBuilding = true;
+    this.isShowingInteriorModal = true;
     this.enteringPoiType = poiType;
     
     // The door is on the street. The building center is inside.
@@ -37903,6 +37899,7 @@ window.FFH.CityExplorationPhase = class {
     this.isEnteringBuilding = true;
 
     modalUIRenderer((onCompleteCallback) => {
+       this.isShowingInteriorModal = false;
        scene.remove(room);
        if (npc) scene.remove(npc);
        if (worldGroup) worldGroup.visible = true;
@@ -38774,6 +38771,7 @@ window.FFH.CityExplorationPhase = class {
   }
 
   updateCamera(snap = false) {
+    if (this.isShowingInteriorModal) return;
     const cam = this.game.currentCamera;
     if (!cam) return;
 

@@ -1059,6 +1059,7 @@ window.FFH.CityExplorationPhase = class {
   startBuildingEntry(poiType, buildingPos) {
     if (this.isEnteringBuilding) return;
     this.isEnteringBuilding = true;
+    this.isShowingInteriorModal = true;
     this.enteringPoiType = poiType;
     
     // The door is on the street. The building center is inside.
@@ -1127,6 +1128,7 @@ window.FFH.CityExplorationPhase = class {
     this.isEnteringBuilding = true;
 
     modalUIRenderer((onCompleteCallback) => {
+       this.isShowingInteriorModal = false;
        scene.remove(room);
        if (npc) scene.remove(npc);
        if (worldGroup) worldGroup.visible = true;
@@ -1998,6 +2000,7 @@ window.FFH.CityExplorationPhase = class {
   }
 
   updateCamera(snap = false) {
+    if (this.isShowingInteriorModal) return;
     const cam = this.game.currentCamera;
     if (!cam) return;
 
