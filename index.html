@@ -34900,19 +34900,30 @@ window.FFH.UI = class {
     shuffled.forEach(item => {
       const btn = document.createElement('button');
       btn.id = item.id;
-      btn.style.cssText = `
-        background: #F8F9FA;
-        border: 2px solid #CBD5E0;
-        border-left: 6px solid ${item.borderLeft};
-        border-radius: 10px;
-        padding: 12px;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.2s;
-      `;
+      btn.style.cssText = `          background: #FFFFFF;
+          color: #1D3557;
+          border: 2px solid #264653;
+          border-left: 5px solid ${item.borderLeft};
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+          line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;`;
       btn.innerHTML = `
-        <div style="font-size: 13px; font-weight: 900; color: #2D3748;">${item.label}</div>
-        <div style="font-size: 10.5px; color: #718096;">${item.subtext}</div>
+        <div style="flex: 1;">
+          <div style="font-size: 13px; font-weight: 900; color: #1D3557;">${item.label}</div>
+          <div style="font-size: 10.5px; color: #718096; font-weight: normal; margin-top: 2px;">${item.subtext}</div>
+        </div>
+        <span style="font-size: 13px; opacity: 0.7;">➔</span>
       `;
       btn.onclick = item.onClick;
       containerEl.appendChild(btn);
@@ -34964,45 +34975,84 @@ window.FFH.UI = class {
 
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <!-- Bin 1: Blue (Paper) -->
-            <button id="bin-blue" style="
-              background: #F0F7FF;
-              border: 2px solid #3A86FF;
-              border-left: 8px solid #3A86FF;
-              border-radius: 10px;
-              padding: 10px 12px;
-              text-align: left;
-              cursor: pointer;
-            ">
-              <div style="font-size: 13px; font-weight: 900; color: #1D3557;">🟦 Blaue Tonne (Papiermüll)</div>
-              <div style="font-size: 10.5px; color: #4A5568;">Paper, newspapers, cardboard boxes</div>
+            <button id="bin-blue" class="dialogue-opt-btn" style="
+          background: #FFFFFF;
+          color: #1D3557;
+          border: 2px solid #264653;
+          border-left: 5px solid #2EC4B6;
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+          line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;">
+              <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 900; color: #1D3557;">🟦 Blaue Tonne (Papiermüll)</div>
+                <div style="font-size: 10.5px; color: #718096; font-weight: normal; margin-top: 2px;">Paper, newspapers, cardboard boxes</div>
+              </div>
+              <span style="font-size: 13px; opacity: 0.7;">➔</span>
             </button>
 
             <!-- Bin 2: Yellow (Gelber Sack / Plastic & Metal) -->
-            <button id="bin-yellow" style="
-              background: #FFFDF0;
-              border: 2px solid #ECC238;
-              border-left: 8px solid #ECC238;
-              border-radius: 10px;
-              padding: 10px 12px;
-              text-align: left;
-              cursor: pointer;
-            ">
-              <div style="font-size: 13px; font-weight: 900; color: #7A5E0B;">🟨 Gelber Sack (Plastic & Foil Packaging)</div>
-              <div style="font-size: 10.5px; color: #4A5568;">Plastic pots, metal cans, foil lids</div>
+            <button id="bin-yellow" class="dialogue-opt-btn" style="
+          background: #FFFFFF;
+          color: #1D3557;
+          border: 2px solid #264653;
+          border-left: 5px solid #E76F51;
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+          line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;">
+              <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 900; color: #1D3557;">🟨 Gelber Sack (Plastic & Foil Packaging)</div>
+                <div style="font-size: 10.5px; color: #718096; font-weight: normal; margin-top: 2px;">Plastic pots, metal cans, foil lids</div>
+              </div>
+              <span style="font-size: 13px; opacity: 0.7;">➔</span>
             </button>
 
             <!-- Bin 3: Black (Restmüll) -->
-            <button id="bin-black" style="
-              background: #F8F9FA;
-              border: 2px solid #4A5568;
-              border-left: 8px solid #4A5568;
-              border-radius: 10px;
-              padding: 10px 12px;
-              text-align: left;
-              cursor: pointer;
-            ">
-              <div style="font-size: 13px; font-weight: 900; color: #2D3748;">⬛ Restmüll (Residual Waste)</div>
-              <div style="font-size: 10.5px; color: #4A5568;">Non-recyclable household waste</div>
+            <button id="bin-black" class="dialogue-opt-btn" style="
+          background: #FFFFFF;
+          color: #1D3557;
+          border: 2px solid #264653;
+          border-left: 5px solid #264653;
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+          line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;">
+              <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 900; color: #1D3557;">⬛ Restmüll (Residual Waste)</div>
+                <div style="font-size: 10.5px; color: #718096; font-weight: normal; margin-top: 2px;">Non-recyclable household waste</div>
+              </div>
+              <span style="font-size: 13px; opacity: 0.7;">➔</span>
             </button>
           </div>
 
@@ -35115,20 +35165,27 @@ window.FFH.UI = class {
           </div>
 
           <!-- Action Button -->
-          <button id="btn-ack-letter" style="
-            background: #2EC4B6;
-            color: #1D3557;
-            border: 2px solid #264653;
-            border-bottom: 4px solid #1A7A73;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 13px;
-            font-weight: 900;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          ">
-            🏃 Sprint to University (Before 17:00)
+          <button id="btn-ack-letter" class="dialogue-opt-btn" style="
+          background: #FFFFFF;
+          color: #1D3557;
+          border: 2px solid #264653;
+          border-left: 5px solid #2EC4B6;
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+          line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;">
+            <span style="flex: 1; font-size: 13px;"></span>
+            <span style="font-size: 13px; opacity: 0.7;">➔</span>
           </button>
         </div>
       </div>
@@ -35208,20 +35265,27 @@ window.FFH.UI = class {
           </div>
 
           <!-- Leave Button -->
-          <button id="btn-leave-uni" style="
-            background: #E76F51;
-            color: #1D3557;
-            border: 2px solid #264653;
-            border-bottom: 4px solid #B2462E;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 13px;
-            font-weight: 900;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          ">
-            🌙 Walk into the Evening (Find Work)
+          <button id="btn-leave-uni" class="dialogue-opt-btn" style="
+          background: #FFFFFF;
+          color: #1D3557;
+          border: 2px solid #264653;
+          border-left: 5px solid #2EC4B6;
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+          line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;">
+            <span style="flex: 1; font-size: 13px;"></span>
+            <span style="font-size: 13px; opacity: 0.7;">➔</span>
           </button>
         </div>
       </div>
@@ -35397,20 +35461,27 @@ window.FFH.UI = class {
             <strong style="display: block; margin-top: 6px; font-style: normal; font-size: 11px; color: #E76F51;">— Mathias Becker (Owner)</strong>
           </div>
 
-          <button id="btn-leave-pizzeria" style="
-            background: #E76F51;
-            color: #FFFFFF;
-            border: none;
-            border-bottom: 4px solid #C0392B;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 900;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          ">
-            Walk Away
+          <button id="btn-leave-pizzeria" class="dialogue-opt-btn" style="
+          background: #FFFFFF;
+          color: #1D3557;
+          border: 2px solid #264653;
+          border-left: 5px solid #2EC4B6;
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+          line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;">
+            <span style="flex: 1; font-size: 13px;">Walk Away</span>
+            <span style="font-size: 13px; opacity: 0.7;">➔</span>
           </button>
         </div>
       </div>
@@ -35468,20 +35539,27 @@ window.FFH.UI = class {
             <strong style="display: block; margin-top: 6px; font-style: normal; font-size: 11px; color: #E76F51;">— Oma Martha</strong>
           </div>
 
-          <button id="btn-leave-bakery" style="
-            background: #E76F51;
-            color: #FFFFFF;
-            border: none;
-            border-bottom: 4px solid #C0392B;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 900;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          ">
-            Walk Away
+          <button id="btn-leave-bakery" class="dialogue-opt-btn" style="
+          background: #FFFFFF;
+          color: #1D3557;
+          border: 2px solid #264653;
+          border-left: 5px solid #2EC4B6;
+          border-radius: 12px;
+          padding: 9px 12px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+          transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+          line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          box-sizing: border-box;">
+            <span style="flex: 1; font-size: 13px;">Walk Away</span>
+            <span style="font-size: 13px; opacity: 0.7;">➔</span>
           </button>
         </div>
       </div>
@@ -37786,6 +37864,59 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
+
+  showInteriorModal(roomBuilderFunc, npcModelKey, modalUIRenderer) {
+    const worldGroup = this.worldGroup;
+    const courier = this.courier;
+    const scene = this.game.scene;
+    const cam = this.game.cameras.mainCamera;
+
+    if (worldGroup) worldGroup.visible = false;
+    if (courier) courier.visible = false;
+
+    const room = roomBuilderFunc ? roomBuilderFunc(this.game.state) : window.FFH.createRoomShell();
+    room.position.set(0, 0, 0);
+    scene.add(room);
+    
+    let npc = null;
+    if (npcModelKey && window.FFH.createNPCMesh) {
+       npc = window.FFH.createNPCMesh(npcModelKey);
+       npc.position.set(0, 0.05, 0);
+       npc.rotation.y = Math.PI / 4;
+       scene.add(npc);
+    }
+
+    const oldPos = cam.position.clone();
+    const oldZoom = cam.zoom;
+    
+    const template = window.FFH.DIORAMA_VIEW_TEMPLATE || { target: new THREE.Vector3(0, -2.4, 0), zoomOffset: new THREE.Vector3(10, 13.5, 10), zoom: 2.1 };
+    const endCamTarget = template.target.clone();
+    const endCamPos = new THREE.Vector3().copy(endCamTarget).add(template.zoomOffset);
+    
+    cam.position.copy(endCamPos);
+    cam.lookAt(endCamTarget);
+    if(cam.isOrthographicCamera) {
+        cam.zoom = template.zoom;
+        cam.updateProjectionMatrix();
+    }
+
+    this.isEnteringBuilding = true;
+
+    modalUIRenderer((onCompleteCallback) => {
+       scene.remove(room);
+       if (npc) scene.remove(npc);
+       if (worldGroup) worldGroup.visible = true;
+       if (courier) courier.visible = true;
+       
+       cam.position.copy(oldPos);
+       if(cam.isOrthographicCamera) {
+         cam.zoom = oldZoom;
+         cam.updateProjectionMatrix();
+       }
+       if (onCompleteCallback) onCompleteCallback();
+    });
+  }
+
   triggerBuildingInteraction(poiType) {
     const sr = this.game.storyRunner;
     const s = this.game.state;
@@ -37827,7 +37958,9 @@ window.FFH.CityExplorationPhase = class {
     if (poiType.includes('Universität') || poiType.includes('University') || poiType === 'B_UNI') {
       // University is only relevant once player has finished WG arrival and discovered tuition
       if (this.game.state.hasDoneMuelltrennung && !this.game.state.hasVisitedLockedUni && this.game.ui && this.game.ui.showLockedUniModal) {
-        this.game.ui.showLockedUniModal(() => {
+        this.showInteriorModal(window.FFH.createUniRoom, null, (cleanup) => {
+          this.game.ui.showLockedUniModal(() => {
+            cleanup();
           this.game.state.hasVisitedLockedUni = true;
           this.game.state.questStep = 2; // Advance to finding work
           this.game.state.activeObjective = '🍕 Try Pizzeria Bella for work — ask about a job';
@@ -37883,7 +38016,9 @@ window.FFH.CityExplorationPhase = class {
     } else if (poiType.includes('Pizzeria') || poiType.includes('Pizza') || poiType === 'B_PIZZA') {
       if (this.game.state.hasVisitedLockedUni && !this.game.state.hasVisitedPizzeriaJob) {
         if (this.game.ui && this.game.ui.showPizzeriaJobModal) {
-          this.game.ui.showPizzeriaJobModal(() => {
+          this.showInteriorModal(window.FFH.createPizzeriaRoom, 'NPC_MATHIAS', (cleanup) => {
+            this.game.ui.showPizzeriaJobModal(() => {
+              cleanup();
             this.game.state.hasVisitedPizzeriaJob = true;
             this.game.state.questStep = 3;
             this.game.state.activeObjective = '🥐 Rejected at Pizzeria! Try Bakery Hansa for work.';
@@ -37915,7 +38050,9 @@ window.FFH.CityExplorationPhase = class {
     } else if (poiType.includes('Bakery') || poiType.includes('Bäcker') || poiType === 'B_BAKERY') {
       if (this.game.state.hasVisitedPizzeriaJob && !this.game.state.hasVisitedBakeryJob) {
         if (this.game.ui && this.game.ui.showBakeryJobModal) {
-          this.game.ui.showBakeryJobModal(() => {
+          this.showInteriorModal(window.FFH.createBakeryRoom, 'NPC_MARTHA', (cleanup) => {
+            this.game.ui.showBakeryJobModal(() => {
+              cleanup();
             this.game.state.hasVisitedBakeryJob = true;
             this.game.state.questStep = 4;
             this.game.state.activeObjective = '🏠 Rejected at Bakery! Head back to WG to sleep.';
@@ -37960,7 +38097,9 @@ window.FFH.CityExplorationPhase = class {
       }
     } else if (poiType !== 'B_WG_ENTERED' && (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG')) {
       if (!this.game.state.hasBuzzedWG && this.game.ui && this.game.ui.showWGBuzzerModal) {
-        this.game.ui.showWGBuzzerModal(() => {
+        this.showInteriorModal(window.FFH.createDoorwayRoom, null, (cleanup) => {
+          this.game.ui.showWGBuzzerModal(() => {
+            cleanup();
           this.game.state.hasBuzzedWG = true;
           if (window.FFH && window.FFH.saveGame) {
             window.FFH.saveGame(this.game);
@@ -38008,7 +38147,9 @@ window.FFH.CityExplorationPhase = class {
       storyScene = 'lokker_kaution';
     } else if (poiType === 'B_WG_ENTERED') {
       if (!this.game.state.hasDoneMuelltrennung && this.game.ui && this.game.ui.showMuelltrennungModal) {
-        this.game.ui.showMuelltrennungModal((isCorrect) => {
+        this.showInteriorModal(window.FFH.createWGRoom, 'NPC_NICO', (cleanup) => {
+          this.game.ui.showMuelltrennungModal((isCorrect) => {
+            cleanup();
           this.game.state.hasDoneMuelltrennung = true;
           // Trigger the Tuition Notice letter on the desk right after!
           if (this.game.ui && this.game.ui.showTuitionLetterModal) {
@@ -38049,6 +38190,7 @@ window.FFH.CityExplorationPhase = class {
                 window.FFH.saveGame(this.game);
               }
               this.startBuildingExit();
+            });
             });
           } else {
             this.triggerBuildingInteraction('B_WG_ENTERED');

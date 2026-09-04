@@ -1088,6 +1088,59 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
+
+  showInteriorModal(roomBuilderFunc, npcModelKey, modalUIRenderer) {
+    const worldGroup = this.worldGroup;
+    const courier = this.courier;
+    const scene = this.game.scene;
+    const cam = this.game.cameras.mainCamera;
+
+    if (worldGroup) worldGroup.visible = false;
+    if (courier) courier.visible = false;
+
+    const room = roomBuilderFunc ? roomBuilderFunc(this.game.state) : window.FFH.createRoomShell();
+    room.position.set(0, 0, 0);
+    scene.add(room);
+    
+    let npc = null;
+    if (npcModelKey && window.FFH.createNPCMesh) {
+       npc = window.FFH.createNPCMesh(npcModelKey);
+       npc.position.set(0, 0.05, 0);
+       npc.rotation.y = Math.PI / 4;
+       scene.add(npc);
+    }
+
+    const oldPos = cam.position.clone();
+    const oldZoom = cam.zoom;
+    
+    const template = window.FFH.DIORAMA_VIEW_TEMPLATE || { target: new THREE.Vector3(0, -2.4, 0), zoomOffset: new THREE.Vector3(10, 13.5, 10), zoom: 2.1 };
+    const endCamTarget = template.target.clone();
+    const endCamPos = new THREE.Vector3().copy(endCamTarget).add(template.zoomOffset);
+    
+    cam.position.copy(endCamPos);
+    cam.lookAt(endCamTarget);
+    if(cam.isOrthographicCamera) {
+        cam.zoom = template.zoom;
+        cam.updateProjectionMatrix();
+    }
+
+    this.isEnteringBuilding = true;
+
+    modalUIRenderer((onCompleteCallback) => {
+       scene.remove(room);
+       if (npc) scene.remove(npc);
+       if (worldGroup) worldGroup.visible = true;
+       if (courier) courier.visible = true;
+       
+       cam.position.copy(oldPos);
+       if(cam.isOrthographicCamera) {
+         cam.zoom = oldZoom;
+         cam.updateProjectionMatrix();
+       }
+       if (onCompleteCallback) onCompleteCallback();
+    });
+  }
+
   triggerBuildingInteraction(poiType) {
     const sr = this.game.storyRunner;
     const s = this.game.state;
@@ -1129,7 +1182,9 @@ window.FFH.CityExplorationPhase = class {
     if (poiType.includes('Universität') || poiType.includes('University') || poiType === 'B_UNI') {
       // University is only relevant once player has finished WG arrival and discovered tuition
       if (this.game.state.hasDoneMuelltrennung && !this.game.state.hasVisitedLockedUni && this.game.ui && this.game.ui.showLockedUniModal) {
-        this.game.ui.showLockedUniModal(() => {
+        this.showInteriorModal(window.FFH.createUniRoom, null, (cleanup) => {
+          this.game.ui.showLockedUniModal(() => {
+            cleanup();
           this.game.state.hasVisitedLockedUni = true;
           this.game.state.questStep = 2; // Advance to finding work
           this.game.state.activeObjective = '🍕 Try Pizzeria Bella for work — ask about a job';
@@ -1185,7 +1240,9 @@ window.FFH.CityExplorationPhase = class {
     } else if (poiType.includes('Pizzeria') || poiType.includes('Pizza') || poiType === 'B_PIZZA') {
       if (this.game.state.hasVisitedLockedUni && !this.game.state.hasVisitedPizzeriaJob) {
         if (this.game.ui && this.game.ui.showPizzeriaJobModal) {
-          this.game.ui.showPizzeriaJobModal(() => {
+          this.showInteriorModal(window.FFH.createPizzeriaRoom, 'NPC_MATHIAS', (cleanup) => {
+            this.game.ui.showPizzeriaJobModal(() => {
+              cleanup();
             this.game.state.hasVisitedPizzeriaJob = true;
             this.game.state.questStep = 3;
             this.game.state.activeObjective = '🥐 Rejected at Pizzeria! Try Bakery Hansa for work.';
@@ -1217,7 +1274,9 @@ window.FFH.CityExplorationPhase = class {
     } else if (poiType.includes('Bakery') || poiType.includes('Bäcker') || poiType === 'B_BAKERY') {
       if (this.game.state.hasVisitedPizzeriaJob && !this.game.state.hasVisitedBakeryJob) {
         if (this.game.ui && this.game.ui.showBakeryJobModal) {
-          this.game.ui.showBakeryJobModal(() => {
+          this.showInteriorModal(window.FFH.createBakeryRoom, 'NPC_MARTHA', (cleanup) => {
+            this.game.ui.showBakeryJobModal(() => {
+              cleanup();
             this.game.state.hasVisitedBakeryJob = true;
             this.game.state.questStep = 4;
             this.game.state.activeObjective = '🏠 Rejected at Bakery! Head back to WG to sleep.';
@@ -1262,7 +1321,9 @@ window.FFH.CityExplorationPhase = class {
       }
     } else if (poiType !== 'B_WG_ENTERED' && (poiType.includes('Student Sublet') || poiType.includes('Apartment') || poiType.includes('WG') || poiType === 'B_WG')) {
       if (!this.game.state.hasBuzzedWG && this.game.ui && this.game.ui.showWGBuzzerModal) {
-        this.game.ui.showWGBuzzerModal(() => {
+        this.showInteriorModal(window.FFH.createDoorwayRoom, null, (cleanup) => {
+          this.game.ui.showWGBuzzerModal(() => {
+            cleanup();
           this.game.state.hasBuzzedWG = true;
           if (window.FFH && window.FFH.saveGame) {
             window.FFH.saveGame(this.game);
@@ -1310,7 +1371,9 @@ window.FFH.CityExplorationPhase = class {
       storyScene = 'lokker_kaution';
     } else if (poiType === 'B_WG_ENTERED') {
       if (!this.game.state.hasDoneMuelltrennung && this.game.ui && this.game.ui.showMuelltrennungModal) {
-        this.game.ui.showMuelltrennungModal((isCorrect) => {
+        this.showInteriorModal(window.FFH.createWGRoom, 'NPC_NICO', (cleanup) => {
+          this.game.ui.showMuelltrennungModal((isCorrect) => {
+            cleanup();
           this.game.state.hasDoneMuelltrennung = true;
           // Trigger the Tuition Notice letter on the desk right after!
           if (this.game.ui && this.game.ui.showTuitionLetterModal) {
@@ -1351,6 +1414,7 @@ window.FFH.CityExplorationPhase = class {
                 window.FFH.saveGame(this.game);
               }
               this.startBuildingExit();
+            });
             });
           } else {
             this.triggerBuildingInteraction('B_WG_ENTERED');
