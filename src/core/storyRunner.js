@@ -442,6 +442,11 @@ window.FFH.StoryRunner = class {
           const choice = choices[choiceIndex];
           if (scene.id === 'act_one') {
             this.game.state.actOneChoiceDone = true;
+            const Stages = window.FFH.ACT1_STAGES || {};
+            this.game.state.act1Stage = Stages.TRANSIT_TO_WG;
+            if (window.FFH.completeNode) {
+              window.FFH.completeNode(this.game, "ZOB_CHOICE");
+            }
             // Witty British meta-joke on the illusion of choice vs navigation line
             setTimeout(() => {
               if (this.game.ui && this.game.ui.spawnWandererThought) {
@@ -457,6 +462,11 @@ window.FFH.StoryRunner = class {
         // Scene has no choices; it concludes automatically.
         if (scene.id === 'act_one') {
           this.game.state.actOneChoiceDone = true;
+          const Stages = window.FFH.ACT1_STAGES || {};
+          this.game.state.act1Stage = Stages.TRANSIT_TO_WG;
+          if (window.FFH.completeNode) {
+            window.FFH.completeNode(this.game, "ZOB_CHOICE");
+          }
         }
         this.selectChoice({ next: scene.next || scene.divert });
       }

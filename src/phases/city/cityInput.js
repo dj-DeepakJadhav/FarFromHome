@@ -105,6 +105,9 @@ window.FFH.CityInput = class {
     }
 
     if (e.touches.length === 1) {
+      if (this.phase.isAnyModalOrDialogueOpen && this.phase.isAnyModalOrDialogueOpen()) {
+        return;
+      }
       const touch = e.touches[0];
       if (touch.target.closest('#title-bar') || touch.target.closest('#city-poi-card') || 
           touch.target.closest('#tab-home') || touch.target.closest('#tab-work') || touch.target.closest('#tab-shop')) {
@@ -318,6 +321,7 @@ window.FFH.CityInput = class {
 
   onPointerDown(e) {
     if (e.pointerType === 'touch') return;
+    if (this.phase.isAnyModalOrDialogueOpen && this.phase.isAnyModalOrDialogueOpen()) return;
     if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || 
         e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
     

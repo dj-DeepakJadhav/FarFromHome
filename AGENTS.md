@@ -125,3 +125,17 @@ Every agent MUST actively use the four integrated token-optimization systems to 
    - **ABSOLUTELY FORBIDDEN**: Never read, grep, or dump `index.html` (11.5 MB inlined release bundle). Always inspect modular files in `src/` or `index.dev.html`.
    - Touch only code strictly required for the prompt. Keep diffs minimal and surgical.
 
+---
+
+## 9. Scope Hygiene & Runtime Variable Guardrails (Zero Uncaught References)
+
+To prevent runtime errors like `Uncaught ReferenceError: <var> is not defined` inside per-frame render loops (`update()` / `requestAnimationFrame`):
+1. **No Out-of-Scope Variable Relocation**:
+   - Never move a declaration into an `if` block if downstream sibling blocks or downstream statements rely on that variable.
+   - Keep shared phase references (`sr`, `s`, `Stages`, `curStage`, `targetMesh`, `activePoiKey`) scoped at function-level top before conditional branches.
+2. **Mandatory Post-Edit Node Script Validation**:
+   - Before running `build/assemble.js`, run validation scripts (e.g. `node -c <file>` or `node -e "new (require('vm').Script)(fs.readFileSync('<file>','utf8'))"`) on every modified `.js` file to detect structural errors immediately.
+3. **Loop & Per-Frame Blast Radius Audit**:
+   - For edits inside per-frame `update(delta)` loops, inspect all references down to the end of the method to ensure no hoisted identifiers were shadowed or scoped away.
+
+

@@ -9,6 +9,104 @@ window.FFH.UI = class {
     this.container.innerHTML = '';
   }
 
+  fadeToBlack(durationMs, callback) {
+    let overlay = document.getElementById('fade-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'fade-overlay';
+      overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity ' + durationMs + 'ms ease;';
+      document.body.appendChild(overlay);
+    }
+    // force reflow
+    void overlay.offsetWidth;
+    overlay.style.opacity = '1';
+    setTimeout(() => { if (callback) callback(); }, durationMs);
+  }
+
+  fadeFromBlack(durationMs, callback) {
+    let overlay = document.getElementById('fade-overlay');
+    if (overlay) {
+      overlay.style.transition = 'opacity ' + durationMs + 'ms ease';
+      overlay.style.opacity = '0';
+      setTimeout(() => { 
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        if (callback) callback(); 
+      }, durationMs);
+    } else {
+      if (callback) callback();
+    }
+  }
+
+  showGenericInteractionModal(template, onCompleteCallback) {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('generic-interaction-modal');
+    if (prev) prev.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'generic-interaction-modal';
+    modal.style.cssText = `
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-top: 4px solid #2EC4B6;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
+      z-index: 9500;
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    `;
+
+    let html = '';
+    if (template.titleBadge) {
+       html += `<div style="font-size: 11px; color: #2EC4B6; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;">${template.titleBadge}</div>`;
+    }
+    if (template.title) {
+       html += `<div style="font-size: 16px; font-weight: 900; margin-bottom: 8px;">${template.title}</div>`;
+    }
+    if (template.text) {
+       html += `<div style="font-size: 13px; color: #4A5568; line-height: 1.4; margin-bottom: 12px;"><strong>${template.speaker ? template.speaker + ': ' : ''}</strong>${template.text}</div>`;
+    }
+    if (template.note) {
+       html += `<div style="font-size: 12px; color: #718096; font-style: italic; margin-bottom: 12px;">${template.note}</div>`;
+    }
+
+    html += `<div id="generic-choices-container" style="display: flex; flex-direction: column; gap: 8px;"></div>`;
+    modal.innerHTML = html;
+    parent.appendChild(modal);
+
+    const container = modal.querySelector('#generic-choices-container');
+    if (template.choices) {
+       template.choices.forEach((c, idx) => {
+         const btn = document.createElement('button');
+         btn.style.cssText = `
+           display: flex; flex-direction: column; text-align: left;
+           background: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid ${c.borderLeft || '#2EC4B6'};
+           border-radius: 8px; padding: 12px; font-family: inherit; font-size: 14px; font-weight: 700; color: #2D3748;
+         `;
+         let btnHtml = `<span>${c.label}</span>`;
+         if (c.subtext) btnHtml += `<span style="font-size: 11px; color: #718096; font-weight: 400; margin-top: 4px;">${c.subtext}</span>`;
+         btn.innerHTML = btnHtml;
+         btn.onclick = () => {
+            if (c.action) c.action(this.game);
+            
+            // Check if this choice should close the modal
+            if (c.close !== false) {
+               modal.remove();
+               if (onCompleteCallback) onCompleteCallback();
+            }
+         };
+         container.appendChild(btn);
+       });
+    }
+  }
+
   updatePersistentHUD(state) {
     const hud = document.getElementById('persistent-hud');
     if (hud) {

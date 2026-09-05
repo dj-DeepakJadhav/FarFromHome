@@ -699,8 +699,18 @@ window.FFH.CityExplorationPhase = class {
     this.compassRevealed = true;
   }
 
+  isAnyModalOrDialogueOpen() {
+    return !!(
+      document.getElementById('dialogue-overlay-box') ||
+      document.getElementById('generic-interaction-modal') ||
+      document.getElementById('story-overlay-container') ||
+      document.getElementById('resident-dialogue')
+    );
+  }
+
   handleSingleOrDoubleTap(e) {
     if (this.inputDisabled) return; // Prevent movement/interaction if input is locked
+    if (this.isAnyModalOrDialogueOpen()) return;
     
     if (!this.hasFirstInteracted) {
       this.hasFirstInteracted = true;
@@ -878,16 +888,33 @@ window.FFH.CityExplorationPhase = class {
       else if (roomBuilderFunc === window.FFH.createPizzeriaRoom) roomType = 'PIZZERIA';
       else if (roomBuilderFunc === window.FFH.createBakeryRoom) roomType = 'BAKERY';
 
-      this.game.transitionTo('INTERIOR', {
-        roomType: roomType,
-        npcKey: npcModelKey,
-        customWidget: (actionSlot, onComplete, interiorPhase) => {
-          modalUIRenderer((onCompleteCallback) => {
-            interiorPhase.exitToCity();
-            if (onCompleteCallback) onCompleteCallback();
-          });
-        }
-      });
+      const doTransition = () => {
+        this.game.transitionTo('INTERIOR', {
+          roomType: roomType,
+          npcKey: npcModelKey,
+          customWidget: (actionSlot, onComplete, interiorPhase) => {
+            modalUIRenderer((onCompleteCallback) => {
+              const doExit = () => {
+                interiorPhase.exitToCity();
+                if (onCompleteCallback) onCompleteCallback();
+                if (this.game.ui && this.game.ui.fadeFromBlack) this.game.ui.fadeFromBlack(300);
+              };
+              if (this.game.ui && this.game.ui.fadeToBlack) {
+                this.game.ui.fadeToBlack(300, doExit);
+              } else {
+                doExit();
+              }
+            });
+          }
+        });
+        if (this.game.ui && this.game.ui.fadeFromBlack) this.game.ui.fadeFromBlack(300);
+      };
+
+      if (this.game.ui && this.game.ui.fadeToBlack) {
+        this.game.ui.fadeToBlack(300, doTransition);
+      } else {
+        doTransition();
+      }
       return;
     }
 
@@ -945,6 +972,14 @@ window.FFH.CityExplorationPhase = class {
   }
 
   triggerBuildingInteraction(poiType) {
+    if (this.game.templateManager) {
+      const template = this.game.templateManager.getInteractionForPOI(poiType);
+      if (template) {
+        this.game.templateManager.executeTemplate(template, this);
+        return;
+      }
+    }
+
     const sr = this.game.storyRunner;
     const s = this.game.state;
     console.log(`[TBI] poi=${poiType} | buzzed=${s.hasBuzzedWG} | mull=${s.hasDoneMuelltrennung} | uni=${s.hasVisitedLockedUni} | pending=${sr && sr.pendingStoryTarget ? sr.pendingStoryTarget.poi : 'none'}`);
@@ -998,7 +1033,15 @@ window.FFH.CityExplorationPhase = class {
 
     // 1. WG INTERCOM & ROOM 4
     if (poiType === 'B_WG') {
-      if (curStage === Stages.ARRIVAL_ZOB || curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
+      if (curStage === Stages.ARRIVAL_ZOB) {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("I just arrived at the station. Let me choose my path first.");
+        }
+        cancelAndExit();
+        return;
+      }
+
+      if (curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
         s.act1Stage = Stages.WG_DOOR;
         this.game.transitionTo('INTERIOR', {
           roomType: 'DOORWAY',
@@ -1488,10 +1531,19 @@ window.FFH.CityExplorationPhase = class {
     }
 
     // 4. Movement Handling (Direct Touch-Drag Joystick / Keyboard WASD + Click-to-Move Pathing)
+    const isDialogueOpen = this.isAnyModalOrDialogueOpen();
+    
     const camAngle = this.camCurrentAngle !== undefined ? this.camCurrentAngle : 0;
-    const moveIntent = this.inputController 
+    let moveIntent = this.inputController 
       ? this.inputController.getMoveIntent(camAngle)
       : { moveDirX: 0, moveDirZ: 0, moveSpeedRatio: 0, isDirect: false };
+
+    if (isDialogueOpen) {
+       moveIntent = { moveDirX: 0, moveDirZ: 0, moveSpeedRatio: 0, isDirect: false };
+       this.playerPath = [];
+       this.targetMovePos = null;
+       if (this.targetMarker) this.targetMarker.visible = false;
+    }
 
     let moveDirX = moveIntent.moveDirX;
     let moveDirZ = moveIntent.moveDirZ;
@@ -1681,50 +1733,51 @@ window.FFH.CityExplorationPhase = class {
     
     // Quest/Delivery Hint Marker Update
     let targetMesh = null;
+    let activePoiKey = null;
     const TUITION_GOAL = window.FFH.ECONOMY?.TUITION_GOAL || 250;
-
-    // --- Target navigation marker resolves using pendingStoryTarget OR canonical act1Stage ---
     const sr = this.game.storyRunner;
     const Stages = window.FFH.ACT1_STAGES || {};
     const curStage = this.game.state.act1Stage || Stages.ARRIVAL_ZOB;
 
-    if (sr && sr.pendingStoryTarget) {
-      targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
-    } else if (curStage === Stages.ARRIVAL_ZOB || curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
-      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_WG');
-    } else if (curStage === Stages.TRANSIT_TO_UNI || curStage === Stages.UNI_LOCKED) {
-      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
-    } else if (curStage === Stages.JOB_HUNT_PIZZA) {
-      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_PIZZA');
-    } else if (curStage === Stages.JOB_HUNT_BAKERY) {
-      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_BAKERY');
-    } else if (curStage === Stages.RETURN_TO_WG) {
-      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_WG');
-    } else if (this.game.state.wallet >= TUITION_GOAL) {
-      targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
-    } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
-      const tgt = this.game.state.deliveryTarget;
-      targetMesh = this.interactiveMeshes.find(m => m.userData.gridX === tgt.gridX && m.userData.gridZ === tgt.gridZ);
-    }
+    if (!isDialogueOpen) {
+      // --- Target navigation marker resolves using pendingStoryTarget OR canonical act1Stage ---
+      if (sr && sr.pendingStoryTarget) {
+        targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
+      } else if (curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
+        targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_WG');
+      } else if (curStage === Stages.TRANSIT_TO_UNI || curStage === Stages.UNI_LOCKED) {
+        targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
+      } else if (curStage === Stages.JOB_HUNT_PIZZA) {
+        targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_PIZZA');
+      } else if (curStage === Stages.JOB_HUNT_BAKERY) {
+        targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_BAKERY');
+      } else if (curStage === Stages.RETURN_TO_WG) {
+        targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_WG');
+      } else if (this.game.state.wallet >= TUITION_GOAL) {
+        targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_UNI');
+      } else if (this.game.state.activeDelivery && this.game.state.deliveryTarget) {
+        const tgt = this.game.state.deliveryTarget;
+        targetMesh = this.interactiveMeshes.find(m => m.userData.gridX === tgt.gridX && m.userData.gridZ === tgt.gridZ);
+      }
 
-    // --- Update Street Doorway Beacon at Active Target Door ---
-    let activePoiKey = null;
-    if (sr && sr.pendingStoryTarget) {
-      activePoiKey = sr.pendingStoryTarget.poi;
-    } else if (curStage === Stages.ARRIVAL_ZOB || curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
-      activePoiKey = 'B_WG';
-    } else if (curStage === Stages.TRANSIT_TO_UNI || curStage === Stages.UNI_LOCKED) {
-      activePoiKey = 'B_UNI';
-    } else if (curStage === Stages.JOB_HUNT_PIZZA) {
-      activePoiKey = 'B_PIZZA';
-    } else if (curStage === Stages.JOB_HUNT_BAKERY) {
-      activePoiKey = 'B_BAKERY';
-    } else if (curStage === Stages.RETURN_TO_WG) {
-      activePoiKey = 'B_WG';
-    } else if (this.game.state.wallet >= TUITION_GOAL) {
-      activePoiKey = 'B_UNI';
-    } else if (this.game.state.activeDelivery && targetMesh && targetMesh.userData) {
-      activePoiKey = targetMesh.userData.type || 'DELIVERY_TARGET';
+      // --- Update Street Doorway Beacon at Active Target Door ---
+      if (sr && sr.pendingStoryTarget) {
+        activePoiKey = sr.pendingStoryTarget.poi;
+      } else if (curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
+        activePoiKey = 'B_WG';
+      } else if (curStage === Stages.TRANSIT_TO_UNI || curStage === Stages.UNI_LOCKED) {
+        activePoiKey = 'B_UNI';
+      } else if (curStage === Stages.JOB_HUNT_PIZZA) {
+        activePoiKey = 'B_PIZZA';
+      } else if (curStage === Stages.JOB_HUNT_BAKERY) {
+        activePoiKey = 'B_BAKERY';
+      } else if (curStage === Stages.RETURN_TO_WG) {
+        activePoiKey = 'B_WG';
+      } else if (this.game.state.wallet >= TUITION_GOAL) {
+        activePoiKey = 'B_UNI';
+      } else if (this.game.state.activeDelivery && targetMesh && targetMesh.userData) {
+        activePoiKey = targetMesh.userData.type || 'DELIVERY_TARGET';
+      }
     }
 
     if (this.doorwayController) {

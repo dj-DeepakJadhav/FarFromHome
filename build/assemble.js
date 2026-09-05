@@ -44,6 +44,7 @@ function assemble() {
     'src/core/pathfinding.js',
     'src/core/economy.js',
     'src/core/storyRunner.js',
+    'src/core/templateManager.js',
     'src/core/npcBehaviorTree.js',
     'src/data/prologueQuests.js',
     'src/data/characterModels.js',

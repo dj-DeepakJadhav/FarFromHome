@@ -66,6 +66,11 @@ class GameEngine {
       this.storyRunner = new window.FFH.StoryRunner(this);
       this.storyRunner.init();
     }
+    
+    // Initialize Template Manager
+    if (window.FFH.TemplateManager) {
+      this.templateManager = new window.FFH.TemplateManager(this);
+    }
 
     // Setup zoom controls
     this.initZoomControls();
