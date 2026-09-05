@@ -22588,6 +22588,226 @@ window.FFH.storyData = {
 ;
 
 
+/* --- FILE: src/config/gameConfig.js --- */
+// ============================================================
+//  FAR FROM HOME — Central Tuning Config
+//  Edit values here to adjust feel without touching logic files.
+//  All systems read from window.FFH.CONFIG at runtime.
+// ============================================================
+window.FFH = window.FFH || {};
+
+window.FFH.CONFIG = {
+
+  // ----------------------------------------------------------
+  //  CAMERA — follow camera behaviour in city exploration
+  // ----------------------------------------------------------
+  camera: {
+    // Default zoom level on scene entry (OrthographicCamera zoom multiplier).
+    // Higher = larger/closer character on screen.
+    // Range: [minZoom .. maxZoom]  |  Tested sweet-spot: 2.4 – 3.2
+    defaultZoom:  2.88,
+
+    // Minimum zoom (pinch-out / scroll-out limit) — wide overview
+    minZoom:      1.0,
+
+    // Maximum zoom (pinch-in / scroll-in limit) — very close over-the-shoulder
+    maxZoom:      3.84,
+
+    // Initial camera orbit angle when entering the city (degrees, clockwise from north).
+    // 0   = camera behind player looking north (player faces away from you)
+    // 45  = isometric SW corner (original default → often blocked by buildings)
+    // 90  = camera to the left of player looking east
+    // 135 = isometric SE corner
+    // 180 = camera in front of player looking south (player faces you)
+    // 225 = isometric NE corner (current code default = playerHeading + 180°)
+    // 270 = camera to the right of player looking west
+    // Try 135 or 180 if buildings block the view at spawn.
+    startAngleDeg: 135,
+
+    // Camera height above the focal point (world units).
+    // Lower = more horizontal angle, shows buildings ahead.
+    // Higher = steeper top-down angle.
+    // At defaultZoom the camera uses baseHeightFar; zoomed in uses baseHeightClose.
+    baseHeightFar:   0.95,   // height at minZoom
+    baseHeightClose: 0.45,   // height at maxZoom
+
+    // Camera lateral distance behind the player (world units).
+    baseDistanceFar:   1.7,  // distance at minZoom
+    baseDistanceClose: 0.80, // distance at maxZoom
+
+    // Where the camera looks relative to the player's feet (Y offset).
+    // 0.7 = waist, 1.1 = head/shoulders, 1.5 = above head (more sky/buildings)
+    lookTargetYOffset: 1.1,
+
+    // How quickly the camera rotates to track the player's heading (radians/sec damping exponent).
+    // Higher = snappier tracking.  6.5 moving, 3.0 idle are good defaults.
+    angleDampMoving: 6.5,
+    angleDampIdle:   3.0,
+
+    // How quickly camera position lerps to desired position (exponential damp rate).
+    // 12.0 = very responsive.  Lower (e.g. 5.0) = smoother but laggy.
+    positionDamp: 12.0,
+
+    // Idle drift: after this many seconds of no input the camera starts a slow drift orbit.
+    idleDriftDelay:  10.0,
+    // Amplitude of idle drift orbit (radians).
+    idleDriftAmplitude: 0.25,
+
+    // When the camera looks through a building, it fades out.
+    // 0.0 = completely invisible, 1.0 = solid.
+    occlusionOpacity: 0.05,
+
+    // --- Damping & Smoothing ---
+    // Lower = softer, slower follow. Higher = stiffer, jerkier.
+    angleDampMoving:  4.5,   // was 6.5
+    angleDampIdle:    2.0,   // was 3.0
+
+    // Lookahead: how far the camera pushes forward in the direction you are facing
+    // Reduce these to stop the camera from "pushing through walls" when the player is stuck against one.
+    lookaheadFar:   0.15,    // was 0.35
+    lookaheadClose: 0.05,    // was 0.12
+
+    // Mouse wheel zoom sensitivity (zoom units per scroll pixel).
+    wheelZoomSensitivity: 0.001,
+
+    // Desktop pointer drag: radians of camera rotation per pixel of drag.
+    orbitSensitivity: 0.01,
+  },
+
+  // ----------------------------------------------------------
+  //  TOUCH / DRAG INPUT — virtual joystick & messenger steering
+  // ----------------------------------------------------------
+  touch: {
+    // True: "Messenger" style — No visible joystick UI. Mouse/Touch drag anywhere steers the character. Camera orbit is disabled.
+    // False: Original style — Visible touch joystick on mobile. Mouse drag orbits the camera on desktop.
+    messengerStyleInput: true,
+
+    // Dead zone in pixels: thumb must move this far before movement registers.
+    // Increase to reduce jitter / false-starts.  Decrease for hair-trigger response.
+    deadzone:   18,
+
+    // Outer radius in pixels: thumb at this distance from origin = full speed.
+    maxRadius:  75,
+
+    // Response curve exponent (applied to normalised radius → speed).
+    // 1.0 = linear.  1.8 = gentle ramp-up, fast only at the rim.  Lower = more sensitive.
+    responseCurve: 1.8,
+
+    // Direction smoothing rate (0–1). Lower = smoother but more sluggish.
+    // 0.28 = good balance.  0.5 = snappier.  0.15 = very floaty.
+    smoothRate: 0.28,
+
+    // Tap detection: max pixels of movement to still count as a tap (not a drag).
+    tapMaxDragPx:   16,
+    // Tap detection: max milliseconds to count as a tap (not a long-press).
+    tapMaxMs:       350,
+  },
+
+  // ----------------------------------------------------------
+  //  MOVEMENT SPEED — player speed in world units / second
+  // ----------------------------------------------------------
+  movement: {
+    // Joystick / WASD direct-control speed (without e-bike upgrade).
+    walkSpeed:  4.2,
+
+    // Joystick / WASD direct-control speed (with e-bike upgrade).
+    ebikeSpeed: 7.2,
+
+    // Click-to-move A* pathing speed (without e-bike upgrade).
+    pathWalkSpeed:  4.2,
+
+    // Click-to-move A* pathing speed (with e-bike upgrade).
+    pathEbikeSpeed: 7.2,
+
+    // Waypoint proximity threshold: how close to a waypoint before it is consumed (world units).
+    waypointReach: 0.25,
+  },
+
+  // ----------------------------------------------------------
+  //  UI / NAVIGATION AIDS — toggle HUD helper features
+  // ----------------------------------------------------------
+  ui: {
+    // ── Navigation Aids (each toggleable independently) ──────
+    // 3D rotating arrow above the target building roof.
+    questArrowEnabled: true,
+
+    // Pulsing teal ring at the base of the target building.
+    questRingEnabled: true,
+
+    // Animated ground-chevron path trail leading to the destination.
+    groundChevronsEnabled: false,   // ← OFF: player finds buildings on their own
+
+    // Doorway beam + bouncing arrow + ring at the building entrance.
+    doorBeaconEnabled: true,
+
+    // Screen-space distance label + direction arrow indicator.
+    distanceIndicatorEnabled: true,
+
+    // Screen minimap toggle (bottom-right overhead mini-view of city).
+    minimapEnabled: false,
+
+    // ── Thought Bubble / Inner Monologue Popups ──────────────────────
+    thoughtBubble: {
+      // true  = characters appear one-by-one (typewriter effect).
+      // false = full text appears instantly (default — faster to read).
+      typewriterEnabled: false,
+
+      // Characters revealed per second when typewriterEnabled = true.
+      // 31  = original "comfortable reading pace"
+      // 60  = fast typist feel
+      // 120 = nearly instant, but still animated
+      typewriterCharsPerSec: 31,
+
+      // Blip sound every N characters while typing (0 = silent).
+      // Original value was every 3rd character.
+      blipEveryNChars: 3,
+
+      // How long the bubble stays visible AFTER the full text has appeared (ms).
+      // Total on-screen time = typewriting time + readingTimeMs.
+      readingTimeMs: 2800,
+
+      // Fade-in / fade-out animation duration (ms).
+      fadeMs: 400,
+    },
+  },
+
+};
+
+// ============================================================
+//  DIORAMA / ISOMETRIC ROOM NPC POSITIONS
+//  Use this to manually tweak the Y offset of characters if they are sinking into the floor
+// ============================================================
+window.FFH.ROOM_NPC_PRESETS = {
+  // B_PIZZA / PIZZERIA
+  'PIZZERIA':     { x: -0.45, y: 0.05, z: -1.10, rotY: 0.85, scale: 2.6 },
+  'B_PIZZA':      { x: -0.45, y: 0.3, z: -1.10, rotY: 0.85, scale: 2.6 },
+  
+  // B_BAKERY / BAKERY
+  'BAKERY':       { x: -0.40, y: 0.05, z: -1.10, rotY: 0.85, scale: 2.6 },
+  'B_BAKERY':     { x: -0.40, y: 0.05, z: -1.10, rotY: 0.85, scale: 2.6 },
+
+  // B_UNI / UNI / UNI_LOBBY
+  'UNI':          { x: -0.20, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
+  'UNI_LOBBY':    { x: -0.20, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
+  'B_UNI':        { x: -0.20, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
+
+  // B_AUSLAENDER / AUSLAENDER
+  'AUSLAENDER':   { x: -0.30, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
+  'B_AUSLAENDER': { x: -0.30, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
+
+  // B_WG / WG_ROOM / WG_KITCHEN
+  'WG_ROOM':      { x:  0.20, y: 0.05, z: -0.30, rotY: 0.85, scale: 2.6 },
+  'WG_KITCHEN':   { x:  0.20, y: 0.05, z: -0.30, rotY: 0.85, scale: 2.6 },
+  'B_WG':         { x:  0.20, y: 0.05, z: -0.30, rotY: 0.85, scale: 2.6 },
+
+  // OTHERS
+  'DARKSTORE':    { x: -0.60, y: 0.05, z: -0.35, rotY: 0.85, scale: 2.6 },
+  'RATHAUS':      { x: -0.20, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
+  'BANK':         { x: -0.30, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 }
+};
+
+
+
 /* --- FILE: src/core/pathfinding.js --- */
 // High-Performance A* Grid Pathfinding Engine for Far From Home
 // Handles obstacle avoidance around buildings, water, and static structures
@@ -28519,13 +28739,19 @@ window.FFH.createNPCMesh = function(npcKey) {
   const scaleFactor = 0.55;
   charModel.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
+  // Kenney characters have their origin at the waist (Y=0), meaning feet are at Y=-0.45.
+  // We apply the offset to a wrapper group so AnimationMixer root motion doesn't overwrite it.
+  const offsetGroup = new THREE.Group();
+  offsetGroup.position.y += 0.45;
+  offsetGroup.add(charModel);
+
   const group = new THREE.Group();
   group.userData.isNPC = true;
   group.userData.npcKey = npcKey;
   group.userData.glbKey = glbKey;
   group.userData.npcType = isGeneric ? 'generic' : 'named';
 
-  group.add(charModel);
+  group.add(offsetGroup);
 
   // Setup AnimationMixer & Actions
   if (template.animations && template.animations.length > 0) {
@@ -28570,6 +28796,15 @@ window.FFH.createNPCMesh = function(npcKey) {
 window.FFH.updateNPCAnimation = function(npcGroup, delta) {
   if (npcGroup && npcGroup.userData && npcGroup.userData.mixer) {
     npcGroup.userData.mixer.update(delta);
+    
+    // BULLETPROOF FIX: Some character models (like Mathias and Martha) have animation tracks 
+    // that aggressively push their root bones below the floor line.
+    // This dynamically calculates their exact world bounds and pushes them back up if they sink.
+    const box = new THREE.Box3().setFromObject(npcGroup);
+    // If the lowest point of the character's geometry goes below Y=0.05 (floor level)
+    if (box.min.y < 0.05 && box.min.y > -100) { // Safety check to prevent NaN/Infinity jumps
+      npcGroup.position.y += (0.05 - box.min.y);
+    }
   }
 };
 
@@ -30818,6 +31053,7 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
   const defaultRotations = [0, Math.PI, -Math.PI / 2, Math.PI / 2];
   return defaultRotations[seed % 4];
 }
+window.FFH.getBuildingRotationTowardsRoad = getBuildingRotationTowardsRoad;
 
 // ============================================================================
 // UNIFIED BUILDING BOX COLLIDER & SLIDING RESOLVER (Zero-cost collision)
@@ -30902,6 +31138,12 @@ window.FFH.resolveSlidingMovement = function(curX, curZ, nextX, nextZ, radius = 
     const t = grid[gz][gx];
     return t !== 'W';
   };
+
+  // Unstuck mechanism: If already stuck inside a building, allow free movement to escape.
+  const isTrapped = window.FFH.checkBuildingCollision(curX, curZ, radius);
+  if (isTrapped) {
+    return { x: nextX, z: nextZ };
+  }
 
   let resolvedX = curX;
   let resolvedZ = curZ;
@@ -32244,33 +32486,63 @@ window.FFH.UI = class {
     });
 
     const textTarget = el.querySelector('#thought-bubble-text');
-    let charIdx = 0;
-    const charDelay = 32; // Comfortable reading pace (~31 chars/sec)
-    
-    // Typewriter loop
-    el._typewriterTimer = setInterval(() => {
-      if (charIdx < text.length) {
-        textTarget.textContent += text[charIdx];
-        if (charIdx % 3 === 0 && this.game && this.game.speech) {
-          this.game.speech.playTalkBlip();
-        }
-        charIdx++;
-      } else {
-        clearInterval(el._typewriterTimer);
-      }
-    }, charDelay);
 
-    // Dynamic duration based on text length: typing time + generous reading time (minimum 4.0s)
-    const typingDuration = text.length * charDelay;
-    const readingTime = Math.max(3000, text.length * 50);
-    const totalDuration = duration || (typingDuration + readingTime);
+    // Read all tunable params from CONFIG
+    const TB = (window.FFH.CONFIG && window.FFH.CONFIG.ui && window.FFH.CONFIG.ui.thoughtBubble) || {};
+    const typewriterEnabled   = TB.typewriterEnabled   !== undefined ? TB.typewriterEnabled   : false;
+    const charsPerSec         = TB.typewriterCharsPerSec !== undefined ? TB.typewriterCharsPerSec : 31;
+    const blipEveryN          = TB.blipEveryNChars     !== undefined ? TB.blipEveryNChars     : 3;
+    const readingTimeMs       = TB.readingTimeMs       !== undefined ? TB.readingTimeMs       : 2800;
+    const fadeMs              = TB.fadeMs              !== undefined ? TB.fadeMs              : 300;
+    const charDelay           = Math.round(1000 / Math.max(1, charsPerSec));
+
+    // Transition uses configured fade duration
+    el.style.transition = `opacity ${fadeMs}ms ease-out, transform ${fadeMs}ms ease-out`;
+
+    let typingDuration = 0;
+
+    if (typewriterEnabled) {
+      // Typewriter: reveal one character at a time
+      let charIdx = 0;
+      typingDuration = text.length * charDelay;
+
+      el._typewriterTimer = setInterval(() => {
+        if (charIdx < text.length) {
+          textTarget.textContent += text[charIdx];
+          if (blipEveryN > 0 && charIdx % blipEveryN === 0 && this.game && this.game.speech) {
+            this.game.speech.playTalkBlip();
+          }
+          charIdx++;
+        } else {
+          clearInterval(el._typewriterTimer);
+        }
+      }, charDelay);
+    } else {
+      // Instant: show all text immediately, no sound ticking
+      textTarget.textContent = text;
+      typingDuration = 0;
+    }
+
+    // Total visible time: typing time + configured reading time
+    const totalDuration = duration || (typingDuration + readingTimeMs);
+
+    // Dismiss on tap/click
+    el.style.pointerEvents = 'auto';
+    el.style.cursor = 'pointer';
+    el.title = 'Click to dismiss';
+    el.onclick = () => {
+      if (el._typewriterTimer) clearInterval(el._typewriterTimer);
+      el.style.opacity = '0';
+      el.style.transform = 'translate(-50%, -100%) scale(0.9)';
+      setTimeout(() => el.remove(), fadeMs);
+    };
 
     setTimeout(() => {
       if (el.parentNode) {
         if (el._typewriterTimer) clearInterval(el._typewriterTimer);
         el.style.opacity = '0';
         el.style.transform = 'translate(-50%, -100%) scale(0.9)';
-        setTimeout(() => el.remove(), 350);
+        setTimeout(() => el.remove(), fadeMs + 50);
       }
     }, totalDuration);
   }
@@ -32635,7 +32907,9 @@ window.FFH.UI = class {
 
           // 4. Smoothly pan & spin camera into close back-facing 3rd-person position over 3 seconds
           const startAngle = cityPhase.camCurrentAngle;
-          let targetAngle = (Math.PI / 4) + Math.PI; // back-facing view
+          // Land at CONFIG.camera.startAngleDeg (degrees → radians), fallback to 225° (PI/4 + PI)
+          const landDeg = window.FFH.CONFIG?.camera?.startAngleDeg ?? 225;
+          let targetAngle = landDeg * Math.PI / 180;
           
           // Normalize targetAngle to take the shortest rotation path
           while (targetAngle - startAngle > Math.PI) targetAngle -= Math.PI * 2;
@@ -32652,8 +32926,8 @@ window.FFH.UI = class {
             // Smooth easeInOutCubic easing for ultra-smooth camera flight
             const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
-            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
+            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
             cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
             cityPhase.updateCamera(true);
 
@@ -32714,7 +32988,9 @@ window.FFH.UI = class {
             cityPhase.updateCamera(true);
 
             const startAngle = cityPhase.camCurrentAngle;
-            let targetAngle = (Math.PI / 4) + Math.PI; // back-facing view
+            // Land at CONFIG.camera.startAngleDeg (degrees → radians), fallback to 225°
+            const landDeg = window.FFH.CONFIG?.camera?.startAngleDeg ?? 225;
+            let targetAngle = landDeg * Math.PI / 180;
             while (targetAngle - startAngle > Math.PI) targetAngle -= Math.PI * 2;
             while (targetAngle - startAngle < -Math.PI) targetAngle += Math.PI * 2;
 
@@ -32726,8 +33002,8 @@ window.FFH.UI = class {
               const t = Math.min(1.0, elapsed / duration);
               const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
-              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
+              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
               cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
               cityPhase.updateCamera(true);
 
@@ -36821,6 +37097,1309 @@ window.FFH.ShopPhase = class {
 };
 
 
+/* --- FILE: src/phases/city/cityCamera.js --- */
+// CityCamera: Manages third-person follow camera, zoom levels, scenic idle drift, and building occlusion fading.
+window.FFH = window.FFH || {};
+
+window.FFH.CityCamera = class {
+  constructor(game, phase) {
+    this.game = game;
+    this.phase = phase;
+
+    const CAM = (window.FFH.CONFIG && window.FFH.CONFIG.camera) || {};
+
+    this.camZoom = CAM.defaultZoom !== undefined ? CAM.defaultZoom : 2.88;
+    this.targetCamZoom = this.camZoom;
+    this.minCamZoom = CAM.minZoom !== undefined ? CAM.minZoom : 1.0;
+    this.maxCamZoom = CAM.maxZoom !== undefined ? CAM.maxZoom : 3.84;
+    this.initialCamZoom = this.camZoom;
+
+    this.camCurrentAngle = undefined;
+    this.manualCameraAngle = undefined;
+    this.cameraHoldTimer = 0;
+    this.idleTimer = 0;
+    this.idleDriftAngle = 0;
+
+    this.cameraPanOffset = new THREE.Vector3(0, 0, 0);
+    this.isPanningCamera = false;
+    this.initialPanOffset = new THREE.Vector3(0, 0, 0);
+
+    this.currentLookTarget = new THREE.Vector3();
+    this.targetLookTarget = new THREE.Vector3();
+    this.lookaheadOffset = new THREE.Vector3();
+    this.targetLookahead = new THREE.Vector3();
+
+    this.occlusionRaycaster = new THREE.Raycaster();
+    this.fadedObjects = new Set();
+  }
+
+  setZoom(val) {
+    this.targetCamZoom = THREE.MathUtils.clamp(val, this.minCamZoom, this.maxCamZoom);
+  }
+
+  onWheel(e) {
+    e.preventDefault();
+    const sensitivity = window.FFH.CONFIG?.camera?.wheelZoomSensitivity ?? 0.001;
+    const zoomDelta = e.deltaY * -sensitivity;
+    this.setZoom(this.targetCamZoom + zoomDelta);
+  }
+
+  resetIdle() {
+    this.idleTimer = 0;
+    this.idleDriftAngle = 0;
+    this.manualCameraAngle = undefined;
+    this.cameraHoldTimer = 0;
+  }
+
+  update(delta, timeSec, isMoving) {
+    if (this.phase.isShowingInteriorModal) return;
+    const cam = this.game.currentCamera;
+    if (!cam) return;
+
+    const dt = Math.min(delta || 0.016, 0.1);
+
+    if (!this.camZoom) this.camZoom = (window.FFH.CONFIG?.camera?.defaultZoom ?? 2.88);
+    if (!this.targetCamZoom) this.targetCamZoom = this.camZoom;
+
+    // Smoothly interpolate zoom on OrthographicCamera using exponential damping
+    const zoomDamp = 1.0 - Math.exp(-8.0 * dt);
+    this.camZoom = THREE.MathUtils.lerp(this.camZoom, this.targetCamZoom, zoomDamp);
+    if (Math.abs(cam.zoom - this.camZoom) > 0.001) {
+      cam.zoom = this.camZoom;
+      cam.updateProjectionMatrix();
+    }
+
+    const zoomFactor = THREE.MathUtils.clamp((this.camZoom - this.minCamZoom) / (this.maxCamZoom - this.minCamZoom), 0, 1);
+
+    // Follow Camera pitch & distance: read from CONFIG so devs can tune without touching logic
+    const CAM = (window.FFH.CONFIG && window.FFH.CONFIG.camera) || {};
+    let baseDistance = THREE.MathUtils.lerp(
+      CAM.baseDistanceFar   !== undefined ? CAM.baseDistanceFar   : 1.7,
+      CAM.baseDistanceClose !== undefined ? CAM.baseDistanceClose : 0.70,
+      zoomFactor
+    );
+    let baseHeight = THREE.MathUtils.lerp(
+      CAM.baseHeightFar   !== undefined ? CAM.baseHeightFar   : 0.95,
+      CAM.baseHeightClose !== undefined ? CAM.baseHeightClose : 0.45,
+      zoomFactor
+    );
+
+    if (this.cameraHoldTimer > 0) {
+      this.cameraHoldTimer -= dt;
+    }
+
+    // The camera should always stay at the fixed isometric angle (miniature mode).
+    // Spinning the camera based on player heading makes point-and-click steering extremely difficult.
+    const restDeg = CAM.startAngleDeg !== undefined ? CAM.startAngleDeg : 135;
+    const restAngle = restDeg * Math.PI / 180;
+    
+    let targetAngle = restAngle;
+
+    if (this.manualCameraAngle !== undefined) {
+      targetAngle = this.manualCameraAngle;
+    } else if (this.idleTimer > 10.0) {
+      targetAngle += this.idleDriftAngle;
+    }
+
+    if (isMoving) {
+      this.resetIdle();
+    } else {
+      this.idleTimer += dt;
+      if (this.idleTimer > (CAM.idleDriftDelay !== undefined ? CAM.idleDriftDelay : 10.0)) {
+        this.idleDriftAngle = Math.sin((this.idleTimer - (CAM.idleDriftDelay ?? 10.0)) * 0.3)
+          * (CAM.idleDriftAmplitude !== undefined ? CAM.idleDriftAmplitude : 0.25);
+      }
+    }
+
+    if (this.camCurrentAngle === undefined) {
+      this.camCurrentAngle = targetAngle;
+    }
+
+    // Shortest-path angular unwrapping to eliminate 360-degree snap / whipping
+    let angleDiff = targetAngle - this.camCurrentAngle;
+    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+
+    // Follow camera angle damping: read from CONFIG
+    const angleDampRate = isMoving
+      ? (CAM.angleDampMoving !== undefined ? CAM.angleDampMoving : 6.5)
+      : (CAM.angleDampIdle   !== undefined ? CAM.angleDampIdle   : 3.0);
+    const angleDamp = 1.0 - Math.exp(-angleDampRate * dt);
+    this.camCurrentAngle += angleDiff * angleDamp;
+
+    // Lookahead: subtle lookahead so player remains centered
+    if (isMoving && this.phase.playerHeading !== undefined) {
+      const lookaheadDist = THREE.MathUtils.lerp(
+        CAM.lookaheadFar   !== undefined ? CAM.lookaheadFar   : 0.35,
+        CAM.lookaheadClose !== undefined ? CAM.lookaheadClose : 0.12,
+        zoomFactor
+      );
+      this.targetLookahead.set(
+        Math.sin(this.phase.playerHeading) * lookaheadDist,
+        0,
+        Math.cos(this.phase.playerHeading) * lookaheadDist
+      );
+    } else {
+      this.targetLookahead.set(0, 0, 0);
+    }
+    const lookaheadDamp = 1.0 - Math.exp(-5.0 * dt);
+    this.lookaheadOffset.lerp(this.targetLookahead, lookaheadDamp);
+
+    // Calculate desired look-at focal point: elevated by CONFIG.camera.lookTargetYOffset
+    const lookYOffset = CAM.lookTargetYOffset !== undefined ? CAM.lookTargetYOffset : 1.1;
+    this.targetLookTarget.set(
+      this.phase.playerPos.x + this.cameraPanOffset.x + this.lookaheadOffset.x,
+      this.phase.playerPos.y + lookYOffset + this.cameraPanOffset.y,
+      this.phase.playerPos.z + this.cameraPanOffset.z + this.lookaheadOffset.z
+    );
+
+    if (this.currentLookTarget.lengthSq() === 0) {
+      this.currentLookTarget.copy(this.targetLookTarget);
+    } else {
+      const focalDampRate = CAM.focalDampRate !== undefined ? CAM.focalDampRate : 6.0;
+      const focalDamp = 1.0 - Math.exp(-focalDampRate * dt);
+      this.currentLookTarget.lerp(this.targetLookTarget, focalDamp);
+    }
+
+    // Ideal camera position relative to smoothed focal target
+    const offsetX = Math.sin(this.camCurrentAngle) * baseDistance;
+    const offsetZ = Math.cos(this.camCurrentAngle) * baseDistance;
+    const offsetY = baseHeight;
+
+    const desiredCamX = this.currentLookTarget.x + offsetX;
+    const desiredCamY = this.currentLookTarget.y + offsetY;
+    const desiredCamZ = this.currentLookTarget.z + offsetZ;
+
+    // Smooth camera movement with exponential damp
+    const camPosDampRate = CAM.posDampRate !== undefined ? CAM.posDampRate : 8.0;
+    const camPosDamp = 1.0 - Math.exp(-camPosDampRate * dt);
+    cam.position.x = THREE.MathUtils.lerp(cam.position.x, desiredCamX, camPosDamp);
+    cam.position.y = THREE.MathUtils.lerp(cam.position.y, desiredCamY, camPosDamp);
+    cam.position.z = THREE.MathUtils.lerp(cam.position.z, desiredCamZ, camPosDamp);
+
+    cam.lookAt(this.currentLookTarget.x, this.currentLookTarget.y, this.currentLookTarget.z);
+
+    this.updateBuildingOcclusionFade();
+  }
+
+  snapToTarget() {
+    const cam = this.game.currentCamera;
+    if (!cam) return;
+    if (Math.abs(cam.zoom - this.camZoom) > 0.001) {
+      cam.zoom = this.camZoom;
+      cam.updateProjectionMatrix();
+    }
+    const zoomFactor = THREE.MathUtils.clamp((this.camZoom - this.minCamZoom) / (this.maxCamZoom - this.minCamZoom), 0, 1);
+    const CAM = (window.FFH.CONFIG && window.FFH.CONFIG.camera) || {};
+    let baseDistance = THREE.MathUtils.lerp(
+      CAM.baseDistanceFar   !== undefined ? CAM.baseDistanceFar   : 1.7,
+      CAM.baseDistanceClose !== undefined ? CAM.baseDistanceClose : 0.70,
+      zoomFactor
+    );
+    let baseHeight = THREE.MathUtils.lerp(
+      CAM.baseHeightFar   !== undefined ? CAM.baseHeightFar   : 0.95,
+      CAM.baseHeightClose !== undefined ? CAM.baseHeightClose : 0.45,
+      zoomFactor
+    );
+    const lookYOffset = CAM.lookTargetYOffset !== undefined ? CAM.lookTargetYOffset : 1.1;
+
+    // Use CONFIG.camera.startAngleDeg if set, otherwise fall back to playerHeading + 180°
+    const startAngleDeg = CAM.startAngleDeg !== undefined ? CAM.startAngleDeg : null;
+    let targetAngle = startAngleDeg !== null
+      ? (startAngleDeg * Math.PI / 180)
+      : (this.phase.playerHeading !== undefined ? this.phase.playerHeading : Math.PI / 4) + Math.PI;
+    this.camCurrentAngle = targetAngle;
+    this.lookaheadOffset.set(0, 0, 0);
+    this.targetLookahead.set(0, 0, 0);
+
+    const lookTargetX = this.phase.playerPos.x + this.cameraPanOffset.x;
+    const lookTargetY = this.phase.playerPos.y + lookYOffset;
+    const lookTargetZ = this.phase.playerPos.z + this.cameraPanOffset.z;
+
+    this.currentLookTarget.set(lookTargetX, lookTargetY, lookTargetZ);
+    this.targetLookTarget.set(lookTargetX, lookTargetY, lookTargetZ);
+
+    const offsetX = Math.sin(this.camCurrentAngle) * baseDistance;
+    const offsetZ = Math.cos(this.camCurrentAngle) * baseDistance;
+    const offsetY = baseHeight;
+
+    cam.position.set(lookTargetX + offsetX, lookTargetY + offsetY, lookTargetZ + offsetZ);
+    cam.lookAt(lookTargetX, lookTargetY, lookTargetZ);
+  }
+
+  updateBuildingOcclusionFade() {
+    const cam = this.game.currentCamera;
+    if (!cam) return;
+    if (this.camZoom < 0.6) return;
+
+    // Cast FROM player TO camera so we hit the front faces of buildings reliably
+    const charPos = new THREE.Vector3(this.phase.playerPos.x, this.phase.playerPos.y + 0.8, this.phase.playerPos.z);
+    const camPos = cam.position.clone();
+    const rayDir = new THREE.Vector3().subVectors(camPos, charPos).normalize();
+    const rayDist = camPos.distanceTo(charPos);
+
+    // Create a "fat ray" using 5 rays (center, left, right, up, down) relative to the camera's orientation
+    const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion).normalize();
+    const camUp = new THREE.Vector3(0, 1, 0).applyQuaternion(cam.quaternion).normalize();
+    const spread = 0.8; // How wide the fat ray is
+
+    const offsets = [
+      new THREE.Vector3(0, 0, 0),
+      camRight.clone().multiplyScalar(-spread),
+      camRight.clone().multiplyScalar(spread),
+      camUp.clone().multiplyScalar(spread),
+      camUp.clone().multiplyScalar(-spread)
+    ];
+
+    const currentlyHitMeshes = new Set();
+
+    offsets.forEach(offset => {
+      const rayStart = charPos.clone().add(offset);
+      this.occlusionRaycaster.set(rayStart, rayDir);
+      this.occlusionRaycaster.near = 0.1;
+      this.occlusionRaycaster.far = rayDist;
+
+      const hits = this.occlusionRaycaster.intersectObjects(this.phase.interactiveMeshes, true);
+      hits.forEach(hit => {
+        let root = hit.object;
+        while (root.parent && !this.phase.interactiveMeshes.includes(root)) {
+          root = root.parent;
+        }
+        currentlyHitMeshes.add(root);
+      });
+    });
+
+    const CAM = (window.FFH.CONFIG && window.FFH.CONFIG.camera) || {};
+    const targetOpacity = CAM.occlusionOpacity !== undefined ? CAM.occlusionOpacity : 0.05;
+
+    currentlyHitMeshes.forEach(group => {
+      this.fadedObjects.add(group);
+      group.traverse(child => {
+        if (child.isMesh && child.material) {
+          const mats = Array.isArray(child.material) ? child.material : [child.material];
+          mats.forEach(m => {
+            // Make the blocking building almost completely invisible (0.05) instead of ghosting
+            m.opacity = THREE.MathUtils.lerp(m.opacity, targetOpacity, 0.2);
+          });
+        }
+      });
+    });
+
+    this.fadedObjects.forEach(group => {
+      if (!currentlyHitMeshes.has(group)) {
+        let allRestored = true;
+        group.traverse(child => {
+          if (child.isMesh && child.material) {
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
+            mats.forEach(m => {
+              m.opacity = THREE.MathUtils.lerp(m.opacity, 1.0, 0.2);
+              if (m.opacity < 0.98) allRestored = false;
+              else m.opacity = 1.0;
+            });
+          }
+        });
+        if (allRestored) {
+          this.fadedObjects.delete(group);
+        }
+      }
+    });
+  }
+
+  dispose() {
+    if (this.game.currentCamera) {
+      this.game.currentCamera.zoom = 1.0;
+      this.game.currentCamera.updateProjectionMatrix();
+    }
+    this.fadedObjects.clear();
+  }
+};
+
+
+/* --- FILE: src/phases/city/cityInput.js --- */
+// CityInput: Manages touch joystick, tap-to-move pointer gestures, WASD/arrow keyboard input, and pointer camera orbit.
+window.FFH = window.FFH || {};
+
+window.FFH.CityInput = class {
+  constructor(game, phase) {
+    this.game = game;
+    this.phase = phase;
+
+    // Movement state
+    this.directMoveVector = { x: 0, z: 0, strength: 0 };
+    this.keysDown = {};
+
+    // Touch joystick state
+    this.isTouchDragging = false;
+    this.dragOriginX = 0;
+    this.dragOriginY = 0;
+    this.lastTouchX = 0;
+    this.lastTouchY = 0;
+    this.touchStartTime = 0;
+    this.touchJoystickEl = null;
+    this.touchKnobEl = null;
+    this.initialPinchDist = null;
+
+    // Pointer state
+    this.isPointerDown = false;
+    this.isDraggingCamera = false;
+    this.pointerDownX = 0;
+    this.pointerDownY = 0;
+    this.lastPointerX = 0;
+    this.lastPointerY = 0;
+    this.pointerDownTime = 0;
+
+    // Double tap detection
+    this.lastTapTime = 0;
+
+    this.onPointerDown = this.onPointerDown.bind(this);
+    this.onPointerMove = this.onPointerMove.bind(this);
+    this.onPointerUp = this.onPointerUp.bind(this);
+    this.onTouchStart = this.onTouchStart.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
+    this.onTouchEnd = this.onTouchEnd.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
+    this.onKeyUp = this.onKeyUp.bind(this);
+    this.onWheel = this.onWheel.bind(this);
+    this.onContextMenu = (e) => e.preventDefault();
+  }
+
+  attach() {
+    const dom = this.game.renderer.domElement;
+    dom.addEventListener('pointerdown', this.onPointerDown);
+    dom.addEventListener('pointermove', this.onPointerMove);
+    dom.addEventListener('pointerup', this.onPointerUp);
+    dom.addEventListener('touchstart', this.onTouchStart, { passive: false });
+    dom.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    dom.addEventListener('touchend', this.onTouchEnd);
+    dom.addEventListener('wheel', this.onWheel, { passive: false });
+    dom.addEventListener('contextmenu', this.onContextMenu);
+    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keyup', this.onKeyUp);
+  }
+
+  detach() {
+    const dom = this.game.renderer.domElement;
+    if (dom) {
+      dom.removeEventListener('pointerdown', this.onPointerDown);
+      dom.removeEventListener('pointermove', this.onPointerMove);
+      dom.removeEventListener('pointerup', this.onPointerUp);
+      dom.removeEventListener('touchstart', this.onTouchStart);
+      dom.removeEventListener('touchmove', this.onTouchMove);
+      dom.removeEventListener('touchend', this.onTouchEnd);
+      dom.removeEventListener('wheel', this.onWheel);
+      dom.removeEventListener('contextmenu', this.onContextMenu);
+    }
+    window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('keyup', this.onKeyUp);
+    this.hideTouchJoystick();
+  }
+
+  onKeyDown(e) {
+    this.keysDown[e.key.toLowerCase()] = true;
+  }
+
+  onKeyUp(e) {
+    this.keysDown[e.key.toLowerCase()] = false;
+  }
+
+  onWheel(e) {
+    if (this.phase.cameraController) {
+      this.phase.cameraController.onWheel(e);
+    }
+  }
+
+  onTouchStart(e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      this.initialPinchDist = Math.hypot(dx, dy);
+      if (this.phase.cameraController) {
+        this.phase.cameraController.initialCamZoom = this.phase.cameraController.targetCamZoom;
+      }
+      this.isTouchDragging = false;
+      this.hideTouchJoystick();
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      if (touch.target.closest('#title-bar') || touch.target.closest('#city-poi-card') || 
+          touch.target.closest('#tab-home') || touch.target.closest('#tab-work') || touch.target.closest('#tab-shop')) {
+        return;
+      }
+      this.isTouchDragging = true;
+      this.dragOriginX = touch.clientX;
+      this.dragOriginY = touch.clientY;
+      this.lastTouchX = touch.clientX;
+      this.lastTouchY = touch.clientY;
+      this.touchStartTime = Date.now();
+      // Lock reference camera angle at the moment of touch to decouple from dynamic camera tracking
+      this.touchBaseCamAngle = this.phase.cameraController?.camCurrentAngle !== undefined 
+        ? this.phase.cameraController.camCurrentAngle 
+        : 0;
+      this.showTouchJoystick(touch.clientX, touch.clientY);
+    }
+  }
+
+  updateDragVector(clientX, clientY) {
+    this.lastTouchX = clientX;
+    this.lastTouchY = clientY;
+    const dx = clientX - this.dragOriginX;
+    const dy = clientY - this.dragOriginY;
+    const dist = Math.hypot(dx, dy);
+
+    const TOUCH = (window.FFH.CONFIG && window.FFH.CONFIG.touch) || {};
+    const smoothRate = TOUCH.smoothRate !== undefined ? TOUCH.smoothRate : 0.28;
+
+    if (TOUCH.messengerStyleInput) {
+      // True Messenger Style: Continuous follow cursor (Raycast to ground)
+      const rect = this.game.renderer.domElement.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((clientX - rect.left) / rect.width) * 2 - 1,
+        -((clientY - rect.top) / rect.height) * 2 + 1
+      );
+      this.phase.raycaster.setFromCamera(mouse, this.game.currentCamera);
+      const hits = this.phase.raycaster.intersectObjects(this.phase.groundMeshes, true);
+      
+      if (hits.length > 0) {
+        this.phase.playerPath = [];
+        this.phase.targetMovePos = null;
+        if (this.phase.targetMarker) this.phase.targetMarker.visible = false;
+
+        const hit = hits[0].point;
+        const dirX = hit.x - this.phase.playerPos.x;
+        const dirZ = hit.z - this.phase.playerPos.z;
+        const distToHit = Math.hypot(dirX, dirZ);
+
+        // Stop jittering when hovering directly over the player
+        if (distToHit > 0.4) {
+          const normX = dirX / distToHit;
+          const normZ = dirZ / distToHit;
+          this.directMoveVector.x = THREE.MathUtils.lerp(this.directMoveVector.x, normX, smoothRate);
+          this.directMoveVector.z = THREE.MathUtils.lerp(this.directMoveVector.z, normZ, smoothRate);
+          this.directMoveVector.strength = THREE.MathUtils.lerp(this.directMoveVector.strength, 1.0, smoothRate);
+        } else {
+          this.directMoveVector.strength = THREE.MathUtils.lerp(this.directMoveVector.strength, 0, 0.45);
+        }
+      }
+      return;
+    }
+
+    const deadzone  = TOUCH.deadzone      !== undefined ? TOUCH.deadzone      : 18;
+    const maxRadius = TOUCH.maxRadius     !== undefined ? TOUCH.maxRadius     : 75;
+    const curve     = TOUCH.responseCurve !== undefined ? TOUCH.responseCurve : 1.8;
+
+    if (dist > deadzone) {
+      this.phase.playerPath = [];
+      this.phase.targetMovePos = null;
+      if (this.phase.targetMarker) this.phase.targetMarker.visible = false;
+
+      const effectiveDist = Math.min(dist - deadzone, maxRadius - deadzone);
+      const linearNorm = effectiveDist / (maxRadius - deadzone);
+      const curvedStrength = Math.pow(linearNorm, curve);
+
+      const camAngle = this.touchBaseCamAngle !== undefined 
+        ? this.touchBaseCamAngle 
+        : (this.phase.cameraController?.camCurrentAngle || 0);
+
+      const forwardX = -Math.sin(camAngle);
+      const forwardZ = -Math.cos(camAngle);
+      const rightX = Math.cos(camAngle);
+      const rightZ = -Math.sin(camAngle);
+
+      const screenFwd = -dy / dist;
+      const screenRt = dx / dist;
+
+      const targetWorldX = rightX * screenRt + forwardX * screenFwd;
+      const targetWorldZ = rightZ * screenRt + forwardZ * screenFwd;
+
+      this.directMoveVector.x = THREE.MathUtils.lerp(this.directMoveVector.x, targetWorldX, smoothRate);
+      this.directMoveVector.z = THREE.MathUtils.lerp(this.directMoveVector.z, targetWorldZ, smoothRate);
+      this.directMoveVector.strength = THREE.MathUtils.lerp(this.directMoveVector.strength, curvedStrength, smoothRate);
+
+      this.updateTouchJoystickKnob(dx, dy, maxRadius);
+    } else {
+      this.directMoveVector.strength = THREE.MathUtils.lerp(this.directMoveVector.strength, 0, 0.45);
+      if (this.directMoveVector.strength < 0.02) {
+        this.directMoveVector.strength = 0;
+        this.directMoveVector.x = 0;
+        this.directMoveVector.z = 0;
+      }
+      this.updateTouchJoystickKnob(0, 0, maxRadius);
+    }
+  }
+
+  onTouchMove(e) {
+    if (e.touches.length === 2 && this.initialPinchDist) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const factor = dist / this.initialPinchDist;
+      if (this.phase.cameraController) {
+        this.phase.cameraController.setZoom(this.phase.cameraController.initialCamZoom * factor);
+      }
+      return;
+    }
+
+    if (this.isTouchDragging && e.touches.length === 1) {
+      this.updateDragVector(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }
+
+  onTouchEnd(e) {
+    if (e.touches.length < 2) {
+      this.initialPinchDist = null;
+    }
+    if (this.isTouchDragging) {
+      const elapsed = Date.now() - (this.touchStartTime || 0);
+      const dragDist = Math.hypot((this.lastTouchX || this.dragOriginX) - this.dragOriginX, (this.lastTouchY || this.dragOriginY) - this.dragOriginY);
+
+      this.isTouchDragging = false;
+      this.directMoveVector.strength = 0;
+      this.directMoveVector.x = 0;
+      this.directMoveVector.z = 0;
+      this.hideTouchJoystick();
+
+      const TOUCH = (window.FFH.CONFIG && window.FFH.CONFIG.touch) || {};
+      const tapMaxDrag = TOUCH.tapMaxDragPx !== undefined ? TOUCH.tapMaxDragPx : 16;
+      const tapMaxMs   = TOUCH.tapMaxMs     !== undefined ? TOUCH.tapMaxMs     : 350;
+      if (dragDist < tapMaxDrag && elapsed < tapMaxMs) {
+        this.phase.handleSingleOrDoubleTap({
+          clientX: this.lastTouchX || this.dragOriginX,
+          clientY: this.lastTouchY || this.dragOriginY
+        });
+      }
+    }
+  }
+
+  showTouchJoystick(x, y) {
+    if (window.FFH.CONFIG?.touch?.messengerStyleInput) return; // Hide UI
+    if (!this.touchJoystickEl) {
+      this.touchJoystickEl = document.createElement('div');
+      this.touchJoystickEl.id = 'ffh-touch-joystick';
+      this.touchJoystickEl.style.cssText = `
+        position: fixed;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(46,196,182,0.2) 0%, rgba(20,25,35,0.45) 75%);
+        border: 2.5px solid rgba(46,196,182,0.65);
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        display: none;
+        box-shadow: 0 0 20px rgba(46,196,182,0.3);
+      `;
+      this.touchKnobEl = document.createElement('div');
+      this.touchKnobEl.style.cssText = `
+        position: absolute;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #2EC4B6;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.45), inset 0 1px 3px rgba(255,255,255,0.6);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      `;
+      this.touchJoystickEl.appendChild(this.touchKnobEl);
+      document.body.appendChild(this.touchJoystickEl);
+    }
+    this.touchJoystickEl.style.left = `${x}px`;
+    this.touchJoystickEl.style.top = `${y}px`;
+    this.touchJoystickEl.style.display = 'block';
+    if (this.touchKnobEl) {
+      this.touchKnobEl.style.transform = 'translate(-50%, -50%)';
+    }
+  }
+
+  updateTouchJoystickKnob(dx, dy, maxRadius) {
+    if (window.FFH.CONFIG?.touch?.messengerStyleInput) return; // Hide UI
+    if (!this.touchKnobEl) return;
+    const dist = Math.hypot(dx, dy);
+    let knobX = dx;
+    let knobY = dy;
+    if (dist > maxRadius) {
+      knobX = (dx / dist) * maxRadius;
+      knobY = (dy / dist) * maxRadius;
+    }
+    this.touchKnobEl.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+  }
+
+  hideTouchJoystick() {
+    if (this.touchJoystickEl) {
+      this.touchJoystickEl.style.display = 'none';
+    }
+  }
+
+  onPointerDown(e) {
+    if (e.pointerType === 'touch') return;
+    if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || 
+        e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
+    
+    this.pointerDownX = e.clientX;
+    this.pointerDownY = e.clientY;
+    this.lastPointerX = e.clientX;
+    this.lastPointerY = e.clientY;
+    this.pointerDownTime = Date.now();
+
+    if (e.button === 2 || e.button === 1 || e.shiftKey) {
+      if (this.phase.cameraController) {
+        this.phase.cameraController.isPanningCamera = true;
+        this.phase.cameraController.initialPanOffset.copy(this.phase.cameraController.cameraPanOffset);
+      }
+      return;
+    }
+
+    this.isPointerDown = true;
+    this.isDraggingCamera = false;
+
+    if (window.FFH.CONFIG?.touch?.messengerStyleInput) {
+      this.isTouchDragging = true;
+      this.dragOriginX = e.clientX;
+      this.dragOriginY = e.clientY;
+      this.lastTouchX = e.clientX;
+      this.lastTouchY = e.clientY;
+      this.touchStartTime = Date.now();
+      this.touchBaseCamAngle = this.phase.cameraController?.camCurrentAngle !== undefined 
+        ? this.phase.cameraController.camCurrentAngle 
+        : 0;
+    }
+  }
+
+  onPointerMove(e) {
+    if (e.pointerType === 'touch') return;
+    if (this.phase.cameraController?.isPanningCamera) {
+      this.lastPointerX = e.clientX;
+      this.lastPointerY = e.clientY;
+      return;
+    }
+
+    if (!this.isPointerDown) return;
+
+    if (window.FFH.CONFIG?.touch?.messengerStyleInput) {
+      // Messenger style: drag steers character, does not orbit camera
+      if (this.isTouchDragging) {
+        this.updateDragVector(e.clientX, e.clientY);
+      }
+      return;
+    }
+
+    // Original style: drag orbits camera
+    const dragDist = Math.hypot(e.clientX - this.pointerDownX, e.clientY - this.pointerDownY);
+    if (dragDist > 8 && this.phase.cameraController) {
+      this.isDraggingCamera = true;
+      const dx = e.clientX - this.lastPointerX;
+      if (this.phase.cameraController.manualCameraAngle === undefined) {
+        this.phase.cameraController.manualCameraAngle = this.phase.cameraController.camCurrentAngle !== undefined 
+          ? this.phase.cameraController.camCurrentAngle 
+          : (Math.PI / 4 + Math.PI);
+      }
+      const orbitSens = window.FFH.CONFIG?.camera?.orbitSensitivity ?? 0.01;
+      this.phase.cameraController.manualCameraAngle -= dx * orbitSens;
+      this.lastPointerX = e.clientX;
+      this.lastPointerY = e.clientY;
+    }
+  }
+
+  onPointerUp(e) {
+    if (e.pointerType === 'touch') return;
+    if (this.phase.cameraController?.isPanningCamera) {
+      this.phase.cameraController.isPanningCamera = false;
+      return;
+    }
+    if (!this.isPointerDown) return;
+    this.isPointerDown = false;
+    
+    if (window.FFH.CONFIG?.touch?.messengerStyleInput) {
+      if (this.isTouchDragging) {
+        this.isTouchDragging = false;
+        this.directMoveVector.strength = 0;
+        this.directMoveVector.x = 0;
+        this.directMoveVector.z = 0;
+      }
+    }
+
+    const elapsed = Date.now() - this.pointerDownTime;
+    const dragDist = Math.hypot(e.clientX - this.pointerDownX, e.clientY - this.pointerDownY);
+
+    if (dragDist < 8 && elapsed < 400) {
+      this.phase.handleSingleOrDoubleTap(e);
+    }
+  }
+
+  getMoveIntent(camAngle) {
+    let keyFwd = 0;
+    let keyRt = 0;
+    if (this.keysDown['w'] || this.keysDown['arrowup']) keyFwd += 1;
+    if (this.keysDown['s'] || this.keysDown['arrowdown']) keyFwd -= 1;
+    if (this.keysDown['d'] || this.keysDown['arrowright']) keyRt += 1;
+    if (this.keysDown['a'] || this.keysDown['arrowleft']) keyRt -= 1;
+
+    if (keyFwd !== 0 || keyRt !== 0) {
+      const fwdX = -Math.sin(camAngle);
+      const fwdZ = -Math.cos(camAngle);
+      const rtX = Math.cos(camAngle);
+      const rtZ = -Math.sin(camAngle);
+
+      const len = Math.hypot(keyFwd, keyRt);
+      keyFwd /= len;
+      keyRt /= len;
+
+      return {
+        moveDirX: rtX * keyRt + fwdX * keyFwd,
+        moveDirZ: rtZ * keyRt + fwdZ * keyFwd,
+        moveSpeedRatio: 1.0,
+        isDirect: true
+      };
+    } else if (this.directMoveVector.strength > 0.05) {
+      return {
+        moveDirX: this.directMoveVector.x,
+        moveDirZ: this.directMoveVector.z,
+        moveSpeedRatio: this.directMoveVector.strength,
+        isDirect: true
+      };
+    }
+
+    return { moveDirX: 0, moveDirZ: 0, moveSpeedRatio: 0, isDirect: false };
+  }
+};
+
+
+/* --- FILE: src/phases/city/cityEnvironment.js --- */
+﻿// CityEnvironment: Manages day-night lighting, atmospheric fog, floating clouds, butterflies, and soaring birds.
+window.FFH = window.FFH || {};
+
+window.FFH.CityEnvironment = class {
+  constructor(game, phase) {
+    this.game = game;
+    this.phase = phase;
+
+    this.ambientLight = null;
+    this.sunLight = null;
+    this.clouds = [];
+    this.butterflies = [];
+    this.birds = [];
+    this.timeOfDay = 0.35;
+  }
+
+  setup(worldData) {
+    if (worldData) {
+      this.clouds = worldData.clouds || [];
+      this.butterflies = worldData.butterflies || [];
+      this.birds = worldData.birds || [];
+    }
+
+    this.ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.7);
+    this.sunLight = new THREE.DirectionalLight(0xFFF1D0, 0.95);
+    this.sunLight.position.set(24, 35, 20);
+    this.sunLight.castShadow = true;
+    this.sunLight.shadow.mapSize.set(1024, 1024);
+    this.sunLight.shadow.camera.near = 0.5;
+    this.sunLight.shadow.camera.far = 100;
+    this.sunLight.shadow.bias = -0.0006;
+    this.sunLight.shadow.normalBias = 0.02;
+
+    this.game.scene.add(this.ambientLight, this.sunLight);
+    this.updateAtmosphericTime(0.35);
+  }
+
+  updateAtmosphericTime(progress) {
+    this.timeOfDay = progress % 1.0;
+    const isWinter = this.game && this.game.state && this.game.state.semester === 'WINTER';
+
+    let skyColor, fogColor, lightColor, lightIntensity, ambIntensity;
+
+    if (isWinter) {
+      if (this.timeOfDay < 0.25) {
+        skyColor = new THREE.Color(0xD0DCE5);
+        fogColor = new THREE.Color(0xC4D7ED);
+        lightColor = new THREE.Color(0xF4A261);
+        lightIntensity = 0.65;
+        ambIntensity = 0.50;
+      } else if (this.timeOfDay < 0.6) {
+        skyColor = new THREE.Color(0xB8D0EB);
+        fogColor = new THREE.Color(0xD0E1FD);
+        lightColor = new THREE.Color(0xE8F1F5);
+        lightIntensity = 0.85;
+        ambIntensity = 0.60;
+      } else if (this.timeOfDay < 0.8) {
+        skyColor = new THREE.Color(0x3D5A80);
+        fogColor = new THREE.Color(0x293241);
+        lightColor = new THREE.Color(0xEE6C4D);
+        lightIntensity = 0.70;
+        ambIntensity = 0.40;
+      } else {
+        skyColor = new THREE.Color(0x0F172A);
+        fogColor = new THREE.Color(0x090D16);
+        lightColor = new THREE.Color(0x94A3B8);
+        lightIntensity = 0.40;
+        ambIntensity = 0.30;
+      }
+      this.game.scene.background = skyColor;
+      this.game.scene.fog = new THREE.FogExp2(fogColor, 0.020);
+    } else {
+      if (this.timeOfDay < 0.25) {
+        skyColor = new THREE.Color(0xFDE2E4);
+        fogColor = new THREE.Color(0xFDE2E4);
+        lightColor = new THREE.Color(0xFFB703);
+        lightIntensity = 0.75;
+        ambIntensity = 0.55;
+      } else if (this.timeOfDay < 0.6) {
+        skyColor = new THREE.Color(0x76C8B8);
+        fogColor = new THREE.Color(0xD8F3DC);
+        lightColor = new THREE.Color(0xFFFAF0);
+        lightIntensity = 0.95;
+        ambIntensity = 0.65;
+      } else if (this.timeOfDay < 0.8) {
+        skyColor = new THREE.Color(0xF4A261);
+        fogColor = new THREE.Color(0xE76F51);
+        lightColor = new THREE.Color(0xF77F00);
+        lightIntensity = 0.85;
+        ambIntensity = 0.45;
+      } else {
+        skyColor = new THREE.Color(0x1D2D44);
+        fogColor = new THREE.Color(0x0D1B2A);
+        lightColor = new THREE.Color(0x76C8B8);
+        lightIntensity = 0.45;
+        ambIntensity = 0.35;
+      }
+      this.game.scene.background = skyColor;
+      this.game.scene.fog = new THREE.FogExp2(fogColor, 0.015);
+    }
+
+    if (this.ambientLight) this.ambientLight.intensity = ambIntensity;
+    if (this.sunLight) {
+      this.sunLight.color = lightColor;
+      this.sunLight.intensity = lightIntensity;
+    }
+    if (this.game.sfx) {
+      this.game.sfx.playBgm(this.timeOfDay > 0.8 || this.timeOfDay < 0.25 ? 'night' : 'day');
+    }
+  }
+
+  update(delta, timeSec) {
+    // 1. Water waves
+    if (this.phase.waterMat && this.phase.waterMat.uniforms) {
+      if (this.phase.waterMat.uniforms.uTime) {
+        this.phase.waterMat.uniforms.uTime.value = timeSec;
+      }
+      if (this.phase.waterMat.uniforms.uCamXZ) {
+        this.phase.waterMat.uniforms.uCamXZ.value.set(this.phase.playerPos.x, this.phase.playerPos.z);
+      }
+    }
+
+    // 2. Move Floating Clouds
+    this.clouds.forEach(cloud => {
+      cloud.position.x += (cloud.userData.speed || 0.5) * delta;
+      if (cloud.position.x > 40) cloud.position.x = -8;
+    });
+
+    // 3. Animate Butterflies
+    this.butterflies.forEach(bf => {
+      const elapsed = timeSec + bf.userData.seed;
+      const leftWing = bf.getObjectByName('leftWing');
+      const rightWing = bf.getObjectByName('rightWing');
+      if (leftWing && rightWing) {
+        leftWing.rotation.y = Math.sin(elapsed * 25) * 0.8;
+        rightWing.rotation.y = -Math.sin(elapsed * 25) * 0.8;
+      }
+      bf.position.y = 0.35 + Math.sin(elapsed * 4) * 0.2;
+      bf.position.x = bf.userData.baseX + Math.sin(elapsed * 2) * 0.4;
+      bf.position.z = bf.userData.baseZ + Math.cos(elapsed * 2) * 0.4;
+    });
+
+    // 4. Animate Soaring Birds
+    this.birds.forEach(bird => {
+      const loop = bird.userData.loop;
+      if (!loop || loop.length === 0) return;
+
+      const target = loop[bird.userData.currentWp];
+      const dx = target.x - bird.position.x;
+      const dy = target.y - bird.position.y;
+      const dz = target.z - bird.position.z;
+      const dist = Math.hypot(dx, dy, dz);
+
+      if (dist < 2.5) {
+        bird.userData.currentWp = (bird.userData.currentWp + 1) % loop.length;
+      } else {
+        const dirX = dx / dist;
+        const dirY = dy / dist;
+        const dirZ = dz / dist;
+        const step = (bird.userData.speed || 5.0) * delta;
+
+        bird.position.x += dirX * step;
+        bird.position.y += dirY * step;
+        bird.position.z += dirZ * step;
+
+        const targetRotY = Math.atan2(dirX, dirZ);
+        bird.rotation.y = THREE.MathUtils.lerp(bird.rotation.y, targetRotY, delta * 3.0);
+      }
+    });
+  }
+
+  dispose() {
+    if (this.ambientLight) {
+      this.game.scene.remove(this.ambientLight);
+      this.ambientLight = null;
+    }
+    if (this.sunLight) {
+      this.game.scene.remove(this.sunLight);
+      this.sunLight = null;
+    }
+    this.clouds = [];
+    this.butterflies = [];
+    this.birds = [];
+  }
+};
+
+
+/* --- FILE: src/phases/city/cityCollectibles.js --- */
+﻿// CityCollectibles: Manages 3D Pfand bottles (€0.25 pickups), bobbing/spinning, proximity detection, and wallet rewards.
+window.FFH = window.FFH || {};
+
+window.FFH.CityCollectibles = class {
+  constructor(game, phase) {
+    this.game = game;
+    this.phase = phase;
+
+    this.pfandCollectibles = [];
+    this.pfandGroup = null;
+  }
+
+  setup() {
+    this.pfandCollectibles = [];
+    if (!this.game.state.collectedPfandIds) {
+      this.game.state.collectedPfandIds = [];
+    }
+
+    const bottleSpawns = [
+      { id: 'pfand_station', x: 12.0, z: 8.5 },      // Just south of ZOB
+      { id: 'pfand_bridge', x: 14.5, z: 18.0 },       // Near bridge approach
+      { id: 'pfand_wg_bench', x: 9.2, z: 24.5 },      // Outside near WG dorm
+      { id: 'pfand_market', x: 21.0, z: 24.0 },        // Corner of Rathaus / Market
+      { id: 'pfand_bakery', x: 6.5, z: 19.5 }         // Near Bakery Hansa entrance
+    ];
+
+    const bottleGroup = new THREE.Group();
+    bottleGroup.name = 'pfand_collectibles_group';
+
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0x2D6A4F, transparent: true, opacity: 0.88 });
+    const capMat = new THREE.MeshLambertMaterial({ color: 0xFFD166 });
+    const ringMat = new THREE.MeshBasicMaterial({ 
+      color: 0xFFD166, 
+      side: THREE.DoubleSide, 
+      transparent: true, 
+      opacity: 0.65,
+      depthWrite: false 
+    });
+
+    const bodyGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.28, 10);
+    const neckGeo = new THREE.CylinderGeometry(0.035, 0.06, 0.12, 8);
+    const capGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8);
+    const ringGeo = new THREE.RingGeometry(0.22, 0.40, 16);
+
+    bottleSpawns.forEach(spawn => {
+      if (this.game.state.collectedPfandIds.includes(spawn.id)) return;
+
+      const itemContainer = new THREE.Group();
+      itemContainer.position.set(spawn.x, 0.06, spawn.z);
+
+      const groundRing = new THREE.Mesh(ringGeo, ringMat.clone());
+      groundRing.rotation.x = -Math.PI / 2;
+      groundRing.position.y = 0.01;
+      itemContainer.add(groundRing);
+
+      const bottleMesh = new THREE.Group();
+      const bodyMesh = new THREE.Mesh(bodyGeo, glassMat);
+      bodyMesh.position.y = 0.14;
+      const neckMesh = new THREE.Mesh(neckGeo, glassMat);
+      neckMesh.position.y = 0.32;
+      const capMesh = new THREE.Mesh(capGeo, capMat);
+      capMesh.position.y = 0.39;
+      
+      bottleMesh.add(bodyMesh, neckMesh, capMesh);
+      bottleMesh.position.y = 0.12;
+      itemContainer.add(bottleMesh);
+
+      bottleGroup.add(itemContainer);
+
+      this.pfandCollectibles.push({
+        id: spawn.id,
+        x: spawn.x,
+        z: spawn.z,
+        container: itemContainer,
+        bottleMesh: bottleMesh,
+        groundRing: groundRing,
+        collected: false
+      });
+    });
+
+    this.game.scene.add(bottleGroup);
+    this.pfandGroup = bottleGroup;
+  }
+
+  update(delta, timeSec) {
+    if (!this.pfandCollectibles || this.pfandCollectibles.length === 0) return;
+
+    const px = this.phase.playerPos.x;
+    const pz = this.phase.playerPos.z;
+    const PICKUP_RADIUS = 1.35;
+
+    for (let i = this.pfandCollectibles.length - 1; i >= 0; i--) {
+      const item = this.pfandCollectibles[i];
+      if (item.collected) continue;
+
+      item.bottleMesh.rotation.y += delta * 2.2;
+      item.bottleMesh.position.y = 0.14 + Math.sin(timeSec * 4 + i) * 0.04;
+      
+      const ringScale = 1.0 + Math.sin(timeSec * 5 + i) * 0.18;
+      item.groundRing.scale.set(ringScale, ringScale, ringScale);
+      item.groundRing.material.opacity = 0.45 + Math.sin(timeSec * 5 + i) * 0.25;
+
+      const dist = Math.hypot(px - item.x, pz - item.z);
+      if (dist < PICKUP_RADIUS) {
+        item.collected = true;
+        this.game.state.collectedPfandIds.push(item.id);
+        
+        this.game.state.wallet = window.FFH.round2((this.game.state.wallet || 20) + 0.25);
+        if (this.game.ui && this.game.ui.refreshStats) {
+          this.game.ui.refreshStats(this.game.state);
+        }
+        if (this.game.ui && this.game.ui.updatePersistentHUD) {
+          this.game.ui.updatePersistentHUD(this.game.state);
+        }
+
+        if (this.game.sfx && this.game.sfx.playSfx) {
+          this.game.sfx.playSfx('register');
+        }
+
+        if (this.game.ui && this.game.ui.spawnFloatingText) {
+          this.game.ui.spawnFloatingText('+0.25€ Pfand Deposit! 🍾', window.innerWidth / 2, window.innerHeight * 0.45, '#4CAF50');
+        }
+
+        const pfandThoughts = [
+          "Wait... there's 25 cents on this empty bottle? In London this is rubbish. Here I'm practically an investment banker.",
+          "Another Pfand bottle! That's 25 cents closer to paying university tuition.",
+          "Picking up beer bottles on the street... my parents would be so proud of my academic progress."
+        ];
+        const randomThought = pfandThoughts[Math.floor(Math.random() * pfandThoughts.length)];
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought(randomThought);
+        }
+
+        item.container.visible = false;
+        if (item.container.parent) {
+          item.container.parent.remove(item.container);
+        }
+      }
+    }
+  }
+
+  dispose() {
+    if (this.pfandGroup) {
+      this.game.scene.remove(this.pfandGroup);
+      this.pfandGroup = null;
+    }
+    this.pfandCollectibles = [];
+  }
+};
+
+
+/* --- FILE: src/phases/city/cityDoorway.js --- */
+// CityDoorway: Manages active target doorway beacons, pulse rings, bouncing indicators, and auto-entry transitions.
+window.FFH = window.FFH || {};
+
+window.FFH.CityDoorway = class {
+  constructor(game, phase) {
+    this.game = game;
+    this.phase = phase;
+
+    this.doorwayBeacon = null;
+    this.doorwayBeaconRing = null;
+    this.doorwayBeaconArrow = null;
+    this.doorwaySpotlight = null;
+
+    this.activeDoorPos = null;
+    this.activeDoorPoi = null;
+    this.doorInteractionCooldown = 0;
+  }
+
+  setup() {
+    this.doorwayBeacon = new THREE.Group();
+    this.doorwayBeacon.name = 'doorway_beacon';
+
+    // 1. Pulsing cyan ground ring right outside the door
+    const ringGeo = new THREE.RingGeometry(0.4, 0.75, 24);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x2EC4B6,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
+      depthWrite: false
+    });
+    this.doorwayBeaconRing = new THREE.Mesh(ringGeo, ringMat);
+    this.doorwayBeaconRing.rotation.x = -Math.PI / 2;
+    this.doorwayBeaconRing.position.y = 0.08;
+    this.doorwayBeacon.add(this.doorwayBeaconRing);
+
+    // 2. Floating bouncing arrow pointing down at the entrance
+    const arrowShape = new THREE.Shape();
+    arrowShape.moveTo(0, 0);
+    arrowShape.lineTo(0.35, 0.45);
+    arrowShape.lineTo(0.14, 0.45);
+    arrowShape.lineTo(0.14, 0.95);
+    arrowShape.lineTo(-0.14, 0.95);
+    arrowShape.lineTo(-0.14, 0.45);
+    arrowShape.lineTo(-0.35, 0.45);
+    arrowShape.closePath();
+
+    const arrowGeo = new THREE.ShapeGeometry(arrowShape);
+    const arrowMat = new THREE.MeshBasicMaterial({
+      color: 0xFFD166,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.95,
+      depthTest: false,
+      depthWrite: false
+    });
+    this.doorwayBeaconArrow = new THREE.Mesh(arrowGeo, arrowMat);
+    this.doorwayBeaconArrow.renderOrder = 999;
+    this.doorwayBeaconArrow.position.y = 1.4;
+    this.doorwayBeacon.add(this.doorwayBeaconArrow);
+
+    // 3. Vertical soft beacon cylinder beam
+    const beamGeo = new THREE.CylinderGeometry(0.3, 0.6, 3.5, 16, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0x2EC4B6,
+      transparent: true,
+      opacity: 0.25,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    this.doorwaySpotlight = new THREE.Mesh(beamGeo, beamMat);
+    this.doorwaySpotlight.position.y = 1.75;
+    this.doorwayBeacon.add(this.doorwaySpotlight);
+
+    this.doorwayBeacon.visible = false;
+    this.game.scene.add(this.doorwayBeacon);
+  }
+
+  getDoorPosition(poiType, fallbackPos) {
+    // Precise doorway portal positions matching 3D building models and orientations
+    const locPositions = {
+      'B_ZOB':        { x:  5.2, z:  1.2 },  // Front entrance facing North (-Z)
+      'B_BANK':       { x: 41.6, z:  4.0 },  // Front entrance facing South (+Z)
+      'B_UNI':        { x: 26.0, z: 16.8 },  // University Courtyard front archway facing South (+Z) towards boulevard
+      'B_BAKERY':     { x:  6.6, z: 15.6 },  // Front entrance facing East (+X)
+      'B_BURGTOR':    { x: 37.8, z: 15.6 },  // Archway gate facing East (+X)
+      'B_RATHAUS':    { x: 24.8, z: 20.8 },  // Town Hall front steps facing East (+X)
+      'B_PIZZA':      { x: 28.6, z: 22.2 },  // Pizzeria awning & front door facing South (+Z)
+      'B_WG':         { x:  6.6, z: 23.4 },  // WG Altbau front porch facing East (+X)
+      'B_AUSLAENDER': { x: 37.8, z: 23.4 },  // Civic office front door facing East (+X)
+      'B_BIKESHOP':   { x:  5.2, z: 30.0 },  // Bike shop front door facing South (+Z)
+      'B_KINO':       { x: 26.0, z: 30.0 },  // Cinema grand marquee entrance facing South (+Z)
+      'B_HOLSTEN':    { x: 16.8, z: 31.2 },  // Holstentor gate portal facing West (-X)
+      'B_MARIEN':     { x: 53.2, z: 31.2 },  // St. Mary's Cathedral portal facing West (-X)
+      'B_DOM':        { x: 26.0, z: 43.0 },  // Dom Cathedral entrance facing South (+Z)
+      'B_DARKSTORE':  { x:  6.6, z: 44.2 }   // Kruma Darkstore roll-up dispatch door facing East (+X)
+    };
+
+    if (locPositions[poiType]) {
+      return new THREE.Vector3(locPositions[poiType].x, 0.05, locPositions[poiType].z);
+    }
+
+    // Dynamic procedural calculation if targetMesh is provided (e.g. residential delivery townhouses)
+    if (fallbackPos) {
+      const S = window.FFH.TILE_SCALE || 2.6;
+      const gx = Math.round(fallbackPos.x / S);
+      const gz = Math.round(fallbackPos.z / S);
+      if (window.FFH.getBuildingRotationTowardsRoad && window.FFH.LUBECK_CITY_GRID) {
+        const rot = window.FFH.getBuildingRotationTowardsRoad(window.FFH.LUBECK_CITY_GRID, gx, gz);
+        const offsetX = -Math.sin(rot) * 1.4;
+        const offsetZ = Math.cos(rot) * 1.4;
+        return new THREE.Vector3(fallbackPos.x + offsetX, 0.05, fallbackPos.z + offsetZ);
+      }
+      return new THREE.Vector3(fallbackPos.x, 0.05, fallbackPos.z + 1.4);
+    }
+
+    return new THREE.Vector3(10.4, 0.05, 10.4);
+  }
+
+  getExitPosition(poiType, fallbackPos) {
+    const doorPos = this.getDoorPosition(poiType, fallbackPos);
+    // Step out ~1.2m further into the sidewalk/street from the doorway
+    if (poiType === 'B_WG' || poiType === 'B_BAKERY' || poiType === 'B_DARKSTORE' || poiType === 'B_RATHAUS' || poiType === 'B_BURGTOR') {
+      return new THREE.Vector3(doorPos.x + 1.2, 0.05, doorPos.z);
+    } else if (poiType === 'B_HOLSTEN' || poiType === 'B_MARIEN') {
+      return new THREE.Vector3(doorPos.x - 1.2, 0.05, doorPos.z);
+    } else if (poiType === 'B_ZOB') {
+      return new THREE.Vector3(doorPos.x, 0.05, doorPos.z - 1.2);
+    }
+    return new THREE.Vector3(doorPos.x, 0.05, doorPos.z + 1.2);
+  }
+
+  update(delta, timeSec, activePoiKey, targetMesh) {
+    if (this.doorInteractionCooldown > 0) {
+      this.doorInteractionCooldown -= delta;
+    }
+
+    if (activePoiKey && targetMesh && this.doorwayBeacon) {
+      const doorPos = this.getDoorPosition(activePoiKey, targetMesh.position);
+      this.activeDoorPos = doorPos;
+      this.activeDoorPoi = activePoiKey;
+
+      // Respect CONFIG.ui.doorBeaconEnabled — false hides all 3D beacon visuals
+      const compassEnabled = window.FFH.CONFIG?.ui?.doorBeaconEnabled ?? true;
+      this.doorwayBeacon.visible = compassEnabled;
+      this.doorwayBeacon.position.set(doorPos.x, 0.05, doorPos.z);
+
+      if (compassEnabled) {
+        if (this.doorwayBeaconRing) {
+          const ringScale = 1.0 + Math.sin(timeSec * 6) * 0.18;
+          this.doorwayBeaconRing.scale.set(ringScale, ringScale, 1.0);
+        }
+        if (this.doorwayBeaconArrow) {
+          this.doorwayBeaconArrow.position.y = 1.3 + Math.sin(timeSec * 4) * 0.22;
+          this.doorwayBeaconArrow.rotation.y += delta * 2.5;
+        }
+        if (this.doorwaySpotlight) {
+          this.doorwaySpotlight.material.opacity = 0.18 + Math.sin(timeSec * 3) * 0.08;
+        }
+      }
+
+      // Auto-trigger if walked into active door zone (< 1.6m) and cooldown is clear
+      if (this.doorInteractionCooldown <= 0 && !this.phase.isEnteringBuilding && !this.phase.isExitingBuilding && !this.phase.inputDisabled) {
+        const distToDoor = Math.hypot(this.phase.playerPos.x - doorPos.x, this.phase.playerPos.z - doorPos.z);
+        if (distToDoor < 1.6) {
+          this.doorInteractionCooldown = 2.5;
+          console.log(`[Doorway] Walked into active door zone of ${activePoiKey}! Triggering entry.`);
+          this.phase.startBuildingEntry(activePoiKey, doorPos);
+        }
+      }
+    } else if (this.doorwayBeacon) {
+      this.doorwayBeacon.visible = false;
+      this.activeDoorPos = null;
+      this.activeDoorPoi = null;
+    }
+  }
+
+  dispose() {
+    if (this.doorwayBeacon) {
+      this.game.scene.remove(this.doorwayBeacon);
+      this.doorwayBeacon = null;
+      this.doorwayBeaconRing = null;
+      this.doorwayBeaconArrow = null;
+      this.doorwaySpotlight = null;
+    }
+    this.activeDoorPos = null;
+    this.activeDoorPoi = null;
+  }
+};
+
+
 /* --- FILE: src/phases/cityExplorationPhase.js --- */
 // City Exploration Phase: Mobile touch-first & mouse click-to-move,
 // double-tap/click to interact, 2-finger pinch zoom, single finger hold-drag camera orbit.
@@ -36853,34 +38432,6 @@ window.FFH.CityExplorationPhase = class {
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
     this.playerRadius = 0.4;      // Collision cylinder radius
     
-    // Standard Fixed Isometric Camera parameters
-    this.camDistance = 12.0;
-    this.camHeight = 12.0;
-    this.camTargetPitch = 0.0;
-    
-    // Touch & Pointer state
-    this.isPointerDown = false;
-    this.isDraggingCamera = false;
-    this.pointerDownX = 0;
-    this.pointerDownY = 0;
-    this.lastPointerX = 0;
-    this.lastPointerY = 0;
-    this.pointerDownTime = 0;
-    
-    // Dynamic Camera Zoom & Atmosphere state (Messenger-style follow to diorama overview)
-    this.camZoom = 0.85;
-    this.targetCamZoom = 0.85;
-    this.minCamZoom = 0.50; // Balanced bird's-eye isometric view of the city diorama
-    this.maxCamZoom = 1.35; // Intimate Messenger ground follow
-    this.initialCamZoom = 0.85;
-    this.initialPinchDist = null;
-    this.cameraPanOffset = new THREE.Vector3(0, 0, 0);
-    this.isPanningCamera = false;
-    this.panStartX = 0;
-    this.panStartY = 0;
-    this.initialPanOffset = new THREE.Vector3(0, 0, 0);
-    this.debugZoomBar = null;
-    
     // Idle & Narrative Thought state
     this.idleTimer = 0;
     this.idleDriftAngle = 0;
@@ -36895,18 +38446,108 @@ window.FFH.CityExplorationPhase = class {
     this.targetMarker = null;
     
     this.raycaster = new THREE.Raycaster();
-    this.occlusionRaycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
 
-    this.onPointerDown = this.onPointerDown.bind(this);
-    this.onPointerMove = this.onPointerMove.bind(this);
-    this.onPointerUp = this.onPointerUp.bind(this);
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onTouchMove = this.onTouchMove.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
-    this.onWheel = this.onWheel.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
-    this.onContextMenu = (e) => e.preventDefault();
+    // Idle & Narrative Thought state
+    this.lastThoughtTime = 0;
+    this.visitedThoughtZones = new Set();
+
+    // Sub-Controllers (Component-Based Architecture)
+    this.cameraController = new window.FFH.CityCamera(this.game, this);
+    this.inputController = new window.FFH.CityInput(this.game, this);
+    this.environmentController = new window.FFH.CityEnvironment(this.game, this);
+    this.collectiblesController = new window.FFH.CityCollectibles(this.game, this);
+    this.doorwayController = new window.FFH.CityDoorway(this.game, this);
+  }
+
+  // Compatibility getters & setters for existing references and test inspection
+  get doorwayBeacon() { return this.doorwayController ? this.doorwayController.doorwayBeacon : null; }
+  set doorwayBeacon(v) { if (this.doorwayController) this.doorwayController.doorwayBeacon = v; }
+  get doorwayBeaconRing() { return this.doorwayController ? this.doorwayController.doorwayBeaconRing : null; }
+  get doorwayBeaconArrow() { return this.doorwayController ? this.doorwayController.doorwayBeaconArrow : null; }
+  get doorwaySpotlight() { return this.doorwayController ? this.doorwayController.doorwaySpotlight : null; }
+  get activeDoorPos() { return this.doorwayController ? this.doorwayController.activeDoorPos : null; }
+  set activeDoorPos(v) { if (this.doorwayController) this.doorwayController.activeDoorPos = v; }
+  get activeDoorPoi() { return this.doorwayController ? this.doorwayController.activeDoorPoi : null; }
+  set activeDoorPoi(v) { if (this.doorwayController) this.doorwayController.activeDoorPoi = v; }
+  get doorInteractionCooldown() { return this.doorwayController ? this.doorwayController.doorInteractionCooldown : 0; }
+  set doorInteractionCooldown(v) { if (this.doorwayController) this.doorwayController.doorInteractionCooldown = v; }
+
+  get camCurrentAngle() { return this.cameraController ? this.cameraController.camCurrentAngle : 0; }
+  set camCurrentAngle(v) { if (this.cameraController) this.cameraController.camCurrentAngle = v; }
+  get camZoom() { return this.cameraController ? this.cameraController.camZoom : 1.0; }
+  set camZoom(v) { if (this.cameraController) this.cameraController.camZoom = v; }
+  get targetCamZoom() { return this.cameraController ? this.cameraController.targetCamZoom : 1.0; }
+  set targetCamZoom(v) { if (this.cameraController) this.cameraController.targetCamZoom = v; }
+  get cameraPanOffset() { return this.cameraController ? this.cameraController.cameraPanOffset : new THREE.Vector3(); }
+  set cameraPanOffset(v) { if (this.cameraController) this.cameraController.cameraPanOffset = v; }
+  get manualCameraAngle() { return this.cameraController ? this.cameraController.manualCameraAngle : undefined; }
+  set manualCameraAngle(v) { if (this.cameraController) this.cameraController.manualCameraAngle = v; }
+
+  get directMoveVector() { return this.inputController ? this.inputController.directMoveVector : { x: 0, z: 0, strength: 0 }; }
+  get keysDown() { return this.inputController ? this.inputController.keysDown : {}; }
+  get isTouchDragging() { return this.inputController ? this.inputController.isTouchDragging : false; }
+  get touchJoystickEl() { return this.inputController ? this.inputController.touchJoystickEl : null; }
+
+  get pfandCollectibles() { return this.collectiblesController ? this.collectiblesController.pfandCollectibles : []; }
+  get pfandGroup() { return this.collectiblesController ? this.collectiblesController.pfandGroup : null; }
+  set pfandGroup(v) { if (this.collectiblesController) this.collectiblesController.pfandGroup = v; }
+
+  getDoorPosition(poiType, fallbackPos) {
+    return this.doorwayController.getDoorPosition(poiType, fallbackPos);
+  }
+
+  getExitPosition(poiType, fallbackPos) {
+    return this.doorwayController.getExitPosition(poiType, fallbackPos);
+  }
+
+  setupDoorwayBeacon() {
+    this.doorwayController.setup();
+  }
+
+  setupPfandCollectibles() {
+    this.collectiblesController.setup();
+  }
+
+  updatePfandCollectibles(delta, timeSec) {
+    if (this.collectiblesController) {
+      this.collectiblesController.update(delta, timeSec);
+    }
+  }
+
+  setupAtmosphere() {
+    this.environmentController.setup({
+      clouds: this.clouds,
+      butterflies: this.butterflies,
+      birds: this.birds
+    });
+  }
+
+  updateAtmosphericTime(progress) {
+    if (this.environmentController) {
+      this.environmentController.updateAtmosphericTime(progress);
+    }
+  }
+
+  setZoom(val) {
+    if (this.cameraController) this.cameraController.setZoom(val);
+  }
+
+  updateCamera(snap = false, delta = 0.016) {
+    if (!this.cameraController) return;
+    if (snap) {
+      this.cameraController.snapToTarget();
+    } else {
+      const isMoving = this.targetMovePos !== null || this.directMoveVector.strength > 0.05 ||
+        (this.keysDown['w'] || this.keysDown['s'] || this.keysDown['a'] || this.keysDown['d'] ||
+         this.keysDown['arrowup'] || this.keysDown['arrowdown'] || this.keysDown['arrowleft'] || this.keysDown['arrowright']);
+      const timeSec = this.game.clock ? this.game.clock.getElapsedTime() : 0;
+      this.cameraController.update(delta, timeSec, isMoving);
+    }
+  }
+
+  updateBuildingOcclusionFade() {
+    if (this.cameraController) this.cameraController.updateBuildingOcclusionFade();
   }
 
   enter(data) {
@@ -36999,23 +38640,17 @@ window.FFH.CityExplorationPhase = class {
       this.handlePOIAction(action, poiData);
     });
 
-    // Attach touch & mouse controls (Zero keyboard needed)
-    const dom = this.game.renderer.domElement;
-    dom.addEventListener('pointerdown', this.onPointerDown);
-    dom.addEventListener('pointermove', this.onPointerMove);
-    dom.addEventListener('pointerup', this.onPointerUp);
-    dom.addEventListener('touchstart', this.onTouchStart, { passive: false });
-    dom.addEventListener('touchmove', this.onTouchMove, { passive: false });
-    dom.addEventListener('touchend', this.onTouchEnd);
-    dom.addEventListener('wheel', this.onWheel, { passive: false });
-    dom.addEventListener('contextmenu', this.onContextMenu);
-    window.addEventListener('keydown', this.onKeyDown);
+    // Attach touch & mouse controls + Keyboard via input controller
+    this.inputController.attach();
     
     // Initialize Minimap Data
     this.setupMinimap();
 
     // Initialize 3D Pfand Bottle Collectibles (€0.25 each)
     this.setupPfandCollectibles();
+
+    // Initialize Active Street Doorway Beacon
+    this.setupDoorwayBeacon();
 
     // Step 1: Station Arrival Auto-Trigger for British Comedy Storyline
     if (!this.game.state.hasShownStationArrivalThought && (!data || !data.fromBuildingExit)) {
@@ -37038,6 +38673,7 @@ window.FFH.CityExplorationPhase = class {
     }
 
     if (data && data.fromBuildingExit) {
+      this.doorInteractionCooldown = 3.0; // 3 seconds grace period after exiting a building
       this.startBuildingExit();
     }
   }
@@ -37339,28 +38975,32 @@ window.FFH.CityExplorationPhase = class {
   }
 
   exit() {
-    const dom = this.game.renderer.domElement;
-    if (dom) {
-      dom.removeEventListener('pointerdown', this.onPointerDown);
-      dom.removeEventListener('pointermove', this.onPointerMove);
-      dom.removeEventListener('pointerup', this.onPointerUp);
-      dom.removeEventListener('touchstart', this.onTouchStart);
-      dom.removeEventListener('touchmove', this.onTouchMove);
-      dom.removeEventListener('touchend', this.onTouchEnd);
-      dom.removeEventListener('wheel', this.onWheel);
-      dom.removeEventListener('contextmenu', this.onContextMenu);
+    if (this.inputController) {
+      this.inputController.detach();
     }
-    window.removeEventListener('keydown', this.onKeyDown);
-
-    // Reset camera zoom to 1.0 upon leaving exploration
-    if (this.game.currentCamera) {
-      this.game.currentCamera.zoom = 1.0;
-      this.game.currentCamera.updateProjectionMatrix();
+    if (this.cameraController) {
+      this.cameraController.dispose();
+    }
+    if (this.doorwayController) {
+      this.doorwayController.dispose();
+    }
+    if (this.collectiblesController) {
+      this.collectiblesController.dispose();
+    }
+    if (this.environmentController) {
+      this.environmentController.dispose();
     }
 
     if (this.targetMarker) {
       this.game.scene.remove(this.targetMarker);
       this.targetMarker = null;
+    }
+
+    if (this.questHintMarker) {
+      this.game.scene.remove(this.questHintMarker);
+      this.questHintMarker = null;
+      this.questHintArrow = null;
+      this.questHintCircle = null;
     }
 
     if (this.worldGroup) {
@@ -37453,250 +39093,10 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
-  // --- COLLECTIBLE PFAND BOTTLES SYSTEM (€0.25 each, €1.25 max) ---
-  setupPfandCollectibles() {
-    this.pfandCollectibles = [];
-    if (!this.game.state.collectedPfandIds) {
-      this.game.state.collectedPfandIds = [];
-    }
 
-    // 5 strategically placed bottles along sidewalks/roads across the town
-    // Total: 5 x €0.25 = €1.25 (player discovers them accidentally while walking)
-    const bottleSpawns = [
-      { id: 'pfand_station', x: 12.0, z: 8.5 },      // Just south of ZOB on the walking path
-      { id: 'pfand_bridge', x: 14.5, z: 18.0 },       // Near bridge approach
-      { id: 'pfand_wg_bench', x: 9.2, z: 24.5 },      // Outside near WG dorm
-      { id: 'pfand_market', x: 21.0, z: 24.0 },        // Corner of Rathaus / Market
-      { id: 'pfand_bakery', x: 6.5, z: 19.5 }         // Near Bakery Hansa entrance
-    ];
-
-    const bottleGroup = new THREE.Group();
-    bottleGroup.name = 'pfand_collectibles_group';
-
-    // Materials: Dark green glass with subtle shine, yellow metal cap, golden glowing ground ring
-    const glassMat = new THREE.MeshLambertMaterial({ color: 0x2D6A4F, transparent: true, opacity: 0.88 });
-    const capMat = new THREE.MeshLambertMaterial({ color: 0xFFD166 });
-    const ringMat = new THREE.MeshBasicMaterial({ 
-      color: 0xFFD166, 
-      side: THREE.DoubleSide, 
-      transparent: true, 
-      opacity: 0.65,
-      depthWrite: false 
-    });
-
-    const bodyGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.28, 10);
-    const neckGeo = new THREE.CylinderGeometry(0.035, 0.06, 0.12, 8);
-    const capGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8);
-    const ringGeo = new THREE.RingGeometry(0.22, 0.40, 16);
-
-    bottleSpawns.forEach(spawn => {
-      // Skip if already collected on this save
-      if (this.game.state.collectedPfandIds.includes(spawn.id)) return;
-
-      const itemContainer = new THREE.Group();
-      itemContainer.position.set(spawn.x, 0.06, spawn.z);
-
-      // 1. Ground Pulsing Ring
-      const groundRing = new THREE.Mesh(ringGeo, ringMat.clone());
-      groundRing.rotation.x = -Math.PI / 2;
-      groundRing.position.y = 0.01;
-      itemContainer.add(groundRing);
-
-      // 2. Floating Bottle Mesh
-      const bottleMesh = new THREE.Group();
-      const bodyMesh = new THREE.Mesh(bodyGeo, glassMat);
-      bodyMesh.position.y = 0.14;
-      const neckMesh = new THREE.Mesh(neckGeo, glassMat);
-      neckMesh.position.y = 0.32;
-      const capMesh = new THREE.Mesh(capGeo, capMat);
-      capMesh.position.y = 0.39;
-      
-      bottleMesh.add(bodyMesh, neckMesh, capMesh);
-      bottleMesh.position.y = 0.12;
-      itemContainer.add(bottleMesh);
-
-      bottleGroup.add(itemContainer);
-
-      this.pfandCollectibles.push({
-        id: spawn.id,
-        x: spawn.x,
-        z: spawn.z,
-        container: itemContainer,
-        bottleMesh: bottleMesh,
-        groundRing: groundRing,
-        collected: false
-      });
-    });
-
-    this.game.scene.add(bottleGroup);
-    this.pfandGroup = bottleGroup;
-  }
-
-  updatePfandCollectibles(delta, timeSec) {
-    if (!this.pfandCollectibles || this.pfandCollectibles.length === 0) return;
-
-    const px = this.playerPos.x;
-    const pz = this.playerPos.z;
-    const PICKUP_RADIUS = 1.35; // Player touches / walks near it accidentally
-
-    for (let i = this.pfandCollectibles.length - 1; i >= 0; i--) {
-      const item = this.pfandCollectibles[i];
-      if (item.collected) continue;
-
-      // Animate rotation & bobbing
-      item.bottleMesh.rotation.y += delta * 2.2;
-      item.bottleMesh.position.y = 0.14 + Math.sin(timeSec * 4 + i) * 0.04;
-      
-      // Animate ground ring pulse
-      const ringScale = 1.0 + Math.sin(timeSec * 5 + i) * 0.18;
-      item.groundRing.scale.set(ringScale, ringScale, ringScale);
-      item.groundRing.material.opacity = 0.45 + Math.sin(timeSec * 5 + i) * 0.25;
-
-      // Proximity check
-      const dist = Math.hypot(px - item.x, pz - item.z);
-      if (dist < PICKUP_RADIUS) {
-        // Collect!
-        item.collected = true;
-        this.game.state.collectedPfandIds.push(item.id);
-        
-        // Canonical Economy: +€0.25
-        this.game.state.wallet = window.FFH.round2((this.game.state.wallet || 20) + 0.25);
-        if (this.game.ui && this.game.ui.refreshStats) {
-          this.game.ui.refreshStats(this.game.state);
-        }
-        if (this.game.ui && this.game.ui.updatePersistentHUD) {
-          this.game.ui.updatePersistentHUD(this.game.state);
-        }
-
-        // SFX feedback
-        if (this.game.sfx && this.game.sfx.playSfx) {
-          this.game.sfx.playSfx('register');
-        }
-
-        // Visual floating text feedback
-        if (this.game.ui && this.game.ui.spawnFloatingText) {
-          this.game.ui.spawnFloatingText('+0.25€ Pfand Deposit! 🍾', window.innerWidth / 2, window.innerHeight * 0.45, '#4CAF50');
-        }
-
-        // British Comedy discovery thoughts
-        const pfandThoughts = [
-          "Wait... there's 25 cents on this empty bottle? In London this is rubbish. Here I'm practically an investment banker.",
-          "Another Pfand bottle! That's 25 cents closer to paying university tuition.",
-          "Picking up beer bottles on the street... my parents would be so proud of my academic progress."
-        ];
-        const randomThought = pfandThoughts[Math.floor(Math.random() * pfandThoughts.length)];
-        if (this.game.ui && this.game.ui.spawnWandererThought) {
-          this.game.ui.spawnWandererThought(randomThought);
-        }
-
-        // Quick shrink animation before removing from scene
-        let shrinkTimer = 0.25;
-        const shrinkInterval = setInterval(() => {
-          shrinkTimer -= 0.05;
-          if (shrinkTimer <= 0) {
-            clearInterval(shrinkInterval);
-            if (item.container.parent) {
-              item.container.parent.remove(item.container);
-            }
-          } else {
-            const s = shrinkTimer / 0.25;
-            item.container.scale.set(s, s, s);
-          }
-        }, 30);
-      }
-    }
-  }
 
   // --- TOUCH & POINTER GESTURE HANDLING ---
-
-  onTouchStart(e) {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      // 2-finger pinch zoom initiation
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      this.initialPinchDist = Math.hypot(dx, dy);
-      this.initialCamZoom = this.targetCamZoom;
-    }
-  }
-
-  onTouchMove(e) {
-    if (e.touches.length === 2 && this.initialPinchDist) {
-      e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      const factor = dist / this.initialPinchDist;
-      this.setZoom(this.initialCamZoom * factor);
-    }
-  }
-
-  onTouchEnd(e) {
-    if (e.touches.length < 2) {
-      this.initialPinchDist = null;
-    }
-  }
-
-  onPointerDown(e) {
-    if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
-    
-    this.pointerDownX = e.clientX;
-    this.pointerDownY = e.clientY;
-    this.lastPointerX = e.clientX;
-    this.lastPointerY = e.clientY;
-    this.pointerDownTime = Date.now();
-
-    // Right-click or middle-click or Shift-drag triggers camera panning
-    if (e.button === 2 || e.button === 1 || e.shiftKey) {
-      this.isPanningCamera = true;
-      this.initialPanOffset.copy(this.cameraPanOffset);
-      return;
-    }
-
-    this.isPointerDown = true;
-    this.isDraggingCamera = false;
-  }
-
-  onPointerMove(e) {
-    if (this.isPanningCamera) {
-      this.lastPointerX = e.clientX;
-      this.lastPointerY = e.clientY;
-      return;
-    }
-
-    if (!this.isPointerDown) return;
-    const dragDist = Math.hypot(e.clientX - this.pointerDownX, e.clientY - this.pointerDownY);
-    
-    if (dragDist > 8) {
-      this.isDraggingCamera = true;
-      const dx = e.clientX - this.lastPointerX;
-      if (this.manualCameraAngle === undefined) {
-        this.manualCameraAngle = this.camCurrentAngle !== undefined ? this.camCurrentAngle : (Math.PI / 4 + Math.PI);
-      }
-      // Drag horizontally to rotate the camera around the player
-      this.manualCameraAngle -= dx * 0.01;
-      
-      this.lastPointerX = e.clientX;
-      this.lastPointerY = e.clientY;
-    }
-  }
-
-  onPointerUp(e) {
-    if (this.isPanningCamera) {
-      this.isPanningCamera = false;
-      return;
-    }
-    if (!this.isPointerDown) return;
-    this.isPointerDown = false;
-    
-    const elapsed = Date.now() - this.pointerDownTime;
-    const dragDist = Math.hypot(e.clientX - this.pointerDownX, e.clientY - this.pointerDownY);
-
-    // Tap / Click handling (not a camera drag)
-    if (dragDist < 8 && elapsed < 400) {
-      this.handleSingleOrDoubleTap(e);
-    }
-  }
+  // Managed by this.inputController (CityInput)
 
   revealCompass() {
     this.compassRevealed = true;
@@ -37722,13 +39122,10 @@ window.FFH.CityExplorationPhase = class {
     this.lastTapTime = now;
 
     // --- Dismiss POI card on any canvas tap ---
-    // The card is a DOM overlay; once the tap lands on the canvas we
-    // always hide it so it never traps the player's movement.
     const poiCard = document.getElementById('city-poi-card');
     if (poiCard && poiCard.style.display !== 'none') {
       poiCard.style.display = 'none';
       if (this.game.ui) this.game.ui.currentActivePOI = null;
-      // Don't return — still process the tap as click-to-move below.
     }
 
     const rect = this.game.renderer.domElement.getBoundingClientRect();
@@ -37737,58 +39134,26 @@ window.FFH.CityExplorationPhase = class {
 
     this.raycaster.setFromCamera(this.mouse, this.game.currentCamera);
 
-    // 1. Check if tapped on an interactive POI Building
-    const buildingHits = this.raycaster.intersectObjects(this.interactiveMeshes, true);
-    if (buildingHits.length > 0) {
-      let root = buildingHits[0].object;
-      while (root.parent && !this.interactiveMeshes.includes(root)) {
-        root = root.parent;
-      }
-      if (root.userData && root.userData.poi) {
-        const poi = root.userData.poi;
-        poi.gridX = root.userData.gridX;
-        poi.gridZ = root.userData.gridZ;
-        const INTERACT_RADIUS = 4 * (window.FFH.TILE_SCALE || 2.6); // 4 tiles
-        const dist = Math.hypot(root.position.x - this.playerPos.x, root.position.z - this.playerPos.z);
-        
-        if (dist > INTERACT_RADIUS) {
-          if (this.game.ui && this.game.ui.spawnFloatingText) {
-            this.game.ui.spawnFloatingText('Walk closer to interact', e.clientX, e.clientY, '#E76F51');
-          }
-          return;
+    // 1. Messenger System: Check if clicked active doorway beacon first
+    if (this.doorwayBeacon && this.doorwayBeacon.visible && this.activeDoorPoi) {
+      const beaconHits = this.raycaster.intersectObjects([this.doorwayBeacon], true);
+      if (beaconHits.length > 0) {
+        const dist = Math.hypot(this.doorwayBeacon.position.x - this.playerPos.x, this.doorwayBeacon.position.z - this.playerPos.z);
+        if (dist > 3.0) {
+          this.setMoveTarget(this.doorwayBeacon.position.x, this.doorwayBeacon.position.z);
+        } else {
+          this.startBuildingEntry(this.activeDoorPoi, this.doorwayBeacon.position);
         }
-
-        // If tapping a generic residential townhouse (A1, A2, A3, etc.), never enter or shrink courier!
-        // Just show a dry British observation thought bubble.
-        if (root.userData.type && root.userData.type.startsWith('A')) {
-          const britObservations = [
-            "Just a residential block. Perfectly tidy curtains. No help with my tuition here.",
-            "Stepped gables. Very Hansa. Not currently offering employment or sympathy, though.",
-            "Someone's flat. The smell of cabbage and clean laundry. Best not loiter on the doorstep.",
-            "Brick facade. Solid, silent, and thoroughly indifferent to my financial catastrophe."
-          ];
-          const text = britObservations[Math.floor(Math.random() * britObservations.length)];
-          if (this.game.ui && this.game.ui.spawnWandererThought) {
-            this.game.ui.spawnWandererThought(text);
-          } else if (this.game.ui && this.game.ui.spawnFloatingText) {
-            this.game.ui.spawnFloatingText("Residence", e.clientX, e.clientY, '#718096');
-          }
-          if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
-          return;
-        }
-
-        // We are close! Start building entry sequence for key story locations
-        this.startBuildingEntry(root.userData.type, root.position);
         return;
       }
     }
 
-    // 2. Click-to-Move on ground/street
+    // 2. Click-to-Move on ground/street only (Buildings are solid obstacles, NOT clicked for movement)
     const groundHits = this.raycaster.intersectObjects(this.groundMeshes, true);
     if (groundHits.length > 0) {
       const hitPoint = groundHits[0].point;
       this.setMoveTarget(hitPoint.x, hitPoint.z);
-      this.intendedInteractionPoi = null; // Changed mind, cancel building interaction
+      this.intendedInteractionPoi = null;
     }
   }
 
@@ -37821,15 +39186,14 @@ window.FFH.CityExplorationPhase = class {
 
   toggleOverview() {
     if (this.targetCamZoom < 0.7) {
-      // Return to ground Messenger follow view
       this.setZoom(1.15);
     } else {
-      // Zoom out to bird's-eye isometric diorama view
       this.setZoom(0.50);
     }
   }
 
   onKeyDown(e) {
+    this.keysDown[e.key.toLowerCase()] = true;
     if (e.key === '+' || e.key === '=') {
       this.setZoom(this.targetCamZoom * 1.25);
     } else if (e.key === '-' || e.key === '_') {
@@ -37841,6 +39205,10 @@ window.FFH.CityExplorationPhase = class {
     } else if (e.key === 't' || e.key === 'T') {
       this.cycleTestNPC();
     }
+  }
+
+  onKeyUp(e) {
+    this.keysDown[e.key.toLowerCase()] = false;
   }
 
   cycleTestNPC() {
@@ -37875,30 +39243,13 @@ window.FFH.CityExplorationPhase = class {
   updateZoomUI() {}
   removeDebugZoomUI() {}
 
-  getDoorPosition(poiType, fallbackPos) {
-    const locPositions = {
-      'B_ZOB':        { x: 10.4, z:  5.2 }, // Street east of ZOB
-      'B_BANK':       { x: 44.2, z:  5.2 }, // Street east of Bank
-      'B_UNI':        { x: 20.8, z: 15.6 }, // Street west of Uni
-      'B_BAKERY':     { x:  7.8, z: 18.2 }, // Street east of Bakery
-      'B_BURGTOR':    { x: 36.4, z: 18.2 }, // Bridge road
-      'B_RATHAUS':    { x: 20.8, z: 23.4 }, // Street west of Rathaus
-      'B_PIZZA':      { x: 28.6, z: 26.0 }, // Street south of Pizzeria Bella
-      'B_WG':         { x:  7.8, z: 26.0 }, // Street east of Student WG
-      'B_AUSLAENDER': { x: 41.6, z: 26.0 }, // Street east of Ausländerbehörde
-      'B_BIKESHOP':   { x:  7.8, z: 31.2 }, // Street east of Bike Shop
-      'B_KINO':       { x: 20.8, z: 31.2 }, // Street west of Cinema
-      'B_HOLSTEN':    { x: 18.2, z: 33.8 }, // Bridge approach
-      'B_MARIEN':     { x: 52.0, z: 33.8 }, // Church square
-      'B_DOM':        { x: 26.0, z: 41.6 }, // Cathedral road
-      'B_DARKSTORE':  { x:  7.8, z: 46.8 }  // Street east of Kruma Express
-    };
-    if (locPositions[poiType]) {
-      return new THREE.Vector3(locPositions[poiType].x, 0.05, locPositions[poiType].z);
-    }
-    // Fallback: estimate door by pulling slightly toward street
-    return new THREE.Vector3(fallbackPos.x, 0.05, fallbackPos.z + 2.6);
+  setThoughtCamera(active) {
+    // Camera is strictly locked behind character per user request
   }
+
+
+
+
 
   startBuildingEntry(poiType, buildingPos) {
     if (this.isEnteringBuilding) return;
@@ -37958,8 +39309,9 @@ window.FFH.CityExplorationPhase = class {
     let npc = null;
     if (npcModelKey && window.FFH.createNPCMesh) {
        npc = window.FFH.createNPCMesh(npcModelKey);
-       npc.position.set(0, 0.05, 0);
-       npc.rotation.y = Math.PI / 4;
+       npc.position.set(-0.45, 0.05, -1.10);
+       npc.rotation.y = 0.85;
+       npc.scale.multiplyScalar(2.6);
        scene.add(npc);
     }
 
@@ -38438,7 +39790,10 @@ window.FFH.CityExplorationPhase = class {
     this.isExitingBuilding = false;
     this.inputDisabled = false;
 
-    if (this.enteringPoiType && this.enteringDoorPos) {
+    if (this.enteringPoiType) {
+      const safeExitPos = this.getExitPosition(this.enteringPoiType, this.enteringDoorPos || this.playerPos);
+      this.playerPos.copy(safeExitPos);
+    } else if (this.enteringDoorPos) {
       this.playerPos.copy(this.enteringDoorPos);
     }
 
@@ -38450,8 +39805,8 @@ window.FFH.CityExplorationPhase = class {
       }
     }
 
-    this.manualCameraAngle = undefined; // Return camera to normal isometric follow
-    this.targetCamZoom = 1.15;
+    this.manualCameraAngle = undefined; // Return camera to normal follow
+    this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom) ? this.cameraController.initialCamZoom : 2.88;
     this.updateCamera(false);
   }
 
@@ -38485,7 +39840,7 @@ window.FFH.CityExplorationPhase = class {
          if (this.courier) this.courier.scale.setScalar(1.0);
          this.triggerBuildingInteraction(this.enteringPoiType);
       }
-      this.updateCamera(false);
+      this.updateCamera(false, delta);
       return;
     }
 
@@ -38512,100 +39867,17 @@ window.FFH.CityExplorationPhase = class {
             }
          }
          this.manualCameraAngle = undefined; // Return camera to normal isometric follow
-         this.targetCamZoom = 1.15;
-      }
-      this.updateCamera(false);
+         this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom) ? this.cameraController.initialCamZoom : 2.88;
+       }
+      this.updateCamera(false, delta);
       return;
     }
 
     const timeSec = this.game.clock.getElapsedTime();
 
-    // 1. Water waves & Cel Shading
-    if (this.waterMat && this.waterMat.uniforms) {
-      if (this.waterMat.uniforms.uTime) {
-        this.waterMat.uniforms.uTime.value = timeSec;
-      }
-      if (this.waterMat.uniforms.uCamXZ) {
-        this.waterMat.uniforms.uCamXZ.value.set(this.playerPos.x, this.playerPos.z);
-      }
-    }
-
-    // Time of day is now strictly event-driven (controlled by storyRunner and shifts)
-    // this.updateAtmosphericTime((this.timeOfDay + delta * 0.008) % 1.0);
-
-    // 3. Move Floating Clouds
-    this.clouds.forEach(cloud => {
-      cloud.position.x += (cloud.userData.speed || 0.5) * delta;
-      if (cloud.position.x > 40) cloud.position.x = -8;
-    });
-
-    // Animate Butterflies
-    if (this.butterflies) {
-      this.butterflies.forEach(bf => {
-        const elapsed = timeSec + bf.userData.seed;
-        const leftWing = bf.getObjectByName('leftWing');
-        const rightWing = bf.getObjectByName('rightWing');
-        if (leftWing && rightWing) {
-          leftWing.rotation.y = Math.sin(elapsed * 25) * 0.8;
-          rightWing.rotation.y = -Math.sin(elapsed * 25) * 0.8;
-        }
-        bf.position.y = 0.35 + Math.sin(elapsed * 4) * 0.2;
-        bf.position.x = bf.userData.baseX + Math.sin(elapsed * 2) * 0.4;
-        bf.position.z = bf.userData.baseZ + Math.cos(elapsed * 2) * 0.4;
-      });
-    }
-
-    // Animate Birds soaring dynamically between outer forest and historic city landmarks
-    if (this.birds) {
-      this.birds.forEach(bird => {
-        const loop = bird.userData.loop;
-        if (!loop || loop.length === 0) return;
-
-        const target = loop[bird.userData.currentWp];
-        const dx = target.x - bird.position.x;
-        const dy = target.y - bird.position.y;
-        const dz = target.z - bird.position.z;
-        const dist = Math.hypot(dx, dy, dz);
-
-        if (dist < 2.5) {
-          bird.userData.currentWp = (bird.userData.currentWp + 1) % loop.length;
-        } else {
-          const dirX = dx / dist;
-          const dirY = dy / dist;
-          const dirZ = dz / dist;
-          const step = (bird.userData.speed || 5.0) * delta;
-
-          bird.position.x += dirX * step;
-          bird.position.y += dirY * step;
-          bird.position.z += dirZ * step;
-
-          // Smoothly rotate to face flight heading
-          const targetAngle = Math.atan2(dirX, dirZ);
-          bird.rotation.y = THREE.MathUtils.lerp(bird.rotation.y, targetAngle, delta * 3.5);
-
-          // Bank into turns
-          const angleDiff = THREE.MathUtils.euclideanModulo(targetAngle - bird.rotation.y + Math.PI, Math.PI * 2) - Math.PI;
-          bird.rotation.z = THREE.MathUtils.lerp(bird.rotation.z, -angleDiff * 1.6, delta * 4);
-
-          // Subtle pitch based on climb or descent
-          bird.rotation.x = THREE.MathUtils.lerp(bird.rotation.x, -dirY * 0.7, delta * 4);
-
-          // Dynamic wing flapping: energetic climb vs peaceful gliding
-          const leftWing = bird.getObjectByName('leftWing');
-          const rightWing = bird.getObjectByName('rightWing');
-          if (leftWing && rightWing) {
-            if (dirY > 0.04) {
-              const flap = Math.sin(timeSec * 11 + bird.userData.seed) * 0.65;
-              leftWing.rotation.z = flap;
-              rightWing.rotation.z = -flap;
-            } else {
-              const glide = Math.sin(timeSec * 3 + bird.userData.seed) * 0.14;
-              leftWing.rotation.z = glide;
-              rightWing.rotation.z = -glide;
-            }
-          }
-        }
-      });
+    // 1. Environment Simulation (Water, Clouds, Butterflies, Birds)
+    if (this.environmentController) {
+      this.environmentController.update(delta, timeSec);
     }
 
     // Tick Roaming Citizens using Behavior Tree & update animation mixers
@@ -38618,14 +39890,79 @@ window.FFH.CityExplorationPhase = class {
       });
     }
 
-    // 4. Click-to-Move A* Pathing & Collision Handling
-    if (this.playerPath && this.playerPath.length > 0) {
+    // 4. Movement Handling (Direct Touch-Drag Joystick / Keyboard WASD + Click-to-Move Pathing)
+    const camAngle = this.camCurrentAngle !== undefined ? this.camCurrentAngle : 0;
+    const moveIntent = this.inputController 
+      ? this.inputController.getMoveIntent(camAngle)
+      : { moveDirX: 0, moveDirZ: 0, moveSpeedRatio: 0, isDirect: false };
+
+    let moveDirX = moveIntent.moveDirX;
+    let moveDirZ = moveIntent.moveDirZ;
+    let moveSpeedRatio = moveIntent.moveSpeedRatio;
+
+    if (moveIntent.isDirect && (this.keysDown['w'] || this.keysDown['s'] || this.keysDown['a'] || this.keysDown['d'] ||
+        this.keysDown['arrowup'] || this.keysDown['arrowdown'] || this.keysDown['arrowleft'] || this.keysDown['arrowright'])) {
+      // Cancel click-to-move path when keyboard input is detected
+      this.playerPath = [];
+      this.targetMovePos = null;
+      if (this.targetMarker) this.targetMarker.visible = false;
+    }
+
+    if (moveSpeedRatio > 0.05) {
+      // Direct Movement via sliding collision solver
+      const MOV = (window.FFH.CONFIG && window.FFH.CONFIG.movement) || {};
+      const walkSpeed  = MOV.walkSpeed  !== undefined ? MOV.walkSpeed  : 4.2;
+      const ebikeSpeed = MOV.ebikeSpeed !== undefined ? MOV.ebikeSpeed : 7.2;
+      const speed = (this.game.state.upgrades?.ebike ? ebikeSpeed : walkSpeed) * moveSpeedRatio;
+      const step = speed * delta;
+      const nextX = this.playerPos.x + moveDirX * step;
+      const nextZ = this.playerPos.z + moveDirZ * step;
+
+      const radius = this.playerRadius || 0.4;
+      const curX = this.playerPos.x;
+      const curZ = this.playerPos.z;
+      const resolved = window.FFH.resolveSlidingMovement
+        ? window.FFH.resolveSlidingMovement(curX, curZ, nextX, nextZ, radius)
+        : { x: nextX, z: nextZ };
+
+      this.playerPos.x = resolved.x;
+      this.playerPos.z = resolved.z;
+
+      const actualMoveAngle = Math.atan2(moveDirX, moveDirZ);
+      this.playerHeading = actualMoveAngle;
+
+      if (this.courier) {
+        this.courier.position.x = this.playerPos.x;
+        this.courier.position.z = this.playerPos.z;
+        let rotDiff = actualMoveAngle - this.courier.rotation.y;
+        while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
+        while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
+        const rotDamp = 1.0 - Math.exp(-10.0 * (delta || 0.016));
+        this.courier.rotation.y += rotDiff * rotDamp;
+      }
+
+      if (this.courier && this.courier.userData && this.courier.userData.mixer) {
+        window.FFH.updateNPCAnimation(this.courier, delta);
+        if (this.courier.userData.playAction && this.courier.userData.currentAction !== this.courier.userData.actions['walk']) {
+          this.courier.userData.playAction('walk');
+        }
+      } else if (window.FFH.updateCourierWalk && this.courier) {
+        window.FFH.updateCourierWalk(this.courier, delta, moveSpeedRatio);
+      }
+
+      if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(moveSpeedRatio);
+
+      this.idleTimer = 0;
+      this.idleDriftAngle = THREE.MathUtils.lerp(this.idleDriftAngle, 0, delta * 5);
+    } else if (this.playerPath && this.playerPath.length > 0) {
+      // C. Click-to-Move A* Pathing & Collision Handling
       const currentTgt = this.playerPath[0];
       const dx = currentTgt.x - this.playerPos.x;
       const dz = currentTgt.z - this.playerPos.z;
       const dist = Math.hypot(dx, dz);
 
-      if (dist < 0.25) {
+      const waypointReach = (window.FFH.CONFIG?.movement?.waypointReach ?? 0.25);
+      if (dist < waypointReach) {
         this.playerPath.shift();
         if (this.playerPath.length === 0) {
           this.targetMovePos = null;
@@ -38636,7 +39973,10 @@ window.FFH.CityExplorationPhase = class {
           if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
         }
       } else {
-        const speed = (this.game.state.upgrades?.ebike ? 7.2 : 4.2);
+        const MOV2 = (window.FFH.CONFIG && window.FFH.CONFIG.movement) || {};
+        const pathWalk  = MOV2.pathWalkSpeed  !== undefined ? MOV2.pathWalkSpeed  : 4.2;
+        const pathEbike = MOV2.pathEbikeSpeed !== undefined ? MOV2.pathEbikeSpeed : 7.2;
+        const speed = (this.game.state.upgrades?.ebike ? pathEbike : pathWalk);
         const step = Math.min(dist, speed * delta);
         const dirX = dx / dist;
         const dirZ = dz / dist;
@@ -38653,6 +39993,9 @@ window.FFH.CityExplorationPhase = class {
 
         this.playerPos.x = resolved.x;
         this.playerPos.z = resolved.z;
+
+        const moveAngle = Math.atan2(dirX, dirZ);
+        this.playerHeading = moveAngle;
 
         // If player made zero progress due to wall collision, abort path after short delay
         if (Math.abs(resolved.x - curX) < 0.001 && Math.abs(resolved.z - curZ) < 0.001) {
@@ -38673,8 +40016,11 @@ window.FFH.CityExplorationPhase = class {
         if (this.courier) {
           this.courier.position.x = this.playerPos.x;
           this.courier.position.z = this.playerPos.z;
-          const moveAngle = Math.atan2(dirX, dirZ);
-          this.courier.rotation.y = THREE.MathUtils.lerp(this.courier.rotation.y, moveAngle, delta * 14);
+          let rotDiff = moveAngle - this.courier.rotation.y;
+          while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
+          while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
+          const rotDamp = 1.0 - Math.exp(-10.0 * (delta || 0.016));
+          this.courier.rotation.y += rotDiff * rotDamp;
         }
 
         if (this.courier && this.courier.userData && this.courier.userData.mixer) {
@@ -38707,8 +40053,20 @@ window.FFH.CityExplorationPhase = class {
       
       // Accumulate idle time for camera drift
       this.idleTimer += delta;
-      if (this.idleTimer > 60.0) {
-        this.idleDriftAngle += delta * 0.12;
+      if (this.idleTimer > 8.0) {
+        this.idleDriftAngle += delta * 0.15;
+      }
+    }
+
+    // Auto doorway proximity check: only trigger if player walks right up to the active story door (< 1.6m) and cooldown is clear
+    if (this.doorInteractionCooldown > 0) {
+      this.doorInteractionCooldown -= delta;
+    } else if (this.activeDoorPos && this.activeDoorPoi && !this.isEnteringBuilding && !this.isExitingBuilding && !this.inputDisabled) {
+      const distToDoor = Math.hypot(this.playerPos.x - this.activeDoorPos.x, this.playerPos.z - this.activeDoorPos.z);
+      if (distToDoor < 1.6) {
+        this.doorInteractionCooldown = 2.5; // Prevent immediate re-triggering upon exit
+        console.log(`[Doorway] Walked into active door zone of ${this.activeDoorPoi}! Triggering entry.`);
+        this.startBuildingEntry(this.activeDoorPoi, this.activeDoorPos);
       }
     }
 
@@ -38752,9 +40110,41 @@ window.FFH.CityExplorationPhase = class {
       targetMesh = this.interactiveMeshes.find(m => m.userData.gridX === tgt.gridX && m.userData.gridZ === tgt.gridZ);
     }
 
-    if (targetMesh && this.questHintMarker && (this.compassRevealed || this.game.state.firstObjectiveRevealed)) {
+    // --- Update Street Doorway Beacon at Active Target Door ---
+    let activePoiKey = null;
+    if (sr && sr.pendingStoryTarget) {
+      activePoiKey = sr.pendingStoryTarget.poi;
+    } else if (curStage === Stages.ARRIVAL_ZOB || curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
+      activePoiKey = 'B_WG';
+    } else if (curStage === Stages.TRANSIT_TO_UNI || curStage === Stages.UNI_LOCKED) {
+      activePoiKey = 'B_UNI';
+    } else if (curStage === Stages.JOB_HUNT_PIZZA) {
+      activePoiKey = 'B_PIZZA';
+    } else if (curStage === Stages.JOB_HUNT_BAKERY) {
+      activePoiKey = 'B_BAKERY';
+    } else if (curStage === Stages.RETURN_TO_WG) {
+      activePoiKey = 'B_WG';
+    } else if (this.game.state.wallet >= TUITION_GOAL) {
+      activePoiKey = 'B_UNI';
+    } else if (this.game.state.activeDelivery && targetMesh && targetMesh.userData) {
+      activePoiKey = targetMesh.userData.type || 'DELIVERY_TARGET';
+    }
+
+    if (this.doorwayController) {
+      this.doorwayController.update(delta, timeSec, activePoiKey, targetMesh);
+    }
+
+    const UI = (window.FFH.CONFIG && window.FFH.CONFIG.ui) || {};
+    const questArrowEnabled   = UI.questArrowEnabled   !== undefined ? UI.questArrowEnabled   : true;
+    const questRingEnabled    = UI.questRingEnabled    !== undefined ? UI.questRingEnabled    : true;
+    const chevronsEnabled     = UI.groundChevronsEnabled !== undefined ? UI.groundChevronsEnabled : true;
+    const anyQuestVisible     = questArrowEnabled || questRingEnabled || chevronsEnabled;
+
+    if (anyQuestVisible && targetMesh && this.questHintMarker && (this.compassRevealed || this.game.state.firstObjectiveRevealed)) {
       this.questHintMarker.visible = true;
-      this.questHintMarker.position.set(targetMesh.position.x, 0, targetMesh.position.z);
+      const markerX = (this.doorwayController && this.doorwayController.activeDoorPos) ? this.doorwayController.activeDoorPos.x : targetMesh.position.x;
+      const markerZ = (this.doorwayController && this.doorwayController.activeDoorPos) ? this.doorwayController.activeDoorPos.z : targetMesh.position.z;
+      this.questHintMarker.position.set(markerX, 0, markerZ);
       
       if (this.questHintArrow) {
         let height = 3.0;
@@ -38764,88 +40154,102 @@ window.FFH.CityExplorationPhase = class {
           height = targetMesh.userData.height;
         }
         this.questHintArrow.position.y = height + 1.2 + Math.sin(timeSec * 4) * 0.3;
-        this.questHintArrow.rotation.y += delta * 2.5; 
+        this.questHintArrow.rotation.y += delta * 2.5;
+        // Individual flag + hide when doorway beacon already showing its own arrow
+        this.questHintArrow.visible = questArrowEnabled && (!this.doorwayBeacon || !this.doorwayBeacon.visible);
       }
 
       if (this.questHintCircle) {
         const circleScale = 1.0 + Math.sin(timeSec * 5) * 0.15;
         this.questHintCircle.scale.set(circleScale, circleScale, circleScale);
+        // Individual flag + hide when doorway beacon ring is showing
+        this.questHintCircle.visible = questRingEnabled && (!this.doorwayBeacon || !this.doorwayBeacon.visible);
       }
 
-      // Navigation Ground Path: Translucent Highlighter Ribbon & Animated Chevrons
+      // Navigation Ground Path: Animated Chevrons
       if (this.navPathGroup) {
-        this.navPathGroup.visible = true;
-
-        const isDelivery = this.game.state.activeDelivery;
-        const mainColor = isDelivery ? 0x2EC4B6 : 0xFFD166;
-        const chevronColor = isDelivery ? 0xCBF3F0 : 0xFFF3B0;
-
-        this.navRibbonMat.color.setHex(mainColor);
-        this.navRibbonMat.opacity = 0.35 + Math.sin(timeSec * 3) * 0.08; // subtle breathing glow
-
-        // Build true A* waypoints on the street grid
-        const aStarPath = window.FFH.findPath
-          ? window.FFH.findPath(this.playerPos.x, this.playerPos.z, targetMesh.position.x, targetMesh.position.z)
-          : [];
-
-        const waypoints = aStarPath.map(p => new THREE.Vector3(p.x, 0.28, p.z));
-        if (waypoints.length === 0) {
-          waypoints.push(new THREE.Vector3(this.playerPos.x, 0.28, this.playerPos.z));
-          waypoints.push(new THREE.Vector3(targetMesh.position.x, 0.28, targetMesh.position.z));
-        }
-
-        // Hide full-screen ground ribbon mesh to eliminate screen clutter
-        if (this.navRibbonMesh) this.navRibbonMesh.visible = false;
-
-        // Place and animate short 3-4 directional guide chevrons right ahead of courier
-        const totalDist = waypoints.reduce((acc, p, idx) => {
-          if (idx === 0) return 0;
-          return acc + p.distanceTo(waypoints[idx - 1]);
-        }, 0);
-
-        const maxVisibleDist = 4.8; // Limit trail to 4.8 meters ahead of player
-        const maxChevrons = 4;
-        const chevronSpacing = 1.2;
-        const speed = 2.2; // speed of moving markers along trail
-        const offset = (timeSec * speed) % chevronSpacing;
-        let poolIdx = 0;
-
-        let curDist = offset;
-        while (curDist < Math.min(totalDist, maxVisibleDist) && poolIdx < maxChevrons && poolIdx < this.navChevronPool.length) {
-          let remaining = curDist;
-
-          for (let i = 0; i < waypoints.length - 1; i++) {
-            const p1 = waypoints[i];
-            const p2 = waypoints[i + 1];
-            const segLen = p1.distanceTo(p2);
-
-            if (remaining <= segLen) {
-              const t = remaining / segLen;
-              const pos = new THREE.Vector3().lerpVectors(p1, p2, t);
-              pos.y = 0.16; // float neatly right above street surface
-              const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
-
-              const chevron = this.navChevronPool[poolIdx];
-              chevron.position.copy(pos);
-              chevron.rotation.y = Math.atan2(-dir.z, dir.x) - Math.PI / 2;
-              chevron.material.color.setHex(chevronColor);
-
-              // Smooth fade out as distance from player increases
-              const fade = Math.max(0, 1.0 - (curDist / maxVisibleDist));
-              chevron.material.opacity = fade * 0.9;
-              chevron.visible = (fade > 0.05);
-
-              poolIdx++;
-              break;
+        if (!chevronsEnabled) {
+          // Disabled — hide group and all individual children immediately
+          this.navPathGroup.visible = false;
+          if (this.navChevronPool) {
+            for (let i = 0; i < this.navChevronPool.length; i++) {
+              this.navChevronPool[i].visible = false;
             }
-            remaining -= segLen;
           }
-          curDist += chevronSpacing;
-        }
+          if (this.navRibbonMesh) this.navRibbonMesh.visible = false;
+        } else {
+          this.navPathGroup.visible = true;
 
-        // Hide unused chevrons
-        for (let i = poolIdx; i < this.navChevronPool.length; i++) {
-          this.navChevronPool[i].visible = false;
+          const isDelivery = this.game.state.activeDelivery;
+          const mainColor = isDelivery ? 0x2EC4B6 : 0xFFD166;
+          const chevronColor = isDelivery ? 0xCBF3F0 : 0xFFF3B0;
+
+          this.navRibbonMat.color.setHex(mainColor);
+          this.navRibbonMat.opacity = 0.35 + Math.sin(timeSec * 3) * 0.08;
+
+          const destX = (this.doorwayController && this.doorwayController.activeDoorPos) ? this.doorwayController.activeDoorPos.x : targetMesh.position.x;
+          const destZ = (this.doorwayController && this.doorwayController.activeDoorPos) ? this.doorwayController.activeDoorPos.z : targetMesh.position.z;
+
+          const aStarPath = window.FFH.findPath
+            ? window.FFH.findPath(this.playerPos.x, this.playerPos.z, destX, destZ)
+            : [];
+
+          const waypoints = aStarPath.map(p => new THREE.Vector3(p.x, 0.28, p.z));
+          if (waypoints.length === 0) {
+            waypoints.push(new THREE.Vector3(this.playerPos.x, 0.28, this.playerPos.z));
+            waypoints.push(new THREE.Vector3(destX, 0.28, destZ));
+          }
+
+          if (this.navRibbonMesh) this.navRibbonMesh.visible = false;
+
+          const totalDist = waypoints.reduce((acc, p, idx) => {
+            if (idx === 0) return 0;
+            return acc + p.distanceTo(waypoints[idx - 1]);
+          }, 0);
+
+          const maxVisibleDist = 4.8;
+          const maxChevrons = 4;
+          const chevronSpacing = 1.2;
+          const speed = 2.2;
+          const offset = (timeSec * speed) % chevronSpacing;
+          let poolIdx = 0;
+
+          let curDist = offset;
+          while (curDist < Math.min(totalDist, maxVisibleDist) && poolIdx < maxChevrons && poolIdx < this.navChevronPool.length) {
+            let remaining = curDist;
+
+            for (let i = 0; i < waypoints.length - 1; i++) {
+              const p1 = waypoints[i];
+              const p2 = waypoints[i + 1];
+              const segLen = p1.distanceTo(p2);
+
+              if (remaining <= segLen) {
+                const t = remaining / segLen;
+                const pos = new THREE.Vector3().lerpVectors(p1, p2, t);
+                pos.y = 0.16;
+                const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
+
+                const chevron = this.navChevronPool[poolIdx];
+                chevron.position.copy(pos);
+                chevron.rotation.y = Math.atan2(-dir.z, dir.x) - Math.PI / 2;
+                chevron.material.color.setHex(chevronColor);
+
+                const fade = Math.max(0, 1.0 - (curDist / maxVisibleDist));
+                chevron.material.opacity = fade * 0.9;
+                chevron.visible = (fade > 0.05);
+
+                poolIdx++;
+                break;
+              }
+              remaining -= segLen;
+            }
+            curDist += chevronSpacing;
+          }
+
+          // Hide unused chevrons
+          for (let i = poolIdx; i < this.navChevronPool.length; i++) {
+            this.navChevronPool[i].visible = false;
+          }
         }
       }
 
@@ -38854,12 +40258,19 @@ window.FFH.CityExplorationPhase = class {
       if (this.navPathGroup) this.navPathGroup.visible = false;
     }
 
+
+
     // 5. Update Follower Camera & Building Transparency Fading
-    this.updateCamera(false);
+    this.updateCamera(false, delta);
     this.updateBuildingOcclusionFade();
 
     // 6. Update Minimap
-    this.updateMinimap(timeSec);
+    if (window.FFH.CONFIG?.ui?.minimapEnabled !== false) {
+      this.updateMinimap(timeSec);
+    } else {
+      const mc = document.getElementById('minimap-container');
+      if (mc) mc.style.display = 'none';
+    }
 
     // 7. Update Distance Indicator and Freshness Decay
     const isDelivery = !!this.game.state.activeDelivery;
@@ -38871,7 +40282,12 @@ window.FFH.CityExplorationPhase = class {
       // Determine angle to point the arrow
       const angle = Math.atan2(dx, dz);
       if (this.game.ui.updateCityExplorerHUD) {
-        this.game.ui.updateCityExplorerHUD(dist, angle, true);
+        const distEnabled = window.FFH.CONFIG?.ui?.distanceIndicatorEnabled ?? true;
+        if (distEnabled) {
+          this.game.ui.updateCityExplorerHUD(dist, angle, true);
+        } else {
+          this.game.ui.updateCityExplorerHUD(0, 0, false);
+        }
       }
       
       if (isDelivery) {
@@ -38955,145 +40371,8 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
-  updateCamera(snap = false) {
-    if (this.isShowingInteriorModal) return;
-    const cam = this.game.currentCamera;
-    if (!cam) return;
-
-    // Default closer 3rd-person ground zoom level
-    if (!this.camZoom) this.camZoom = 1.15;
-    if (!this.targetCamZoom) this.targetCamZoom = 1.15;
-
-    // Smoothly interpolate zoom on OrthographicCamera
-    this.camZoom = THREE.MathUtils.lerp(this.camZoom, this.targetCamZoom, 0.15);
-    if (Math.abs(cam.zoom - this.camZoom) > 0.001) {
-      cam.zoom = this.camZoom;
-      cam.updateProjectionMatrix();
-    }
-
-    const zoomFactor = THREE.MathUtils.clamp((this.camZoom - 0.50) / (1.35 - 0.50), 0, 1);
-
-    // Intimate 3rd-person distances
-    const baseDistance = THREE.MathUtils.lerp(12.0, 4.5, zoomFactor);
-    const baseHeight = THREE.MathUtils.lerp(14.0, 4.2, zoomFactor);
-
-    // Determine target camera angle:
-    // If cameraHoldTimer is active, hold the angle.
-    // Otherwise, rotate camera smoothly behind the player's movement heading.
-    if (this.cameraHoldTimer > 0) {
-      this.cameraHoldTimer -= 0.016;
-    }
-
-    const isMoving = this.targetMovePos !== null;
-    let targetAngle = (this.playerHeading !== undefined ? this.playerHeading : Math.PI / 4) + Math.PI;
-
-    // Use manual rotation if the user has dragged the camera
-    if (this.manualCameraAngle !== undefined) {
-      targetAngle = this.manualCameraAngle;
-    }
-
-    // Idle camera mode: After 60 seconds of no interaction, zoom out and spin
-    if (this.idleTimer > 60.0) {
-      targetAngle += this.idleDriftAngle;
-      this.targetCamZoom = 0.52; // Diorama overview zoom
-    } else {
-      // Ensure we stay closely zoomed in (unless player manually toggled overview)
-      if (this.targetCamZoom < 0.7 && this.idleTimer < 0.5 && isMoving) {
-          // If we were in idle overview and started moving, snap back to intimate view
-          this.targetCamZoom = 1.15;
-      }
-    }
-    
-    if (isMoving) {
-      this.cameraHoldTimer = 0; // Cancel hold if player starts walking
-    }
-
-    // Smoothly rotate camera angle
-    if (!this.camCurrentAngle) this.camCurrentAngle = targetAngle;
-    this.camCurrentAngle = THREE.MathUtils.lerp(this.camCurrentAngle, targetAngle, snap ? 1.0 : 0.06);
-
-    const offsetX = Math.sin(this.camCurrentAngle) * baseDistance;
-    const offsetZ = Math.cos(this.camCurrentAngle) * baseDistance;
-    const offsetY = baseHeight;
-
-    const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
-    // Shift lookTarget Y UP by 1.8 units so the player appears lower down on the screen,
-    // ensuring the character sits in the visible lower-middle zone and the top HUD does not obscure the path ahead.
-    const lookTargetY = this.playerPos.y + 1.8;
-    const lookTargetZ = this.playerPos.z + (this.cameraPanOffset ? this.cameraPanOffset.z : 0);
-
-    const camX = lookTargetX + offsetX;
-    const camY = lookTargetY + offsetY;
-    const camZ = lookTargetZ + offsetZ;
-
-    if (snap) {
-      cam.position.set(camX, camY, camZ);
-    } else {
-      const lerpSpeed = 0.12;
-      cam.position.x = THREE.MathUtils.lerp(cam.position.x, camX, lerpSpeed);
-      cam.position.y = THREE.MathUtils.lerp(cam.position.y, camY, lerpSpeed);
-      cam.position.z = THREE.MathUtils.lerp(cam.position.z, camZ, lerpSpeed);
-    }
-
-    cam.lookAt(lookTargetX, lookTargetY, lookTargetZ);
-  }
-
-  updateBuildingOcclusionFade() {
-    const cam = this.game.currentCamera;
-    if (!cam) return;
-    if (this.camZoom < 0.6) return; // Keep all buildings solid in wide overview mode
-
-    const charPos = new THREE.Vector3(this.playerPos.x, this.playerPos.y + 0.8, this.playerPos.z);
-    const camPos = cam.position.clone();
-    const rayDir = new THREE.Vector3().subVectors(charPos, camPos).normalize();
-    const rayDist = camPos.distanceTo(charPos);
-
-    this.occlusionRaycaster.set(camPos, rayDir);
-    this.occlusionRaycaster.near = 0.5;
-    this.occlusionRaycaster.far = rayDist - 0.2;
-
-    const hits = this.occlusionRaycaster.intersectObjects(this.interactiveMeshes, true);
-    const currentlyHitMeshes = new Set();
-
-    hits.forEach(hit => {
-      let root = hit.object;
-      while (root.parent && !this.interactiveMeshes.includes(root)) {
-        root = root.parent;
-      }
-      currentlyHitMeshes.add(root);
-    });
-
-    currentlyHitMeshes.forEach(group => {
-      this.fadedObjects.add(group);
-      group.traverse(child => {
-        if (child.isMesh && child.material) {
-          const mats = Array.isArray(child.material) ? child.material : [child.material];
-          mats.forEach(m => {
-            m.opacity = THREE.MathUtils.lerp(m.opacity, 0.25, 0.2);
-          });
-        }
-      });
-    });
-
-    this.fadedObjects.forEach(group => {
-      if (!currentlyHitMeshes.has(group)) {
-        let allRestored = true;
-        group.traverse(child => {
-          if (child.isMesh && child.material) {
-            const mats = Array.isArray(child.material) ? child.material : [child.material];
-            mats.forEach(m => {
-              m.opacity = THREE.MathUtils.lerp(m.opacity, 1.0, 0.15);
-              if (m.opacity < 0.98) allRestored = false;
-            });
-          }
-        });
-        if (allRestored) {
-          this.fadedObjects.delete(group);
-        }
-      }
-    });
-  }
 };
+
 
 
 /* --- FILE: src/phases/dialoguePhase.js --- */
@@ -39202,18 +40481,9 @@ window.FFH.DialoguePhase = class {
     // 2. Spawn NPC behind counter or desk according to room type
     if (window.FFH.createNPCMesh) {
       this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
-      const ROOM_NPC_PRESETS = {
-        'B_PIZZA':     { x: -0.45, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_BAKERY':    { x: -0.40, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_UNI':       { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
-        'B_DARKSTORE': { x:  0.00, y: 0.05, z: -0.65, rotY: Math.PI / 4, scale: 1.45 },
-        'B_RATHAUS':   { x: -0.20, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_BANK':      { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_AUSLAENDER':{ x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_WG':        { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 }
-      };
-      const preset = ROOM_NPC_PRESETS[bType] || { x: 0, y: 0.05, z: -0.4, rotY: Math.PI / 4, scale: 1.45 };
-      this.npcGroup.position.set(preset.x, preset.y, preset.z);
+      const ROOM_NPC_PRESETS = window.FFH.ROOM_NPC_PRESETS || {};
+      const preset = ROOM_NPC_PRESETS[bType] || { x: -0.25, y: 0.05, z: -0.8, rotY: 0.85, scale: 2.6 };
+      this.npcGroup.position.set(preset.x, preset.y + 1.10, preset.z);
       this.npcGroup.rotation.y = preset.rotY;
       this.npcGroup.scale.multiplyScalar(preset.scale);
       this.game.scene.add(this.npcGroup);
@@ -39356,24 +40626,14 @@ window.FFH.InteriorPhase = class {
     if (config.npcKey && window.FFH.createNPCMesh) {
       this.npcMesh = window.FFH.createNPCMesh(config.npcKey);
       if (this.npcMesh) {
-        // Room-specific NPC placement presets (stand behind counters, proper scale and orientation)
-        const ROOM_NPC_PRESETS = {
-          'PIZZERIA':   { x: -0.45, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'BAKERY':     { x: -0.40, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'UNI':        { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
-          'UNI_LOBBY':  { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
-          'DARKSTORE':  { x:  0.00, y: 0.05, z: -0.65, rotY: Math.PI / 4, scale: 1.45 },
-          'RATHAUS':    { x: -0.20, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'BANK':       { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'AUSLAENDER': { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'WG_ROOM':    { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 },
-          'WG_KITCHEN': { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 }
-        };
-
-        const preset = ROOM_NPC_PRESETS[config.roomType] || { x: 0, y: 0.05, z: -0.4, rotY: Math.PI / 4, scale: 1.45 };
+        // Room-specific NPC placement presets:
+        const ROOM_NPC_PRESETS = window.FFH.ROOM_NPC_PRESETS || {};
+        const preset = ROOM_NPC_PRESETS[config.roomType] || { x: -0.25, y: 0.05, z: -0.8, rotY: 0.85, scale: 2.6 };
 
         const charX = config.characterX !== undefined ? config.characterX : preset.x;
-        const charY = config.characterY !== undefined ? config.characterY : preset.y;
+        // Force an additional +1.10 offset specifically for the isometric interior rooms to prevent the 
+        // 2.6x scaled Kenney characters from sinking into the ground geometry.
+        const charY = (config.characterY !== undefined ? config.characterY : preset.y) + 1.10;
         const charZ = config.characterZ !== undefined ? config.characterZ : preset.z;
         const charRotY = config.characterRotationY !== undefined ? config.characterRotationY : preset.rotY;
         const charScale = config.characterScale !== undefined ? config.characterScale : preset.scale;
@@ -39587,7 +40847,15 @@ window.FFH.InteriorPhase = class {
     this.cleanupScene();
 
     const city = this.game.phases.CITY_EXPLORATION;
-    const spawnPos = (city && city.playerPos) ? city.playerPos.clone() : null;
+    let spawnPos = null;
+    if (city) {
+      const poiType = city.enteringPoiType || null;
+      if (poiType && city.getExitPosition) {
+        spawnPos = city.getExitPosition(poiType, city.playerPos);
+      } else if (city.playerPos) {
+        spawnPos = city.playerPos.clone();
+      }
+    }
     const timeOfDay = (city && city.timeOfDay !== undefined) ? city.timeOfDay : undefined;
 
     // Transition back to CITY_EXPLORATION through GameEngine so scene, world, HUD, and listeners are properly restored

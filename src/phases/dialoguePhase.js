@@ -103,18 +103,9 @@ window.FFH.DialoguePhase = class {
     // 2. Spawn NPC behind counter or desk according to room type
     if (window.FFH.createNPCMesh) {
       this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
-      const ROOM_NPC_PRESETS = {
-        'B_PIZZA':     { x: -0.45, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_BAKERY':    { x: -0.40, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_UNI':       { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
-        'B_DARKSTORE': { x:  0.00, y: 0.05, z: -0.65, rotY: Math.PI / 4, scale: 1.45 },
-        'B_RATHAUS':   { x: -0.20, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_BANK':      { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_AUSLAENDER':{ x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-        'B_WG':        { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 }
-      };
-      const preset = ROOM_NPC_PRESETS[bType] || { x: 0, y: 0.05, z: -0.4, rotY: Math.PI / 4, scale: 1.45 };
-      this.npcGroup.position.set(preset.x, preset.y, preset.z);
+      const ROOM_NPC_PRESETS = window.FFH.ROOM_NPC_PRESETS || {};
+      const preset = ROOM_NPC_PRESETS[bType] || { x: -0.25, y: 0.05, z: -0.8, rotY: 0.85, scale: 2.6 };
+      this.npcGroup.position.set(preset.x, preset.y + 1.10, preset.z);
       this.npcGroup.rotation.y = preset.rotY;
       this.npcGroup.scale.multiplyScalar(preset.scale);
       this.game.scene.add(this.npcGroup);

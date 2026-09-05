@@ -40,6 +40,7 @@ function assemble() {
   }
 
   const srcFiles = [
+    'src/config/gameConfig.js',   // ← TUNING: edit this file to change game feel
     'src/core/pathfinding.js',
     'src/core/economy.js',
     'src/core/storyRunner.js',
@@ -75,6 +76,11 @@ function assemble() {
     'src/ui/hud.js',
     'src/phases/pickPhase.js',
     'src/phases/shopPhase.js',
+    'src/phases/city/cityCamera.js',
+    'src/phases/city/cityInput.js',
+    'src/phases/city/cityEnvironment.js',
+    'src/phases/city/cityCollectibles.js',
+    'src/phases/city/cityDoorway.js',
     'src/phases/cityExplorationPhase.js',
     'src/phases/dialoguePhase.js',
     'src/phases/interiorPhase.js',

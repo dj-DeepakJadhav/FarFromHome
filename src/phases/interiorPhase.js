@@ -48,24 +48,14 @@ window.FFH.InteriorPhase = class {
     if (config.npcKey && window.FFH.createNPCMesh) {
       this.npcMesh = window.FFH.createNPCMesh(config.npcKey);
       if (this.npcMesh) {
-        // Room-specific NPC placement presets (stand behind counters, proper scale and orientation)
-        const ROOM_NPC_PRESETS = {
-          'PIZZERIA':   { x: -0.45, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'BAKERY':     { x: -0.40, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'UNI':        { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
-          'UNI_LOBBY':  { x: -0.20, y: 0.05, z: -1.10, rotY: Math.PI / 4, scale: 1.45 },
-          'DARKSTORE':  { x:  0.00, y: 0.05, z: -0.65, rotY: Math.PI / 4, scale: 1.45 },
-          'RATHAUS':    { x: -0.20, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'BANK':       { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'AUSLAENDER': { x: -0.30, y: 0.05, z: -1.05, rotY: Math.PI / 4, scale: 1.45 },
-          'WG_ROOM':    { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 },
-          'WG_KITCHEN': { x:  0.30, y: 0.05, z: -0.25, rotY: Math.PI / 4, scale: 1.45 }
-        };
-
-        const preset = ROOM_NPC_PRESETS[config.roomType] || { x: 0, y: 0.05, z: -0.4, rotY: Math.PI / 4, scale: 1.45 };
+        // Room-specific NPC placement presets:
+        const ROOM_NPC_PRESETS = window.FFH.ROOM_NPC_PRESETS || {};
+        const preset = ROOM_NPC_PRESETS[config.roomType] || { x: -0.25, y: 0.05, z: -0.8, rotY: 0.85, scale: 2.6 };
 
         const charX = config.characterX !== undefined ? config.characterX : preset.x;
-        const charY = config.characterY !== undefined ? config.characterY : preset.y;
+        // Force an additional +1.10 offset specifically for the isometric interior rooms to prevent the 
+        // 2.6x scaled Kenney characters from sinking into the ground geometry.
+        const charY = (config.characterY !== undefined ? config.characterY : preset.y) + 1.10;
         const charZ = config.characterZ !== undefined ? config.characterZ : preset.z;
         const charRotY = config.characterRotationY !== undefined ? config.characterRotationY : preset.rotY;
         const charScale = config.characterScale !== undefined ? config.characterScale : preset.scale;
@@ -279,7 +269,15 @@ window.FFH.InteriorPhase = class {
     this.cleanupScene();
 
     const city = this.game.phases.CITY_EXPLORATION;
-    const spawnPos = (city && city.playerPos) ? city.playerPos.clone() : null;
+    let spawnPos = null;
+    if (city) {
+      const poiType = city.enteringPoiType || null;
+      if (poiType && city.getExitPosition) {
+        spawnPos = city.getExitPosition(poiType, city.playerPos);
+      } else if (city.playerPos) {
+        spawnPos = city.playerPos.clone();
+      }
+    }
     const timeOfDay = (city && city.timeOfDay !== undefined) ? city.timeOfDay : undefined;
 
     // Transition back to CITY_EXPLORATION through GameEngine so scene, world, HUD, and listeners are properly restored

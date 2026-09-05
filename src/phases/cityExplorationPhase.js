@@ -29,34 +29,6 @@ window.FFH.CityExplorationPhase = class {
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
     this.playerRadius = 0.4;      // Collision cylinder radius
     
-    // Standard Fixed Isometric Camera parameters
-    this.camDistance = 12.0;
-    this.camHeight = 12.0;
-    this.camTargetPitch = 0.0;
-    
-    // Touch & Pointer state
-    this.isPointerDown = false;
-    this.isDraggingCamera = false;
-    this.pointerDownX = 0;
-    this.pointerDownY = 0;
-    this.lastPointerX = 0;
-    this.lastPointerY = 0;
-    this.pointerDownTime = 0;
-    
-    // Dynamic Camera Zoom & Atmosphere state (Messenger-style follow to diorama overview)
-    this.camZoom = 0.85;
-    this.targetCamZoom = 0.85;
-    this.minCamZoom = 0.50; // Balanced bird's-eye isometric view of the city diorama
-    this.maxCamZoom = 1.35; // Intimate Messenger ground follow
-    this.initialCamZoom = 0.85;
-    this.initialPinchDist = null;
-    this.cameraPanOffset = new THREE.Vector3(0, 0, 0);
-    this.isPanningCamera = false;
-    this.panStartX = 0;
-    this.panStartY = 0;
-    this.initialPanOffset = new THREE.Vector3(0, 0, 0);
-    this.debugZoomBar = null;
-    
     // Idle & Narrative Thought state
     this.idleTimer = 0;
     this.idleDriftAngle = 0;
@@ -71,18 +43,108 @@ window.FFH.CityExplorationPhase = class {
     this.targetMarker = null;
     
     this.raycaster = new THREE.Raycaster();
-    this.occlusionRaycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
 
-    this.onPointerDown = this.onPointerDown.bind(this);
-    this.onPointerMove = this.onPointerMove.bind(this);
-    this.onPointerUp = this.onPointerUp.bind(this);
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onTouchMove = this.onTouchMove.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
-    this.onWheel = this.onWheel.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
-    this.onContextMenu = (e) => e.preventDefault();
+    // Idle & Narrative Thought state
+    this.lastThoughtTime = 0;
+    this.visitedThoughtZones = new Set();
+
+    // Sub-Controllers (Component-Based Architecture)
+    this.cameraController = new window.FFH.CityCamera(this.game, this);
+    this.inputController = new window.FFH.CityInput(this.game, this);
+    this.environmentController = new window.FFH.CityEnvironment(this.game, this);
+    this.collectiblesController = new window.FFH.CityCollectibles(this.game, this);
+    this.doorwayController = new window.FFH.CityDoorway(this.game, this);
+  }
+
+  // Compatibility getters & setters for existing references and test inspection
+  get doorwayBeacon() { return this.doorwayController ? this.doorwayController.doorwayBeacon : null; }
+  set doorwayBeacon(v) { if (this.doorwayController) this.doorwayController.doorwayBeacon = v; }
+  get doorwayBeaconRing() { return this.doorwayController ? this.doorwayController.doorwayBeaconRing : null; }
+  get doorwayBeaconArrow() { return this.doorwayController ? this.doorwayController.doorwayBeaconArrow : null; }
+  get doorwaySpotlight() { return this.doorwayController ? this.doorwayController.doorwaySpotlight : null; }
+  get activeDoorPos() { return this.doorwayController ? this.doorwayController.activeDoorPos : null; }
+  set activeDoorPos(v) { if (this.doorwayController) this.doorwayController.activeDoorPos = v; }
+  get activeDoorPoi() { return this.doorwayController ? this.doorwayController.activeDoorPoi : null; }
+  set activeDoorPoi(v) { if (this.doorwayController) this.doorwayController.activeDoorPoi = v; }
+  get doorInteractionCooldown() { return this.doorwayController ? this.doorwayController.doorInteractionCooldown : 0; }
+  set doorInteractionCooldown(v) { if (this.doorwayController) this.doorwayController.doorInteractionCooldown = v; }
+
+  get camCurrentAngle() { return this.cameraController ? this.cameraController.camCurrentAngle : 0; }
+  set camCurrentAngle(v) { if (this.cameraController) this.cameraController.camCurrentAngle = v; }
+  get camZoom() { return this.cameraController ? this.cameraController.camZoom : 1.0; }
+  set camZoom(v) { if (this.cameraController) this.cameraController.camZoom = v; }
+  get targetCamZoom() { return this.cameraController ? this.cameraController.targetCamZoom : 1.0; }
+  set targetCamZoom(v) { if (this.cameraController) this.cameraController.targetCamZoom = v; }
+  get cameraPanOffset() { return this.cameraController ? this.cameraController.cameraPanOffset : new THREE.Vector3(); }
+  set cameraPanOffset(v) { if (this.cameraController) this.cameraController.cameraPanOffset = v; }
+  get manualCameraAngle() { return this.cameraController ? this.cameraController.manualCameraAngle : undefined; }
+  set manualCameraAngle(v) { if (this.cameraController) this.cameraController.manualCameraAngle = v; }
+
+  get directMoveVector() { return this.inputController ? this.inputController.directMoveVector : { x: 0, z: 0, strength: 0 }; }
+  get keysDown() { return this.inputController ? this.inputController.keysDown : {}; }
+  get isTouchDragging() { return this.inputController ? this.inputController.isTouchDragging : false; }
+  get touchJoystickEl() { return this.inputController ? this.inputController.touchJoystickEl : null; }
+
+  get pfandCollectibles() { return this.collectiblesController ? this.collectiblesController.pfandCollectibles : []; }
+  get pfandGroup() { return this.collectiblesController ? this.collectiblesController.pfandGroup : null; }
+  set pfandGroup(v) { if (this.collectiblesController) this.collectiblesController.pfandGroup = v; }
+
+  getDoorPosition(poiType, fallbackPos) {
+    return this.doorwayController.getDoorPosition(poiType, fallbackPos);
+  }
+
+  getExitPosition(poiType, fallbackPos) {
+    return this.doorwayController.getExitPosition(poiType, fallbackPos);
+  }
+
+  setupDoorwayBeacon() {
+    this.doorwayController.setup();
+  }
+
+  setupPfandCollectibles() {
+    this.collectiblesController.setup();
+  }
+
+  updatePfandCollectibles(delta, timeSec) {
+    if (this.collectiblesController) {
+      this.collectiblesController.update(delta, timeSec);
+    }
+  }
+
+  setupAtmosphere() {
+    this.environmentController.setup({
+      clouds: this.clouds,
+      butterflies: this.butterflies,
+      birds: this.birds
+    });
+  }
+
+  updateAtmosphericTime(progress) {
+    if (this.environmentController) {
+      this.environmentController.updateAtmosphericTime(progress);
+    }
+  }
+
+  setZoom(val) {
+    if (this.cameraController) this.cameraController.setZoom(val);
+  }
+
+  updateCamera(snap = false, delta = 0.016) {
+    if (!this.cameraController) return;
+    if (snap) {
+      this.cameraController.snapToTarget();
+    } else {
+      const isMoving = this.targetMovePos !== null || this.directMoveVector.strength > 0.05 ||
+        (this.keysDown['w'] || this.keysDown['s'] || this.keysDown['a'] || this.keysDown['d'] ||
+         this.keysDown['arrowup'] || this.keysDown['arrowdown'] || this.keysDown['arrowleft'] || this.keysDown['arrowright']);
+      const timeSec = this.game.clock ? this.game.clock.getElapsedTime() : 0;
+      this.cameraController.update(delta, timeSec, isMoving);
+    }
+  }
+
+  updateBuildingOcclusionFade() {
+    if (this.cameraController) this.cameraController.updateBuildingOcclusionFade();
   }
 
   enter(data) {
@@ -175,23 +237,17 @@ window.FFH.CityExplorationPhase = class {
       this.handlePOIAction(action, poiData);
     });
 
-    // Attach touch & mouse controls (Zero keyboard needed)
-    const dom = this.game.renderer.domElement;
-    dom.addEventListener('pointerdown', this.onPointerDown);
-    dom.addEventListener('pointermove', this.onPointerMove);
-    dom.addEventListener('pointerup', this.onPointerUp);
-    dom.addEventListener('touchstart', this.onTouchStart, { passive: false });
-    dom.addEventListener('touchmove', this.onTouchMove, { passive: false });
-    dom.addEventListener('touchend', this.onTouchEnd);
-    dom.addEventListener('wheel', this.onWheel, { passive: false });
-    dom.addEventListener('contextmenu', this.onContextMenu);
-    window.addEventListener('keydown', this.onKeyDown);
+    // Attach touch & mouse controls + Keyboard via input controller
+    this.inputController.attach();
     
     // Initialize Minimap Data
     this.setupMinimap();
 
     // Initialize 3D Pfand Bottle Collectibles (€0.25 each)
     this.setupPfandCollectibles();
+
+    // Initialize Active Street Doorway Beacon
+    this.setupDoorwayBeacon();
 
     // Step 1: Station Arrival Auto-Trigger for British Comedy Storyline
     if (!this.game.state.hasShownStationArrivalThought && (!data || !data.fromBuildingExit)) {
@@ -214,6 +270,7 @@ window.FFH.CityExplorationPhase = class {
     }
 
     if (data && data.fromBuildingExit) {
+      this.doorInteractionCooldown = 3.0; // 3 seconds grace period after exiting a building
       this.startBuildingExit();
     }
   }
@@ -515,28 +572,32 @@ window.FFH.CityExplorationPhase = class {
   }
 
   exit() {
-    const dom = this.game.renderer.domElement;
-    if (dom) {
-      dom.removeEventListener('pointerdown', this.onPointerDown);
-      dom.removeEventListener('pointermove', this.onPointerMove);
-      dom.removeEventListener('pointerup', this.onPointerUp);
-      dom.removeEventListener('touchstart', this.onTouchStart);
-      dom.removeEventListener('touchmove', this.onTouchMove);
-      dom.removeEventListener('touchend', this.onTouchEnd);
-      dom.removeEventListener('wheel', this.onWheel);
-      dom.removeEventListener('contextmenu', this.onContextMenu);
+    if (this.inputController) {
+      this.inputController.detach();
     }
-    window.removeEventListener('keydown', this.onKeyDown);
-
-    // Reset camera zoom to 1.0 upon leaving exploration
-    if (this.game.currentCamera) {
-      this.game.currentCamera.zoom = 1.0;
-      this.game.currentCamera.updateProjectionMatrix();
+    if (this.cameraController) {
+      this.cameraController.dispose();
+    }
+    if (this.doorwayController) {
+      this.doorwayController.dispose();
+    }
+    if (this.collectiblesController) {
+      this.collectiblesController.dispose();
+    }
+    if (this.environmentController) {
+      this.environmentController.dispose();
     }
 
     if (this.targetMarker) {
       this.game.scene.remove(this.targetMarker);
       this.targetMarker = null;
+    }
+
+    if (this.questHintMarker) {
+      this.game.scene.remove(this.questHintMarker);
+      this.questHintMarker = null;
+      this.questHintArrow = null;
+      this.questHintCircle = null;
     }
 
     if (this.worldGroup) {
@@ -629,250 +690,10 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
-  // --- COLLECTIBLE PFAND BOTTLES SYSTEM (€0.25 each, €1.25 max) ---
-  setupPfandCollectibles() {
-    this.pfandCollectibles = [];
-    if (!this.game.state.collectedPfandIds) {
-      this.game.state.collectedPfandIds = [];
-    }
 
-    // 5 strategically placed bottles along sidewalks/roads across the town
-    // Total: 5 x €0.25 = €1.25 (player discovers them accidentally while walking)
-    const bottleSpawns = [
-      { id: 'pfand_station', x: 12.0, z: 8.5 },      // Just south of ZOB on the walking path
-      { id: 'pfand_bridge', x: 14.5, z: 18.0 },       // Near bridge approach
-      { id: 'pfand_wg_bench', x: 9.2, z: 24.5 },      // Outside near WG dorm
-      { id: 'pfand_market', x: 21.0, z: 24.0 },        // Corner of Rathaus / Market
-      { id: 'pfand_bakery', x: 6.5, z: 19.5 }         // Near Bakery Hansa entrance
-    ];
-
-    const bottleGroup = new THREE.Group();
-    bottleGroup.name = 'pfand_collectibles_group';
-
-    // Materials: Dark green glass with subtle shine, yellow metal cap, golden glowing ground ring
-    const glassMat = new THREE.MeshLambertMaterial({ color: 0x2D6A4F, transparent: true, opacity: 0.88 });
-    const capMat = new THREE.MeshLambertMaterial({ color: 0xFFD166 });
-    const ringMat = new THREE.MeshBasicMaterial({ 
-      color: 0xFFD166, 
-      side: THREE.DoubleSide, 
-      transparent: true, 
-      opacity: 0.65,
-      depthWrite: false 
-    });
-
-    const bodyGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.28, 10);
-    const neckGeo = new THREE.CylinderGeometry(0.035, 0.06, 0.12, 8);
-    const capGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8);
-    const ringGeo = new THREE.RingGeometry(0.22, 0.40, 16);
-
-    bottleSpawns.forEach(spawn => {
-      // Skip if already collected on this save
-      if (this.game.state.collectedPfandIds.includes(spawn.id)) return;
-
-      const itemContainer = new THREE.Group();
-      itemContainer.position.set(spawn.x, 0.06, spawn.z);
-
-      // 1. Ground Pulsing Ring
-      const groundRing = new THREE.Mesh(ringGeo, ringMat.clone());
-      groundRing.rotation.x = -Math.PI / 2;
-      groundRing.position.y = 0.01;
-      itemContainer.add(groundRing);
-
-      // 2. Floating Bottle Mesh
-      const bottleMesh = new THREE.Group();
-      const bodyMesh = new THREE.Mesh(bodyGeo, glassMat);
-      bodyMesh.position.y = 0.14;
-      const neckMesh = new THREE.Mesh(neckGeo, glassMat);
-      neckMesh.position.y = 0.32;
-      const capMesh = new THREE.Mesh(capGeo, capMat);
-      capMesh.position.y = 0.39;
-      
-      bottleMesh.add(bodyMesh, neckMesh, capMesh);
-      bottleMesh.position.y = 0.12;
-      itemContainer.add(bottleMesh);
-
-      bottleGroup.add(itemContainer);
-
-      this.pfandCollectibles.push({
-        id: spawn.id,
-        x: spawn.x,
-        z: spawn.z,
-        container: itemContainer,
-        bottleMesh: bottleMesh,
-        groundRing: groundRing,
-        collected: false
-      });
-    });
-
-    this.game.scene.add(bottleGroup);
-    this.pfandGroup = bottleGroup;
-  }
-
-  updatePfandCollectibles(delta, timeSec) {
-    if (!this.pfandCollectibles || this.pfandCollectibles.length === 0) return;
-
-    const px = this.playerPos.x;
-    const pz = this.playerPos.z;
-    const PICKUP_RADIUS = 1.35; // Player touches / walks near it accidentally
-
-    for (let i = this.pfandCollectibles.length - 1; i >= 0; i--) {
-      const item = this.pfandCollectibles[i];
-      if (item.collected) continue;
-
-      // Animate rotation & bobbing
-      item.bottleMesh.rotation.y += delta * 2.2;
-      item.bottleMesh.position.y = 0.14 + Math.sin(timeSec * 4 + i) * 0.04;
-      
-      // Animate ground ring pulse
-      const ringScale = 1.0 + Math.sin(timeSec * 5 + i) * 0.18;
-      item.groundRing.scale.set(ringScale, ringScale, ringScale);
-      item.groundRing.material.opacity = 0.45 + Math.sin(timeSec * 5 + i) * 0.25;
-
-      // Proximity check
-      const dist = Math.hypot(px - item.x, pz - item.z);
-      if (dist < PICKUP_RADIUS) {
-        // Collect!
-        item.collected = true;
-        this.game.state.collectedPfandIds.push(item.id);
-        
-        // Canonical Economy: +€0.25
-        this.game.state.wallet = window.FFH.round2((this.game.state.wallet || 20) + 0.25);
-        if (this.game.ui && this.game.ui.refreshStats) {
-          this.game.ui.refreshStats(this.game.state);
-        }
-        if (this.game.ui && this.game.ui.updatePersistentHUD) {
-          this.game.ui.updatePersistentHUD(this.game.state);
-        }
-
-        // SFX feedback
-        if (this.game.sfx && this.game.sfx.playSfx) {
-          this.game.sfx.playSfx('register');
-        }
-
-        // Visual floating text feedback
-        if (this.game.ui && this.game.ui.spawnFloatingText) {
-          this.game.ui.spawnFloatingText('+0.25€ Pfand Deposit! 🍾', window.innerWidth / 2, window.innerHeight * 0.45, '#4CAF50');
-        }
-
-        // British Comedy discovery thoughts
-        const pfandThoughts = [
-          "Wait... there's 25 cents on this empty bottle? In London this is rubbish. Here I'm practically an investment banker.",
-          "Another Pfand bottle! That's 25 cents closer to paying university tuition.",
-          "Picking up beer bottles on the street... my parents would be so proud of my academic progress."
-        ];
-        const randomThought = pfandThoughts[Math.floor(Math.random() * pfandThoughts.length)];
-        if (this.game.ui && this.game.ui.spawnWandererThought) {
-          this.game.ui.spawnWandererThought(randomThought);
-        }
-
-        // Quick shrink animation before removing from scene
-        let shrinkTimer = 0.25;
-        const shrinkInterval = setInterval(() => {
-          shrinkTimer -= 0.05;
-          if (shrinkTimer <= 0) {
-            clearInterval(shrinkInterval);
-            if (item.container.parent) {
-              item.container.parent.remove(item.container);
-            }
-          } else {
-            const s = shrinkTimer / 0.25;
-            item.container.scale.set(s, s, s);
-          }
-        }, 30);
-      }
-    }
-  }
 
   // --- TOUCH & POINTER GESTURE HANDLING ---
-
-  onTouchStart(e) {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      // 2-finger pinch zoom initiation
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      this.initialPinchDist = Math.hypot(dx, dy);
-      this.initialCamZoom = this.targetCamZoom;
-    }
-  }
-
-  onTouchMove(e) {
-    if (e.touches.length === 2 && this.initialPinchDist) {
-      e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      const factor = dist / this.initialPinchDist;
-      this.setZoom(this.initialCamZoom * factor);
-    }
-  }
-
-  onTouchEnd(e) {
-    if (e.touches.length < 2) {
-      this.initialPinchDist = null;
-    }
-  }
-
-  onPointerDown(e) {
-    if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
-    
-    this.pointerDownX = e.clientX;
-    this.pointerDownY = e.clientY;
-    this.lastPointerX = e.clientX;
-    this.lastPointerY = e.clientY;
-    this.pointerDownTime = Date.now();
-
-    // Right-click or middle-click or Shift-drag triggers camera panning
-    if (e.button === 2 || e.button === 1 || e.shiftKey) {
-      this.isPanningCamera = true;
-      this.initialPanOffset.copy(this.cameraPanOffset);
-      return;
-    }
-
-    this.isPointerDown = true;
-    this.isDraggingCamera = false;
-  }
-
-  onPointerMove(e) {
-    if (this.isPanningCamera) {
-      this.lastPointerX = e.clientX;
-      this.lastPointerY = e.clientY;
-      return;
-    }
-
-    if (!this.isPointerDown) return;
-    const dragDist = Math.hypot(e.clientX - this.pointerDownX, e.clientY - this.pointerDownY);
-    
-    if (dragDist > 8) {
-      this.isDraggingCamera = true;
-      const dx = e.clientX - this.lastPointerX;
-      if (this.manualCameraAngle === undefined) {
-        this.manualCameraAngle = this.camCurrentAngle !== undefined ? this.camCurrentAngle : (Math.PI / 4 + Math.PI);
-      }
-      // Drag horizontally to rotate the camera around the player
-      this.manualCameraAngle -= dx * 0.01;
-      
-      this.lastPointerX = e.clientX;
-      this.lastPointerY = e.clientY;
-    }
-  }
-
-  onPointerUp(e) {
-    if (this.isPanningCamera) {
-      this.isPanningCamera = false;
-      return;
-    }
-    if (!this.isPointerDown) return;
-    this.isPointerDown = false;
-    
-    const elapsed = Date.now() - this.pointerDownTime;
-    const dragDist = Math.hypot(e.clientX - this.pointerDownX, e.clientY - this.pointerDownY);
-
-    // Tap / Click handling (not a camera drag)
-    if (dragDist < 8 && elapsed < 400) {
-      this.handleSingleOrDoubleTap(e);
-    }
-  }
+  // Managed by this.inputController (CityInput)
 
   revealCompass() {
     this.compassRevealed = true;
@@ -898,13 +719,10 @@ window.FFH.CityExplorationPhase = class {
     this.lastTapTime = now;
 
     // --- Dismiss POI card on any canvas tap ---
-    // The card is a DOM overlay; once the tap lands on the canvas we
-    // always hide it so it never traps the player's movement.
     const poiCard = document.getElementById('city-poi-card');
     if (poiCard && poiCard.style.display !== 'none') {
       poiCard.style.display = 'none';
       if (this.game.ui) this.game.ui.currentActivePOI = null;
-      // Don't return — still process the tap as click-to-move below.
     }
 
     const rect = this.game.renderer.domElement.getBoundingClientRect();
@@ -913,58 +731,26 @@ window.FFH.CityExplorationPhase = class {
 
     this.raycaster.setFromCamera(this.mouse, this.game.currentCamera);
 
-    // 1. Check if tapped on an interactive POI Building
-    const buildingHits = this.raycaster.intersectObjects(this.interactiveMeshes, true);
-    if (buildingHits.length > 0) {
-      let root = buildingHits[0].object;
-      while (root.parent && !this.interactiveMeshes.includes(root)) {
-        root = root.parent;
-      }
-      if (root.userData && root.userData.poi) {
-        const poi = root.userData.poi;
-        poi.gridX = root.userData.gridX;
-        poi.gridZ = root.userData.gridZ;
-        const INTERACT_RADIUS = 4 * (window.FFH.TILE_SCALE || 2.6); // 4 tiles
-        const dist = Math.hypot(root.position.x - this.playerPos.x, root.position.z - this.playerPos.z);
-        
-        if (dist > INTERACT_RADIUS) {
-          if (this.game.ui && this.game.ui.spawnFloatingText) {
-            this.game.ui.spawnFloatingText('Walk closer to interact', e.clientX, e.clientY, '#E76F51');
-          }
-          return;
+    // 1. Messenger System: Check if clicked active doorway beacon first
+    if (this.doorwayBeacon && this.doorwayBeacon.visible && this.activeDoorPoi) {
+      const beaconHits = this.raycaster.intersectObjects([this.doorwayBeacon], true);
+      if (beaconHits.length > 0) {
+        const dist = Math.hypot(this.doorwayBeacon.position.x - this.playerPos.x, this.doorwayBeacon.position.z - this.playerPos.z);
+        if (dist > 3.0) {
+          this.setMoveTarget(this.doorwayBeacon.position.x, this.doorwayBeacon.position.z);
+        } else {
+          this.startBuildingEntry(this.activeDoorPoi, this.doorwayBeacon.position);
         }
-
-        // If tapping a generic residential townhouse (A1, A2, A3, etc.), never enter or shrink courier!
-        // Just show a dry British observation thought bubble.
-        if (root.userData.type && root.userData.type.startsWith('A')) {
-          const britObservations = [
-            "Just a residential block. Perfectly tidy curtains. No help with my tuition here.",
-            "Stepped gables. Very Hansa. Not currently offering employment or sympathy, though.",
-            "Someone's flat. The smell of cabbage and clean laundry. Best not loiter on the doorstep.",
-            "Brick facade. Solid, silent, and thoroughly indifferent to my financial catastrophe."
-          ];
-          const text = britObservations[Math.floor(Math.random() * britObservations.length)];
-          if (this.game.ui && this.game.ui.spawnWandererThought) {
-            this.game.ui.spawnWandererThought(text);
-          } else if (this.game.ui && this.game.ui.spawnFloatingText) {
-            this.game.ui.spawnFloatingText("Residence", e.clientX, e.clientY, '#718096');
-          }
-          if (this.game.sfx && this.game.sfx.playSfx) this.game.sfx.playSfx('click');
-          return;
-        }
-
-        // We are close! Start building entry sequence for key story locations
-        this.startBuildingEntry(root.userData.type, root.position);
         return;
       }
     }
 
-    // 2. Click-to-Move on ground/street
+    // 2. Click-to-Move on ground/street only (Buildings are solid obstacles, NOT clicked for movement)
     const groundHits = this.raycaster.intersectObjects(this.groundMeshes, true);
     if (groundHits.length > 0) {
       const hitPoint = groundHits[0].point;
       this.setMoveTarget(hitPoint.x, hitPoint.z);
-      this.intendedInteractionPoi = null; // Changed mind, cancel building interaction
+      this.intendedInteractionPoi = null;
     }
   }
 
@@ -997,15 +783,14 @@ window.FFH.CityExplorationPhase = class {
 
   toggleOverview() {
     if (this.targetCamZoom < 0.7) {
-      // Return to ground Messenger follow view
       this.setZoom(1.15);
     } else {
-      // Zoom out to bird's-eye isometric diorama view
       this.setZoom(0.50);
     }
   }
 
   onKeyDown(e) {
+    this.keysDown[e.key.toLowerCase()] = true;
     if (e.key === '+' || e.key === '=') {
       this.setZoom(this.targetCamZoom * 1.25);
     } else if (e.key === '-' || e.key === '_') {
@@ -1017,6 +802,10 @@ window.FFH.CityExplorationPhase = class {
     } else if (e.key === 't' || e.key === 'T') {
       this.cycleTestNPC();
     }
+  }
+
+  onKeyUp(e) {
+    this.keysDown[e.key.toLowerCase()] = false;
   }
 
   cycleTestNPC() {
@@ -1051,30 +840,13 @@ window.FFH.CityExplorationPhase = class {
   updateZoomUI() {}
   removeDebugZoomUI() {}
 
-  getDoorPosition(poiType, fallbackPos) {
-    const locPositions = {
-      'B_ZOB':        { x: 10.4, z:  5.2 }, // Street east of ZOB
-      'B_BANK':       { x: 44.2, z:  5.2 }, // Street east of Bank
-      'B_UNI':        { x: 20.8, z: 15.6 }, // Street west of Uni
-      'B_BAKERY':     { x:  7.8, z: 18.2 }, // Street east of Bakery
-      'B_BURGTOR':    { x: 36.4, z: 18.2 }, // Bridge road
-      'B_RATHAUS':    { x: 20.8, z: 23.4 }, // Street west of Rathaus
-      'B_PIZZA':      { x: 28.6, z: 26.0 }, // Street south of Pizzeria Bella
-      'B_WG':         { x:  7.8, z: 26.0 }, // Street east of Student WG
-      'B_AUSLAENDER': { x: 41.6, z: 26.0 }, // Street east of Ausländerbehörde
-      'B_BIKESHOP':   { x:  7.8, z: 31.2 }, // Street east of Bike Shop
-      'B_KINO':       { x: 20.8, z: 31.2 }, // Street west of Cinema
-      'B_HOLSTEN':    { x: 18.2, z: 33.8 }, // Bridge approach
-      'B_MARIEN':     { x: 52.0, z: 33.8 }, // Church square
-      'B_DOM':        { x: 26.0, z: 41.6 }, // Cathedral road
-      'B_DARKSTORE':  { x:  7.8, z: 46.8 }  // Street east of Kruma Express
-    };
-    if (locPositions[poiType]) {
-      return new THREE.Vector3(locPositions[poiType].x, 0.05, locPositions[poiType].z);
-    }
-    // Fallback: estimate door by pulling slightly toward street
-    return new THREE.Vector3(fallbackPos.x, 0.05, fallbackPos.z + 2.6);
+  setThoughtCamera(active) {
+    // Camera is strictly locked behind character per user request
   }
+
+
+
+
 
   startBuildingEntry(poiType, buildingPos) {
     if (this.isEnteringBuilding) return;
@@ -1134,8 +906,9 @@ window.FFH.CityExplorationPhase = class {
     let npc = null;
     if (npcModelKey && window.FFH.createNPCMesh) {
        npc = window.FFH.createNPCMesh(npcModelKey);
-       npc.position.set(0, 0.05, 0);
-       npc.rotation.y = Math.PI / 4;
+       npc.position.set(-0.45, 0.05, -1.10);
+       npc.rotation.y = 0.85;
+       npc.scale.multiplyScalar(2.6);
        scene.add(npc);
     }
 
@@ -1614,7 +1387,10 @@ window.FFH.CityExplorationPhase = class {
     this.isExitingBuilding = false;
     this.inputDisabled = false;
 
-    if (this.enteringPoiType && this.enteringDoorPos) {
+    if (this.enteringPoiType) {
+      const safeExitPos = this.getExitPosition(this.enteringPoiType, this.enteringDoorPos || this.playerPos);
+      this.playerPos.copy(safeExitPos);
+    } else if (this.enteringDoorPos) {
       this.playerPos.copy(this.enteringDoorPos);
     }
 
@@ -1626,8 +1402,8 @@ window.FFH.CityExplorationPhase = class {
       }
     }
 
-    this.manualCameraAngle = undefined; // Return camera to normal isometric follow
-    this.targetCamZoom = 1.15;
+    this.manualCameraAngle = undefined; // Return camera to normal follow
+    this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom) ? this.cameraController.initialCamZoom : 2.88;
     this.updateCamera(false);
   }
 
@@ -1661,7 +1437,7 @@ window.FFH.CityExplorationPhase = class {
          if (this.courier) this.courier.scale.setScalar(1.0);
          this.triggerBuildingInteraction(this.enteringPoiType);
       }
-      this.updateCamera(false);
+      this.updateCamera(false, delta);
       return;
     }
 
@@ -1688,100 +1464,17 @@ window.FFH.CityExplorationPhase = class {
             }
          }
          this.manualCameraAngle = undefined; // Return camera to normal isometric follow
-         this.targetCamZoom = 1.15;
-      }
-      this.updateCamera(false);
+         this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom) ? this.cameraController.initialCamZoom : 2.88;
+       }
+      this.updateCamera(false, delta);
       return;
     }
 
     const timeSec = this.game.clock.getElapsedTime();
 
-    // 1. Water waves & Cel Shading
-    if (this.waterMat && this.waterMat.uniforms) {
-      if (this.waterMat.uniforms.uTime) {
-        this.waterMat.uniforms.uTime.value = timeSec;
-      }
-      if (this.waterMat.uniforms.uCamXZ) {
-        this.waterMat.uniforms.uCamXZ.value.set(this.playerPos.x, this.playerPos.z);
-      }
-    }
-
-    // Time of day is now strictly event-driven (controlled by storyRunner and shifts)
-    // this.updateAtmosphericTime((this.timeOfDay + delta * 0.008) % 1.0);
-
-    // 3. Move Floating Clouds
-    this.clouds.forEach(cloud => {
-      cloud.position.x += (cloud.userData.speed || 0.5) * delta;
-      if (cloud.position.x > 40) cloud.position.x = -8;
-    });
-
-    // Animate Butterflies
-    if (this.butterflies) {
-      this.butterflies.forEach(bf => {
-        const elapsed = timeSec + bf.userData.seed;
-        const leftWing = bf.getObjectByName('leftWing');
-        const rightWing = bf.getObjectByName('rightWing');
-        if (leftWing && rightWing) {
-          leftWing.rotation.y = Math.sin(elapsed * 25) * 0.8;
-          rightWing.rotation.y = -Math.sin(elapsed * 25) * 0.8;
-        }
-        bf.position.y = 0.35 + Math.sin(elapsed * 4) * 0.2;
-        bf.position.x = bf.userData.baseX + Math.sin(elapsed * 2) * 0.4;
-        bf.position.z = bf.userData.baseZ + Math.cos(elapsed * 2) * 0.4;
-      });
-    }
-
-    // Animate Birds soaring dynamically between outer forest and historic city landmarks
-    if (this.birds) {
-      this.birds.forEach(bird => {
-        const loop = bird.userData.loop;
-        if (!loop || loop.length === 0) return;
-
-        const target = loop[bird.userData.currentWp];
-        const dx = target.x - bird.position.x;
-        const dy = target.y - bird.position.y;
-        const dz = target.z - bird.position.z;
-        const dist = Math.hypot(dx, dy, dz);
-
-        if (dist < 2.5) {
-          bird.userData.currentWp = (bird.userData.currentWp + 1) % loop.length;
-        } else {
-          const dirX = dx / dist;
-          const dirY = dy / dist;
-          const dirZ = dz / dist;
-          const step = (bird.userData.speed || 5.0) * delta;
-
-          bird.position.x += dirX * step;
-          bird.position.y += dirY * step;
-          bird.position.z += dirZ * step;
-
-          // Smoothly rotate to face flight heading
-          const targetAngle = Math.atan2(dirX, dirZ);
-          bird.rotation.y = THREE.MathUtils.lerp(bird.rotation.y, targetAngle, delta * 3.5);
-
-          // Bank into turns
-          const angleDiff = THREE.MathUtils.euclideanModulo(targetAngle - bird.rotation.y + Math.PI, Math.PI * 2) - Math.PI;
-          bird.rotation.z = THREE.MathUtils.lerp(bird.rotation.z, -angleDiff * 1.6, delta * 4);
-
-          // Subtle pitch based on climb or descent
-          bird.rotation.x = THREE.MathUtils.lerp(bird.rotation.x, -dirY * 0.7, delta * 4);
-
-          // Dynamic wing flapping: energetic climb vs peaceful gliding
-          const leftWing = bird.getObjectByName('leftWing');
-          const rightWing = bird.getObjectByName('rightWing');
-          if (leftWing && rightWing) {
-            if (dirY > 0.04) {
-              const flap = Math.sin(timeSec * 11 + bird.userData.seed) * 0.65;
-              leftWing.rotation.z = flap;
-              rightWing.rotation.z = -flap;
-            } else {
-              const glide = Math.sin(timeSec * 3 + bird.userData.seed) * 0.14;
-              leftWing.rotation.z = glide;
-              rightWing.rotation.z = -glide;
-            }
-          }
-        }
-      });
+    // 1. Environment Simulation (Water, Clouds, Butterflies, Birds)
+    if (this.environmentController) {
+      this.environmentController.update(delta, timeSec);
     }
 
     // Tick Roaming Citizens using Behavior Tree & update animation mixers
@@ -1794,14 +1487,79 @@ window.FFH.CityExplorationPhase = class {
       });
     }
 
-    // 4. Click-to-Move A* Pathing & Collision Handling
-    if (this.playerPath && this.playerPath.length > 0) {
+    // 4. Movement Handling (Direct Touch-Drag Joystick / Keyboard WASD + Click-to-Move Pathing)
+    const camAngle = this.camCurrentAngle !== undefined ? this.camCurrentAngle : 0;
+    const moveIntent = this.inputController 
+      ? this.inputController.getMoveIntent(camAngle)
+      : { moveDirX: 0, moveDirZ: 0, moveSpeedRatio: 0, isDirect: false };
+
+    let moveDirX = moveIntent.moveDirX;
+    let moveDirZ = moveIntent.moveDirZ;
+    let moveSpeedRatio = moveIntent.moveSpeedRatio;
+
+    if (moveIntent.isDirect && (this.keysDown['w'] || this.keysDown['s'] || this.keysDown['a'] || this.keysDown['d'] ||
+        this.keysDown['arrowup'] || this.keysDown['arrowdown'] || this.keysDown['arrowleft'] || this.keysDown['arrowright'])) {
+      // Cancel click-to-move path when keyboard input is detected
+      this.playerPath = [];
+      this.targetMovePos = null;
+      if (this.targetMarker) this.targetMarker.visible = false;
+    }
+
+    if (moveSpeedRatio > 0.05) {
+      // Direct Movement via sliding collision solver
+      const MOV = (window.FFH.CONFIG && window.FFH.CONFIG.movement) || {};
+      const walkSpeed  = MOV.walkSpeed  !== undefined ? MOV.walkSpeed  : 4.2;
+      const ebikeSpeed = MOV.ebikeSpeed !== undefined ? MOV.ebikeSpeed : 7.2;
+      const speed = (this.game.state.upgrades?.ebike ? ebikeSpeed : walkSpeed) * moveSpeedRatio;
+      const step = speed * delta;
+      const nextX = this.playerPos.x + moveDirX * step;
+      const nextZ = this.playerPos.z + moveDirZ * step;
+
+      const radius = this.playerRadius || 0.4;
+      const curX = this.playerPos.x;
+      const curZ = this.playerPos.z;
+      const resolved = window.FFH.resolveSlidingMovement
+        ? window.FFH.resolveSlidingMovement(curX, curZ, nextX, nextZ, radius)
+        : { x: nextX, z: nextZ };
+
+      this.playerPos.x = resolved.x;
+      this.playerPos.z = resolved.z;
+
+      const actualMoveAngle = Math.atan2(moveDirX, moveDirZ);
+      this.playerHeading = actualMoveAngle;
+
+      if (this.courier) {
+        this.courier.position.x = this.playerPos.x;
+        this.courier.position.z = this.playerPos.z;
+        let rotDiff = actualMoveAngle - this.courier.rotation.y;
+        while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
+        while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
+        const rotDamp = 1.0 - Math.exp(-10.0 * (delta || 0.016));
+        this.courier.rotation.y += rotDiff * rotDamp;
+      }
+
+      if (this.courier && this.courier.userData && this.courier.userData.mixer) {
+        window.FFH.updateNPCAnimation(this.courier, delta);
+        if (this.courier.userData.playAction && this.courier.userData.currentAction !== this.courier.userData.actions['walk']) {
+          this.courier.userData.playAction('walk');
+        }
+      } else if (window.FFH.updateCourierWalk && this.courier) {
+        window.FFH.updateCourierWalk(this.courier, delta, moveSpeedRatio);
+      }
+
+      if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(moveSpeedRatio);
+
+      this.idleTimer = 0;
+      this.idleDriftAngle = THREE.MathUtils.lerp(this.idleDriftAngle, 0, delta * 5);
+    } else if (this.playerPath && this.playerPath.length > 0) {
+      // C. Click-to-Move A* Pathing & Collision Handling
       const currentTgt = this.playerPath[0];
       const dx = currentTgt.x - this.playerPos.x;
       const dz = currentTgt.z - this.playerPos.z;
       const dist = Math.hypot(dx, dz);
 
-      if (dist < 0.25) {
+      const waypointReach = (window.FFH.CONFIG?.movement?.waypointReach ?? 0.25);
+      if (dist < waypointReach) {
         this.playerPath.shift();
         if (this.playerPath.length === 0) {
           this.targetMovePos = null;
@@ -1812,7 +1570,10 @@ window.FFH.CityExplorationPhase = class {
           if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
         }
       } else {
-        const speed = (this.game.state.upgrades?.ebike ? 7.2 : 4.2);
+        const MOV2 = (window.FFH.CONFIG && window.FFH.CONFIG.movement) || {};
+        const pathWalk  = MOV2.pathWalkSpeed  !== undefined ? MOV2.pathWalkSpeed  : 4.2;
+        const pathEbike = MOV2.pathEbikeSpeed !== undefined ? MOV2.pathEbikeSpeed : 7.2;
+        const speed = (this.game.state.upgrades?.ebike ? pathEbike : pathWalk);
         const step = Math.min(dist, speed * delta);
         const dirX = dx / dist;
         const dirZ = dz / dist;
@@ -1829,6 +1590,9 @@ window.FFH.CityExplorationPhase = class {
 
         this.playerPos.x = resolved.x;
         this.playerPos.z = resolved.z;
+
+        const moveAngle = Math.atan2(dirX, dirZ);
+        this.playerHeading = moveAngle;
 
         // If player made zero progress due to wall collision, abort path after short delay
         if (Math.abs(resolved.x - curX) < 0.001 && Math.abs(resolved.z - curZ) < 0.001) {
@@ -1849,8 +1613,11 @@ window.FFH.CityExplorationPhase = class {
         if (this.courier) {
           this.courier.position.x = this.playerPos.x;
           this.courier.position.z = this.playerPos.z;
-          const moveAngle = Math.atan2(dirX, dirZ);
-          this.courier.rotation.y = THREE.MathUtils.lerp(this.courier.rotation.y, moveAngle, delta * 14);
+          let rotDiff = moveAngle - this.courier.rotation.y;
+          while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
+          while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
+          const rotDamp = 1.0 - Math.exp(-10.0 * (delta || 0.016));
+          this.courier.rotation.y += rotDiff * rotDamp;
         }
 
         if (this.courier && this.courier.userData && this.courier.userData.mixer) {
@@ -1883,8 +1650,20 @@ window.FFH.CityExplorationPhase = class {
       
       // Accumulate idle time for camera drift
       this.idleTimer += delta;
-      if (this.idleTimer > 60.0) {
-        this.idleDriftAngle += delta * 0.12;
+      if (this.idleTimer > 8.0) {
+        this.idleDriftAngle += delta * 0.15;
+      }
+    }
+
+    // Auto doorway proximity check: only trigger if player walks right up to the active story door (< 1.6m) and cooldown is clear
+    if (this.doorInteractionCooldown > 0) {
+      this.doorInteractionCooldown -= delta;
+    } else if (this.activeDoorPos && this.activeDoorPoi && !this.isEnteringBuilding && !this.isExitingBuilding && !this.inputDisabled) {
+      const distToDoor = Math.hypot(this.playerPos.x - this.activeDoorPos.x, this.playerPos.z - this.activeDoorPos.z);
+      if (distToDoor < 1.6) {
+        this.doorInteractionCooldown = 2.5; // Prevent immediate re-triggering upon exit
+        console.log(`[Doorway] Walked into active door zone of ${this.activeDoorPoi}! Triggering entry.`);
+        this.startBuildingEntry(this.activeDoorPoi, this.activeDoorPos);
       }
     }
 
@@ -1928,9 +1707,41 @@ window.FFH.CityExplorationPhase = class {
       targetMesh = this.interactiveMeshes.find(m => m.userData.gridX === tgt.gridX && m.userData.gridZ === tgt.gridZ);
     }
 
-    if (targetMesh && this.questHintMarker && (this.compassRevealed || this.game.state.firstObjectiveRevealed)) {
+    // --- Update Street Doorway Beacon at Active Target Door ---
+    let activePoiKey = null;
+    if (sr && sr.pendingStoryTarget) {
+      activePoiKey = sr.pendingStoryTarget.poi;
+    } else if (curStage === Stages.ARRIVAL_ZOB || curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
+      activePoiKey = 'B_WG';
+    } else if (curStage === Stages.TRANSIT_TO_UNI || curStage === Stages.UNI_LOCKED) {
+      activePoiKey = 'B_UNI';
+    } else if (curStage === Stages.JOB_HUNT_PIZZA) {
+      activePoiKey = 'B_PIZZA';
+    } else if (curStage === Stages.JOB_HUNT_BAKERY) {
+      activePoiKey = 'B_BAKERY';
+    } else if (curStage === Stages.RETURN_TO_WG) {
+      activePoiKey = 'B_WG';
+    } else if (this.game.state.wallet >= TUITION_GOAL) {
+      activePoiKey = 'B_UNI';
+    } else if (this.game.state.activeDelivery && targetMesh && targetMesh.userData) {
+      activePoiKey = targetMesh.userData.type || 'DELIVERY_TARGET';
+    }
+
+    if (this.doorwayController) {
+      this.doorwayController.update(delta, timeSec, activePoiKey, targetMesh);
+    }
+
+    const UI = (window.FFH.CONFIG && window.FFH.CONFIG.ui) || {};
+    const questArrowEnabled   = UI.questArrowEnabled   !== undefined ? UI.questArrowEnabled   : true;
+    const questRingEnabled    = UI.questRingEnabled    !== undefined ? UI.questRingEnabled    : true;
+    const chevronsEnabled     = UI.groundChevronsEnabled !== undefined ? UI.groundChevronsEnabled : true;
+    const anyQuestVisible     = questArrowEnabled || questRingEnabled || chevronsEnabled;
+
+    if (anyQuestVisible && targetMesh && this.questHintMarker && (this.compassRevealed || this.game.state.firstObjectiveRevealed)) {
       this.questHintMarker.visible = true;
-      this.questHintMarker.position.set(targetMesh.position.x, 0, targetMesh.position.z);
+      const markerX = (this.doorwayController && this.doorwayController.activeDoorPos) ? this.doorwayController.activeDoorPos.x : targetMesh.position.x;
+      const markerZ = (this.doorwayController && this.doorwayController.activeDoorPos) ? this.doorwayController.activeDoorPos.z : targetMesh.position.z;
+      this.questHintMarker.position.set(markerX, 0, markerZ);
       
       if (this.questHintArrow) {
         let height = 3.0;
@@ -1940,88 +1751,102 @@ window.FFH.CityExplorationPhase = class {
           height = targetMesh.userData.height;
         }
         this.questHintArrow.position.y = height + 1.2 + Math.sin(timeSec * 4) * 0.3;
-        this.questHintArrow.rotation.y += delta * 2.5; 
+        this.questHintArrow.rotation.y += delta * 2.5;
+        // Individual flag + hide when doorway beacon already showing its own arrow
+        this.questHintArrow.visible = questArrowEnabled && (!this.doorwayBeacon || !this.doorwayBeacon.visible);
       }
 
       if (this.questHintCircle) {
         const circleScale = 1.0 + Math.sin(timeSec * 5) * 0.15;
         this.questHintCircle.scale.set(circleScale, circleScale, circleScale);
+        // Individual flag + hide when doorway beacon ring is showing
+        this.questHintCircle.visible = questRingEnabled && (!this.doorwayBeacon || !this.doorwayBeacon.visible);
       }
 
-      // Navigation Ground Path: Translucent Highlighter Ribbon & Animated Chevrons
+      // Navigation Ground Path: Animated Chevrons
       if (this.navPathGroup) {
-        this.navPathGroup.visible = true;
-
-        const isDelivery = this.game.state.activeDelivery;
-        const mainColor = isDelivery ? 0x2EC4B6 : 0xFFD166;
-        const chevronColor = isDelivery ? 0xCBF3F0 : 0xFFF3B0;
-
-        this.navRibbonMat.color.setHex(mainColor);
-        this.navRibbonMat.opacity = 0.35 + Math.sin(timeSec * 3) * 0.08; // subtle breathing glow
-
-        // Build true A* waypoints on the street grid
-        const aStarPath = window.FFH.findPath
-          ? window.FFH.findPath(this.playerPos.x, this.playerPos.z, targetMesh.position.x, targetMesh.position.z)
-          : [];
-
-        const waypoints = aStarPath.map(p => new THREE.Vector3(p.x, 0.28, p.z));
-        if (waypoints.length === 0) {
-          waypoints.push(new THREE.Vector3(this.playerPos.x, 0.28, this.playerPos.z));
-          waypoints.push(new THREE.Vector3(targetMesh.position.x, 0.28, targetMesh.position.z));
-        }
-
-        // Hide full-screen ground ribbon mesh to eliminate screen clutter
-        if (this.navRibbonMesh) this.navRibbonMesh.visible = false;
-
-        // Place and animate short 3-4 directional guide chevrons right ahead of courier
-        const totalDist = waypoints.reduce((acc, p, idx) => {
-          if (idx === 0) return 0;
-          return acc + p.distanceTo(waypoints[idx - 1]);
-        }, 0);
-
-        const maxVisibleDist = 4.8; // Limit trail to 4.8 meters ahead of player
-        const maxChevrons = 4;
-        const chevronSpacing = 1.2;
-        const speed = 2.2; // speed of moving markers along trail
-        const offset = (timeSec * speed) % chevronSpacing;
-        let poolIdx = 0;
-
-        let curDist = offset;
-        while (curDist < Math.min(totalDist, maxVisibleDist) && poolIdx < maxChevrons && poolIdx < this.navChevronPool.length) {
-          let remaining = curDist;
-
-          for (let i = 0; i < waypoints.length - 1; i++) {
-            const p1 = waypoints[i];
-            const p2 = waypoints[i + 1];
-            const segLen = p1.distanceTo(p2);
-
-            if (remaining <= segLen) {
-              const t = remaining / segLen;
-              const pos = new THREE.Vector3().lerpVectors(p1, p2, t);
-              pos.y = 0.16; // float neatly right above street surface
-              const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
-
-              const chevron = this.navChevronPool[poolIdx];
-              chevron.position.copy(pos);
-              chevron.rotation.y = Math.atan2(-dir.z, dir.x) - Math.PI / 2;
-              chevron.material.color.setHex(chevronColor);
-
-              // Smooth fade out as distance from player increases
-              const fade = Math.max(0, 1.0 - (curDist / maxVisibleDist));
-              chevron.material.opacity = fade * 0.9;
-              chevron.visible = (fade > 0.05);
-
-              poolIdx++;
-              break;
+        if (!chevronsEnabled) {
+          // Disabled — hide group and all individual children immediately
+          this.navPathGroup.visible = false;
+          if (this.navChevronPool) {
+            for (let i = 0; i < this.navChevronPool.length; i++) {
+              this.navChevronPool[i].visible = false;
             }
-            remaining -= segLen;
           }
-          curDist += chevronSpacing;
-        }
+          if (this.navRibbonMesh) this.navRibbonMesh.visible = false;
+        } else {
+          this.navPathGroup.visible = true;
 
-        // Hide unused chevrons
-        for (let i = poolIdx; i < this.navChevronPool.length; i++) {
-          this.navChevronPool[i].visible = false;
+          const isDelivery = this.game.state.activeDelivery;
+          const mainColor = isDelivery ? 0x2EC4B6 : 0xFFD166;
+          const chevronColor = isDelivery ? 0xCBF3F0 : 0xFFF3B0;
+
+          this.navRibbonMat.color.setHex(mainColor);
+          this.navRibbonMat.opacity = 0.35 + Math.sin(timeSec * 3) * 0.08;
+
+          const destX = (this.doorwayController && this.doorwayController.activeDoorPos) ? this.doorwayController.activeDoorPos.x : targetMesh.position.x;
+          const destZ = (this.doorwayController && this.doorwayController.activeDoorPos) ? this.doorwayController.activeDoorPos.z : targetMesh.position.z;
+
+          const aStarPath = window.FFH.findPath
+            ? window.FFH.findPath(this.playerPos.x, this.playerPos.z, destX, destZ)
+            : [];
+
+          const waypoints = aStarPath.map(p => new THREE.Vector3(p.x, 0.28, p.z));
+          if (waypoints.length === 0) {
+            waypoints.push(new THREE.Vector3(this.playerPos.x, 0.28, this.playerPos.z));
+            waypoints.push(new THREE.Vector3(destX, 0.28, destZ));
+          }
+
+          if (this.navRibbonMesh) this.navRibbonMesh.visible = false;
+
+          const totalDist = waypoints.reduce((acc, p, idx) => {
+            if (idx === 0) return 0;
+            return acc + p.distanceTo(waypoints[idx - 1]);
+          }, 0);
+
+          const maxVisibleDist = 4.8;
+          const maxChevrons = 4;
+          const chevronSpacing = 1.2;
+          const speed = 2.2;
+          const offset = (timeSec * speed) % chevronSpacing;
+          let poolIdx = 0;
+
+          let curDist = offset;
+          while (curDist < Math.min(totalDist, maxVisibleDist) && poolIdx < maxChevrons && poolIdx < this.navChevronPool.length) {
+            let remaining = curDist;
+
+            for (let i = 0; i < waypoints.length - 1; i++) {
+              const p1 = waypoints[i];
+              const p2 = waypoints[i + 1];
+              const segLen = p1.distanceTo(p2);
+
+              if (remaining <= segLen) {
+                const t = remaining / segLen;
+                const pos = new THREE.Vector3().lerpVectors(p1, p2, t);
+                pos.y = 0.16;
+                const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
+
+                const chevron = this.navChevronPool[poolIdx];
+                chevron.position.copy(pos);
+                chevron.rotation.y = Math.atan2(-dir.z, dir.x) - Math.PI / 2;
+                chevron.material.color.setHex(chevronColor);
+
+                const fade = Math.max(0, 1.0 - (curDist / maxVisibleDist));
+                chevron.material.opacity = fade * 0.9;
+                chevron.visible = (fade > 0.05);
+
+                poolIdx++;
+                break;
+              }
+              remaining -= segLen;
+            }
+            curDist += chevronSpacing;
+          }
+
+          // Hide unused chevrons
+          for (let i = poolIdx; i < this.navChevronPool.length; i++) {
+            this.navChevronPool[i].visible = false;
+          }
         }
       }
 
@@ -2030,12 +1855,19 @@ window.FFH.CityExplorationPhase = class {
       if (this.navPathGroup) this.navPathGroup.visible = false;
     }
 
+
+
     // 5. Update Follower Camera & Building Transparency Fading
-    this.updateCamera(false);
+    this.updateCamera(false, delta);
     this.updateBuildingOcclusionFade();
 
     // 6. Update Minimap
-    this.updateMinimap(timeSec);
+    if (window.FFH.CONFIG?.ui?.minimapEnabled !== false) {
+      this.updateMinimap(timeSec);
+    } else {
+      const mc = document.getElementById('minimap-container');
+      if (mc) mc.style.display = 'none';
+    }
 
     // 7. Update Distance Indicator and Freshness Decay
     const isDelivery = !!this.game.state.activeDelivery;
@@ -2047,7 +1879,12 @@ window.FFH.CityExplorationPhase = class {
       // Determine angle to point the arrow
       const angle = Math.atan2(dx, dz);
       if (this.game.ui.updateCityExplorerHUD) {
-        this.game.ui.updateCityExplorerHUD(dist, angle, true);
+        const distEnabled = window.FFH.CONFIG?.ui?.distanceIndicatorEnabled ?? true;
+        if (distEnabled) {
+          this.game.ui.updateCityExplorerHUD(dist, angle, true);
+        } else {
+          this.game.ui.updateCityExplorerHUD(0, 0, false);
+        }
       }
       
       if (isDelivery) {
@@ -2131,142 +1968,5 @@ window.FFH.CityExplorationPhase = class {
     }
   }
 
-  updateCamera(snap = false) {
-    if (this.isShowingInteriorModal) return;
-    const cam = this.game.currentCamera;
-    if (!cam) return;
-
-    // Default closer 3rd-person ground zoom level
-    if (!this.camZoom) this.camZoom = 1.15;
-    if (!this.targetCamZoom) this.targetCamZoom = 1.15;
-
-    // Smoothly interpolate zoom on OrthographicCamera
-    this.camZoom = THREE.MathUtils.lerp(this.camZoom, this.targetCamZoom, 0.15);
-    if (Math.abs(cam.zoom - this.camZoom) > 0.001) {
-      cam.zoom = this.camZoom;
-      cam.updateProjectionMatrix();
-    }
-
-    const zoomFactor = THREE.MathUtils.clamp((this.camZoom - 0.50) / (1.35 - 0.50), 0, 1);
-
-    // Intimate 3rd-person distances
-    const baseDistance = THREE.MathUtils.lerp(12.0, 4.5, zoomFactor);
-    const baseHeight = THREE.MathUtils.lerp(14.0, 4.2, zoomFactor);
-
-    // Determine target camera angle:
-    // If cameraHoldTimer is active, hold the angle.
-    // Otherwise, rotate camera smoothly behind the player's movement heading.
-    if (this.cameraHoldTimer > 0) {
-      this.cameraHoldTimer -= 0.016;
-    }
-
-    const isMoving = this.targetMovePos !== null;
-    let targetAngle = (this.playerHeading !== undefined ? this.playerHeading : Math.PI / 4) + Math.PI;
-
-    // Use manual rotation if the user has dragged the camera
-    if (this.manualCameraAngle !== undefined) {
-      targetAngle = this.manualCameraAngle;
-    }
-
-    // Idle camera mode: After 60 seconds of no interaction, zoom out and spin
-    if (this.idleTimer > 60.0) {
-      targetAngle += this.idleDriftAngle;
-      this.targetCamZoom = 0.52; // Diorama overview zoom
-    } else {
-      // Ensure we stay closely zoomed in (unless player manually toggled overview)
-      if (this.targetCamZoom < 0.7 && this.idleTimer < 0.5 && isMoving) {
-          // If we were in idle overview and started moving, snap back to intimate view
-          this.targetCamZoom = 1.15;
-      }
-    }
-    
-    if (isMoving) {
-      this.cameraHoldTimer = 0; // Cancel hold if player starts walking
-    }
-
-    // Smoothly rotate camera angle
-    if (!this.camCurrentAngle) this.camCurrentAngle = targetAngle;
-    this.camCurrentAngle = THREE.MathUtils.lerp(this.camCurrentAngle, targetAngle, snap ? 1.0 : 0.06);
-
-    const offsetX = Math.sin(this.camCurrentAngle) * baseDistance;
-    const offsetZ = Math.cos(this.camCurrentAngle) * baseDistance;
-    const offsetY = baseHeight;
-
-    const lookTargetX = this.playerPos.x + (this.cameraPanOffset ? this.cameraPanOffset.x : 0);
-    // Shift lookTarget Y UP by 1.8 units so the player appears lower down on the screen,
-    // ensuring the character sits in the visible lower-middle zone and the top HUD does not obscure the path ahead.
-    const lookTargetY = this.playerPos.y + 1.8;
-    const lookTargetZ = this.playerPos.z + (this.cameraPanOffset ? this.cameraPanOffset.z : 0);
-
-    const camX = lookTargetX + offsetX;
-    const camY = lookTargetY + offsetY;
-    const camZ = lookTargetZ + offsetZ;
-
-    if (snap) {
-      cam.position.set(camX, camY, camZ);
-    } else {
-      const lerpSpeed = 0.12;
-      cam.position.x = THREE.MathUtils.lerp(cam.position.x, camX, lerpSpeed);
-      cam.position.y = THREE.MathUtils.lerp(cam.position.y, camY, lerpSpeed);
-      cam.position.z = THREE.MathUtils.lerp(cam.position.z, camZ, lerpSpeed);
-    }
-
-    cam.lookAt(lookTargetX, lookTargetY, lookTargetZ);
-  }
-
-  updateBuildingOcclusionFade() {
-    const cam = this.game.currentCamera;
-    if (!cam) return;
-    if (this.camZoom < 0.6) return; // Keep all buildings solid in wide overview mode
-
-    const charPos = new THREE.Vector3(this.playerPos.x, this.playerPos.y + 0.8, this.playerPos.z);
-    const camPos = cam.position.clone();
-    const rayDir = new THREE.Vector3().subVectors(charPos, camPos).normalize();
-    const rayDist = camPos.distanceTo(charPos);
-
-    this.occlusionRaycaster.set(camPos, rayDir);
-    this.occlusionRaycaster.near = 0.5;
-    this.occlusionRaycaster.far = rayDist - 0.2;
-
-    const hits = this.occlusionRaycaster.intersectObjects(this.interactiveMeshes, true);
-    const currentlyHitMeshes = new Set();
-
-    hits.forEach(hit => {
-      let root = hit.object;
-      while (root.parent && !this.interactiveMeshes.includes(root)) {
-        root = root.parent;
-      }
-      currentlyHitMeshes.add(root);
-    });
-
-    currentlyHitMeshes.forEach(group => {
-      this.fadedObjects.add(group);
-      group.traverse(child => {
-        if (child.isMesh && child.material) {
-          const mats = Array.isArray(child.material) ? child.material : [child.material];
-          mats.forEach(m => {
-            m.opacity = THREE.MathUtils.lerp(m.opacity, 0.25, 0.2);
-          });
-        }
-      });
-    });
-
-    this.fadedObjects.forEach(group => {
-      if (!currentlyHitMeshes.has(group)) {
-        let allRestored = true;
-        group.traverse(child => {
-          if (child.isMesh && child.material) {
-            const mats = Array.isArray(child.material) ? child.material : [child.material];
-            mats.forEach(m => {
-              m.opacity = THREE.MathUtils.lerp(m.opacity, 1.0, 0.15);
-              if (m.opacity < 0.98) allRestored = false;
-            });
-          }
-        });
-        if (allRestored) {
-          this.fadedObjects.delete(group);
-        }
-      }
-    });
-  }
 };
+

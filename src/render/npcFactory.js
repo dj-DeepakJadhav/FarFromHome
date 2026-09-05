@@ -89,13 +89,19 @@ window.FFH.createNPCMesh = function(npcKey) {
   const scaleFactor = 0.55;
   charModel.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
+  // Kenney characters have their origin at the waist (Y=0), meaning feet are at Y=-0.45.
+  // We apply the offset to a wrapper group so AnimationMixer root motion doesn't overwrite it.
+  const offsetGroup = new THREE.Group();
+  offsetGroup.position.y += 0.45;
+  offsetGroup.add(charModel);
+
   const group = new THREE.Group();
   group.userData.isNPC = true;
   group.userData.npcKey = npcKey;
   group.userData.glbKey = glbKey;
   group.userData.npcType = isGeneric ? 'generic' : 'named';
 
-  group.add(charModel);
+  group.add(offsetGroup);
 
   // Setup AnimationMixer & Actions
   if (template.animations && template.animations.length > 0) {
@@ -140,5 +146,14 @@ window.FFH.createNPCMesh = function(npcKey) {
 window.FFH.updateNPCAnimation = function(npcGroup, delta) {
   if (npcGroup && npcGroup.userData && npcGroup.userData.mixer) {
     npcGroup.userData.mixer.update(delta);
+    
+    // BULLETPROOF FIX: Some character models (like Mathias and Martha) have animation tracks 
+    // that aggressively push their root bones below the floor line.
+    // This dynamically calculates their exact world bounds and pushes them back up if they sink.
+    const box = new THREE.Box3().setFromObject(npcGroup);
+    // If the lowest point of the character's geometry goes below Y=0.05 (floor level)
+    if (box.min.y < 0.05 && box.min.y > -100) { // Safety check to prevent NaN/Infinity jumps
+      npcGroup.position.y += (0.05 - box.min.y);
+    }
   }
 };

@@ -258,33 +258,63 @@ window.FFH.UI = class {
     });
 
     const textTarget = el.querySelector('#thought-bubble-text');
-    let charIdx = 0;
-    const charDelay = 32; // Comfortable reading pace (~31 chars/sec)
-    
-    // Typewriter loop
-    el._typewriterTimer = setInterval(() => {
-      if (charIdx < text.length) {
-        textTarget.textContent += text[charIdx];
-        if (charIdx % 3 === 0 && this.game && this.game.speech) {
-          this.game.speech.playTalkBlip();
-        }
-        charIdx++;
-      } else {
-        clearInterval(el._typewriterTimer);
-      }
-    }, charDelay);
 
-    // Dynamic duration based on text length: typing time + generous reading time (minimum 4.0s)
-    const typingDuration = text.length * charDelay;
-    const readingTime = Math.max(3000, text.length * 50);
-    const totalDuration = duration || (typingDuration + readingTime);
+    // Read all tunable params from CONFIG
+    const TB = (window.FFH.CONFIG && window.FFH.CONFIG.ui && window.FFH.CONFIG.ui.thoughtBubble) || {};
+    const typewriterEnabled   = TB.typewriterEnabled   !== undefined ? TB.typewriterEnabled   : false;
+    const charsPerSec         = TB.typewriterCharsPerSec !== undefined ? TB.typewriterCharsPerSec : 31;
+    const blipEveryN          = TB.blipEveryNChars     !== undefined ? TB.blipEveryNChars     : 3;
+    const readingTimeMs       = TB.readingTimeMs       !== undefined ? TB.readingTimeMs       : 2800;
+    const fadeMs              = TB.fadeMs              !== undefined ? TB.fadeMs              : 300;
+    const charDelay           = Math.round(1000 / Math.max(1, charsPerSec));
+
+    // Transition uses configured fade duration
+    el.style.transition = `opacity ${fadeMs}ms ease-out, transform ${fadeMs}ms ease-out`;
+
+    let typingDuration = 0;
+
+    if (typewriterEnabled) {
+      // Typewriter: reveal one character at a time
+      let charIdx = 0;
+      typingDuration = text.length * charDelay;
+
+      el._typewriterTimer = setInterval(() => {
+        if (charIdx < text.length) {
+          textTarget.textContent += text[charIdx];
+          if (blipEveryN > 0 && charIdx % blipEveryN === 0 && this.game && this.game.speech) {
+            this.game.speech.playTalkBlip();
+          }
+          charIdx++;
+        } else {
+          clearInterval(el._typewriterTimer);
+        }
+      }, charDelay);
+    } else {
+      // Instant: show all text immediately, no sound ticking
+      textTarget.textContent = text;
+      typingDuration = 0;
+    }
+
+    // Total visible time: typing time + configured reading time
+    const totalDuration = duration || (typingDuration + readingTimeMs);
+
+    // Dismiss on tap/click
+    el.style.pointerEvents = 'auto';
+    el.style.cursor = 'pointer';
+    el.title = 'Click to dismiss';
+    el.onclick = () => {
+      if (el._typewriterTimer) clearInterval(el._typewriterTimer);
+      el.style.opacity = '0';
+      el.style.transform = 'translate(-50%, -100%) scale(0.9)';
+      setTimeout(() => el.remove(), fadeMs);
+    };
 
     setTimeout(() => {
       if (el.parentNode) {
         if (el._typewriterTimer) clearInterval(el._typewriterTimer);
         el.style.opacity = '0';
         el.style.transform = 'translate(-50%, -100%) scale(0.9)';
-        setTimeout(() => el.remove(), 350);
+        setTimeout(() => el.remove(), fadeMs + 50);
       }
     }, totalDuration);
   }
@@ -649,7 +679,9 @@ window.FFH.UI = class {
 
           // 4. Smoothly pan & spin camera into close back-facing 3rd-person position over 3 seconds
           const startAngle = cityPhase.camCurrentAngle;
-          let targetAngle = (Math.PI / 4) + Math.PI; // back-facing view
+          // Land at CONFIG.camera.startAngleDeg (degrees → radians), fallback to 225° (PI/4 + PI)
+          const landDeg = window.FFH.CONFIG?.camera?.startAngleDeg ?? 225;
+          let targetAngle = landDeg * Math.PI / 180;
           
           // Normalize targetAngle to take the shortest rotation path
           while (targetAngle - startAngle > Math.PI) targetAngle -= Math.PI * 2;
@@ -666,8 +698,8 @@ window.FFH.UI = class {
             // Smooth easeInOutCubic easing for ultra-smooth camera flight
             const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
-            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
+            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
             cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
             cityPhase.updateCamera(true);
 
@@ -728,7 +760,9 @@ window.FFH.UI = class {
             cityPhase.updateCamera(true);
 
             const startAngle = cityPhase.camCurrentAngle;
-            let targetAngle = (Math.PI / 4) + Math.PI; // back-facing view
+            // Land at CONFIG.camera.startAngleDeg (degrees → radians), fallback to 225°
+            const landDeg = window.FFH.CONFIG?.camera?.startAngleDeg ?? 225;
+            let targetAngle = landDeg * Math.PI / 180;
             while (targetAngle - startAngle > Math.PI) targetAngle -= Math.PI * 2;
             while (targetAngle - startAngle < -Math.PI) targetAngle += Math.PI * 2;
 
@@ -740,8 +774,8 @@ window.FFH.UI = class {
               const t = Math.min(1.0, elapsed / duration);
               const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
-              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 1.25, easeT);
+              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
+              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
               cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
               cityPhase.updateCamera(true);
 

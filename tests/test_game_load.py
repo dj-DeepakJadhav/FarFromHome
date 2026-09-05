@@ -24,9 +24,44 @@ def run(playwright):
     canvas_count = page.locator('canvas').count()
     print(f'Found {canvas_count} canvas elements')
     
-    # We might want to check the DOM for signs of the vision:
-    content = page.content()
-    
+    # Wait for game initialization
+    time.sleep(2.0)
+    page.evaluate('''() => {
+        const btn = document.getElementById("btn-new-game") || document.getElementById("btn-continue");
+        if (btn) btn.click();
+    }''')
+    # Wait for the 3s initial camera flight into city view
+    time.sleep(3.5)
+
+    phase_info = page.evaluate('''() => {
+        const g = window.game;
+        if (!g) return { error: 'window.game not found' };
+        const cep = (g.currentPhase && g.currentPhase.name === 'CITY_EXPLORATION') ? g.currentPhase : (g.phases ? g.phases['CITY_EXPLORATION'] : null);
+        return {
+            currentPhaseName: g.currentPhaseName,
+            hasCityPhase: !!cep,
+            doorwayBeacon: !!(cep && cep.doorwayBeacon && cep.doorwayBeacon.visible),
+            activeDoorPos: cep && cep.activeDoorPos ? { x: cep.activeDoorPos.x, z: cep.activeDoorPos.z } : null,
+            playerPos: cep && cep.playerPos ? { x: cep.playerPos.x, z: cep.playerPos.z } : null,
+            inputDisabled: cep ? cep.inputDisabled : null
+        };
+    }''')
+    print('Messenger Phase Inspection:', phase_info)
+
+    # Test keyboard movement
+    page.keyboard.down('KeyS')
+    time.sleep(1.0)
+    page.keyboard.up('KeyS')
+    time.sleep(0.3)
+
+    post_pos = page.evaluate('''() => {
+        const g = window.game;
+        const cep = (g.currentPhase && g.currentPhase.name === 'CITY_EXPLORATION') ? g.currentPhase : g.phases['CITY_EXPLORATION'];
+        return cep ? { x: cep.playerPos.x, z: cep.playerPos.z } : null;
+    }''')
+    print('Post Movement Courier Pos:', post_pos)
+
+    page.screenshot(path='tests/screenshot_start.png', full_page=True)
     browser.close()
 
 if __name__ == '__main__':

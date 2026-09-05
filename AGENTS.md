@@ -97,12 +97,31 @@ Before claiming any task is complete or preparing a commit:
 
 ---
 
-## 8. MCP Graph & Token Efficiency Standard
+## 8. Mandatory 4-Tool Token Optimization Protocol (Strict Enforcement)
 
-1. **Prefer `codebase-memory-mcp` Over Full-File Dumps**:
-   - Always prioritize MCP knowledge graph queries (`search_graph`, `get_code_snippet`, `trace_path`) for targeted code discovery to minimize token overhead.
-   - Avoid reading giant files repeatedly when surgical line-range reads or symbol lookups suffice.
-2. **Lean, Focused Edits**:
-   - Perform surgical changes via targeted chunk replacements.
-   - Keep context windows clean and token consumption minimal.
+Every agent MUST actively use the four integrated token-optimization systems to minimize context overhead:
+
+1. **`prometheus` (Durable Epistemic Memory & Lesson Recall)**:
+   - **MANDATORY**: At the start of ANY task, call `memory_recall` with task keywords to check for existing decisions and architectural rules.
+   - **MANDATORY**: At task completion or whenever an architectural rule/bug fix is solved, call `memory_store` with `project: "FarFromHome"`.
+   - Never re-explore or guess known decisions.
+
+2. **`codebase-memory-mcp` (Structural Knowledge Graph)**:
+   - **MANDATORY**: Use `search_graph`, `trace_path`, and `get_code_snippet` FIRST for code queries.
+   - NEVER dump or read full source files to discover functions or call chains.
+   - Run `trace_path` before modifying signatures to inspect all callers.
+
+3. **`graft` (Zero-LLM Wiring, Skeletons & Blast Radius)**:
+   - **MANDATORY**: Use `graft skeleton <file>` when examining API interfaces.
+   - Use `graft callers <symbol>` and `graft blast` to check dependencies and blast radius at zero token cost.
+   - Use `graft map` for high-level repository structure.
+
+4. **`headroom` (Context Compression & Retrieval Layer)**:
+   - **MANDATORY**: When receiving or processing large tool outputs, test logs, or massive JSON (>100 lines), run `headroom_compress` to compress into a hash marker.
+   - Call `headroom_retrieve` on demand only when full details are required.
+   - Check `headroom_stats` to verify context reduction.
+
+5. **Strict File Prohibitions & Surgical Changes**:
+   - **ABSOLUTELY FORBIDDEN**: Never read, grep, or dump `index.html` (11.5 MB inlined release bundle). Always inspect modular files in `src/` or `index.dev.html`.
+   - Touch only code strictly required for the prompt. Keep diffs minimal and surgical.
 

@@ -1642,6 +1642,7 @@ function getBuildingRotationTowardsRoad(grid, x, z) {
   const defaultRotations = [0, Math.PI, -Math.PI / 2, Math.PI / 2];
   return defaultRotations[seed % 4];
 }
+window.FFH.getBuildingRotationTowardsRoad = getBuildingRotationTowardsRoad;
 
 // ============================================================================
 // UNIFIED BUILDING BOX COLLIDER & SLIDING RESOLVER (Zero-cost collision)
@@ -1726,6 +1727,12 @@ window.FFH.resolveSlidingMovement = function(curX, curZ, nextX, nextZ, radius = 
     const t = grid[gz][gx];
     return t !== 'W';
   };
+
+  // Unstuck mechanism: If already stuck inside a building, allow free movement to escape.
+  const isTrapped = window.FFH.checkBuildingCollision(curX, curZ, radius);
+  if (isTrapped) {
+    return { x: nextX, z: nextZ };
+  }
 
   let resolvedX = curX;
   let resolvedZ = curZ;
