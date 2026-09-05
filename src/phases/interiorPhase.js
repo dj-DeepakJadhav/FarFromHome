@@ -50,21 +50,22 @@ window.FFH.InteriorPhase = class {
       if (this.npcMesh) {
         // Room-specific NPC placement presets:
         const ROOM_NPC_PRESETS = window.FFH.ROOM_NPC_PRESETS || {};
-        const preset = ROOM_NPC_PRESETS[config.roomType] || { x: -0.25, y: 0.05, z: -0.8, rotY: 0.85, scale: 2.6 };
+        const preset = ROOM_NPC_PRESETS[config.roomType] || { x: -0.25, y: 0.38, z: -0.8, rotY: 0.85, scale: 2.6 };
 
         const charX = config.characterX !== undefined ? config.characterX : preset.x;
-        // Force an additional +1.10 offset specifically for the isometric interior rooms to prevent the 
-        // 2.6x scaled Kenney characters from sinking into the ground geometry.
-        const charY = (config.characterY !== undefined ? config.characterY : preset.y) + 1.10;
+        // The preset or config explicitly sets charY. Default elevated floor level is 0.38.
+        const charY = config.characterY !== undefined ? config.characterY : (preset.y !== undefined ? preset.y : 0.38);
         const charZ = config.characterZ !== undefined ? config.characterZ : preset.z;
         const charRotY = config.characterRotationY !== undefined ? config.characterRotationY : preset.rotY;
         const charScale = config.characterScale !== undefined ? config.characterScale : preset.scale;
 
         this.currentCharY = charY;
+        this.npcMesh.userData.floorY = charY;
         this.npcMesh.position.set(charX, charY, charZ);
         this.npcMesh.rotation.y = charRotY;
         this.npcMesh.scale.multiplyScalar(charScale);
         scene.add(this.npcMesh);
+
       }
     }
 
@@ -259,13 +260,14 @@ window.FFH.InteriorPhase = class {
         window.FFH.updateNPCAnimation(this.npcMesh, delta);
       }
       if (!this.npcMesh.userData.mixer) {
-        const baseY = this.currentCharY !== undefined ? this.currentCharY : (this.currentConfig?.characterY || 0.05);
+        const time = this.game.clock ? this.game.clock.getElapsedTime() : (performance.now() * 0.001);
+        const baseY = this.currentCharY !== undefined ? this.currentCharY : (this.currentConfig?.characterY || 0.38);
         this.npcMesh.position.y = baseY + Math.sin(time * 3) * 0.025;
       }
     }
   }
 
-  exitToCity() {
+  exitToCity() { 
     this.cleanupScene();
 
     const city = this.game.phases.CITY_EXPLORATION;

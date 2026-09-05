@@ -50,6 +50,7 @@ window.FFH.CityInput = class {
     dom.addEventListener('pointerdown', this.onPointerDown);
     dom.addEventListener('pointermove', this.onPointerMove);
     dom.addEventListener('pointerup', this.onPointerUp);
+    window.addEventListener('pointerup', this.onPointerUp);
     dom.addEventListener('touchstart', this.onTouchStart, { passive: false });
     dom.addEventListener('touchmove', this.onTouchMove, { passive: false });
     dom.addEventListener('touchend', this.onTouchEnd);
@@ -71,6 +72,7 @@ window.FFH.CityInput = class {
       dom.removeEventListener('wheel', this.onWheel);
       dom.removeEventListener('contextmenu', this.onContextMenu);
     }
+    window.removeEventListener('pointerup', this.onPointerUp);
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     this.hideTouchJoystick();
@@ -157,15 +159,23 @@ window.FFH.CityInput = class {
         const dirZ = hit.z - this.phase.playerPos.z;
         const distToHit = Math.hypot(dirX, dirZ);
 
-        // Stop jittering when hovering directly over the player
-        if (distToHit > 0.4) {
+        // Smoothly accelerate / decelerate based on distance to cursor
+        // Deadzone < 0.25 prevents spinning/jitter directly underneath feet
+        if (distToHit > 0.25) {
           const normX = dirX / distToHit;
           const normZ = dirZ / distToHit;
+          // Smooth ramp from 0.25 to 1.2 units away
+          const targetStrength = Math.min(1.0, (distToHit - 0.25) / 0.95);
           this.directMoveVector.x = THREE.MathUtils.lerp(this.directMoveVector.x, normX, smoothRate);
           this.directMoveVector.z = THREE.MathUtils.lerp(this.directMoveVector.z, normZ, smoothRate);
-          this.directMoveVector.strength = THREE.MathUtils.lerp(this.directMoveVector.strength, 1.0, smoothRate);
+          this.directMoveVector.strength = THREE.MathUtils.lerp(this.directMoveVector.strength, targetStrength, smoothRate);
         } else {
           this.directMoveVector.strength = THREE.MathUtils.lerp(this.directMoveVector.strength, 0, 0.45);
+          if (this.directMoveVector.strength < 0.02) {
+            this.directMoveVector.strength = 0;
+            this.directMoveVector.x = 0;
+            this.directMoveVector.z = 0;
+          }
         }
       }
       return;
@@ -357,6 +367,19 @@ window.FFH.CityInput = class {
 
   onPointerMove(e) {
     if (e.pointerType === 'touch') return;
+
+    // Safety guard: if mouse moved with no buttons pressed, clear any stuck drag state immediately
+    if (e.pointerType === 'mouse' && e.buttons === 0) {
+      if (this.isPointerDown || this.isTouchDragging) {
+        this.isPointerDown = false;
+        this.isTouchDragging = false;
+        this.directMoveVector.strength = 0;
+        this.directMoveVector.x = 0;
+        this.directMoveVector.z = 0;
+      }
+      return;
+    }
+
     if (this.phase.cameraController?.isPanningCamera) {
       this.lastPointerX = e.clientX;
       this.lastPointerY = e.clientY;

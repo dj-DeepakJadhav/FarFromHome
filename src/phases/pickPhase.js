@@ -260,139 +260,18 @@ window.FFH.PickPhase = class {
   // The previous version filled all 12 slots at random from the full deck,
   // independently of the order - so an ordered item could simply not be on the
   // shelf and the phase could never complete. That was a hard soft-lock.
+  // Builds the 3-tier shelves and populates items/labels (decoupled into pickShelfView.js)
   buildShelf(shift, order) {
-    const derBucket = [];
-    const dieBucket = [];
-    const dasBucket = [];
-
-    // 1. Sort ordered items into gender buckets
-    for (const line of order) {
-      const itemDef = window.FFH.items.find(it => it.id === line.id);
-      if (itemDef.gender === 'der') derBucket.push(itemDef);
-      else if (itemDef.gender === 'die') dieBucket.push(itemDef);
-      else if (itemDef.gender === 'das') dasBucket.push(itemDef);
-    }
-
-    // 2. Pad each bucket to 4 items with decoys of the same gender
-    const pool = window.FFH.getShiftItemPool(shift.index);
-    const poolItems = pool.map(id => window.FFH.items.find(it => it.id === id));
-    
-    const derPool = poolItems.filter(it => it.gender === 'der');
-    const diePool = poolItems.filter(it => it.gender === 'die');
-    const dasPool = poolItems.filter(it => it.gender === 'das');
-
-    // Fallbacks in case the shift pool lacks items of a specific gender
-    const derAll = window.FFH.items.filter(it => it.gender === 'der');
-    const dieAll = window.FFH.items.filter(it => it.gender === 'die');
-    const dasAll = window.FFH.items.filter(it => it.gender === 'das');
-
-    while (derBucket.length < 4) {
-      const src = derPool.length ? derPool : derAll;
-      derBucket.push(src[Math.floor(Math.random() * src.length)]);
-    }
-    while (dieBucket.length < 4) {
-      const src = diePool.length ? diePool : dieAll;
-      dieBucket.push(src[Math.floor(Math.random() * src.length)]);
-    }
-    while (dasBucket.length < 4) {
-      const src = dasPool.length ? dasPool : dasAll;
-      dasBucket.push(src[Math.floor(Math.random() * src.length)]);
-    }
-
-    // 3. Shuffle each bucket independently
-    this.shuffle(derBucket);
-    this.shuffle(dieBucket);
-    this.shuffle(dasBucket);
-
-    this.shelfGroup = new THREE.Group();
-
-    const steelMat = window.FFH.createCelMaterial(0x2B2D42);
-    const shelfBoardMat = window.FFH.createCelMaterial(0x8D99AE);
-
-    // 4 Corner Steel Uprights
-    const postGeo = new THREE.BoxGeometry(0.1, 3.4, 0.1);
-    const offsets = [[-1.8, -0.35], [1.8, -0.35], [-1.8, 0.35], [1.8, 0.35]];
-    offsets.forEach(([px, pz]) => {
-      const p = new THREE.Mesh(postGeo, steelMat);
-      p.position.set(px, 1.3, pz);
-      this.shelfGroup.add(p);
+    const res = window.FFH.buildWarehouseShelf({
+      shift,
+      order,
+      upgrades: this.game.state.upgrades,
+      shelfWorldPos: this.shelfWorldPos,
+      scene: this.game.scene
     });
-
-    const shelfGeo = new THREE.BoxGeometry(3.7, 0.08, 0.75);
-    const tagGeo = new THREE.BoxGeometry(3.7, 0.05, 0.02);
-    const tiers = 3;
-
-    // Row 0 (bottom) = der (0x3A86FF), Row 1 (middle) = die (0xFF006E), Row 2 (top) = das (0x8338EC)
-    const railColors = [0x3A86FF, 0xFF006E, 0x8338EC];
-
-    for (let y = 0; y < tiers; y++) {
-      const plank = new THREE.Mesh(shelfGeo, shelfBoardMat);
-      plank.position.set(0, y * 0.95 + 0.1, 0);
-      plank.receiveShadow = true;
-      
-      // Price tag rail
-      const tagRailMat = window.FFH.createCelMaterial(railColors[y]);
-      const tagRail = new THREE.Mesh(tagGeo, tagRailMat);
-      tagRail.position.set(0, y * 0.95 + 0.1, 0.38);
-      
-      this.shelfGroup.add(plank, tagRail);
-      this.tagRails.push(tagRail);
-    }
-
-    if (this.shelfWorldPos) {
-      this.shelfGroup.position.copy(this.shelfWorldPos);
-    }
-    
-    // Rotate shelf so its open front (+Z in local space) faces the camera (+X, +Z in world space)
-    this.shelfGroup.rotation.y = Math.PI / 4; 
-
-    this.game.scene.add(this.shelfGroup);
-
-    const shelfHeights = [0.05, 1.05, 2.05];
-    const spread = 1.2;
-    const buckets = [derBucket, dieBucket, dasBucket];
-
-    const symbols = ['▲', '●', '■'];
-    
-    buckets.forEach((bucket, row) => {
-      bucket.forEach((itemDef, col) => {
-        const x = -spread + (col / 3) * spread * 2;
-        const itemMesh = window.FFH.createItemMesh(itemDef.type, itemDef.hex);
-        itemMesh.position.set(x, shelfHeights[row] + 0.4, 0);
-        itemMesh.userData = { id: itemDef.id, def: itemDef };
-
-        if (this.game.state.upgrades?.shelfLabels) {
-          const canvas = document.createElement('canvas');
-          canvas.width = 64; canvas.height = 64;
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#' + railColors[row].toString(16).padStart(6, '0');
-          ctx.font = 'bold 48px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(symbols[row], 32, 36);
-
-          const tex = new THREE.CanvasTexture(canvas);
-          const spriteMat = new THREE.SpriteMaterial({ map: tex, depthTest: false });
-          const sprite = new THREE.Sprite(spriteMat);
-          sprite.scale.set(0.4, 0.4, 1);
-          sprite.position.set(0, 0.4, 0); // float above item
-          itemMesh.add(sprite);
-        }
-
-        this.shelfGroup.add(itemMesh);
-        this.shelvedMeshes.push(itemMesh);
-      });
-    });
-  }
-
-  shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const tmp = arr[i];
-      arr[i] = arr[j];
-      arr[j] = tmp;
-    }
-    return arr;
+    this.shelfGroup = res.shelfGroup;
+    this.shelvedMeshes = res.shelvedMeshes;
+    this.tagRails = res.tagRails;
   }
 
   onTap(e) {
@@ -523,115 +402,17 @@ window.FFH.PickPhase = class {
   }
 
   animateBagDrop(mesh) {
-    const startPos = mesh.position.clone();
-    const endPos = new THREE.Vector3(0, 0.4, 2.0);
-    const duration = 0.45;
-    let elapsed = 0;
-
     const idx = this.shelvedMeshes.indexOf(mesh);
     if (idx !== -1) this.shelvedMeshes.splice(idx, 1);
-
-    const updateTrajectory = () => {
-      elapsed += 0.016;
-      const t = Math.min(elapsed / duration, 1.0);
-
-      mesh.position.lerpVectors(startPos, endPos, t);
-      mesh.position.y += Math.sin(t * Math.PI) * 1.8;
-      
-      // Squash and stretch
-      const squash = Math.sin(t * Math.PI) * 0.3;
-      mesh.scale.set(1.0 + squash, 1.0 - squash * 0.5, 1.0 + squash);
-
-      if (t < 1.0) {
-        requestAnimationFrame(updateTrajectory);
-      } else {
-        this.game.scene.remove(mesh);
-        // Bag bounce effect on receive
-        if (this.bagMesh) {
-          this.bagMesh.scale.set(1.2, 0.8, 1.2);
-          setTimeout(() => {
-            if (this.bagMesh) this.bagMesh.scale.set(1.0, 1.0, 1.0);
-          }, 120);
-        }
-      }
-    };
-    updateTrajectory();
+    window.FFH.animateBagDrop(mesh, this.bagMesh);
   }
 
   shakeItem(mesh) {
-    const startX = mesh.position.x;
-    let elapsed = 0;
-    const duration = 0.2;
-
-    const runShake = () => {
-      elapsed += 0.016;
-      if (elapsed < duration) {
-        mesh.position.x = startX + Math.sin(elapsed * 100) * 0.15;
-        requestAnimationFrame(runShake);
-      } else {
-        mesh.position.x = startX;
-      }
-    };
-    runShake();
+    window.FFH.shakeItem(mesh);
   }
 
   pulseRailForGender(gender) {
-    const row = gender === 'der' ? 0 : gender === 'die' ? 1 : 2;
-    const rail = this.tagRails[row];
-
-    // Day 1 FTUE: First-Shift Tutorial
-    if (this.game.state.currentShift === 1 && this.game.ui && this.game.ui.showTutorialBanner) {
-      if (gender === 'der') this.game.ui.showTutorialBanner('Der (Masculine) ➔ Look for Blue', 4000);
-      if (gender === 'die') this.game.ui.showTutorialBanner('Die (Feminine) ➔ Look for Pink', 4000);
-      if (gender === 'das') this.game.ui.showTutorialBanner('Das (Neuter) ➔ Look for Purple', 4000);
-    }
-
-    if (rail) {
-      const originalScale = rail.scale.clone();
-      // Handle both standard materials and custom ShaderMaterials
-      const colorSource = rail.material.color || (rail.material.uniforms && rail.material.uniforms.uColor ? rail.material.uniforms.uColor.value : null);
-      if (!colorSource) return; // Cannot pulse color
-
-      const originalColor = colorSource.clone();
-      
-      let elapsed = 0;
-      const pulseDuration = 0.5;
-      const flashColor = new THREE.Color(0xffffff);
-      const isTutorial = this.game.state.currentShift === 1;
-      
-      const pulseInterval = setInterval(() => {
-        elapsed += 0.05;
-        const t = Math.sin((elapsed / pulseDuration) * Math.PI);
-        const currentColorTarget = rail.material.color || (rail.material.uniforms ? rail.material.uniforms.uColor.value : null);
-
-        if (t < 0 || elapsed >= pulseDuration) {
-          if (rail.scale) rail.scale.copy(originalScale);
-          if (currentColorTarget) currentColorTarget.copy(originalColor);
-          if (rail.material && rail.material.uniforms && rail.material.uniforms.uEmissive) {
-              rail.material.uniforms.uEmissive.value = new THREE.Color(0x000000);
-          } else if (rail.material && rail.material.emissive) {
-              rail.material.emissive.setHex(0x000000);
-          }
-          clearInterval(pulseInterval);
-        } else {
-          if (rail.scale) {
-            rail.scale.set(originalScale.x, originalScale.y * (1 + t * 0.3), originalScale.z * (1 + t * 0.3));
-          }
-          if (currentColorTarget) {
-            currentColorTarget.lerpColors(originalColor, flashColor, t * 0.5);
-          }
-          // Extra bright glow for tutorial
-          if (isTutorial) {
-            if (rail.material && rail.material.uniforms && rail.material.uniforms.uEmissive) {
-                // If the shader supports emissive (needs to be added if missing)
-                rail.material.uniforms.uEmissive.value.copy(originalColor).multiplyScalar(t * 1.5);
-            } else if (rail.material && rail.material.emissive) {
-                rail.material.emissive.copy(originalColor).multiplyScalar(t * 1.5);
-            }
-          }
-        }
-      }, 50);
-    }
+    window.FFH.pulseRailForGender(gender, this.tagRails, this.game.state.currentShift, this.game.ui);
   }
 
   exit() {

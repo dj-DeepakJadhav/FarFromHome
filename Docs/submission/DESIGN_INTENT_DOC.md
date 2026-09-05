@@ -1,5 +1,5 @@
 # Far From Home: Kruma Express — Design Intent Document
-*Word Count: 446 words (Strict Limit: ≤ 500 words) — recount with `sed '1,3d' DESIGN_INTENT_DOC.md | wc -w`*
+*Word Count: 445 words (Strict Limit: ≤ 500 words) — recount with `sed '1,3d' DESIGN_INTENT_DOC.md | wc -w`*
 
 ## 1. Game Title and Genre
 **Far From Home: Kruma Express** — Narrative Life & Courier Management Simulation (Fixed Portrait Mobile WebGL, 390×844).
@@ -15,7 +15,7 @@ The game is **100% English-first for instant playability**, enriched with authen
 Designed for **single-thumb mobile portrait** touch and pointer play:
 - **City Exploration**: Cycle through the 3D diorama of Lübeck. Visit the University, Bürgeramt, Bank, and local shops to advance your persistent paperwork checklist.
 - **Warehouse Packing**: Fast-paced grocery packing with dynamic shift modes (Standard vs. High-Stakes VIP Rush). Items display English names with subtle German subtitles (`Milk (die Milch)`).
-- **Spatial Color Tiers**: Shelves feature high-contrast color categories: Bottom = Blue (*Chilled* ▲), Middle = Pink (*Produce* ●), Top = Purple (*Bakery* ■). Rhythmic audio callouts guide player focus.
+- **Spatial Color Tiers**: Shelves feature high-contrast grammatical categories: Bottom = Blue (*der* ▲), Middle = Pink (*die* ●), Top = Purple (*das* ■). Rhythmic audio callouts guide player focus.
 - **Doorstep Etiquette**: Engage in rich English dialogue with voiced German greetings (*"Guten Tag!"*) and cultural etiquette choices to secure generous customer tips.
 - **Dorm Room Upgrades**: Reinvest wages into tangible 3D room upgrades (E-Bike motor, Thermal Bag, Study Corkboard) that visibly furnish your student dorm and accelerate future shifts.
 
@@ -26,5 +26,5 @@ Three intertwined progression engines drive the experience:
 3. **The 4-Document Dossier Gauntlet**: Your persistent HUD systematically ticks off essential legal milestones (Matriculation ➔ Lease ➔ Anmeldung ➔ Sperrkonto ➔ Residence Permit).
 
 ## 5. Prototype Scope & Technical Feasibility
-- 100% offline, airgapped runtime packaged as a single self-contained `index.html` (3.6MB uncompressed, limit 35MB).
+- 100% offline, airgapped runtime packaged as a single self-contained `index.html` (11.1MB uncompressed, limit 35MB).
 - Rich 3D parametric city generation with stepped-gable Altbau architecture, custom normal+depth Sobel ink outlines, and interactive diorama rooms.

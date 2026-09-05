@@ -54,7 +54,7 @@
   },
   "economy_ref": "src/core/economy.js is authoritative; Docs/CANONICAL_NUMBERS.md mirrors it",
   "state": {
-    "wallet": 20.0,
+    "wallet": 20,
     "day": 1,
     "shift_no": 0,
     "body": 100,
@@ -81,7 +81,7 @@
     "has_vocabcards": false,
     "has_notepad": false,
     "has_labels": false,
-    "owes_mathias": 0.0,
+    "owes_mathias": 0,
     "night_route_taken": 0,
     "helped_nico": false,
     "nico_gone": false,
@@ -113,8 +113,8 @@
         "tram_bell_distant"
       ],
       "prose": [
-        "So this is Germany. Clean. Tidy. And possessing a bus shelter roughly the size of a toaster.",
-        "Twenty euros in my jacket pocket. A visa that expires in four weeks. And a slip of paper with 'Room 4' written on it."
+        "So this is Germany. Clean. Tidy. And possessing a bus shelter roughly the size of a toaster. If I try to stand under that, my knees will stick out into oncoming traffic.",
+        "Twenty euros in my jacket pocket. A visa that expires in four weeks. And a handwritten note with 'Room 4, WG Am Burgtor' on it."
       ],
       "choices": [
         {
@@ -147,18 +147,47 @@
     {
       "id": "wg_door_scenic",
       "act": "I",
-      "stage": { "loc": "B_WG", "time": "19:30", "light": "night_lantern", "camera": "doorway_two_shot" },
-      "effects": [{ "var": "body", "expr": "body - 6" }],
-      "prose": [],
+      "stage": {
+        "loc": "B_WG",
+        "time": "19:30",
+        "light": "night_lantern",
+        "camera": "doorway_two_shot"
+      },
+      "effects": [
+        {
+          "var": "body",
+          "expr": "body - 6"
+        },
+        {
+          "var": "wallet",
+          "expr": "wallet + 0.25"
+        }
+      ],
+      "prose": [
+        "You walk by the canal. The river is so flat it looks like someone ironed it with heavy starch.",
+        "On a stone bench sits an empty bottle with a tiny recycling mark. In England this is rubbish; here it pays 25 cents! (+€0.25 Pfand)"
+      ],
       "choices": [],
       "next": "wg_door"
     },
     {
       "id": "wg_door_fast",
       "act": "I",
-      "stage": { "loc": "B_WG", "time": "19:30", "light": "night_lantern", "camera": "doorway_two_shot" },
-      "effects": [{ "var": "body", "expr": "body - 5" }],
-      "prose": [],
+      "stage": {
+        "loc": "B_WG",
+        "time": "19:30",
+        "light": "night_lantern",
+        "camera": "doorway_two_shot"
+      },
+      "effects": [
+        {
+          "var": "body",
+          "expr": "body - 5"
+        }
+      ],
+      "prose": [
+        "You drag your 25kg suitcase over medieval cobblestones. Nature's way of punishing human ankles."
+      ],
       "choices": [],
       "next": "wg_door"
     },
@@ -187,15 +216,15 @@
         "radiator_tick"
       ],
       "prose": [
-        "Room 4 is on the second floor of a building the colour of wet brick. The stairwell smells of radiators and old paint.",
-        "Somebody has left the kitchen door open. There is a lamp on in there, and a person under it.",
-        "Nico: Oh. You're the new one. Room 4.",
-        "Nico: Sit down. Put the suitcase down, it isn't going anywhere.",
-        "He pushes a mug across the counter. Instant coffee. It is the best thing you have ever held."
+        "Room 4 is on the second floor of a stepped-gable Altbau. The stairwell smells of old floor wax and radiators.",
+        "Outside the kitchen, a tall lad in woolen socks is standing frozen over the counter with a mug of peppermint tea.",
+        "Nico: Halt! Don't move! Are you the new flatmate for Room 4?",
+        "You: Yeah, mate. Just dragged my suitcase across the bridge.",
+        "Nico: Put the bag down slowly. We have to address something of international diplomatic importance."
       ],
       "choices": [
         {
-          "label": "\"Thank you. I didn't think anyone would be awake.\"",
+          "label": "\"Is everything alright? Did I step on a historic brick?\"",
           "gate": null,
           "to": "nico_kitchen",
           "effects": [
@@ -205,17 +234,16 @@
             }
           ],
           "prose": [
-            "Nico: Somebody is always awake here. That's the whole trick."
+            "Nico: Worse. Much worse. Come into the kitchen."
           ]
         },
         {
-          "label": "\"How long have you been here?\"",
+          "label": "\"I've been travelling two days. Can this wait five minutes?\"",
           "gate": null,
           "to": "nico_kitchen",
           "effects": [],
           "prose": [
-            "Nico: Third year. He says it the way people say a prison sentence, then laughs at himself for it.",
-            "Nico: Three good years. Mostly."
+            "Nico: German municipal waste regulations wait for no man. Five minutes is enough for Herr Becker to issue a 25-euro fine."
           ]
         }
       ],
@@ -262,24 +290,24 @@
         "radiator_tick"
       ],
       "prose": [
-        "Nico: Right. Two things, then sleep.",
-        "Nico: One - the university office shuts at five. It's ten past six.",
-        "You look at the window. The window looks back, black.",
-        "Nico: Two, and I am serious about this one. The bins."
+        "Nico points dramatically at the three plastic bins beneath the sink.",
+        "Nico: Two things before you unpack.",
+        "Nico: One - the university office shuts at 17:00 sharp. It's now past six. If you knock at 17:01, they look at you like you've committed treason.",
+        "Nico: Two - and I am genuinely begging you here. Mülltrennung. The bins."
       ],
       "choices": [
         {
-          "label": "\"The bins.\"",
+          "label": "\"The bins. Right. What's the exam?\"",
           "gate": null,
           "to": "nico_bins_choice",
           "effects": [],
           "prose": [
-            "Nico: Muelltrennung. Sorting. Blue is paper, yellow is plastic, black is everything else.",
-            "Nico: Herr Lokker checks. With a torch. He fined the guy in Room 2 twenty-five euros last winter."
+            "Nico: Blue is paper, yellow is plastic and foil, black is everything else.",
+            "Nico: Herr Becker patrols with a flashlight. If he finds a yogurt lid in the blue bin, our clothes will be on the pavement by midnight."
           ]
         },
         {
-          "label": "\"Can the bins wait? I've been travelling two days.\"",
+          "label": "\"It's rubbish, mate. Does it really matter?\"",
           "gate": null,
           "to": "nico_sends_kruma",
           "effects": [
@@ -289,8 +317,8 @@
             }
           ],
           "prose": [
-            "Nico shrugs, and lets it go.",
-            "Nico: Sure. They can wait. They can wait right up until they can't."
+            "Nico recoils in sheer horror and covers his coffee mug.",
+            "Nico: Does it matter?! In Germany, recycling is not a hobby, it is a spiritual test!"
           ]
         }
       ],
@@ -328,7 +356,7 @@
       "prose": [],
       "choices": [
         {
-          "label": "\"Blue paper, yellow plastic, black the rest. Say it again, slower.\"",
+          "label": "\"Blue paper, yellow plastic/foil, black rest. Got it, chief.\"",
           "gate": null,
           "to": "nico_sends_kruma",
           "effects": [
@@ -338,22 +366,27 @@
             },
             {
               "var": "r_nico",
+              "expr": "r_nico + 2"
+            }
+          ],
+          "prose": [
+            "Nico lets out a long, trembling sigh of relief.",
+            "Nico: Brilliant. You're a legend. Here, have some peppermint tea."
+          ]
+        },
+        {
+          "label": "\"Twenty-five euros for a misplaced banana peel?!\"",
+          "gate": null,
+          "to": "nico_sends_kruma",
+          "effects": [
+            {
+              "var": "r_nico",
               "expr": "r_nico + 1"
             }
           ],
           "prose": [
-            "You make him repeat it twice. He does, without making you feel stupid about it, which you notice.",
-            "Nico: Blue. Yellow. Black. That's it. That's the entire exam."
-          ]
-        },
-        {
-          "label": "\"Twenty-five euros. For bins.\"",
-          "gate": null,
-          "to": "nico_sends_kruma",
-          "effects": [],
-          "prose": [
-            "Nico grins into his coffee.",
-            "Nico: Wait until you meet the bank."
+            "Nico grins weakly.",
+            "Nico: Wait until you meet the Bürgeramt."
           ]
         }
       ],
@@ -401,22 +434,22 @@
         "radiator_tick"
       ],
       "prose": [
-        "Nico looks at the paper slip in your hand, then at the clock.",
-        "Nico: One more thing and then I'll leave you alone. Lokker wants thirty euros deposit by Friday. That's not a suggestion, that's just how the building works.",
-        "Nico: You'll need to find work tonight. Around the old market, near the Holstentor — there is always something for somebody willing to start now."
+        "Nico taps an official-looking brown envelope on the kitchen desk.",
+        "Nico: One more crisis. That letter arrived for Room 4 this afternoon.",
+        "You open it: Hochschule Lübeck — 250€ Semesterbeitrag matriculation due by Friday, or your visa registration is cancelled.",
+        "Nico: You have twenty quid and four weeks on your visa. You need cash tonight. Head toward the Holstentor market — there's always someone hiring if you have legs."
       ],
       "choices": [
         {
-          "label": "\"Tonight? I have not even put the suitcase down.\"",
+          "label": "\"Two hundred and fifty euros?! I need to run to the Uni right now!\"",
           "to": "uni_closed",
           "effects": [],
           "prose": [
-            "Nico: I know. I did the same thing. Everybody does the same thing.",
-            "Nico: Go the long way, past the university. You should see where it is."
+            "Nico: Go on then, but don't say I didn't warn you about German office hours."
           ]
         },
         {
-          "label": "\"Around the old market. Got it.\"",
+          "label": "\"Market by the Holstentor. Understood. I'll check the campus first.\"",
           "to": "uni_closed",
           "effects": [
             {
@@ -425,7 +458,7 @@
             }
           ],
           "prose": [
-            "Nico: Go past the university on the way. Two minutes out of your way and then you know where it is."
+            "Nico: Good luck. Watch out for Frau Meier on the ground floor — don't slam the door!"
           ]
         }
       ],
@@ -470,42 +503,39 @@
         "footsteps_cobble"
       ],
       "prose": [
-        "You cross the bridge because it is the only thing lit.",
-        "On the far side: the admissions building. Brick, tall windows, one of them still yellow. Somebody is in there.",
-        "You reach the door as a woman is locking it from the inside.",
-        "Rita Schneider: We closed at seventeen hundred."
+        "You sprint across the cobbled canal bridge to the Admissions Hall.",
+        "The enormous oak double doors are chained shut with a padlock the size of a teacup saucer.",
+        "A laminated sign reads: 'Öffnungszeiten: Di & Do 10:00 - 11:30. Freitags geschlossen.'",
+        "You mutter: 'Ninety minutes a week?! What do they do the rest of the time, polish their rubber stamps?!'"
       ],
       "choices": [
         {
-          "label": "\"I know. I've only just arrived. I only wanted to see where it was.\"",
+          "label": "\"Can I just knock? It's barely past five!\"",
           "gate": null,
           "to": "pizzeria_job",
           "effects": [
             {
               "var": "heart",
-              "expr": "heart + 3"
+              "expr": "heart - 2"
             }
           ],
           "prose": [
-            "Her hand stops on the key.",
-            "Rita Schneider, through the glass: Ah. Then you have found it. It will still be here tomorrow.",
-            "Rita Schneider: Nine o'clock. Two hundred and fifty euros for matriculation. Bring it as notes, not in coins."
+            "Frau Klein (passing by with canvas bags of potatoes): Haha! Liebling, at 16:59:59 the pen leaves the hand. At 17:01 the secretary is on her sofa drinking chamomile tea.",
+            "Frau Klein: If you bang on that door now, the police will arrive with a decibel meter. Try the market for work, lad."
           ]
         },
         {
-          "label": "\"Please. Two minutes. I've come a very long way.\"",
+          "label": "\"Ninety minutes a week. Of course. Why would anyone expect otherwise?\"",
           "gate": null,
           "to": "pizzeria_job",
           "effects": [
             {
               "var": "heart",
-              "expr": "heart - 3"
+              "expr": "heart + 2"
             }
           ],
           "prose": [
-            "Rita Schneider: So has everybody in the queue that starts tomorrow at nine.",
-            "She finishes locking the door. Not unkindly. Just finished.",
-            "Rita Schneider: Two hundred and fifty euros, nine o'clock. Go and sleep."
+            "Frau Klein chuckles dryly from the steps: Exactly, young man. Welcome to Germany! Now off to the pizzeria if you need bread."
           ]
         }
       ],
@@ -544,32 +574,31 @@
         "oven_whoosh"
       ],
       "prose": [
-        "The pizzeria shutter is half up. Hot air and garlic come out from under it.",
-        "You duck inside. A man in a flour-dusted apron doesn't look up.",
-        "Pizzeria Owner: We're closed.",
-        "You: I'm looking for work. Any work.",
-        "He looks up for the first time. Assesses. Looks back down.",
-        "Pizzeria Owner: Nobody to train tonight. Come back in two weeks. Or don't."
+        "The pizzeria shutter is half raised. A cloud of hot garlic, oregano, and boiling anger drifts into the street.",
+        "Mathias Becker is aggressively slamming a ball of dough against a marble counter.",
+        "You: Good evening! Any chance you're hiring a delivery courier?",
+        "Mathias stops, wipes flour on his apron, and looks you up and down like you're an uninvited tax auditor.",
+        "Mathias: Delivery driver?! Do you speak Italian? No! Do you know how to spin dough? No! And your German sounds like a broken lawnmower!",
+        "Mathias: We are closed! Try the bakery down the street before I throw this rolling pin!"
       ],
       "choices": [
         {
-          "label": "\"Two weeks is too late. Thank you anyway.\"",
+          "label": "\"Right. Charming. Have a lovely evening, mate.\"",
           "gate": null,
           "to": "bakery_job",
           "effects": [],
           "prose": [
-            "He nods once and goes back to the dough.",
-            "Outside the air is cold again. The flour smell stays with you for half a block."
+            "You back out slowly. The garlic smell lingers on your jacket for two blocks."
           ]
         },
         {
-          "label": "\"Can I leave my number?\"",
+          "label": "\"Can I leave my number just in case?\"",
           "gate": null,
           "to": "bakery_job",
           "effects": [],
           "prose": [
-            "He points at a corkboard on the wall without looking up. Already full of numbers.",
-            "You write yours at the bottom, where nobody will look."
+            "Mathias points menacingly with a wooden pizza peel toward the street exit.",
+            "You decide walking is the better option."
           ]
         }
       ],
@@ -609,19 +638,18 @@
         "bread_rustle"
       ],
       "prose": [
-        "The bakery window is still lit. An older woman is stacking bread trays behind the glass.",
-        "You knock. She looks up, looks at the time, looks at you — and unlocks the door anyway.",
-        "Martha: We're closed for selling. But you don't look like you're buying.",
-        "You: I'm looking for work. Anything.",
-        "Martha: Do you speak German? Even a little?",
-        "You explain. She listens properly, which is more than the pizzeria did.",
-        "Martha: Our orders go to German customers. It would not work, not tonight.",
-        "She pauses. Picks up a small Franzbroetchen from the tray and puts it on the counter in front of you.",
-        "Martha: But. There is a place around the Holstentor. Kruma Express. Dark store. Night deliveries. They sort by ear, not by words — you hear the article and you find the shelf. Nina runs it. Tell her Martha sent you."
+        "A warm amber glow shines through the glass of Bäckerei Hansa. An elderly baker in a white apron is dusting flour off a wooden peel.",
+        "You knock gently on the door. She looks at the clock, shakes her head, but turns the brass key anyway.",
+        "Martha Beck: We are closed, my dear. Unless you want a loaf of day-old Roggenbrot?",
+        "You: Actually, Frau Beck, I'm looking for work. Anything honest.",
+        "Martha Beck: To knead bread in Germany you need a B1 language certificate and three years of flour apprenticeship! My customers want to chat about the Baltic weather in proper German.",
+        "She softens, looks at your thin jacket, and slips a warm Franzbrötchen pastry into your hand.",
+        "Martha Beck: But listen to me. Around the corner near the Holstentor is Kruma Express. A dark store. Night delivery couriers. They sort by ear, not with certificates.",
+        "Martha Beck: Nina Voss manages dispatch. Tell her Martha sent you. And eat that pastry before it gets cold!"
       ],
       "choices": [
         {
-          "label": "\"Kruma Express. I'll find it. Thank you, Martha.\"",
+          "label": "\"Kruma Express. Thank you so much, Frau Beck!\"",
           "gate": null,
           "to": "shift_1_teach",
           "effects": [
@@ -631,12 +659,11 @@
             }
           ],
           "prose": [
-            "She locks the door again as you leave. You eat the Franzbroetchen on the walk over.",
-            "It is the second best thing you have eaten today, after the coffee."
+            "You eat the Franzbrötchen while walking. Cinnamon, butter, sugar. Genuinely the best thing you've eaten since landing in Hamburg."
           ]
         },
         {
-          "label": "[Take the Franzbroetchen and go.]",
+          "label": "[Bow gratefully, take the pastry, and march toward Kruma.]",
           "gate": null,
           "to": "shift_1_teach",
           "effects": [
@@ -646,8 +673,7 @@
             }
           ],
           "prose": [
-            "She nods. You don't need to say anything.",
-            "You eat it before you have even turned the corner."
+            "Warm cinnamon pastry in hand, you pick up the pace toward the neon green glow of the warehouse."
           ]
         }
       ],
@@ -700,19 +726,19 @@
         "pick_confirm"
       ],
       "prose": [
-        "Nina Lindemann: You're the temp, or you're lost.",
-        "Nina Lindemann: Shelves. Three rows. Bottom is der. Middle is die. Top is das. Not fruit on one and drinks on another, nobody sorts a warehouse by fruit.",
-        "Nina Lindemann: The word tells you the shelf. Learn the word and you stop searching.",
-        "The voice in the ceiling says a word and the shelf lights up at the same time, so you cannot get it wrong. For about four minutes you are still genuinely terrible at this."
+        "The Kruma Express warehouse is humming with conveyor belts and industrial chillers.",
+        "Nina Voss stands by the dispatch desk, clipboard in one hand, double espresso in the other.",
+        "Nina Voss: You're the temp Martha mentioned. Good. Shift starts now.",
+        "Nina Voss: Listen carefully: warehouse shelves are sorted by German grammar gender. Bottom shelf is DER (Blue ▲). Middle shelf is DIE (Pink ●). Top shelf is DAS (Purple ■). Learn the word and you cut your search time by two thirds!"
       ],
       "choices": [
         {
-          "label": "[Pick to the glowing shelf.]",
+          "label": "[Clock in: Audio + icon arrive together. Pure muscle memory.]",
           "to": "shift_2_anticipate",
           "effects": [
             {
               "var": "wallet",
-              "expr": "wallet + 9.5"
+              "expr": "wallet + 15.0"
             },
             {
               "var": "shift_no",
@@ -720,8 +746,8 @@
             }
           ],
           "prose": [
-            "Die Milch, middle. Der Kaese, bottom. Das Brot, top.",
-            "Nina Lindemann: That's the whole job. Again, faster."
+            "\"Die Milch!\" Pink shelf glows. \"Der Apfel!\" Blue shelf glows. \"Das Brot!\" Purple shelf glows.",
+            "Nina Voss: Exactly! Keep that pace and you might actually survive the week."
           ]
         }
       ],
@@ -729,8 +755,8 @@
       "beat": "TEACH: audio and icon together, cannot fail. Mechanic introduced.",
       "origin": "new",
       "payout": {
-        "formula": "base 13 + accuracy, teach mode",
-        "wallet": 9.5
+        "formula": "canonical base wage 15.0 + accuracy bonus",
+        "wallet": 15
       },
       "mode": "gameplay",
       "duration_s": 18,
@@ -746,7 +772,7 @@
         "teaches": {
           "subject": "der_die_das",
           "mode": "TEACH",
-          "icon_delay_s": 0.0
+          "icon_delay_s": 0
         }
       },
       "cumulative_s": 61,
@@ -778,18 +804,18 @@
         "mispick_buzz"
       ],
       "prose": [
-        "Second manifest. Longer.",
-        "The voice comes a beat before the shelf lights up now. You notice, and you start moving on the word instead of the light.",
-        "Nina Lindemann: There it is. You heard it before you saw it."
+        "Second manifest. The warehouse bell rings louder.",
+        "The audio voice calls out 1.5 seconds BEFORE the shelf lights up! Guessing by shelf color tier earns a 2.0x Early Pick Bonus!",
+        "Nina Voss: Pick on the sound, rookie! Don't wait for your eyes!"
       ],
       "choices": [
         {
-          "label": "[Pick on the word, before the light.]",
+          "label": "[Listen for the article and pick before the shelf glows!]",
           "to": "shift_3_test",
           "effects": [
             {
               "var": "wallet",
-              "expr": "wallet + 10.5"
+              "expr": "wallet + 17.5"
             },
             {
               "var": "shift_no",
@@ -797,7 +823,7 @@
             }
           ],
           "prose": [
-            "Twice you go early and twice you are right, and it pays double for early."
+            "You hear 'Der Kaffee' and slam the bottom blue shelf before the icon even renders. Double early payout!"
           ]
         }
       ],
@@ -805,8 +831,8 @@
       "beat": "ANTICIPATE: 1.5s icon delay. Player starts listening, not looking.",
       "origin": "new",
       "payout": {
-        "formula": "base + accuracy, anticipate mode",
-        "wallet": 10.5
+        "formula": "base 15.0 + early streak multiplier 2.0x",
+        "wallet": 17.5
       },
       "mode": "gameplay",
       "duration_s": 14,
@@ -851,18 +877,18 @@
         "mispick_buzz"
       ],
       "prose": [
-        "Third manifest. The light does not come.",
-        "It does not come because you do not need it any more. The voice says die Banane and your hand is already at the middle row, and you have known this word for eleven minutes.",
-        "You are standing in a freezing warehouse in a country you landed in two hours ago, sorting groceries by grammatical gender, and you are good at it."
+        "Shift 3. Pure audio recognition. The visual helper icons are gone completely.",
+        "The voice calls: 'Die Banane!' Your hand instinctively darts to the middle shelf.",
+        "You've been in Germany for barely three hours, and you're sorting municipal logistics by German grammatical gender in under 0.1 seconds."
       ],
       "choices": [
         {
-          "label": "[Finish the manifest.]",
+          "label": "[Finish the rush order by ear!]",
           "to": "shift_receipt",
           "effects": [
             {
               "var": "wallet",
-              "expr": "wallet + 11.5"
+              "expr": "wallet + 20.0"
             },
             {
               "var": "shift_no",
@@ -874,8 +900,8 @@
             }
           ],
           "prose": [
-            "Nina Lindemann: Same time tomorrow.",
-            "It is not a question, and you find that you do not want it to be."
+            "Nina Voss checks the dispatch terminal with a faint smirk.",
+            "Nina Voss: Not bad, England. Not bad at all. Print the receipt."
           ]
         }
       ],
@@ -883,8 +909,8 @@
       "beat": "THE AHA. Icon never arrives; the grammar has become spatial instinct.",
       "origin": "new",
       "payout": {
-        "formula": "base + accuracy + streak, test mode",
-        "wallet": 11.5
+        "formula": "base 15.0 + perfect audio accuracy + customer doorstep tip",
+        "wallet": 20
       },
       "mode": "gameplay",
       "duration_s": 12,
@@ -933,18 +959,18 @@
         "pick_confirm"
       ],
       "prose": [
-        "Three manifests. The receipt prints on paper that curls.",
-        "Nina Lindemann: Thirteen base, three runs, items clean, and a tip off the hostel because you said bitte.",
-        "Nina Lindemann: Thirty-one fifty for the night. Don't look so surprised. You earned it, that's what earned looks like."
+        "The register chimes as an itemized payslip prints out.",
+        "Nina Voss: Base wage 15€, accuracy bonus, 2.0x early streak, and a polite customer tip for saying Bitte at the door.",
+        "Nina Voss: That's 52.50€ earned across your first three runs. Reinvest in the Bike Shop for an E-Bike, or save it for your 250€ tuition."
       ],
       "choices": [
         {
-          "label": "[Take the receipt.]",
+          "label": "[Fold the receipt into your passport.]",
           "to": "rita_first",
           "gate": null,
           "effects": [],
           "prose": [
-            "You fold it into your passport, which is where you will keep every piece of paper for the next four weeks."
+            "Fifty-two quid in one evening. Still a long way to 250€, but your tuition bar is visibly climbing."
           ]
         }
       ],
@@ -2020,7 +2046,7 @@
         "mispick_buzz"
       ],
       "prose": [
-        "Nina Lindemann: Shift {shift_no}. Manifest's longer than yesterday. It gets longer every day, that's not a mistake, that's the job growing.",
+        "Nina Voss: Shift {shift_no}. Manifest's longer than yesterday. It gets longer every day, that's not a mistake, that's the job growing.",
         {
           "text": "The voice in the ceiling comes a beat before the icon now. You notice it, and you start picking on the word instead of the picture.",
           "if": "shift_no == 2"
@@ -2099,7 +2125,7 @@
         "freezer_hum"
       ],
       "prose": [
-        "Nina Lindemann: You can ask. I might not answer."
+        "Nina Voss: You can ask. I might not answer."
       ],
       "choices": [
         {
@@ -2139,7 +2165,7 @@
       "audio": [],
       "prose": [
         "She puts the tablet down, which she has never once done.",
-        "Nina Lindemann: She's my sister."
+        "Nina Voss: She's my sister."
       ],
       "choices": [
         {
@@ -2148,7 +2174,7 @@
           "to": "nina_sister_3",
           "effects": [],
           "prose": [
-            "Nina Lindemann: We don't speak. Eleven years. It's not interesting, it's just old."
+            "Nina Voss: We don't speak. Eleven years. It's not interesting, it's just old."
           ]
         },
         {
@@ -2163,7 +2189,7 @@
           ],
           "prose": [
             "One short laugh again.",
-            "Nina Lindemann: Straight to the point. Good."
+            "Nina Voss: Straight to the point. Good."
           ]
         }
       ],
@@ -2192,9 +2218,9 @@
       "props": [],
       "audio": [],
       "prose": [
-        "Nina Lindemann: It does nothing for you. She'd throw out anything with my name on it and she'd be right to.",
-        "Nina Lindemann: But I'll tell you what does work on her. She reads the file. The whole file. Every page, every time. She's the only one left in that building who does.",
-        "Nina Lindemann: So make the file good. Not sad. Good."
+        "Nina Voss: It does nothing for you. She'd throw out anything with my name on it and she'd be right to.",
+        "Nina Voss: But I'll tell you what does work on her. She reads the file. The whole file. Every page, every time. She's the only one left in that building who does.",
+        "Nina Voss: So make the file good. Not sad. Good."
       ],
       "choices": [
         {
@@ -2287,7 +2313,7 @@
             }
           ],
           "prose": [
-            "Nina Lindemann: Tips go up. People tip freshness, they just think they're tipping you."
+            "Nina Voss: Tips go up. People tip freshness, they just think they're tipping you."
           ]
         },
         {
@@ -2903,9 +2929,9 @@
       ],
       "prose": [
         "You take him in at six. Nina looks him up and down for two seconds.",
-        "Nina Lindemann: Can you read?",
+        "Nina Voss: Can you read?",
         "Nico: I'm in my third year of law.",
-        "Nina Lindemann: So, no. Bottom shelf is der. Go.",
+        "Nina Voss: So, no. Bottom shelf is der. Go.",
         "He is bad at it. He is so much worse at it than you were, and watching that is the best feeling you have had in this country.",
         "Nico, at the end of the shift, holding his back: How do you DO this every day."
       ],
@@ -3076,7 +3102,7 @@
       ],
       "prose": [
         "Bakery Hansa is nine degrees warmer than the street and smells like the inside of a good morning.",
-        "Martha Webber: Sit by the oven, child. You've gone a colour I don't like."
+        "Martha Beck: Sit by the oven, child. You've gone a colour I don't like."
       ],
       "choices": [
         {
@@ -3099,7 +3125,7 @@
           ],
           "prose": [
             "She puts a Franzbroetchen in front of you and turns her back so you can't argue with her about it.",
-            "Martha Webber: I said sit. I did not say buy."
+            "Martha Beck: I said sit. I did not say buy."
           ]
         },
         {
@@ -3177,8 +3203,8 @@
         "oven_roar_low"
       ],
       "prose": [
-        "Martha Webber: You've got the bank face. Everybody comes in here with the bank face eventually.",
-        "Martha Webber: My oven's been on since nineteen seventy-one. As long as it's on, nobody starves in this street. That's not a nice thought, it's just a fact about the street."
+        "Martha Beck: You've got the bank face. Everybody comes in here with the bank face eventually.",
+        "Martha Beck: My oven's been on since nineteen seventy-one. As long as it's on, nobody starves in this street. That's not a nice thought, it's just a fact about the street."
       ],
       "choices": [
         {
@@ -3216,7 +3242,7 @@
       ],
       "audio": [],
       "prose": [
-        "Martha Webber: Sparkasse, on the corner. The advisor there. Weber."
+        "Martha Beck: Sparkasse, on the corner. The advisor there. Weber."
       ],
       "choices": [
         {
@@ -3230,8 +3256,8 @@
             }
           ],
           "prose": [
-            "Martha Webber: One b. She dropped one when she married and I have never let it go.",
-            "Martha Webber: She's my daughter. Tell her Mama says you're not a problem, you're a queue."
+            "Martha Beck: One b. She dropped one when she married and I have never let it go.",
+            "Martha Beck: She's my daughter. Tell her Mama says you're not a problem, you're a queue."
           ]
         },
         {
@@ -3245,7 +3271,7 @@
             }
           ],
           "prose": [
-            "Martha Webber: No. She's better at rules and worse at people. Between us we make one whole woman."
+            "Martha Beck: No. She's better at rules and worse at people. Between us we make one whole woman."
           ]
         }
       ],
@@ -3280,7 +3306,7 @@
         "paper_bag_rustle"
       ],
       "prose": [
-        "Martha Webber: Go on. And take this, don't argue, it's yesterday's."
+        "Martha Beck: Go on. And take this, don't argue, it's yesterday's."
       ],
       "choices": [
         {
@@ -4151,7 +4177,7 @@
         "terminal_beep"
       ],
       "prose": [
-        "Nina Lindemann: How short."
+        "Nina Voss: How short."
       ],
       "choices": [
         {
@@ -4174,8 +4200,8 @@
           ],
           "prose": [
             "She looks at the roster, then at the clock, then at you.",
-            "Nina Lindemann: Double shift. Tonight, day route, lit roads, and I'll advance the rest against next week.",
-            "Nina Lindemann: Not the harbour road. I know Klaus talks. Not the harbour road.",
+            "Nina Voss: Double shift. Tonight, day route, lit roads, and I'll advance the rest against next week.",
+            "Nina Voss: Not the harbour road. I know Klaus talks. Not the harbour road.",
             "Fourteen hours. Wallet {wallet}€. You cannot feel your hands and you have the money."
           ]
         }

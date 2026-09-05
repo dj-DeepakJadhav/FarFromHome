@@ -92,18 +92,19 @@ window.FFH.CityCamera = class {
     // Spinning the camera based on player heading makes point-and-click steering extremely difficult.
     const restDeg = CAM.startAngleDeg !== undefined ? CAM.startAngleDeg : 135;
     const restAngle = restDeg * Math.PI / 180;
+    const isMiniature = CAM.fixedMiniature !== false;
     
     let targetAngle = restAngle;
 
-    if (this.manualCameraAngle !== undefined) {
+    if (!isMiniature && this.manualCameraAngle !== undefined) {
       targetAngle = this.manualCameraAngle;
-    } else if (this.idleTimer > 10.0) {
+    } else if (!isMiniature && this.idleTimer > 10.0) {
       targetAngle += this.idleDriftAngle;
     }
 
     if (isMoving) {
       this.resetIdle();
-    } else {
+    } else if (!isMiniature) {
       this.idleTimer += dt;
       if (this.idleTimer > (CAM.idleDriftDelay !== undefined ? CAM.idleDriftDelay : 10.0)) {
         this.idleDriftAngle = Math.sin((this.idleTimer - (CAM.idleDriftDelay ?? 10.0)) * 0.3)
@@ -111,27 +112,27 @@ window.FFH.CityCamera = class {
       }
     }
 
-    if (this.camCurrentAngle === undefined) {
+    if (this.camCurrentAngle === undefined || isMiniature) {
       this.camCurrentAngle = targetAngle;
+    } else {
+      // Shortest-path angular unwrapping to eliminate 360-degree snap / whipping
+      let angleDiff = targetAngle - this.camCurrentAngle;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+
+      // Follow camera angle damping: read from CONFIG
+      const angleDampRate = isMoving
+        ? (CAM.angleDampMoving !== undefined ? CAM.angleDampMoving : 6.5)
+        : (CAM.angleDampIdle   !== undefined ? CAM.angleDampIdle   : 3.0);
+      const angleDamp = 1.0 - Math.exp(-angleDampRate * dt);
+      this.camCurrentAngle += angleDiff * angleDamp;
     }
 
-    // Shortest-path angular unwrapping to eliminate 360-degree snap / whipping
-    let angleDiff = targetAngle - this.camCurrentAngle;
-    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-
-    // Follow camera angle damping: read from CONFIG
-    const angleDampRate = isMoving
-      ? (CAM.angleDampMoving !== undefined ? CAM.angleDampMoving : 6.5)
-      : (CAM.angleDampIdle   !== undefined ? CAM.angleDampIdle   : 3.0);
-    const angleDamp = 1.0 - Math.exp(-angleDampRate * dt);
-    this.camCurrentAngle += angleDiff * angleDamp;
-
-    // Lookahead: subtle lookahead so player remains centered
-    if (isMoving && this.phase.playerHeading !== undefined) {
+    // Lookahead: zero in miniature mode so player remains rock-solid centered
+    if (!isMiniature && isMoving && this.phase.playerHeading !== undefined) {
       const lookaheadDist = THREE.MathUtils.lerp(
-        CAM.lookaheadFar   !== undefined ? CAM.lookaheadFar   : 0.35,
-        CAM.lookaheadClose !== undefined ? CAM.lookaheadClose : 0.12,
+        CAM.lookaheadFar   !== undefined ? CAM.lookaheadFar   : 0.15,
+        CAM.lookaheadClose !== undefined ? CAM.lookaheadClose : 0.05,
         zoomFactor
       );
       this.targetLookahead.set(

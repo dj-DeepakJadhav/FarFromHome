@@ -278,7 +278,8 @@ class GameEngine {
       }
       // Animate water on title screen too
       if (this.titleWaterMat && this.titleWaterMat.uniforms && this.titleWaterMat.uniforms.time) {
-        this.titleWaterMat.uniforms.time.value = t;
+        const wSpd = (window.FFH.CONFIG && window.FFH.CONFIG.environment && window.FFH.CONFIG.environment.waterSpeed !== undefined) ? window.FFH.CONFIG.environment.waterSpeed : 1.0;
+        this.titleWaterMat.uniforms.time.value = t * wSpd;
       }
     }
 

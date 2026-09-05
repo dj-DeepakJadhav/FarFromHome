@@ -14,7 +14,7 @@
 
 - [x] **File Structure**: Single `index.html` at the root of the submission zip.
 - [x] **Vendor Assets**: `vendor/` folder included alongside `index.html`.
-- [x] **Strict Size Limit**: `node build/check-size.js` → 3.63 MB, well under 35 MB.
+- [x] **Strict Size Limit**: `node build/check-size.js` → 11.08 MB, well under 35 MB (see [`../CANONICAL_NUMBERS.md`](../CANONICAL_NUMBERS.md)).
 - [x] **100% Offline Airgap**: verified 2026-09-02 in the DevTools Network tab across
       repeated loads — the document request appears and nothing else. The Kenney
       colour atlas is inlined as a `data:` URI, so the previous relative fetch of
@@ -69,8 +69,6 @@
 ## 4. Known open risks
 
 1. The gameplay video is the single hard blocker and has not been started.
-2. Two character-name collisions remain in shipped dialogue — `Frau Weber` (banker)
-   vs `Martha Webber` (baker), and `Nina Lindemann` vs `Dr. Lindemann`. The video
-   script currently greets the baker as "Frau Webber".
+2. [RESOLVED] Character-name collisions resolved (`Martha Beck` for baker, `Nina Voss` for dispatcher; `Frau Weber` for banker, `Dr. Lindemann` for immigration officer).
 3. The Kenney food models render for the first time as of 2026-09-02 and have not
    been visually reviewed on the shelf.

@@ -104,8 +104,10 @@ window.FFH.DialoguePhase = class {
     if (window.FFH.createNPCMesh) {
       this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
       const ROOM_NPC_PRESETS = window.FFH.ROOM_NPC_PRESETS || {};
-      const preset = ROOM_NPC_PRESETS[bType] || { x: -0.25, y: 0.05, z: -0.8, rotY: 0.85, scale: 2.6 };
-      this.npcGroup.position.set(preset.x, preset.y + 1.10, preset.z);
+      const preset = ROOM_NPC_PRESETS[bType] || { x: -0.25, y: 0.38, z: -0.8, rotY: 0.85, scale: 2.6 };
+      this.currentCharY = preset.y;
+      this.npcGroup.userData.floorY = preset.y;
+      this.npcGroup.position.set(preset.x, preset.y, preset.z);
       this.npcGroup.rotation.y = preset.rotY;
       this.npcGroup.scale.multiplyScalar(preset.scale);
       this.game.scene.add(this.npcGroup);
@@ -160,7 +162,7 @@ window.FFH.DialoguePhase = class {
       }
       if (!this.npcGroup.userData.mixer) {
         const time = this.game.clock.getElapsedTime();
-        const baseY = this.game.phases.CITY_EXPLORATION.playerPos.y;
+        const baseY = this.currentCharY !== undefined ? this.currentCharY : 0.38;
         this.npcGroup.position.y = baseY + Math.sin(time * 3) * 0.03;
       }
     }

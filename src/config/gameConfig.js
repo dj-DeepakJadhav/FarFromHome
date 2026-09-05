@@ -10,6 +10,16 @@ window.FFH.CONFIG = {
   // ----------------------------------------------------------
   //  CAMERA — follow camera behaviour in city exploration
   // ----------------------------------------------------------
+
+  // ----------------------------------------------------------
+  //  ENVIRONMENT ANIMATION SPEEDS
+  // ----------------------------------------------------------
+  environment: {
+    cloudSpeed: 1.0,
+    birdSpeed: 1.0,
+    butterflySpeed: 1.0,
+    waterSpeed: 1.0
+  },
   camera: {
     // Default zoom level on scene entry (OrthographicCamera zoom multiplier).
     // Higher = larger/closer character on screen.
@@ -22,59 +32,39 @@ window.FFH.CONFIG = {
     // Maximum zoom (pinch-in / scroll-in limit) — very close over-the-shoulder
     maxZoom:      3.84,
 
+    // Fixed Miniature mode: locks camera to a classic tabletop isometric perspective
+    // (no disorienting rotation, no lookahead wall-pushing, no idle sway).
+    fixedMiniature: true,
+
     // Initial camera orbit angle when entering the city (degrees, clockwise from north).
-    // 0   = camera behind player looking north (player faces away from you)
-    // 45  = isometric SW corner (original default → often blocked by buildings)
-    // 90  = camera to the left of player looking east
-    // 135 = isometric SE corner
-    // 180 = camera in front of player looking south (player faces you)
-    // 225 = isometric NE corner (current code default = playerHeading + 180°)
-    // 270 = camera to the right of player looking west
-    // Try 135 or 180 if buildings block the view at spawn.
+    // 135 = classic isometric SE corner (clean diorama street view)
     startAngleDeg: 135,
 
     // Camera height above the focal point (world units).
-    // Lower = more horizontal angle, shows buildings ahead.
-    // Higher = steeper top-down angle.
-    // At defaultZoom the camera uses baseHeightFar; zoomed in uses baseHeightClose.
-    baseHeightFar:   0.95,   // height at minZoom
-    baseHeightClose: 0.45,   // height at maxZoom
+    baseHeightFar: 1.15,   // height at minZoom
+    baseHeightClose: 0.65,   // height at maxZoom
 
     // Camera lateral distance behind the player (world units).
-    baseDistanceFar:   1.7,  // distance at minZoom
-    baseDistanceClose: 0.80, // distance at maxZoom
+    baseDistanceFar: 1.75,  // distance at minZoom
+    baseDistanceClose: 0.95, // distance at maxZoom
 
     // Where the camera looks relative to the player's feet (Y offset).
-    // 0.7 = waist, 1.1 = head/shoulders, 1.5 = above head (more sky/buildings)
-    lookTargetYOffset: 1.1,
+    lookTargetYOffset: 0.85,
 
-    // How quickly the camera rotates to track the player's heading (radians/sec damping exponent).
-    // Higher = snappier tracking.  6.5 moving, 3.0 idle are good defaults.
-    angleDampMoving: 6.5,
-    angleDampIdle:   3.0,
+    // Damping speeds
+    positionDamp: 10.0,
+    focalDampRate: 8.0,
 
-    // How quickly camera position lerps to desired position (exponential damp rate).
-    // 12.0 = very responsive.  Lower (e.g. 5.0) = smoother but laggy.
-    positionDamp: 12.0,
-
-    // Idle drift: after this many seconds of no input the camera starts a slow drift orbit.
+    // Idle drift: 0 for stable tabletop diorama
     idleDriftDelay:  10.0,
-    // Amplitude of idle drift orbit (radians).
-    idleDriftAmplitude: 0.25,
+    idleDriftAmplitude: 0.0,
 
     // When the camera looks through a building, it fades out.
-    // 0.0 = completely invisible, 1.0 = solid.
     occlusionOpacity: 0.05,
 
-    // --- Damping & Smoothing ---
-    // Lower = softer, slower follow. Higher = stiffer, jerkier.
-    angleDampMoving:  4.5,   // was 6.5
-    angleDampIdle:    2.0,   // was 3.0
-
-    // Lookahead: how far the camera pushes forward in the direction you are facing
-    // Reduce these to stop the camera from "pushing through walls" when the player is stuck against one.
-    lookaheadFar:   0.15,    // was 0.35
-    lookaheadClose: 0.05,    // was 0.12
+    // Lookahead: set to 0.0 for rock-solid centered miniature framing
+    lookaheadFar: 0.0,
+    lookaheadClose: 0.0,
 
     // Mouse wheel zoom sensitivity (zoom units per scroll pixel).
     wheelZoomSensitivity: 0.001,
@@ -180,38 +170,75 @@ window.FFH.CONFIG = {
     },
   },
 
+  // ----------------------------------------------------------
+  //  ENVIRONMENT — sky, clouds, butterflies, and birds tuning
+  // ----------------------------------------------------------
+  environment: {
+    clouds: {
+      speedMultiplier: 1.0,  // Global multiplier for cloud drift speed (default: 1.0)
+      baseSpeed: 1.2,        // Fallback speed if cloud has no individual speed
+      wrapMinX: -15,         // X boundary where clouds reset
+      wrapMaxX: 65           // X boundary that triggers reset
+    },
+    butterflies: {
+      wingFlapSpeed: 25.0,   // Wing flapping frequency multiplier (default: 25.0)
+      flutterSpeed: 2.0,     // Body hover and orbit oscillation speed (default: 2.0)
+      heightBobSpeed: 4.0,   // Up/down bobbing frequency (default: 4.0)
+      heightBobAmp: 0.2,     // Height bob amplitude (default: 0.2)
+      orbitRadius: 0.4       // Lateral fluttering radius around base (default: 0.4)
+    },
+    birds: {
+      flightSpeedMultiplier: 1.0, // Global multiplier for bird travel speed along loops (default: 1.0)
+      baseSpeed: 5.5,             // Default bird cruising speed (default: 5.5)
+      wingFlapSpeed: 14.0,        // Wing flapping frequency (default: 14.0)
+      wingFlapAmp: 0.45,          // Wing flapping angle amplitude in radians (default: 0.45)
+      bankTurnSpeed: 3.0          // Turn rotation smoothing rate (default: 3.0)
+    }
+  },
+
 };
 
 // ============================================================
 //  DIORAMA / ISOMETRIC ROOM NPC POSITIONS
-//  Use this to manually tweak the Y offset of characters if they are sinking into the floor
+//  Edit these values to tune character placement in any interior:
+//  - x: horizontal position (-1.0 to 1.0)
+//  - y: floor elevation (0.05 for flat floor/rugs, 0.40 - 0.50 behind counters)
+//  - z: depth (-1.2 deep back wall, -0.6 counter line, 0.0 center)
+//  - rotY: rotation facing angle (0 = front facing camera, 0.85 = isometric 45 deg)
+//  - scale: model scale factor (1.8 - 2.2 fits 2.6m room height nicely)
 // ============================================================
 window.FFH.ROOM_NPC_PRESETS = {
-  // B_PIZZA / PIZZERIA
-  'PIZZERIA':     { x: -0.45, y: 0.05, z: -1.10, rotY: 0.85, scale: 2.6 },
-  'B_PIZZA':      { x: -0.45, y: 0.3, z: -1.10, rotY: 0.85, scale: 2.6 },
+  // B_PIZZA / PIZZERIA (Mathias Becker behind pizza service counter)
+  // Counter is at x: -0.5, y: -0.21, z: -0.6 with height 0.85
+  'PIZZERIA': { x: -0.50, y: -0.21, z: -1.05, rotY: 0.15, scale: 2.2 },
+  'B_PIZZA': { x: -0.50, y: -0.21, z: -1.05, rotY: 0.15, scale: 2.2 },
   
-  // B_BAKERY / BAKERY
-  'BAKERY':       { x: -0.40, y: 0.05, z: -1.10, rotY: 0.85, scale: 2.6 },
-  'B_BAKERY':     { x: -0.40, y: 0.05, z: -1.10, rotY: 0.85, scale: 2.6 },
+  // B_BAKERY / BAKERY (Martha Beck behind pastry display showcase)
+  // Showcase is at x: -0.4, y: -0.21, z: -0.6 with height 0.85
+  'BAKERY': { x: -0.40, y: -0.21, z: -1.05, rotY: 0.15, scale: 2.2 },
+  'B_BAKERY': { x: -0.40, y: -0.21, z: -1.05, rotY: 0.15, scale: 2.2 },
 
-  // B_UNI / UNI / UNI_LOBBY
-  'UNI':          { x: -0.20, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
-  'UNI_LOBBY':    { x: -0.20, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
-  'B_UNI':        { x: -0.20, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
+  // B_UNI / UNI / UNI_LOBBY (Rita Schneider behind admissions counter)
+  'UNI': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
+  'UNI_LOBBY': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
+  'B_UNI': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
 
-  // B_AUSLAENDER / AUSLAENDER
-  'AUSLAENDER':   { x: -0.30, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
-  'B_AUSLAENDER': { x: -0.30, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
+  // B_AUSLAENDER / AUSLAENDER (Dr. Lindemann behind immigration desk)
+  'AUSLAENDER': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
+  'B_AUSLAENDER': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
 
-  // B_WG / WG_ROOM / WG_KITCHEN
-  'WG_ROOM':      { x:  0.20, y: 0.05, z: -0.30, rotY: 0.85, scale: 2.6 },
-  'WG_KITCHEN':   { x:  0.20, y: 0.05, z: -0.30, rotY: 0.85, scale: 2.6 },
-  'B_WG':         { x:  0.20, y: 0.05, z: -0.30, rotY: 0.85, scale: 2.6 },
+  // B_WG / WG_ROOM / WG_KITCHEN (Nico standing on the rug in dorm room)
+  // No counter in front — stands at floor/rug level (y: -0.21, scale: 1.8 fits room height)
+  'WG_ROOM': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
+  'WG_KITCHEN': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
+  'B_WG': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
 
   // OTHERS
-  'DARKSTORE':    { x: -0.60, y: 0.05, z: -0.35, rotY: 0.85, scale: 2.6 },
-  'RATHAUS':      { x: -0.20, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 },
-  'BANK':         { x: -0.30, y: 0.05, z: -1.15, rotY: 0.85, scale: 2.6 }
+  'DARKSTORE': { x: -0.50, y: -0.21, z: -0.50, rotY: 0.35, scale: 2.2 },
+  'B_DARKSTORE': { x: -0.50, y: -0.21, z: -0.50, rotY: 0.35, scale: 2.2 },
+  'RATHAUS': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
+  'B_RATHAUS': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
+  'BANK': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
+  'B_BANK': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 }
 };
 

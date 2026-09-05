@@ -32,21 +32,8 @@ window.FFH.StoryRunner = class {
       if (this.scenesById && this.scenesById[britishCandidate]) {
         return britishCandidate;
       }
-      // Explicit mapping for Act 1 British Comedy Storyboard beats
-      const britishBeatMap = {
-        'act_one': 'b_act_one',
-        'wg_door': 'b_wg_door',
-        'wg_door_scenic': 'b_wg_door',
-        'wg_door_fast': 'b_wg_door',
-        'nico_kitchen': 'b_wg_door',
-        'nico_sends_kruma': 'b_uni_locked',
-        'uni_closed': 'b_uni_locked',
-        'pizzeria_job': 'b_pizzeria_job',
-        'bakery_job': 'b_bakery_job',
-        'shift_1_teach': 'b_shift_1_teach'
-      };
-      if (britishBeatMap[sceneId]) {
-        return britishBeatMap[sceneId];
+      if (window.FFH.BRITISH_BEAT_MAP && window.FFH.BRITISH_BEAT_MAP[sceneId]) {
+        return window.FFH.BRITISH_BEAT_MAP[sceneId];
       }
     }
     return sceneId;
@@ -62,11 +49,9 @@ window.FFH.StoryRunner = class {
       return scene.stage.loc;
     }
     // Fallback POI mappings for British comedy beats
-    if (resolvedId === 'b_wg_door') return 'B_WG';
-    if (resolvedId === 'b_uni_locked') return 'B_UNI';
-    if (resolvedId === 'b_pizzeria_job') return 'B_PIZZA';
-    if (resolvedId === 'b_bakery_job') return 'B_BAKERY';
-    if (resolvedId === 'b_shift_1_teach') return 'B_DARKSTORE';
+    if (window.FFH.BRITISH_POI_FALLBACK && window.FFH.BRITISH_POI_FALLBACK[resolvedId]) {
+      return window.FFH.BRITISH_POI_FALLBACK[resolvedId];
+    }
     return null;
   }
 
@@ -105,38 +90,11 @@ window.FFH.StoryRunner = class {
   }
 
   evaluateExpr(expr, state) {
-    if (typeof expr === 'boolean') return expr;
-    if (typeof expr === 'number') return expr;
-    if (expr === 'true') return true;
-    if (expr === 'false') return false;
-
-    try {
-      const keys = Object.keys(state);
-      const values = Object.values(state);
-      const fn = new Function(...keys, `return (${expr});`);
-      return fn(...values);
-    } catch (e) {
-      console.warn(`StoryRunner: Failed to evaluate expr "${expr}":`, e);
-      return null;
-    }
+    return window.FFH.evaluateStoryExpr(expr, state);
   }
 
   checkGate(gate, state) {
-    if (!gate) return true;
-    try {
-      let jsGate = gate
-        .replace(/\bnot\s+/g, '!')
-        .replace(/\band\b/g, '&&')
-        .replace(/\bor\b/g, '||');
-      
-      const keys = Object.keys(state);
-      const values = Object.values(state);
-      const fn = new Function(...keys, `return Boolean(${jsGate});`);
-      return fn(...values);
-    } catch (e) {
-      console.warn(`StoryRunner: Failed to evaluate gate "${gate}":`, e);
-      return true;
-    }
+    return window.FFH.checkStoryGate(gate, state);
   }
 
   applyEffects(effects) {
@@ -166,44 +124,11 @@ window.FFH.StoryRunner = class {
   }
 
   checkHealthState() {
-    const s = this.game.state;
-    if (s.body !== undefined && s.body <= 0) {
-      s.body = 15;
-      s.wallet = Math.max(0, s.wallet - 8);
-      if (this.game.ui && this.game.ui.spawnFloatingText) {
-        this.game.ui.spawnFloatingText('⚠️ Physical Collapse! Rested 1 day (-8€)', window.innerWidth / 2, window.innerHeight / 2, '#E63946');
-      }
-    }
-    if (s.heart !== undefined && s.heart <= 0) {
-      s.heart = 20;
-      if (this.game.ui && this.game.ui.spawnFloatingText) {
-        this.game.ui.spawnFloatingText('💔 Severe Despair! Nico checked in on you.', window.innerWidth / 2, window.innerHeight / 2, '#E63946');
-      }
-    }
+    window.FFH.checkStoryHealth(this.game.state, this.game.ui);
   }
 
   interpolate(text) {
-    if (!text) return '';
-    const state = this.game.state;
-    return text.replace(/\{([^}]+)\}/g, (match, expr) => {
-      if (expr.includes(':')) {
-        const parts = expr.split(':');
-        const cond = parts[0].trim();
-        const branch = parts[1].split('|');
-        const ifTrue = branch[0] || '';
-        const ifFalse = branch[1] || '';
-        const res = this.checkGate(cond, state);
-        return res ? ifTrue : ifFalse;
-      }
-      const val = this.evaluateExpr(expr, state);
-      if (val !== null && val !== undefined) {
-        if (typeof val === 'number') {
-          return val.toFixed(2).replace(/\.00$/, '');
-        }
-        return String(val);
-      }
-      return match;
-    });
+    return window.FFH.interpolateStoryText(text, this.game.state);
   }
 
   startScene(sceneId) {
@@ -215,50 +140,7 @@ window.FFH.StoryRunner = class {
     const channel = (this.game && this.game.state && this.game.state.activeStoryChannel) || 'british';
 
     if (channel === 'british') {
-      if (resolvedId === 'b_wg_door') {
-        // Scene 3 WG Buzzer -> Scene 4 Muelltrennung -> Scene 5 Tuition Letter
-        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
-          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_WG');
-          return;
-        }
-      } else if (resolvedId === 'b_uni_locked') {
-        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
-          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_UNI');
-          return;
-        }
-      } else if (resolvedId === 'b_pizzeria_job') {
-        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
-          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_PIZZA');
-          return;
-        }
-      } else if (resolvedId === 'b_bakery_job') {
-        if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction) {
-          this.game.phases.CITY_EXPLORATION.triggerBuildingInteraction('B_BAKERY');
-          return;
-        }
-      } else if (resolvedId === 'day1_sleep' || resolvedId === 'b_day1_sleep') {
-        // WG beacon arrived — clear building entry guard and fire Day 1 Recap directly
-        const cx = this.game.phases && this.game.phases.CITY_EXPLORATION;
-        if (cx) {
-          cx.isEnteringBuilding = false;
-          cx.inputDisabled = false;
-        }
-        if (this.game.ui && this.game.ui.showDayRecapModal && cx && this.game.state.hasVisitedLockedUni && !this.game.state.hasSleptDay1) {
-          this.game.ui.showDayRecapModal(() => {
-            this.game.state.hasSleptDay1 = true;
-            this.game.state.day = 2;
-            this.game.state.questStep = 4;
-            this.game.state.activeObjective = 'Tag 2 (07:00): Head to Kruma Express Dark Store for Shift 1!';
-            if (this.game.ui && this.game.ui.updateQuestTracker) this.game.ui.updateQuestTracker();
-            if (this.game.ui && this.game.ui.refreshStats) this.game.ui.refreshStats(this.game.state);
-            cx.updateAtmosphericTime && cx.updateAtmosphericTime(0.30);
-            if (this.game.ui && this.game.ui.spawnWandererThought) {
-              this.game.ui.spawnWandererThought("Day 2. Sun is up, tea is drunk, and my landlord is still threatening eviction. Time to tackle Kruma Express.");
-            }
-            if (window.FFH && window.FFH.saveGame) window.FFH.saveGame(this.game);
-            cx.startBuildingExit && cx.startBuildingExit();
-          });
-        }
+      if (window.FFH.handleBritishSpecialBeats && window.FFH.handleBritishSpecialBeats(resolvedId, this.game)) {
         return;
       }
     }
@@ -330,31 +212,7 @@ window.FFH.StoryRunner = class {
 
     // 3. Move Player and Position Camera to stage.loc when in city
     if (stage.loc && cityPhase && cityPhase.worldGroup && cityPhase.courier) {
-      const locPositions = {
-        // Each position is the R_C (road) tile immediately outside the building entrance.
-        // Building centres are at col*2.6, row*2.6 — those are inside walls.
-        // TILE_SCALE = 2.6; grid reference: LUBECK_CITY_GRID
-        'B_ZOB':        { x: 10.4, z:  5.2 },  // row2,col4 R_C (east of ZOB)
-        'B_BANK':       { x: 41.6, z:  5.2 },  // row2,col16 building — col15 R_C would be 39.0
-        'B_UNI':        { x: 20.8, z: 15.6 },  // row6,col8  R_C (west of UNI)
-        'B_BAKERY':     { x:  7.8, z: 18.2 },  // row7,col3  R_C (east of Bakery)
-        'B_BURGTOR':    { x: 36.4, z: 18.2 },  // row7,col14 building — keep as-is (road bridge)
-        'B_RATHAUS':    { x: 23.4, z: 23.4 },  // row9,col9 B_RATHAUS itself is road-adjacent
-        'B_PIZZA':      { x: 28.6, z: 23.4 },  // row9,col11 building — col12 R_C = 31.2
-        'B_WG':         { x:  7.8, z: 26.0 },  // row10,col3 R_C (east of WG)
-        'B_AUSLAENDER': { x: 36.4, z: 26.0 },  // row10,col14 building entrance
-        'B_BIKESHOP':   { x:  7.8, z: 31.2 },  // row12,col3 R_C (east of Bikeshop)
-        'B_KINO':       { x: 26.0, z: 31.2 },  // row12,col10 building (road left/right)
-        'B_HOLSTEN':    { x: 18.2, z: 33.8 },  // row13,col7 bridge area
-        'B_MARIEN':     { x: 57.2, z: 33.8 },  // row13,col22 — keep
-        'B_DOM':        { x: 26.0, z: 44.2 },  // row17,col10
-        'B_DARKSTORE':  { x:  7.8, z: 46.8 },  // row18,col3 R_C (east of Darkstore)
-        'LM_ALTSTADT':  { x: 20.8, z: 18.2 },
-        'LM_CANAL':     { x: 20.8, z: 31.2 },
-        'LM_MARKTPLATZ':{ x: 26.0, z: 23.4 }
-      };
-
-      const targetPos = locPositions[stage.loc];
+      const targetPos = window.FFH.STORY_LOC_POSITIONS ? window.FFH.STORY_LOC_POSITIONS[stage.loc] : null;
       if (targetPos) {
         cityPhase.playerPos.x = targetPos.x;
         cityPhase.playerPos.z = targetPos.z;
@@ -481,15 +339,7 @@ window.FFH.StoryRunner = class {
     let npcKey = 'NPC_NICO';
     if (scene.cast && scene.cast.length) {
       npcKey = scene.cast[0];
-      if (npcKey === 'NPC_NICO') speaker = 'Nico';
-      else if (npcKey === 'NPC_RITA') speaker = 'Rita Schneider';
-      else if (npcKey === 'NPC_NINA') speaker = 'Nina Lindemann';
-      else if (npcKey === 'NPC_LOKKER') speaker = 'Herr Hans Lokker';
-      else if (npcKey === 'NPC_VOGEL') speaker = 'Herr Vogel';
-      else if (npcKey === 'NPC_MARTHA') speaker = 'Martha';
-      else if (npcKey === 'NPC_PIZZERIA_OWNER') speaker = 'Pizzeria Owner';
-      else if (npcKey === 'NPC_MATHIAS') speaker = 'Mathias Becker';
-      else if (npcKey === 'NPC_LINDEMANN') speaker = 'Dr. Lindemann';
+      speaker = (window.FFH.NPC_SPEAKER_MAP && window.FFH.NPC_SPEAKER_MAP[npcKey]) || 'Conversation';
     }
 
     // Separate action/narrative prose from spoken dialogue lines
@@ -610,34 +460,8 @@ window.FFH.StoryRunner = class {
       const TRAVEL_REQUIRED = !!(targetLoc && currentLoc && targetLoc !== currentLoc);
 
       if (TRAVEL_REQUIRED) {
-        const objectiveMap = {
-          'act_one':          '🧳 Find Room 4 — Student WG (drag your suitcase south)',
-          'b_act_one':        '🧳 Find Room 4 — Student WG (drag your suitcase south)',
-          'wg_door':          '🏠 Find Room 4 — Student WG (south)',
-          'wg_door_scenic':   '🏠 Find Room 4 — Student WG (south)',
-          'wg_door_fast':     '🏠 Find Room 4 — Student WG (south)',
-          'nico_sends_kruma': '🎓 Check out Lübeck University (east across the bridge)',
-          'uni_closed':       '🎓 Check out Lübeck University (east across the bridge)',
-          'pizzeria_job':     '🍕 Try the pizzeria near the market — ask about work',
-          'bakery_job':       '🥐 Try the bakery — ask about work',
-          'shift_1_teach':    '📦 Kruma Express — Nina is expecting you (behind the Holstentor)',
-        };
-        const locNames = {
-          'B_ZOB': 'Train Station (ZOB)',
-          'B_WG': 'Student WG (Room 4)',
-          'B_UNI': 'Lübeck University',
-          'B_PIZZA': 'Pizzeria Bella',
-          'B_BAKERY': 'Bakery Hansa',
-          'B_DARKSTORE': 'Kruma Express Dark Store',
-          'B_BANK': 'Sparkasse Bank',
-          'B_RATHAUS': 'Bürgeramt (Town Hall)',
-          'B_AUSLAENDER': 'Ausländerbehörde (Immigration)',
-          'LM_MARKTPLATZ': 'Marktplatz (Town Square)',
-          'LM_CANAL': 'Canal Bridge',
-          'LM_ALTSTADT': 'Altstadt Center'
-        };
-        const prettyLoc = locNames[targetLoc] || 'Town';
-        const objective = objectiveMap[target] || `Head towards ${prettyLoc}`;
+        const prettyLoc = (window.FFH.STORY_LOC_NAMES && window.FFH.STORY_LOC_NAMES[targetLoc]) || 'Town';
+        const objective = (window.FFH.STORY_OBJECTIVE_MAP && window.FFH.STORY_OBJECTIVE_MAP[target]) || `Head towards ${prettyLoc}`;
         console.log(`[StoryRunner] TRAVEL_REQUIRED to scene '${target}' at '${targetLoc}'. Setting objective: ${objective}`);
 
         this.pendingStoryTarget = { sceneId: target, poi: targetLoc, objective };

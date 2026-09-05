@@ -74,7 +74,31 @@ window.FFH.preloadAllNPCModels = async function() {
 window.FFH.createNPCMesh = function(npcKey) {
   const mapping = window.FFH.NPC_GLB_MAPPING || {};
   const glbKey = mapping[npcKey] || npcKey;
-  const template = getGLBTemplate(glbKey);
+  let template = getGLBTemplate(glbKey);
+
+  // If not cached, attempt synchronous parse from base64 catalog immediately
+  if (!template && window.FFH.GLB_CHARACTERS_BASE64 && window.FFH.GLB_CHARACTERS_BASE64[glbKey]) {
+    try {
+      const loader = getGLTFLoader();
+      const b64 = window.FFH.GLB_CHARACTERS_BASE64[glbKey];
+      const arrayBuffer = base64ToArrayBuffer(b64);
+      loader.parse(arrayBuffer, '', (gltf) => {
+        gltf.scene.traverse((o) => {
+          if (o.isMesh) {
+            o.castShadow = true;
+            o.receiveShadow = true;
+          }
+        });
+        template = {
+          scene: gltf.scene,
+          animations: gltf.animations || []
+        };
+        _glbTemplateCache.set(glbKey, template);
+      });
+    } catch (err) {
+      console.error('Failed on-demand parse of GLB:', glbKey, err);
+    }
+  }
 
   if (!template) {
     console.warn(`NPC GLB model not found for ${npcKey} (key: ${glbKey}), using procedural fallback.`);
@@ -82,7 +106,28 @@ window.FFH.createNPCMesh = function(npcKey) {
   }
 
   // Clone template scene
+    // Clone template scene
   const charModel = template.scene.clone(true);
+  
+  // THREE.js GLTF clone() does not duplicate skeletons properly. Fix bone references:
+  const sourceSkinnedMeshes = [];
+  template.scene.traverse(node => { if (node.isSkinnedMesh) sourceSkinnedMeshes.push(node); });
+  
+  const cloneBones = {};
+  const cloneSkinnedMeshes = [];
+  charModel.traverse(node => {
+    if (node.isBone) cloneBones[node.name] = node;
+    if (node.isSkinnedMesh) cloneSkinnedMeshes.push(node);
+  });
+  
+  cloneSkinnedMeshes.forEach((cloneMesh, i) => {
+    const sourceMesh = sourceSkinnedMeshes[i];
+    const sourceBones = sourceMesh.skeleton.bones;
+    const newBones = sourceBones.map(bone => cloneBones[bone.name]);
+    cloneMesh.skeleton = new THREE.Skeleton(newBones, sourceMesh.skeleton.boneInverses);
+    cloneMesh.bindMatrix.copy(sourceMesh.bindMatrix);
+  });
+  
   const isGeneric = glbKey.startsWith('character-') && glbKey.length === 11; // 'character-a' to 'character-r'
   
   // Both generic and named character rigs fit nicely with scale 0.55
@@ -143,17 +188,11 @@ window.FFH.createNPCMesh = function(npcKey) {
 };
 
 // Global animation update method called each frame for NPC groups
-window.FFH.updateNPCAnimation = function(npcGroup, delta) {
+window.FFH.updateNPCAnimation = function(npcGroup, delta, floorY = null) {
   if (npcGroup && npcGroup.userData && npcGroup.userData.mixer) {
     npcGroup.userData.mixer.update(delta);
     
-    // BULLETPROOF FIX: Some character models (like Mathias and Martha) have animation tracks 
-    // that aggressively push their root bones below the floor line.
-    // This dynamically calculates their exact world bounds and pushes them back up if they sink.
-    const box = new THREE.Box3().setFromObject(npcGroup);
-    // If the lowest point of the character's geometry goes below Y=0.05 (floor level)
-    if (box.min.y < 0.05 && box.min.y > -100) { // Safety check to prevent NaN/Infinity jumps
-      npcGroup.position.y += (0.05 - box.min.y);
-    }
+    // We intentionally do NOT use Box3 here because setFromObject 
+    // evaluates the rest pose, not the skinned pose!
   }
 };

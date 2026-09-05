@@ -30,13 +30,20 @@
 
 ## 🟠 High — credibility risks a judge can see
 
-- [ ] **Rename the two colliding character pairs.** Verified counts in `src/`:
-  - `Frau Weber` (banker, 20 refs) vs `Martha Webber` / `Frau Webber` (baker, 8 refs).
-    `VIDEO_SCRIPT_AND_STORYBOARD.md` already greets the *baker* as "Frau Webber",
-    which in a judged video reads as a mistake.
-  - `Nina Lindemann` (dispatcher, 5 refs) vs `Dr. Lindemann` (immigration officer).
-  Pick two new surnames and update `src/data/npcDialogue.js`, `src/data/dialogue.js`,
-  then re-grep for the old names.
+- [x] **Rename the two colliding character pairs.** Resolved:
+  - `Martha Webber` -> `Martha Beck` (baker, `B_BAKERY`). `Frau Weber` remains the Sparkasse banker.
+  - `Nina Lindemann` -> `Nina Voss` (dispatcher, `B_DARKSTORE`). `Dr. Lindemann` remains the immigration officer.
+  - Reconciled orphaned Martha medicine favor block in `src/data/npcDialogue.js` and verified clean AST syntax.
+- [ ] **Act One British Comedy Narrative Implementation (Scene 1–10 from `Docs/ACT_ONE_BRITISH_COMEDY.md`):**
+  - [ ] **Scene 1 (Arrival & Bus Shelter Roast)**: Bus station arrival at `B_ZOB` North Gate, British deadpan thought bubble on microwave-sized shelter, timetable inspection plaque, compass pulse to `B_WG`.
+  - [ ] **Scene 2 & Pfand Collectibles**: 5 floating glass bottle collectibles (+€0.25 Pfand pickup chime, ground pulse ring), cobblestone walk environmental thoughts.
+  - [ ] **Scene 3 (WG 3-Button Doorbell Buzzer)**: Intercom modal at `B_WG` door (Frau Meier *Ruhezeit* shout + noise strike vs Herr Schmidt wrong buzzer vs Nico buzzer).
+  - [ ] **Scene 4 (Nico & Mülltrennung Trash Sorting)**: Enter WG kitchen diorama, 3-bin recycling challenge (Yellow/Blue/Black bins), update `window.FFH.npcMemory.nico`.
+  - [ ] **Scene 5 (Tuition Warning Letter & HUD Focus)**: Letter on desk highlighting €250 semester fee due, €20.25 in pocket, prompt to rush to University before 17:00.
+  - [ ] **Scene 6 & 7 (Golden Hour & Locked University Door)**: Dynamic lighting shift to warm 16:45 sunset, closed door notice at `B_UNI` at 17:01.
+  - [ ] **Scene 8 (Frau Klein Outside University)**: Encounter Frau Klein with canvas bags of potatoes on Uni steps, teasing about German 90-minute public-sector work weeks.
+  - [ ] **Scene 9 (19:00 Night Walk & Kruma Job Flyer)**: Transition to night lighting with glowing street lamps, inspect job flyer on lamp post, failed inquiries at Pizzeria & Bakery.
+  - [ ] **Scene 10 (Bedtime Day 1 Recap & Day 2 Dawn)**: WG bed interaction, Day 1 financial recap modal, transition to Day 2 07:00 morning mist and Klaus warehouse tutorial.
 - [ ] **Eyeball the Kenney food models on the warehouse shelf.** They render for the
   first time as of 2026-09-02 (the OBJ/MTL loaders were never inlined before, so the
   game always fell back to procedural meshes). Loading and texturing are verified
@@ -49,6 +56,7 @@
 
 ## 🟡 Medium — polish
 
+- [ ] Mathias Pizzeria/Bike Shop 3D model elevation: adjust preset in `src/config/gameConfig.js` (`y: 0.05, z: -1.10` currently sinks behind counter).
 - [ ] Juicy cash feedback: coin burst + register SFX on payout.
 - [ ] Confirm every shop upgrade has a visible in-world change, not just a stat.
 - [ ] Performance pass: hold 60 FPS at 390×844, check for leaks across phase changes.

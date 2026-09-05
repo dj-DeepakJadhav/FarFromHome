@@ -1935,9 +1935,9 @@ window.FFH.buildLubeckCityWorld = function() {
   }
 
   // Floating Sky Clouds
-  for (let c = 0; c < 6; c++) {
+  for (let c = 0; c < 30; c++) {
     const cloud = registry.createCloud();
-    cloud.position.set(Math.random() * 45, 14 + Math.random() * 4, Math.random() * 45);
+    cloud.position.set(-10 + Math.random() * 100, 14 + Math.random() * 4, -10 + Math.random() * 100);
     cloud.userData = { speed: 0.5 + Math.random() * 0.6 };
     clouds.push(cloud);
     worldGroup.add(cloud);

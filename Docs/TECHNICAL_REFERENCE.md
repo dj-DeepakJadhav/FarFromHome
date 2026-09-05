@@ -51,16 +51,20 @@ BOOT ──► CITY_EXPLORATION ──► PICK ──► CITY_EXPLORATION (Deliv
 ## 2. Character Roster & Behavioral Roles (*Nicos Weg* Inspired)
 
 ### Core Representative Cast & Story Representatives
-1. **Rita Schneider (University Registrar - `B_UNI`)**: Bureaucratic registrar; demands proof of €250 *Semesterbeitrag* payment to issue the Enrollment Certificate (*Immatrikulationsbescheinigung*).
-2. **Nina Lindemann (Warehouse Dispatcher - `B_DARKSTORE`)**: Pragmatic Kruma Express manager; assigns shifts, monitors packing quotas, tracks strikes, and unlocks shop gear upgrades.
-3. **Mathias Rossi (Mechanic & Pizzeria Boss - `B_PIZZA` / `B_BIKESHOP`)**: Immigrant restaurateur & bike mechanic who sells e-bike gear upgrades and orders kitchen ingredients.
-4. **Martha Becker / Oma Martha (Master Baker - `B_BAKERY`)**: Teaches traditional German noun gender patterns (*-ung = die*), rewards polite formal etiquette (*Sie*), and shares local wisdom.
-5. **Hans Lokker (Apartment Landlord & Caretaker - `B_SUBLET`)**: Enforces house rules, quiet hours (*Ruhezeit*), waste sorting (*Mülltrennung*), and collects the €300 *Kaution* for the permanent student lease.
-6. **Herr Vogel (Rathaus Bürgeramt Official - `B_RATHAUS`)**: Formal town hall bureaucrat; tests formal *Beamtendeutsch* and stamps your *Meldebescheinigung* (Address Registration).
-7. **Frau Weber (Sparkasse Bank Officer - `B_BANK`)**: Methodical bank officer; verifies enrollment and *Anmeldung* to unlock your blocked student account (*Sperrkonto*).
-8. **Dr. Lindemann (Ausländerbehörde Immigration Case Worker - `B_AUSLAENDER`)**: The Final Milestone; verifies the 4-document dossier and stamps your permanent residence permit (*Aufenthaltstitel*).
+1. **Nico (Student WG Flatmate - `B_WG`)**: Anxious, well-meaning flatmate who tests your recycling discipline with yogurt pots and offers peppermint tea.
+2. **Frau Klein (Local Resident - `B_UNI` Steps)**: Dry pensioner with potatoes who mocks 90-minute German municipal office hours at 17:01.
+3. **Rita Schneider (University Registrar - `B_UNI`)**: Bureaucratic registrar; demands proof of €250 *Semesterbeitrag* payment to issue the Enrollment Certificate (*Immatrikulationsbescheinigung*).
+4. **Klaus (Kruma Shift 1 Instructor - `B_DARKSTORE`)**: Deadpan warehouse trainer who teaches the 3-gender shelf filter on Day 2 morning.
+5. **Nina Voss (Warehouse Dispatcher - `B_DARKSTORE`)**: Pragmatic Kruma Express manager; assigns shifts, monitors packing quotas, tracks strikes, and unlocks shop gear upgrades.
+6. **Mathias Becker (Mechanic & Pizzeria Boss - `B_PIZZA` / `B_BIKESHOP`)**: Immigrant restaurateur & bike mechanic who sells e-bike gear upgrades and orders kitchen ingredients.
+7. **Martha Beck / Oma Martha (Master Baker - `B_BAKERY`)**: Teaches traditional German noun gender patterns (*-ung = die*), rewards polite formal etiquette (*Sie*), and shares local wisdom.
+8. **Hans Lokker (Apartment Landlord & Caretaker - `B_SUBLET` / `B_WG`)**: Enforces house rules, quiet hours (*Ruhezeit*), waste sorting (*Mülltrennung*), and collects the €30 Kaution deposit for the student lease.
+9. **Herr Vogel (Rathaus Bürgeramt Official - `B_RATHAUS`)**: Formal town hall bureaucrat; tests formal *Beamtendeutsch* and stamps your *Meldebescheinigung* (Address Registration).
+10. **Frau Weber (Sparkasse Bank Officer - `B_BANK`)**: Methodical bank officer; verifies enrollment and *Anmeldung* to unlock your blocked student account (*Sperrkonto*).
+11. **Dr. Lindemann (Ausländerbehörde Immigration Director - `B_AUSLAENDER`)**: The Final Milestone; verifies the 4-document dossier and stamps your permanent residence permit (*Aufenthaltstitel*).
 
-### Residential Customers
+### Residential Customers & Neighbors
+- **Frau Meier (`B_WG` OG 1)**: The fierce *Ruhezeit* enforcer who shouts from the intercom if buzzed at the wrong hour.
 - **Frau Marina, Emily, Herr Reinhard, Frau Schumaker, Otto, & Zimmerman**: Doorway delivery encounters testing conversational choices (*Du* vs. *Sie*, tipping etiquette).
 
 ---

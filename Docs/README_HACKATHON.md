@@ -19,7 +19,7 @@
 You are an international student newly arrived in the historic Hanseatic island city of Lübeck, Germany, on a 1-month temporary entry visa. You check into a temporary student hostel with only **€20 in your pocket** and face a strict 28-day deadline to solve the infamous German bureaucratic puzzle before your visa expires.
 
 To matriculate and secure your permanent residence permit (*Aufenthaltstitel*), you must navigate a realistic web of interdependent real-world requirements:
-1. **Find a Job**: Work as an e-bike courier at **Kruma Express** with Dispatcher **Nina** to earn funds.
+1. **Find a Job**: Work as an e-bike courier at **Kruma Express** with Dispatcher **Nina Voss** to earn funds.
 2. **Matriculate at University**: Pay the **€250 Semesterbeitrag** to Registrar **Rita Schneider** at the Universität.
 3. **Find a Permanent Apartment (*Wohnungssuche*)**: Save the **€30 Kaution (deposit)** and sign a lease with Caretaker **Hans Lokker** to move out of the temporary hostel.
 4. **City Registration (*Anmeldung*)**: Bring your lease to the **Rathaus (Bürgeramt)** to obtain your **Meldebescheinigung** from Bureaucrat **Herr Vogel**.
@@ -37,7 +37,7 @@ To make every interaction memorable, characters have distinct, exaggerated perso
 ```mermaid
 graph TD
     A[🛫 ARRIVAL: Temporary Hostel] -->|28-Day Visa Countdown Starts| B[🏛️ University Registry: Rita]
-    B -->|Catch: Must pay €250 Semesterbeitrag| C[⚡ Kruma Express: Nina Dispatch]
+    B -->|Catch: Must pay €250 Semesterbeitrag| C[⚡ Kruma Express: Nina Voss Dispatch]
     
     subgraph "THE CORE ECONOMIC ENGINE (Invest ➔ Harvest ➔ Upgrade)"
         C -->|Audio Packing Shift: der/die/das Filter| D[📦 Warehouse Picking Minigame]
@@ -66,15 +66,18 @@ graph TD
 
 | Character | Location | Personality & Trait | Humor & Idiosyncrasy |
 | :--- | :--- | :--- | :--- |
-| **Priya & Nico** | `B_HOSTEL` | Optimistic & Jetlagged | Survives on cheap instant coffee; gives chaotic advice on surviving German winters and recycling bins. |
-| **Rita Schneider** | `B_UNI` | Bureaucratic & Stamp-Obsessed | Takes deep sensual pleasure in stamping official papers (`*THUD-CLACK*`); gasps in horror at un-stapled forms. |
-| **Nina Lindemann** | `B_DARKSTORE` | High-Speed & No-Nonsense | Drinks 6 espressos per shift; treats grocery picking like an Olympic sport; yells motivating cycling mantras. |
-| **Mathias Becker** | `B_BIKESHOP` | Grumpy & Loudhearted | Shouts at everyone in Italian-German; complains about noisy bikes while selling you the loudest electric bell. |
-| **Oma Martha** | `B_BAKERY` | Warm, Sweet & Gossip-Loving | Tells long-winded 40-year-old Hanseatic stories; slips you free *Franzbrötchen* if you use polite *Sie* form. |
-| **Hans Lokker** | `B_WG` | Fanatical Rule Enforcer | Measures recycling bin angles with a ruler; patrols hallways with a decibel meter at 22:01 for *Ruhezeit*. |
+| **Nico** | `B_WG` | Panicked Flatmate & Tea Addict | Terrified of municipal recycling fines; tests your bin sorting with yogurt pots; drinks peppermint tea. |
+| **Frau Meier** | `B_WG` | Ruhezeit Enforcer (OG 1) | Shouts "NEIN! Ruhezeit!" through the intercom if you buzz during afternoon or evening quiet hours. |
+| **Frau Klein** | `B_UNI` (Exterior) | Dry Local Pensioner | Carries canvas bags of potatoes; dryly mocks German public-sector 90-minute work weeks at 17:01. |
+| **Rita Schneider** | `B_UNI` (Office) | Bureaucratic & Stamp-Obsessed | Takes deep sensual pleasure in stamping official papers (`*THUD-CLACK*`); gasps in horror at un-stapled forms. |
+| **Klaus** | `B_DARKSTORE` (Shift 1) | Deadpan Warehouse Veteran | Teaches the 3-gender shelf filter on Day 2: *"An apple is a boy, a banana is a girl. Pick them right."* |
+| **Nina Voss** | `B_DARKSTORE` | High-Speed Dispatch Lead | Drinks 6 espressos per shift; treats grocery delivery like an Olympic sport; unlocks shop gear upgrades. |
+| **Mathias Becker** | `B_BIKESHOP` / `B_PIZZA` | Grumpy & Loudhearted | Shouts at everyone in Italian-German; rejects your delivery job inquiry; sells E-Bike gear upgrades. |
+| **Martha Beck / Oma Martha** | `B_BAKERY` | Warm, Sweet & Traditional Baker | Family baked since 1952; tells 40-year Hanseatic stories; slips you free *Franzbrötchen* if you use polite *Sie*. |
+| **Hans Lokker** | `B_WG` / Sublet | Fanatical Rule Enforcer | Measures recycling bin angles with a ruler; patrols hallways with a decibel meter at 22:01 for *Ruhezeit*. |
 | **Herr Vogel** | `B_RATHAUS` | Peak *Amtsschimmel* (Bureaucrat) | Speaks strictly in passive-voice *Beamtendeutsch*; visibly brightens when rejecting forms missing middle names. |
 | **Frau Weber** | `B_BANK` | Hyper-Methodical & Formal | Refuses to touch coins without hand sanitizer; gives an 8-minute lecture on German interest rates. |
-| **Dr. Lindemann** | `B_AUSLAENDER` | Stern Immigration Boss | Imposing and poker-faced; secretly roots for students and breaks into a warm smile when the dossier is 100% complete. |
+| **Dr. Lindemann** | `B_AUSLAENDER` | Stern Immigration Director | Imposing and poker-faced; secretly roots for hardworking students and breaks into a warm smile when the dossier is complete. |
 
 ---
 
@@ -158,7 +161,7 @@ grammatical gender**, each color-coded with high visual contrast:
   - **Oma Martha**: Warm, grandmotherly, encouraging.
   - **Herr Mathias**: Expressive, lively Italian-German restaurant boss.
   - **Frau Rita**: Crisp, formal, bureaucratic registrar.
-  - **Nina**: Friendly, energetic, street-smart dispatcher.
+  - **Nina Voss**: Friendly, energetic, street-smart dispatcher.
   - **12 Grocery Nouns**: Clear studio pronunciation of every item with its article.
 - Audio footprint is **< 1 MB total**, fully within the 35 MB competition limit.
 - Tapping the 🔊 icon on any dialogue choice previews the spoken German pronunciation before selecting.
@@ -193,12 +196,17 @@ grammatical gender**, each color-coded with high visual contrast:
 
 ## 7. Cast & Character Roles
 
-- **Rita Schneider** (University Registrar): Formal, bureaucratic; tracks your €250 tuition deadline and issues your final Student ID.
-- **Mathias Becker** (Hansa Rad Bike Mechanic): Energetic local mechanic who repairs bikes, sells E-Bikes, and cheers your financial progress.
-- **Martha Webber / Oma Martha** (Traditional Baker): Warm local baker who rewards proper formal German (*Sie*) and shares Hanseatic pastries.
-- **Nina Lindemann** (Kruma Dispatch Lead): Pragmatic warehouse manager who assigns shifts, tracks quotas, and manages equipment.
+- **Nico** (Student WG Flatmate): Chaotic student flatmate in `B_WG` who tests your recycling competence with yogurt pots and offers peppermint tea.
+- **Frau Klein** (Local Pensioner): Meets you outside the locked University gates at 17:01 with a sack of potatoes, mocking German public-sector work hours.
+- **Rita Schneider** (University Registrar): Formal, bureaucratic; tracks your €250 tuition deadline and stamps your Enrollment Certificate.
+- **Klaus** (Kruma Shift 1 Instructor): Deadpan warehouse veteran who introduces you to the gendered warehouse shelves on Day 2 morning.
+- **Nina Voss** (Kruma Dispatch Lead): Pragmatic warehouse manager who assigns shifts, tracks quotas, and manages equipment.
+- **Mathias Becker** (Hansa Rad Bike Mechanic / Pizzeria Boss): Energetic Italian-German mechanic and restaurateur who repairs bikes and sells E-Bikes.
+- **Martha Beck / Oma Martha** (Traditional Baker): Warm local baker who rewards proper formal German (*Sie*) and shares Hanseatic pastries.
 - **Hans Lokker** (WG Sublet Landlord): Strict building manager monitoring quiet hours (*Ruhezeit*), waste separation (*Mülltrennung*), and €30 Kaution deposit.
 - **Herr Vogel** (Rathaus Bürgeramt Bureaucrat): Peak *Amtsschimmel* who stamps residence registrations (*Meldebescheinigung*).
+- **Frau Weber** (Sparkasse Bank Officer): Methodical banker who verifies your enrollment and unlocks your blocked student account (*Sperrkonto*).
+- **Dr. Lindemann** (Ausländerbehörde Immigration Director): Stern Director who audits your 4-document dossier and stamps your Residence Permit (*Aufenthaltstitel*).
 
 ---
 

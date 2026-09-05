@@ -217,7 +217,7 @@ window.FFH.createCitizenBehaviorTree = function () {
         agent.mesh.userData.playAction('emote-yes');
       } else {
         // Cute procedural bounce fallback
-        agent.mesh.position.y = 0.05 + Math.abs(Math.sin(agent.greetTimer * 12)) * 0.15;
+        agent.mesh.position.y = 0.12 + Math.abs(Math.sin(agent.greetTimer * 12)) * 0.15;
         agent.mesh.rotation.z = 0;
       }
       return 'RUNNING';
@@ -339,7 +339,7 @@ window.FFH.createCitizenBehaviorTree = function () {
       agent.position.x = resolved.x;
       agent.position.z = resolved.z;
       agent.mesh.position.copy(agent.position);
-      agent.mesh.position.y = 0.05;
+      agent.mesh.position.y = 0.12;
 
       const angle = Math.atan2(dirX, dirZ);
       agent.mesh.rotation.y = THREE.MathUtils.lerp(agent.mesh.rotation.y, angle, delta * 8);
@@ -348,7 +348,7 @@ window.FFH.createCitizenBehaviorTree = function () {
         agent.mesh.userData.playAction('walk');
       } else {
         agent.walkTime = (agent.walkTime || 0) + delta * 15;
-        agent.mesh.position.y = 0.05 + Math.abs(Math.sin(agent.walkTime)) * 0.12;
+        agent.mesh.position.y = 0.12 + Math.abs(Math.sin(agent.walkTime)) * 0.12;
         agent.mesh.rotation.z = Math.cos(agent.walkTime * 0.5) * 0.15;
       }
       return 'RUNNING';

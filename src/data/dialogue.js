@@ -1,4 +1,4 @@
-﻿// Doorstep Customer Hand-off Scenarios with Cultural Etiquette, Emotional Depth & Personality Heuristics
+// Doorstep Customer Hand-off Scenarios with Cultural Etiquette, Emotional Depth & Personality Heuristics
 window.FFH.dialogue = [
   {
     shift: 1,
@@ -45,8 +45,8 @@ window.FFH.dialogue = [
     questionDe: 'Wie übergibst du die Backzutaten an Oma Martha?',
     choices: [
       {
-        textEn: 'Guten Morgen, Frau Webber! Fresh organic flour and butter to save your famous Franzbrötchen batch!',
-        textDe: 'Guten Morgen, Frau Webber! Frisches Mehl und Butter für Ihre Franzbrötchen!',
+        textEn: 'Guten Morgen, Frau Beck! Fresh organic flour and butter to save your famous Franzbrötchen batch!',
+        textDe: 'Guten Morgen, Frau Beck! Frisches Mehl und Butter für Ihre Franzbrötchen!',
         audioKey: 'danke_schoen',
         correct: true,
         disposition: 'diplomat',
