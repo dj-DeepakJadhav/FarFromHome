@@ -14,18 +14,19 @@
 | Subject | Owner | Notes |
 | :--- | :--- | :--- |
 | **Competition rules & agent operating rules** | [`AGENTS.md`](../AGENTS.md) | Hard constraints, rubric weights, anti-patterns. Highest authority. |
-| **Act One Narrative & Flow Ground Truth** | [`ACT_ONE_BRITISH_COMEDY.md`](ACT_ONE_BRITISH_COMEDY.md) | The authoritative story, dialogue beats, and NPC progression for Act One. |
-| **Every number** (sizes, tunables, prices, word counts) | [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md) | No other doc may hard-code a number. Link here. |
-| **Design at a glance** | [`ONE_PAGE_DESIGN_DOCUMENT.md`](ONE_PAGE_DESIGN_DOCUMENT.md) | The one-page GDD. Start here for the shape of the game. |
-| **Full design detail** | [`README_HACKATHON.md`](README_HACKATHON.md) | Cast, loop, mechanics, narrative framing. |
-| **Architecture & systems** | [`TECHNICAL_REFERENCE.md`](TECHNICAL_REFERENCE.md) | Layers, phase flow, rendering, audio. |
-| **What is left to do** | [`TASKS.md`](TASKS.md) | The only task list. |
-| **Submission deliverables** | [`submission/`](submission/) | Design Intent, Devpost answers, video script, checklist. |
+| **Single Master Game Design Blueprint** | [`README_HACKATHON.md`](README_HACKATHON.md) | The single authoritative game design document: narrative beats, British comedy dynamic, cast, core loop, mechanics. |
+| **Every number** (sizes, tunables, prices, word counts) | [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md) | Single source of truth for numbers. No other doc may hard-code a number. |
+| **Design at a glance** | [`ONE_PAGE_DESIGN_DOCUMENT.md`](ONE_PAGE_DESIGN_DOCUMENT.md) | The visual one-page GDD poster. Mirrors `README_HACKATHON.md`. |
+| **Architecture & systems** | [`TECHNICAL_REFERENCE.md`](TECHNICAL_REFERENCE.md) | Software layers, phase flow, rendering, audio, and asset pipeline. |
+| **Developer Guide & Lingo** | [`PROGRAMMING_GUIDE.md`](PROGRAMMING_GUIDE.md) | Developer architecture, lifecycle hooks, coordinate spaces, and technical vocabulary. |
+| **What is left to do** | [`TASKS.md`](TASKS.md) | The only active task list. |
+| **Submission deliverables** | [`submission/`](submission/) | Design Intent (≤ 500w), Devpost form, video script, submission checklist. |
 
-## Reference material (not authoritative, still useful)
+## Reference material & Code Data
 
-| Document | Purpose |
+| Resource | Purpose |
 | :--- | :--- |
+| `assets/narrative/story.json` | Authoritative code-data asset for dialogue and branching; inlined into `window.FFH.storyData` at release assembly. |
 | [`GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md`](GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md) | Real German immigration law and daily-life research the fiction is built on. |
 | [`MASTER_RESOURCES_AND_DECISION_ARCHIVE.md`](MASTER_RESOURCES_AND_DECISION_ARCHIVE.md) | Why each design decision was made, with the GDC talks behind it. |
 
@@ -34,11 +35,9 @@
 Superseded or out-of-scope. **Nothing in `archive/` is authoritative** and no agent
 should treat it as a work order. It is kept for history.
 
-It holds legacy drafts (such as `ACT_ONE_LEGACY.md`), the narrative bible,
+It holds legacy drafts (such as `ACT_ONE_LEGACY.md` and `ACT_ONE_BRITISH_COMEDY.md` drafts), the narrative bible,
 the 28-day interactive text story, the narrative flow and mind-map documents,
 the three retired task lists, the Messenger pivot analysis, and the development log.
-Note: `assets/narrative/story.json` is preserved as-is as a secondary asset reference,
-but is superseded by `ACT_ONE_BRITISH_COMEDY.md` for ground-truth narrative design.
 
 ---
 

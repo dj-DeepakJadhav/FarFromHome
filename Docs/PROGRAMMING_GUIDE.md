@@ -1,48 +1,207 @@
-# Far From Home — Programming Guide
+# Far From Home: Architecture Guide for Unity Developers
 
-This document defines the core logic, standardized UI sequences, and technical vocabulary established for the game. All agents and future development must adhere to these established patterns to ensure a consistent player experience.
+If you are coming from **Unity (C#)**, this document maps the entire codebase to Unity design patterns, lifecycle methods, and engine concepts. 
 
-## 1. The Boot & Seamless Glide Sequence
-The game must transition perfectly from the "Title Screen" to the "Game World" without any visual jumps, popping, or teleportation.
+The project uses vanilla ES6 JavaScript and Three.js (r128) packaged into an offline WebGL bundle, structured around standard Unity-style patterns: **GameManager Singleton**, **Scene / Phase State Machine**, **MonoBehaviour-style update loops**, **ScriptableObject-style static data tables**, and **Raycast / BVH physics**.
 
-- **Title Screen Orbit:** The title screen camera does not look at a generic center. It precisely orbits the **exact player spawn coordinates** (e.g., `(x: 10.4, z: 5.2)` for the Train Station / ZOB).
-- **Match Zoom:** The title screen camera uses `zoom: 0.52` so it matches the beginning of the transition zoom.
-- **Dynamic Angle Capture:** When "New Game" is clicked, `hud.js` calculates the title camera's exact rotational angle relative to the player spawn using `Math.atan2(dx, dz)`. It uses this dynamic angle as the starting point for the camera swoop.
-- **The Swoop:** The camera transitions over 3000ms from `zoom: 0.52` to `zoom: 1.25` using an `easeInOutCubic` curve, ending in a behind-the-back 3rd-person isometric view.
-- **Scene Triggering:** `storyRunner.startScene('act_one')` is called at the *end* of the camera glide.
-- **Location Locking:** The location defined in the starting scene (e.g., `B_ZOB`) must exactly match the player's spawn coordinates to prevent the player from teleporting the moment the scene starts.
+---
 
-## 2. First-Touch Objective Reveal Sequence
-The game relies on a tactile, "wake-up" approach to UI tutorialization.
-When the game starts, all HUD elements and navigation compasses are strictly hidden.
+## 1. Rosetta Stone: Unity vs. Far From Home
 
-- **First Touch Consumption:** The very first time the player touches/clicks the screen to move, `cityExplorationPhase.js` intercepts and **consumes** the input. The player does not walk yet.
-- **playObjectiveRevealSequence(true):** The first touch triggers this reusable function in `hud.js`.
-  1. **Slide Down:** The top `#city-header-bar` slides down from `translateY(-20px)`.
-  2. **Typing Effect:** The `city-quest-text` types out character-by-character with a subtle `click` sound.
-  3. **Pulse & Chime:** Upon finishing typing, the objective tracker scales up to `1.02`, glows with a teal `box-shadow`, and plays a `bell` chime.
-  4. **Compass Reveal:** The 3D navigation ribbon and glowing ground marker fade in, pointing the player to their objective.
-  5. **Sequential Fade-in:** The Day, Docs, Stats, Wallet, and Profile badges fade in one after the other with a 250ms staggered delay.
+| Unity Concept (C#) | Far From Home Equivalent (JavaScript / Three.js) | File Location |
+| :--- | :--- | :--- |
+| `GameManager` (DontDestroyOnLoad) | `window.FFH.game` | `src/main.js` |
+| `SceneManager.LoadScene()` | `game.transitionTo(phaseName, config)` | `src/main.js` (`transitionTo`) |
+| `MonoBehaviour.Update()` | `phase.update(delta, timeSec)` via `requestAnimationFrame` | `src/phases/*.js` |
+| `ScriptableObject` (Data Tables) | Frozen JS Objects / Modules (`NPC_DATABASE`, `items`, `shifts`) | `src/data/*.js` |
+| `Canvas` / `uGUI` / `UI Toolkit` | HTML5 DOM Overlay (`#ui-container`, CSS absolute positioning) | `src/ui/hud.js`, `src/ui/screens/*.js` |
+| `Transform` & `GameObject` | `THREE.Object3D`, `THREE.Group`, `THREE.Mesh` | `src/render/*.js` |
+| `CharacterController` / `NavMesh` | `CityInput` + `pathfinding.js` + `three-mesh-bvh` collision | `src/phases/city/cityInput.js`, `src/core/pathfinding.js` |
+| `CinemachineVirtualCamera` | `CityCamera` with zoom interpolation & damping lerp | `src/phases/city/cityCamera.js` |
+| `AudioSource` / `AudioClip` | Web Audio API wrapper with pre-baked sound sprites | `src/audio/sfx.js`, `src/audio/speech.js` |
+| `PlayerPrefs` / Save Game | `localStorage` JSON serialization (`window.FFH.saveGame`) | `src/main.js` |
 
-## 3. Objective Assignment & Updating
-The `playObjectiveRevealSequence(isBootSequence)` function is the global standard for capturing the player's attention.
+---
 
-- **Updating Objectives:** Whenever `storyRunner.js` sets a new `activeObjective`, it must call `playObjectiveRevealSequence(false)`.
-- **Gameplay Updates:** Passing `false` bypasses the sliding UI and sequential fades, keeping the HUD strictly focused on dynamically typing the new text, pulsing the box, and re-orienting the compass.
-- **Save Games:** When implementing the "Continue" save system, `playObjectiveRevealSequence(true)` will be called to replay the cinematic UI startup using the loaded stats.
+## 2. Global Architecture: The "GameManager" Hierarchy
 
-## 4. UI Layout & Constraints
-Mobile viewports (390x844 portrait) are highly constrained. The UI must never overflow, squish, or wrap unexpectedly.
+Just like in a Unity project with a persistent `GameManager`, execution begins in `src/main.js` which spins up `window.FFH.game`.
 
-- **No Flex Wrapping:** Key data rows (like `Row 1` in the HUD) use `flex-wrap: nowrap` and internal `white-space: nowrap` to forcefully keep data on a single line.
-- **Strict Margins/Padding:** Container paddings are minimized (e.g., `4px 6px`) to maximize breathing room for dynamic text (like `100 | ❤️50`).
-- **Nomenclature:** 
-  - **Stats:** Always labeled clearly with emojis (`⚡` for Body, `❤️` for Heart, `💶` for Wallet).
-  - **Upgrades Menu:** The button that opens the character progression/skill tree is called **👤 PROFILE** (formerly EXPAT) to ensure immediate player comprehension.
+```text
+GameManager (window.FFH.game)
+  |
+  +-- State / BlackBoard (game.state)
+  |     Equivalent to a persistent ScriptableObject storing runtime state:
+  |     wallet (€20 to €250), day (1 to 28), activeObjective, questStep,
+  |     npcRelationships, and strike counters (0/3).
+  |
+  +-- PhaseManager (game.phases)
+  |     Equivalent to Unity additive SceneManager loading/unloading views.
+  |
+  +-- StoryRunner (src/core/storyRunner.js)
+  |     Node-based dialogue/quest interpreter (Ink / Yarn Spinner equivalent)
+  |     reading window.FFH.storyData (inlined story.json).
+  |
+  +-- RenderPipeline (src/render/)
+  |     Three.js WebGLRenderer, Scene, PerspectiveCamera, Custom ShaderPass
+  |     (Cel-shading + Sobel Edge Ink Outlines).
+  |
+  +-- AudioManager (src/audio/)
+        SFX triggers and Studio German character audio clips.
+```
 
-## 5. Camera Idle System
-If the player stops moving and interacting for **60 seconds**, the game shifts from a 3rd-person view into a diorama screensaver mode.
+---
 
-- **Zoom Out:** The camera smoothly zooms out to `0.52`.
-- **Slow Drift:** The camera slowly orbits the character.
-- **Wake Up:** The instant the player taps to move, the camera immediately snaps back to `zoom: 1.15` and movement resumes.
+## 3. Scenes as Lifecycle Phases (`MonoBehaviour` Equivalent)
+
+Instead of switching Unity `.unity` scenes, Far From Home uses **Phase Controllers**. Each phase behaves like a root `MonoBehaviour` attached to a scene root GameObject:
+
+```csharp
+// Unity Conceptual Equivalent:
+public interface IGamePhase {
+    void Enter(object config);
+    void Update(float delta, float timeSec);
+    void Exit();
+}
+```
+
+### The 5 Core Game Phases:
+
+1. **`CITY_EXPLORATION` (`src/phases/cityExplorationPhase.js`)**:
+   - **Unity Equivalent**: Overworld 3D Scene with Character Controller.
+   - Handles continuous city bike riding, player input, doorway triggers, and compass waypoints.
+   - Decomposed into modular sub-controllers: `cityCamera.js`, `cityInput.js`, `cityEnvironment.js`, `cityDoorway.js`, `cityCollectibles.js`.
+
+2. **`PICK` (`src/phases/pickPhase.js`)**:
+   - **Unity Equivalent**: Warehouse Minigame Scene.
+   - 2.5D fixed perspective. Generates the 3-tier warehouse shelf (`der` = Blue, `die` = Pink, `das` = Purple).
+   - Evaluates player pick accuracy, early rhythm bonuses (2.0x), and combo streaks.
+
+3. **`INTERIOR` (`src/phases/interiorPhase.js`)**:
+   - **Unity Equivalent**: Split-Screen Narrative Cutscene / Dialogue Stage.
+   - Upper 50% viewport: 3D diorama room (`roomDorm.js`, `roomShops.js`, `roomCivic.js`) with animated NPC mesh.
+   - Lower 50% viewport: UI interaction drawer and choice buttons.
+
+4. **`DIALOGUE` (`src/phases/dialoguePhase.js`)**:
+   - **Unity Equivalent**: Fullscreen Visual Novel / Conversation Mode.
+   - Drives character conversations, portrait display, and German audio preview.
+
+5. **`SHOP` (`src/phases/shopPhase.js`)**:
+   - **Unity Equivalent**: Upgrade / Inventory Shop Screen.
+   - Displays available bike gear (E-Bike, Thermal Bag, Shelf Labels) and modifies global economy tunables.
+
+To switch phases anywhere in code:
+```javascript
+// Similar to SceneManager.LoadScene("INTERIOR", LoadSceneMode.Single);
+game.transitionTo('INTERIOR', {
+  roomType: 'WG_ROOM',
+  npcKey: 'NPC_NICO'
+});
+```
+
+---
+
+## 4. Coordinate Space & NavMesh / Colliders
+
+The 3D city is constructed on a grid where `TILE_SCALE = 2.6`:
+- **X Axis** = East (+) / West (-)
+- **Y Axis** = Up (+) (Ground level is `y = 0.05`, raised room floor is `y = 0.38`)
+- **Z Axis** = South (+) / North (-)
+
+### Physics & Collision:
+- **No PhysX engine overhead**: Instead of heavy Rigidbody physics, the game uses **`three-mesh-bvh`** (Bounding Volume Hierarchy).
+- Similar to a **Unity NavMesh Raycast / Capsule Sweep**, player movement raycasts against static building meshes and clamps the courier position smoothly along wall normals.
+
+### Building Waypoint Coordinates (`Transform.position`):
+- `B_ZOB` (Train Station / Spawn): `(5.2, 0.05, 1.2)`
+- `B_WG` (Student Dorm Room 4): `(6.6, 0.05, 23.4)`
+- `B_UNI` (University Admissions): `(26.0, 0.05, 16.8)`
+- `B_PIZZA` (Pizzeria Bella): `(28.6, 0.05, 22.2)`
+- `B_BAKERY` (Bakery Hansa): `(6.6, 0.05, 15.6)`
+- `B_DARKSTORE` (Kruma Dispatch Hub): `(6.6, 0.05, 44.2)`
+- `B_RATHAUS` (City Hall Bürgeramt): `(24.8, 0.05, 20.8)`
+- `B_BANK` (Sparkasse Bank): `(41.6, 0.05, 4.0)`
+- `B_AUSLAENDER` (Immigration Office): `(37.8, 0.05, 23.4)`
+
+---
+
+## 5. Camera System (Cinemachine Equivalent)
+
+Implemented in `src/phases/city/cityCamera.js`:
+- **Isometric Framing**: Orthographic feel achieved using perspective camera with locked 390x844 mobile portrait aspect ratio.
+- **Cinematic Glide (Boot Transition)**:
+  - Equivalent to blending from a Cinemachine Orbit Camera (`zoom = 0.52`) to a Follow Camera (`zoom = 1.25`) over 3000ms using `Math.easeInOutCubic`.
+- **Idle ScreenSaver**:
+  - After 60 seconds without input, transitions to an orbital fly-around mode.
+  - Wakes up immediately upon any touch or key press.
+
+---
+
+## 6. NPC Data & Memory ("ScriptableObjects")
+
+NPCs and items are defined as static data structures, matching Unity ScriptableObjects:
+
+```javascript
+// src/data/dialogue/dialogueTown.js
+window.FFH.NPC_DATABASE['NPC_MATHIAS'] = {
+  id: 'NPC_MATHIAS',
+  name: 'Herr Mathias Becker',
+  building: 'B_PIZZA',
+  greetingAudio: 'guten_tag',
+  personality: { ... },
+  dialogue: (state) => { ... }
+};
+```
+
+### NPC Emotional Memory (Blackboard Pattern):
+Tracked dynamically across sessions via `window.FFH.npcMemory`:
+```javascript
+// Checking memory (like Blackboard.GetBool):
+const memories = state.npcMemory['NPC_NICO'] || [];
+if (memories.includes('recycled_pfand')) {
+  // Trigger custom greeting reaction
+}
+
+// Storing memory:
+window.FFH.NPCMemoryManager.recordEncounter('NPC_NICO', 'recycled_pfand', +15, state);
+```
+
+---
+
+## 7. The 60-Second Core Loop & Pacing Curve
+
+```text
+1. EXPLORE & DISPATCH (City Navigation)
+   Ride bike through 3D Altstadt to Kruma Express.
+   
+2. WAREHOUSE PICKING (Audio & Spatial Match)
+   Spoken German manifest ("Die Milch!", "Der Apfel!").
+   Player sorts into 3 color shelves:
+   - Der (Blue ▲)
+   - Die (Pink ●)
+   - Das (Purple ■)
+   
+3. COURIER RUN (Tactile Map Delivery)
+   Courier rides across cobblestones to customer beacon.
+   
+4. DOORWAY HANDOFF (Cultural Dialogue)
+   Front-facing diorama. Formal "Sie" vs informal "Du" choices.
+   Customer tip awarded.
+   
+5. DEBRIEF & UPGRADE (Progression)
+   Shift receipt payout -> Bike shop upgrades (E-Bike, Thermal Bag).
+   Fund €250 tuition goal to win before Day 28!
+```
+
+---
+
+## 8. Build & Assembly Pipeline
+
+In Unity you press **Build and Run**. Here, everything is assembled via Node.js:
+- **Build Command**: `node build/assemble.js`
+  - Inlines all scripts from `src/` into a single, clean `index.html`.
+  - Automatically inlines `assets/narrative/story.json` into `window.FFH.storyData` for **100% offline airgap compliance**.
+- **Size Audit**: `node build/check-size.js`
+  - Ensures the uncompressed output is strictly `<= 35 MB` (currently ~11.13 MB).
+
+

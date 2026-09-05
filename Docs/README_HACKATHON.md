@@ -7,10 +7,11 @@
 > **Packaging**: Single `index.html` (game source unminified), zero CDNs, 100% offline, ≤ 35 MB  
 > **Engine**: Three.js r128 (vendored), plain ES6 — zero external build dependencies  
 
-> **Scope:** this document owns the full design detail (cast, loop, mechanics, narrative framing).
-> Act One dialogue, humor, and progression beats are authoritatively governed by [`ACT_ONE_BRITISH_COMEDY.md`](ACT_ONE_BRITISH_COMEDY.md).
-> It is not the authority on numbers — those live in [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
-> See [`README.md`](README.md) for which document owns what.
+> **Master Game Design Authority**: Single Master Blueprint for Far From Home: Kruma Express.
+> **Narrative Dynamic**: Relatable British deadpan comedy (*Peep Show*, *Inbetweeners*, *Hitchhiker's Guide*) meets unyielding German municipal precision. Simple vocabulary, instant laughs, zero highbrow pretension.
+> **Code-Data Architecture**: `assets/narrative/story.json` is the authoritative narrative asset and is automatically inlined into `window.FFH.storyData` during release assembly for 100% offline compliance.
+> **Canonical Numbers**: All economic tunables, build sizes, and prices are strictly governed by [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
+> **Tasks**: Tracked in [`TASKS.md`](TASKS.md). Submission deliverables live in [`submission/`](submission/).
 
 ---
 
@@ -78,6 +79,30 @@ graph TD
 | **Herr Vogel** | `B_RATHAUS` | Peak *Amtsschimmel* (Bureaucrat) | Speaks strictly in passive-voice *Beamtendeutsch*; visibly brightens when rejecting forms missing middle names. |
 | **Frau Weber** | `B_BANK` | Hyper-Methodical & Formal | Refuses to touch coins without hand sanitizer; gives an 8-minute lecture on German interest rates. |
 | **Dr. Lindemann** | `B_AUSLAENDER` | Stern Immigration Director | Imposing and poker-faced; secretly roots for hardworking students and breaks into a warm smile when the dossier is complete. |
+
+### 2.1 The Shadow-of-Mordor NPC Memory System
+Every named NPC tracks an emotional state and **remembers your previous actions** across shifts:
+```javascript
+window.FFH.npcMemory = {
+  nico: { trust: 0, trashDisaster: false, teaOwed: false, lastComment: null },
+  frauKlein: { metAtUni: false, respectsPunctuality: false },
+  herrBecker: { noiseStrikes: 0, paperworkInspected: false },
+  martha: { boughtPretzel: false, gaveCashExact: false },
+  klaus: { shiftsDone: 0, eggDropped: false, speedRating: 'average' }
+};
+```
+- **Consequences**:
+  - Sort trash wrong with Nico? He covers his mug next time: *"Careful! Don't throw that spoon in the paper bin!"*
+  - Pay Oma Martha with exact physical coins? She beams: *"Ah, the boy with real coins. Not like those phone-tapping heathens."*
+  - Late to the University? Frau Klein dryly teases: *"Look, it’s Mr. 17:01! Still looking for civil servants after teatime?"*
+
+### 2.2 Day-to-Night Dynamic Environmental Progression
+The 3D Altstadt atmosphere dynamically advances as the Day 1 visa clock ticks:
+1. **15:00 (Bright Afternoon)**: Crisp Baltic sunlight, blue sky, sharp shadows. Bus station arrival.
+2. **16:45 (Golden Hour / Sunset)**: Warm amber-gold sunlight, long shadows across cobblestones as you rush to the University.
+3. **17:15 (Dusk)**: Purple-blue gradient in the sky, chilly coastal breeze audio ramps up.
+4. **19:00 (Night Mode)**: Midnight sky, street lamps project glowing golden pools, windows lit from within.
+5. **07:00 (Day 2 Dawn)**: Fresh morning mist, church bells ring, Shift 1 clock-in begins!
 
 ---
 

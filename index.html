@@ -29167,6 +29167,8 @@ window.FFH.ProceduralTextures = (function() {
 
   function setupTexture(canvas, repeatX = 1, repeatY = 1) {
     const texture = new THREE.CanvasTexture(canvas);
+    if (THREE.SRGBColorSpace) texture.colorSpace = THREE.SRGBColorSpace;
+    else texture.encoding = 3001; // THREE.sRGBEncoding fallback
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(repeatX, repeatY);
@@ -35214,140 +35216,119 @@ Object.assign(window.FFH.UI.prototype, {
       padding: 25px 20px 35px 20px;
       box-sizing: border-box;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.7) 100%);
+      background: radial-gradient(circle at 50% 40%, rgba(13, 27, 42, 0) 0%, rgba(13, 27, 42, 0.25) 50%, rgba(13, 27, 42, 0.8) 100%);
     `;
 
     bootDiv.innerHTML = `
-      <!-- Title Block at top -->
-      <div style="pointer-events: none; text-align: center; margin-bottom: 40px; flex-shrink: 0;">
-        <div style="
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 5px;
-          color: rgba(255,255,255,0.7);
-          text-transform: uppercase;
-          margin-bottom: 8px;
-          font-family: monospace;
-        ">A STUDENT SURVIVAL STORY</div>
+      <style>
+        .astryx-btn {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+        .astryx-btn:active {
+          transform: scale(0.96) !important;
+          opacity: 0.8 !important;
+        }
+      </style>
+
+      <div style="pointer-events: none; text-align: center; margin-bottom: 70px; flex-shrink: 0;">
         <h1 style="
-          color: #FFF;
-          font-size: 42px;
-          font-weight: 900;
+          color: #1D3557;
+          -webkit-text-stroke: 2px #FFFFFF;
+          font-size: 54px;
+          font-weight: 700;
           margin: 0;
-          letter-spacing: 3px;
+          letter-spacing: 6px;
           text-transform: uppercase;
-          font-family: monospace, monospace;
-          text-shadow: 0 3px 0 rgba(0,0,0,0.6), 0 6px 20px rgba(0,0,0,0.5);
-          line-height: 1.1;
+          line-height: 1.15;
+          text-shadow: 0 16px 32px rgba(29, 53, 87, 0.4);
         ">FAR FROM<br>HOME</h1>
-        <div style="
-          font-size: 12px;
-          color: rgba(255,255,255,0.6);
-          margin-top: 10px;
-          font-style: italic;
-          letter-spacing: 1px;
-        ">Lübeck, Germany · Learn German · Pay Your Tuition</div>
       </div>
 
-      <!-- Frosted glass panel with buttons -->
       <div style="
         pointer-events: auto;
         z-index: 10;
-        width: 290px;
+        width: 260px;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         gap: 12px;
-        background: rgba(255,255,255,0.12);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.25);
-        border-radius: 20px;
-        padding: 28px 24px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
       ">
-        <div id="continue-row" style="display: none; flex-direction: row; gap: 8px; width: 100%; align-items: stretch;">
-        <button id="btn-continue" style="
-          display: block;
-          background: #3A86FF;
-          color: #FFF;
-          border: none;
-          padding: 14px 40px;
-          font-size: 18px;
-          font-weight: 900;
-          letter-spacing: 2px;
-          border-radius: 10px;
-          cursor: pointer;
-          box-shadow: 0 5px 0 #1A56C0, 0 8px 20px rgba(58,134,255,0.4);
-          transition: all 0.08s ease-in-out;
-          font-family: monospace, monospace;
-          text-transform: uppercase;
-          flex: 1;
-        ">▶ CONTINUE</button>
+        <div id="continue-row" style="display: none; flex-direction: row; gap: 8px; width: 100%;">
+          <button id="btn-continue" class="astryx-btn" style="
+            display: block;
+            background: rgba(255, 255, 255, 0.95);
+            color: #000000;
+            border: none;
+            padding: 15px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            flex: 1;
+          ">Continue</button>
 
-        <button id="btn-delete-save" title="Wipe save & start fresh" style="
-          display: none;
-          background: rgba(231,111,81,0.18);
-          color: #E76F51;
-          border: 2px solid rgba(231,111,81,0.5);
-          border-radius: 10px;
-          width: 48px;
-          min-width: 48px;
-          font-size: 20px;
-          cursor: pointer;
-          transition: all 0.12s ease;
-          flex-shrink: 0;
-          line-height: 1;
-          padding: 0;
-        " onmouseover="this.style.background='rgba(231,111,81,0.35)';this.style.borderColor='#E76F51';"
-           onmouseout="this.style.background='rgba(231,111,81,0.18)';this.style.borderColor='rgba(231,111,81,0.5)';">🗑️</button>
+          <button id="btn-delete-save" title="Wipe save & start fresh" class="astryx-btn" style="
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            width: 50px;
+            min-width: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+            padding: 0;
+          ">🗑️</button>
         </div>
 
-        <button id="btn-new-game" style="
-          background: #ECC238;
-          color: #222;
+        <button id="btn-new-game" class="astryx-btn" style="
+          background: rgba(255, 255, 255, 0.95);
+          color: #000000;
           border: none;
-          padding: 14px 40px;
-          font-size: 18px;
-          font-weight: 900;
-          letter-spacing: 2px;
-          border-radius: 10px;
-          cursor: pointer;
-          box-shadow: 0 5px 0 #9E7D1A, 0 8px 20px rgba(236,194,56,0.4);
-          transition: all 0.08s ease-in-out;
-          font-family: monospace, monospace;
-          text-transform: uppercase;
-          width: 100%;
-        ">✦ NEW GAME</button>
-        
-        <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.2); margin: 4px 0;"></div>
-
-        <button id="btn-sound" style="
-          background: rgba(255,255,255,0.15);
-          color: #FFF;
-          border: 1px solid rgba(255,255,255,0.3);
-          padding: 9px 20px;
-          font-size: 13px;
-          font-weight: bold;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.08s ease-in-out;
-          font-family: monospace, monospace;
-          width: 100%;
+          padding: 15px 20px;
+          font-size: 15px;
+          font-weight: 600;
           letter-spacing: 1px;
-        ">🔊 SOUND: ON</button>
+          border-radius: 12px;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+          width: 100%;
+        ">New Game</button>
+        
+        <button id="btn-sound" class="astryx-btn" style="
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          color: #FFFFFF;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          padding: 14px 20px;
+          font-size: 14px;
+          font-weight: 500;
+          border-radius: 12px;
+          cursor: pointer;
+          width: 100%;
+          letter-spacing: 0.5px;
+        ">Sound: On</button>
       </div>
 
-      <!-- Bottom tagline -->
       <div style="
         pointer-events: none;
-        margin-top: 30px;
+        position: absolute;
+        bottom: 24px;
+        left: 0;
+        right: 0;
+        text-align: center;
         font-size: 10px;
-        color: rgba(255,255,255,0.35);
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        font-family: monospace;
-      ">META HORIZON CREATOR COMPETITION 2026</div>
+        color: rgba(255,255,255,0.3);
+        font-weight: 500;
+        letter-spacing: 1px;
+      ">Meta Horizon Creator Competition 2026</div>
     `;
 
     this.container.appendChild(bootDiv);

@@ -18,6 +18,8 @@ window.FFH.ProceduralTextures = (function() {
 
   function setupTexture(canvas, repeatX = 1, repeatY = 1) {
     const texture = new THREE.CanvasTexture(canvas);
+    if (THREE.SRGBColorSpace) texture.colorSpace = THREE.SRGBColorSpace;
+    else texture.encoding = 3001; // THREE.sRGBEncoding fallback
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(repeatX, repeatY);

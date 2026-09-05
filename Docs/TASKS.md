@@ -34,7 +34,7 @@
   - `Martha Webber` -> `Martha Beck` (baker, `B_BAKERY`). `Frau Weber` remains the Sparkasse banker.
   - `Nina Lindemann` -> `Nina Voss` (dispatcher, `B_DARKSTORE`). `Dr. Lindemann` remains the immigration officer.
   - Reconciled orphaned Martha medicine favor block in `src/data/npcDialogue.js` and verified clean AST syntax.
-- [ ] **Act One British Comedy Narrative Implementation (Scene 1–10 from `Docs/ACT_ONE_BRITISH_COMEDY.md`):**
+- [ ] **Act One British Comedy Narrative Implementation (Scenes 1–10 per `README_HACKATHON.md` §2):**
   - [ ] **Scene 1 (Arrival & Bus Shelter Roast)**: Bus station arrival at `B_ZOB` North Gate, British deadpan thought bubble on microwave-sized shelter, timetable inspection plaque, compass pulse to `B_WG`.
   - [ ] **Scene 2 & Pfand Collectibles**: 5 floating glass bottle collectibles (+€0.25 Pfand pickup chime, ground pulse ring), cobblestone walk environmental thoughts.
   - [ ] **Scene 3 (WG 3-Button Doorbell Buzzer)**: Intercom modal at `B_WG` door (Frau Meier *Ruhezeit* shout + noise strike vs Herr Schmidt wrong buzzer vs Nico buzzer).
