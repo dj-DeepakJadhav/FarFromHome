@@ -6,7 +6,7 @@
 > Every value below is read from code or measured from the build. If a number here
 > disagrees with the code, **the code wins** — fix this file, not the code.
 
-Last verified: 2026-09-05
+Last verified: 2026-09-06
 
 ---
 
@@ -59,45 +59,58 @@ State it that way. Do not claim the whole file is unminified.
 
 ## 3. Shop Catalog (`src/data/shop.js`)
 
-| id | Cost | Name |
-| :--- | ---: | :--- |
-| `ebike` | €45 | E-Bike |
-| `thermalBag` | €50 | Thermal Bag |
-| `shelfLabels` | €25 | Shelf Labels |
-| `pocketNotepad` | €20 | Pocket Notepad |
-| `vocabCards` | €35 | Vocab Cards |
+| id | name | cost | effect |
+|---|---|---|---|
+| `ebike` | E-Bike | €45 | -40% transit time |
+| `thermalBag` | Thermal Bag | €50 | Halves freshness decay while riding |
+| `shelfLabels` | Shelf Labels | €25 | Stamps tier symbol (▲●■) on every item |
+| `pocketNotepad` | Pocket Notepad | €20 | One free rail re-pulse per shift |
+| `vocabCards` | Shift Rota Cards | €35 | -0.8s icon delay, +25% early-pick bonus |
+
+> The `vocabCards` id is legacy; the shipped display name is **Shift Rota Cards**.
+> `pocketNotepad` is gated on ownership and its button renders in the shift HUD
+> only when owned.
 
 ---
 
 ## 4. Shelf Tiers (`src/phases/pickPhase.js`, `src/data/items.js`)
 
-Shelves are sorted **purely by grammatical gender**. They are stacked
-**bottom → top**, not left → right.
+Shelves are filed **purely by grammatical gender** — the joke being that a German
+warehouse would of course be organised by an arbitrary property of the noun. They
+are stacked **bottom → top**, not left → right. The player never needs to know
+German: items are labelled English-first and the tiers are read by colour and symbol.
 
-| Row | Position | Article | Colour | Hex |
-| :--- | :--- | :--- | :--- | :--- |
-| 0 | **Bottom** | `der` | Blue | `#3A86FF` |
-| 1 | **Middle** | `die` | Pink | `#FF006E` |
-| 2 | **Top** | `das` | Purple | `#8338EC` |
+| Row | Position | Article | Colour | Hex | Symbol |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 0 | **Bottom** | `der` | Blue | `#3A86FF` | ▲ |
+| 1 | **Middle** | `die` | Pink | `#FF006E` | ● |
+| 2 | **Top** | `das` | Purple | `#8338EC` | ■ |
 
 > Do **not** label these rows with food categories such as "Chilled & Drinks",
 > "Fresh & Snacks" or "Bakery & Dry". Those labels were doc-only fiction and they
 > contradict the data: milk (`die`) is not in a "chilled" row, and apple, cheese
 > and coffee share the bottom row only because all three are `der`. The mechanic
-> is coherent as gender sorting; the category names broke it.
+> is coherent as gender filing; the category names broke it.
+>
+> Do **not** describe this as teaching, a lesson, or a language exercise. It is a
+> colour-and-symbol sorting mechanic with a comedic premise.
 
 The `category` field in `items.js` holds `Food` / `City` / `Bureaucracy` / `Culture`
 and is unrelated to shelf placement.
 
 ---
 
-## 5. Audio Pacing Ramp
+## 5. Pacing Ramp (visual rail pulse)
 
-| Shift | Mode | Icon delay |
-| :--- | :--- | :--- |
-| 1 | TEACH | 0.0 s |
-| 2 | ANTICIPATE | 1.5 s |
-| 3+ | TEST | 2.5 s |
+The gender rail **pulses** before the item icon resolves. Tapping the correct tier
+during that window earns the 2.0× Early Pick bonus. The cue is **visual** — there
+is no recorded audio anywhere in the build.
+
+| Shift | Icon delay |
+| :--- | :--- |
+| 1 | 0.0 s |
+| 2 | 1.5 s |
+| 3+ | 2.5 s |
 
 Judges must reach Shift 3 within **90 seconds**.
 

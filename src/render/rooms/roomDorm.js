@@ -125,7 +125,7 @@ window.FFH.createLevel0Room = function(state = window.FFH.state) {
     room.add(desk, pad, lamp);
   }
 
-  // 4. Vocab Cards & Shelf Labels (Study Corkboard on Back Wall)
+  // 4. Shift Rota Cards & Shelf Labels (Study Corkboard on Back Wall)
   if (upgrades.vocabCards || upgrades.shelfLabels) {
     const boardMat = window.FFH.createCelMaterial(0xC58B58);
     const corkboard = new THREE.Mesh(boxGeo, boardMat);

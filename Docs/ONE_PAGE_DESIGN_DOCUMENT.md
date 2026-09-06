@@ -6,10 +6,11 @@
 
 ```
 ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  HIGH CONCEPT:  A high-speed courier & German expat bureaucracy life-sim. Work shifts, sort groceries by color,
-                 ride cobblestones, charm quirky locals, and conquer the 4-document dossier before your visa runs out.
+  HIGH CONCEPT:  A narrative courier-management sim: British deadpan comedy colliding with German municipal precision.
+                 Work shifts, file groceries by colour, ride cobblestones, endure quirky locals, and conquer the
+                 4-document dossier before your visa runs out.
   PLATFORM:      Mobile-First WebGL (390×844 Portrait) | PACKAGING: 100% Offline Single-File HTML5 (≤ 35 MB)
-  CORE PILLARS:  ① 60-Second Addictive Loop   ② English-First / German-Voiced   ③ Invest ➔ Harvest ➔ Upgrade Economy
+  CORE PILLARS:  ① 60-Second Addictive Loop   ② British Deadpan vs. German Precision   ③ Invest ➔ Harvest ➔ Upgrade Economy
 ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 ```
 
@@ -23,13 +24,13 @@
  │    ┌────────────────────────┐         ┌────────────────────────┐         ┌────────────────────────┐         │
  │    │ 1. EXPLORE & CLOCK IN  │ ──────> │ 2. WAREHOUSE PICKING   │ ──────> │ 3. 3D COURIER RIDE     │         │
  │    │ Continuous 3D Altstadt │         │ Color-tier shelf sort  │         │ Steer bike on map      │         │
- │    │ Talk to voiced NPCs    │         │ Audio rhythm ramp      │         │ E-Bike turbo boost     │         │
+ │    │ Meet deadpan locals    │         │ Rail-pulse timing ramp │         │ E-Bike turbo boost     │         │
  │    └────────────────────────┘         └────────────────────────┘         └────────────────────────┘         │
  │                ▲                                                                     │                      │
  │                │                                                                     ▼                      │
  │    ┌────────────────────────┐         ┌────────────────────────┐         ┌────────────────────────┐         │
  │    │ 6. GROW & FURNISH      │ <────── │ 5. DEBRIEF & UPGRADE   │ <────── │ 4. DOORWAY HANDOFF     │         │
- │    │ Unlock 4-Doc Dossier   │         │ Shift receipt payout   │         │ Voiced German dialogue │         │
+ │    │ Unlock 4-Doc Dossier   │         │ Shift receipt payout   │         │ Beamtendeutsch banter  │         │
  │    │ Furnish 3D Dorm Room   │         │ Buy bike/gear upgrades │         │ Sie vs Du etiquette tip│         │
  │    └────────────────────────┘         └────────────────────────┘         └────────────────────────┘         │
  │                                                                                                             │
@@ -40,7 +41,9 @@
 
 ## 2. SIGNATURE MECHANIC: 3-TIER SPATIAL SEARCH ENGINE
 
-The player sorts grocery manifests in real time. **Grammar gender (`der/die/das`) doubles as an intuitive 3-tier spatial filter**, cutting search time by 66%:
+The player fills grocery manifests in real time. German nouns have arbitrary genders — so of course the warehouse is filed by them. **`der/die/das` doubles as a 3-tier spatial filter**, cutting search time by 66%. The player never needs a word of German: items are labelled **English-first** and the tiers are read by **colour and symbol**.
+
+> Klaus sets the tone: *"An apple is a boy, a banana is a girl. Pick them right."*
 
 ```
  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -52,14 +55,16 @@ The player sorts grocery manifests in real time. **Grammar gender (`der/die/das`
  └─────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-> Rows are sorted by **grammatical gender only**. Do not label them with food
-> categories — milk would not sit in a "chilled" row, and the bottom row groups
-> apple, cheese and coffee purely because all three are *der*.
+> Rows are filed by **grammatical gender only** — a joke about German filing, not a
+> lesson. Do not label them with food categories: milk would not sit in a "chilled"
+> row, and the bottom row groups apple, cheese and coffee purely because all three
+> are *der*.
 
-### The 90-Second Audio Rhythm Ramp (Pacing Curve)
-- **Shift 1 — TEACH (0.0s Delay)**: Audio + English icon appear together (`"Die Milch!"` + Pink shelf glows).
-- **Shift 2 — ANTICIPATE (1.5s Delay)**: Audio plays *before* icon. Guessing the shelf tier earns **2.0× Early Bonus**.
-- **Shift 3 — TEST (2.5s Delay)**: Pure audio recognition. Couriers pick by ear for maximum streak multipliers.
+### The 90-Second Rail-Pulse Ramp (Pacing Curve)
+The anticipation cue is **visual**: the gender rail pulses before the item icon resolves.
+- **Shift 1 (0.0s Delay)**: Rail pulse and icon land together — the pink rail glows as the Milk icon appears.
+- **Shift 2 (1.5s Delay)**: The rail pulses *before* the icon. Tapping the right tier in that window earns the **2.0× Early Pick Bonus**.
+- **Shift 3+ (2.5s Delay)**: Pure pattern recognition on the pulse alone, for maximum streak multipliers.
 
 ---
 
@@ -75,11 +80,11 @@ $$\text{Total Payout} = \text{Base Wage (€15)} + (\text{Speed Streak} \times 2
 ### Equipment Upgrades (Mathias' Hansa Rad Bike Shop)
 | Upgrade Item | Cost | Gameplay Effect | Visual 3D Impact |
 | :--- | :---: | :--- | :--- |
-| **E-Bike Conversion** | €45 | **+50% Movement Speed** across city | Motor & battery pack mounted on bike |
+| **E-Bike Conversion** | €45 | **-40% transit time** across city | Motor & battery pack mounted on bike |
 | **Insulated Thermal Bag** | €50 | **Halves freshness decay** while riding | Bright orange Kruma branded backpack |
-| **Shelf Labeling Kit** | €25 | **Item gender symbols (▲●■)** visible | Color markers on warehouse shelves |
-| **Pocket Vocab Notebook** | €20 | **1 Re-listen audio replay** per shift | Open notebook on handlebars |
-| **Vocab Cards** | €35 | **-0.8s icon delay, +25% early pick bonus** | Flashcards in student room |
+| **Shelf Labeling Kit** | €25 | **Stamps the tier symbol (▲●■)** on every item | Colour markers on warehouse shelves |
+| **Pocket Notepad** | €20 | **1 free rail re-pulse** per shift | Open notepad on handlebars |
+| **Shift Rota Cards** | €35 | **-0.8s icon delay, +25% early pick bonus** | Rota cards pinned in student room |
 
 ---
 
@@ -108,7 +113,7 @@ $$\text{Total Payout} = \text{Base Wage (€15)} + (\text{Speed Streak} \times 2
  │     • 2.5D Doorstep Customer Handoff   │  ambient weather, dynamic lighting & ink outline
  │                                        │
  ├────────────────────────────────────────┤ ── 640px
- │  [SUBTITLE] "Guten Tag! Ein Kaffee?"   │  Contextual Bilingual Subtitle Bar
+ │  [DIALOGUE] "NEIN! Ruhezeit!"          │  Contextual Dialogue Bar (Beamtendeutsch comedy flavour)
  ├────────────────────────────────────────┤ ── 710px
  │  [ ACTION / INTERACTION / DOCK AREA ]  │  Thumb Action Zone (Bottom 25%):
  │   [BLUE: Der ▲] [PINK: Die ●] [PUR: Das ■]  Large touch-target buttons (min 48px),
@@ -123,7 +128,7 @@ $$\text{Total Payout} = \text{Base Wage (€15)} + (\text{Speed Streak} \times 2
 - **Zero External Requests**: 100% offline airgap. No CDNs, no remote fonts, no remote audio.
 - **Single-File Deliverable**: Builds via `node build/assemble.js` to a self-contained root `index.html`.
 - **Bundle Size**: ≤ 35 MB budget. Actual size: see [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
-- **Audio Engine**: Pre-baked studio voice clips + deterministic Web Audio SFX synthesis.
+- **Audio Engine**: 100% runtime synthesis. No recorded audio ships — every sound is built from Web Audio oscillators: SFX plus pitched per-character talk-blips (`src/audio/speech.js`).
 - **Rendering**: Three.js r128 (vendored), Sobel edge outlines, baked shadows, 60 FPS mobile performance.
 
 ```

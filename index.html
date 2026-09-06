@@ -17564,13 +17564,14 @@ window.FFH.storyData = {
   "title": "Far From Home",
   "subtitle": "Luebeck. 28 days. 20 euros.",
   "about": [
-    "STORYBOARD AND SINGLE SOURCE OF TRUTH.",
-    "This file owns prose, branching, economy deltas, UI/mechanic unlocks and",
-    "pacing. story.ink and story.twee predate it and no longer match: they do",
-    "not contain the Act I restructure. Treat them as historical until they",
-    "are regenerated from this file.",
-    "JSON has no comments, so commentary lives in real fields: beat, econ_note,",
-    "sets_note, about."
+    "STORYBOARD AND SINGLE SOURCE OF TRUTH for prose, branching, economy deltas,",
+    "UI/mechanic unlocks and pacing. story.ink and story.twee predate it and no longer",
+    "match; treat them as historical until regenerated from this file.",
+    "JSON has no comments, so commentary lives in real fields: beat, econ_note, sets_note, about.",
+    "NOT A LANGUAGE-LEARNING GAME. No scene teaches German and no scene may claim to.",
+    "NO RECORDED AUDIO EXISTS. The audio[] arrays are advisory ambience slots for the",
+    "procedural SFX layer, never asset filenames. The pick loop's cue is the VISUAL gender",
+    "rail pulse. See Docs/STORY_FORMAT.md before editing anything in this file."
   ],
   "shape": {
     "form": "diamond",
@@ -17611,7 +17612,9 @@ window.FFH.storyData = {
       "overlay": "narration plays over live gameplay and never blocks input",
       "blocking": "a real conversation; the dialogue IS the interaction",
       "gameplay": "a minigame owns the screen; narration is incidental"
-    }
+    },
+    "note": "The 90s budget is the time to the Aha, not the length of Act I. The critical path as authored reaches shift_3_test well past 90s, so the shipping build needs a fast-start that drops the player at shift_1_teach. Tracked in Docs/TASKS.md. Do not silently retune durations to make this pass.",
+    "aha_cumulative_s": 127
   },
   "economy_ref": "src/core/economy.js is authoritative; Docs/CANONICAL_NUMBERS.md mirrors it",
   "state": {
@@ -17639,7 +17642,7 @@ window.FFH.storyData = {
     "circle_cut": false,
     "has_ebike": false,
     "has_thermalbag": false,
-    "has_vocabcards": false,
+    "has_rotacards": false,
     "has_notepad": false,
     "has_labels": false,
     "owes_mathias": 0,
@@ -17658,9 +17661,9 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_ZOB",
-        "time": "18:00",
-        "light": "dusk_cold",
-        "weather": "wind_baltic_hard",
+        "time": "15:00",
+        "light": "afternoon_clear",
+        "weather": "cold_clear",
         "camera": "single_close"
       },
       "cast": [],
@@ -17710,8 +17713,8 @@ window.FFH.storyData = {
       "act": "I",
       "stage": {
         "loc": "B_WG",
-        "time": "19:30",
-        "light": "night_lantern",
+        "time": "15:25",
+        "light": "afternoon_clear",
         "camera": "doorway_two_shot"
       },
       "effects": [
@@ -17729,15 +17732,17 @@ window.FFH.storyData = {
         "On a stone bench sits an empty bottle with a tiny recycling mark. In England this is rubbish; here it pays 25 cents! (+€0.25 Pfand)"
       ],
       "choices": [],
-      "next": "wg_door"
+      "next": "wg_buzzer",
+      "cumulative_s": 10,
+      "critical_path_index": 1
     },
     {
       "id": "wg_door_fast",
       "act": "I",
       "stage": {
         "loc": "B_WG",
-        "time": "19:30",
-        "light": "night_lantern",
+        "time": "15:20",
+        "light": "afternoon_clear",
         "camera": "doorway_two_shot"
       },
       "effects": [
@@ -17750,7 +17755,91 @@ window.FFH.storyData = {
         "You drag your 25kg suitcase over medieval cobblestones. Nature's way of punishing human ankles."
       ],
       "choices": [],
-      "next": "wg_door"
+      "next": "wg_buzzer"
+    },
+    {
+      "id": "wg_buzzer",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "15:45",
+        "light": "afternoon_clear",
+        "camera": "door_panel_close"
+      },
+      "cast": [],
+      "props": [
+        "buzzer_panel",
+        "name_labels",
+        "suitcase_heavy"
+      ],
+      "audio": [
+        "street_quiet",
+        "intercom_click"
+      ],
+      "prose": [
+        "The buzzer panel has three names on it and no numbers, which feels deliberate.",
+        "MEIER. HAUSMEISTER SCHMIDT. WG 3B.",
+        "You are looking for a Nico. There is no Nico. There is only the German postal system's opinion of a Nico."
+      ],
+      "choices": [
+        {
+          "label": "[MEIER]",
+          "gate": null,
+          "to": "wg_door",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart - 2"
+            }
+          ],
+          "prose": [
+            "The intercom does not say hello. The intercom says, at volume, a full sentence about Ruhezeit.",
+            "Frau Meier: NEIN! RUHEZEIT!",
+            "It is quarter to four in the afternoon. You decide not to argue the point through a metal grille."
+          ]
+        },
+        {
+          "label": "[HAUSMEISTER SCHMIDT]",
+          "gate": null,
+          "to": "wg_door",
+          "effects": [],
+          "prose": [
+            "A click. A long breath through the nose. Another click.",
+            "Nothing else happens. Somehow that is worse."
+          ]
+        },
+        {
+          "label": "[WG 3B — the one that isn't a surname]",
+          "gate": null,
+          "to": "wg_door",
+          "effects": [
+            {
+              "var": "r_nico",
+              "expr": "r_nico + 1"
+            }
+          ],
+          "prose": [
+            "The door buzzes with genuine violence and swings off the latch.",
+            "Somewhere above you, a kettle is already going on."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "the three-button intercom / first rule you break by accident",
+      "origin": "ACT_ONE_BRITISH_COMEDY.md scene 3",
+      "sets_note": "MEIER costs heart and is remembered as a noise strike; WG 3B gives r_nico +1",
+      "mode": "blocking",
+      "duration_s": 8,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [
+          "modal-buzzer-panel"
+        ],
+        "mechanic": "intercom_choice"
+      },
+      "cumulative_s": 18,
+      "critical_path_index": 2
     },
     {
       "id": "wg_door",
@@ -17758,8 +17847,8 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_WG",
-        "time": "19:30",
-        "light": "night_lantern",
+        "time": "15:50",
+        "light": "afternoon_clear",
         "camera": "doorway_two_shot"
       },
       "cast": [
@@ -17824,8 +17913,8 @@ window.FFH.storyData = {
         ],
         "mechanic": "converse"
       },
-      "cumulative_s": 17,
-      "critical_path_index": 1
+      "cumulative_s": 25,
+      "critical_path_index": 3
     },
     {
       "id": "nico_kitchen",
@@ -17833,7 +17922,7 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_WG",
-        "time": "18:50",
+        "time": "16:00",
         "light": "interior_warm_lamp",
         "camera": "over_shoulder_table"
       },
@@ -17892,8 +17981,8 @@ window.FFH.storyData = {
       "duration_s": 6,
       "duration_source": "authored",
       "unlocks": {},
-      "cumulative_s": 23,
-      "critical_path_index": 2
+      "cumulative_s": 31,
+      "critical_path_index": 4
     },
     {
       "id": "nico_bins_choice",
@@ -17901,7 +17990,7 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_WG",
-        "time": "18:52",
+        "time": "16:05",
         "light": "interior_warm_lamp",
         "camera": "insert_three_bins"
       },
@@ -17960,19 +18049,8 @@ window.FFH.storyData = {
       "duration_s": 7,
       "duration_source": "authored",
       "unlocks": {
-        "ui": [
-          "btn-vocab-notebook",
-          "vocab-modal",
-          "vocab-list"
-        ],
-        "mechanic": "vocab_notebook",
-        "teaches": {
-          "subject": "muelltrennung",
-          "mode": "TEACH"
-        }
-      },
-      "cumulative_s": 30,
-      "critical_path_index": 3
+        "mechanic": "muelltrennung_lore"
+      }
     },
     {
       "id": "nico_sends_kruma",
@@ -17980,7 +18058,7 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_WG",
-        "time": "18:25",
+        "time": "16:20",
         "light": "interior_warm_lamp",
         "camera": "kitchen_two_shot"
       },
@@ -18003,7 +18081,7 @@ window.FFH.storyData = {
       "choices": [
         {
           "label": "\"Two hundred and fifty euros?! I need to run to the Uni right now!\"",
-          "to": "uni_closed",
+          "to": "golden_hour",
           "effects": [],
           "prose": [
             "Nico: Go on then, but don't say I didn't warn you about German office hours."
@@ -18011,7 +18089,7 @@ window.FFH.storyData = {
         },
         {
           "label": "\"Market by the Holstentor. Understood. I'll check the campus first.\"",
-          "to": "uni_closed",
+          "to": "golden_hour",
           "effects": [
             {
               "var": "r_nico",
@@ -18036,8 +18114,61 @@ window.FFH.storyData = {
         ],
         "mechanic": "quest_tracking"
       },
-      "cumulative_s": 36,
-      "critical_path_index": 4
+      "cumulative_s": 37,
+      "critical_path_index": 5
+    },
+    {
+      "id": "golden_hour",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "LM_CANAL",
+        "time": "16:45",
+        "light": "golden_hour",
+        "weather": "cold_clear",
+        "camera": "tracking_run_low"
+      },
+      "cast": [],
+      "props": [
+        "canal_bridge",
+        "brick_facades",
+        "long_shadows"
+      ],
+      "audio": [
+        "footsteps_cobble",
+        "church_bell_quarter"
+      ],
+      "prose": [
+        "Quarter to five. The sun drops behind the gables and turns the whole street the colour of a good pint.",
+        "It is, annoyingly, beautiful. You are running through it holding a letter about money you do not have.",
+        "Fifteen minutes. The office shuts at five. You have done worse odds."
+      ],
+      "choices": [
+        {
+          "label": "[Run.]",
+          "gate": null,
+          "to": "uni_closed",
+          "effects": [
+            {
+              "var": "body",
+              "expr": "body - 4"
+            }
+          ],
+          "prose": []
+        }
+      ],
+      "effects": [],
+      "beat": "GOLDEN HOUR: the only fifteen minutes where winning still looks possible",
+      "origin": "ACT_ONE_BRITISH_COMEDY.md scene 6",
+      "econ_note": "body -4",
+      "mode": "overlay",
+      "duration_s": 7,
+      "duration_source": "authored",
+      "unlocks": {
+        "mechanic": "atmospheric_time_shift"
+      },
+      "cumulative_s": 44,
+      "critical_path_index": 6
     },
     {
       "id": "uni_closed",
@@ -18045,8 +18176,8 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_UNI",
-        "time": "19:20",
-        "light": "night_lantern",
+        "time": "17:01",
+        "light": "golden_hour",
         "weather": "cold_clear",
         "camera": "through_glass_two_shot"
       },
@@ -18109,8 +18240,8 @@ window.FFH.storyData = {
       "duration_s": 7,
       "duration_source": "authored",
       "unlocks": {},
-      "cumulative_s": 43,
-      "critical_path_index": 5
+      "cumulative_s": 51,
+      "critical_path_index": 7
     },
     {
       "id": "pizzeria_job",
@@ -18118,8 +18249,8 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_PIZZA",
-        "time": "19:35",
-        "light": "interior_warm_red",
+        "time": "17:40",
+        "light": "dusk_cold",
         "camera": "counter_low_across"
       },
       "cast": [
@@ -18171,8 +18302,8 @@ window.FFH.storyData = {
       "duration_s": 9,
       "duration_source": "authored",
       "unlocks": {},
-      "cumulative_s": 52,
-      "critical_path_index": 6
+      "cumulative_s": 60,
+      "critical_path_index": 8
     },
     {
       "id": "bakery_job",
@@ -18180,7 +18311,7 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_BAKERY",
-        "time": "19:50",
+        "time": "18:10",
         "light": "interior_warm_bakery",
         "camera": "counter_close_warm"
       },
@@ -18205,14 +18336,14 @@ window.FFH.storyData = {
         "You: Actually, Frau Beck, I'm looking for work. Anything honest.",
         "Martha Beck: To knead bread in Germany you need a B1 language certificate and three years of flour apprenticeship! My customers want to chat about the Baltic weather in proper German.",
         "She softens, looks at your thin jacket, and slips a warm Franzbrötchen pastry into your hand.",
-        "Martha Beck: But listen to me. Around the corner near the Holstentor is Kruma Express. A dark store. Night delivery couriers. They sort by ear, not with certificates.",
-        "Martha Beck: Nina Voss manages dispatch. Tell her Martha sent you. And eat that pastry before it gets cold!"
+        "Martha Beck: But listen to me. Around the corner near the Holstentor is Kruma Express. A dark store. Night delivery couriers. They ask what you can lift, not what you can prove.",
+        "Martha Beck: Ask for Klaus. Tell him Martha sent you. And eat that pastry before it gets cold!"
       ],
       "choices": [
         {
           "label": "\"Kruma Express. Thank you so much, Frau Beck!\"",
           "gate": null,
-          "to": "shift_1_teach",
+          "to": "kruma_flyer",
           "effects": [
             {
               "var": "r_martha",
@@ -18226,7 +18357,7 @@ window.FFH.storyData = {
         {
           "label": "[Bow gratefully, take the pastry, and march toward Kruma.]",
           "gate": null,
-          "to": "shift_1_teach",
+          "to": "kruma_flyer",
           "effects": [
             {
               "var": "r_martha",
@@ -18247,14 +18378,83 @@ window.FFH.storyData = {
       "duration_s": 14,
       "duration_source": "authored",
       "unlocks": {
-        "ui": [],
-        "teaches": {
-          "subject": "kruma_express_discovery",
-          "mode": "ORGANIC"
-        }
+        "ui": []
       },
-      "cumulative_s": 66,
-      "critical_path_index": 7
+      "cumulative_s": 74,
+      "critical_path_index": 9
+    },
+    {
+      "id": "kruma_flyer",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "LM_MARKTPLATZ",
+        "time": "18:40",
+        "light": "night_lantern",
+        "weather": "cold_clear",
+        "camera": "lamppost_inspect"
+      },
+      "cast": [],
+      "props": [
+        "lamp_post",
+        "flyer_yellow",
+        "bicycle_rack"
+      ],
+      "audio": [
+        "city_evening_loop",
+        "paper_flap"
+      ],
+      "prose": [
+        "The lamps come on all at once, like they were waiting for permission.",
+        "There is a yellow flyer cable-tied to the post, laminated against weather, because of course it is.",
+        "KRUMA EXPRESS — 10-MINUTE GROCERY DELIVERY. Riders wanted. Own bicycle preferred. Immediate cash. Behind the Holstentor.",
+        "You: Right. I can pedal, and I can panic. That's most of the job description."
+      ],
+      "choices": [
+        {
+          "label": "[Take the flyer. It's laminated; it'll survive you.]",
+          "gate": null,
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 3"
+            }
+          ],
+          "prose": [
+            "You peel it off the post. Somewhere in this city a man with a ruler feels a disturbance."
+          ]
+        },
+        {
+          "label": "[Photograph it and go. Leave it for the next one.]",
+          "gate": null,
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "heart",
+              "expr": "heart + 4"
+            }
+          ],
+          "prose": [
+            "You leave it up. Someone else is going to have this exact evening, and they'll need it more than your pocket does."
+          ]
+        }
+      ],
+      "effects": [],
+      "beat": "THE FLYER: the job is found by the player, not handed over",
+      "origin": "ACT_ONE_BRITISH_COMEDY.md scene 9",
+      "sets_note": "small heart gain either way; leaving it up gives more",
+      "mode": "blocking",
+      "duration_s": 9,
+      "duration_source": "authored",
+      "unlocks": {
+        "ui": [
+          "city-poi-card"
+        ],
+        "mechanic": "inspect_prop"
+      },
+      "cumulative_s": 83,
+      "critical_path_index": 10
     },
     {
       "id": "shift_1_teach",
@@ -18262,12 +18462,12 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_DARKSTORE",
-        "time": "18:50",
+        "time": "20:05",
         "light": "interior_fluorescent_cold",
         "camera": "first_person_pick"
       },
       "cast": [
-        "NPC_NINA"
+        "NPC_KLAUS"
       ],
       "props": [
         "shelf_der",
@@ -18281,44 +18481,41 @@ window.FFH.storyData = {
       ],
       "audio": [
         "freezer_hum",
-        "ceiling_voice_der",
-        "ceiling_voice_die",
-        "ceiling_voice_das",
-        "pick_confirm"
+        "pick_confirm",
+        "rail_pulse_hum"
       ],
       "prose": [
-        "The Kruma Express warehouse is humming with conveyor belts and industrial chillers.",
-        "Nina Voss stands by the dispatch desk, clipboard in one hand, double espresso in the other.",
-        "Nina Voss: You're the temp Martha mentioned. Good. Shift starts now.",
-        "Nina Voss: Listen carefully: warehouse shelves are sorted by German grammar gender. Bottom shelf is DER (Blue ▲). Middle shelf is DIE (Pink ●). Top shelf is DAS (Purple ■). Learn the word and you cut your search time by two thirds!"
+        "Kruma Express is a shed with ambitions. Strip lights, a freezer humming in a key nobody chose, and a man in a tabard holding a clipboard like it owes him money.",
+        "Klaus: You're the one Martha rang about. Right. Rules.",
+        "Klaus: Shelves are sorted by grammatical gender. Bottom is der, and it's blue. Middle is die, and it's pink. Top is das, and it's purple.",
+        "You: Sorted by... gender? Of the food?",
+        "Klaus: Of the word. An apple is a boy. A banana is a girl. Bread is neither and I'd advise against asking why.",
+        "You: And this is better than putting the bread near the bread.",
+        "Klaus: It is one third of a shelf instead of a whole one. It is the most efficient stupid thing you will ever see. Tabard's on the hook."
       ],
       "choices": [
         {
-          "label": "[Clock in: Audio + icon arrive together. Pure muscle memory.]",
+          "label": "[Clock in. Rail and icon arrive together — nothing to outrun yet.]",
           "to": "shift_2_anticipate",
           "effects": [
             {
-              "var": "wallet",
-              "expr": "wallet + 15.0"
-            },
-            {
               "var": "shift_no",
               "expr": "shift_no + 1"
+            },
+            {
+              "var": "r_klaus",
+              "expr": "r_klaus + 1"
             }
           ],
           "prose": [
-            "\"Die Milch!\" Pink shelf glows. \"Der Apfel!\" Blue shelf glows. \"Das Brot!\" Purple shelf glows.",
-            "Nina Voss: Exactly! Keep that pace and you might actually survive the week."
+            "Milk. Pink rail, pink shelf, done. Apple. Blue. Bread. Purple.",
+            "Klaus, not looking up: That's the easy version. Enjoy it."
           ]
         }
       ],
       "effects": [],
-      "beat": "TEACH: audio and icon together, cannot fail. Mechanic introduced.",
+      "beat": "TEACH: rail and icon together, cannot fail. The gag is stated once and never explained again.",
       "origin": "new",
-      "payout": {
-        "formula": "canonical base wage 15.0 + accuracy bonus",
-        "wallet": 15
-      },
       "mode": "gameplay",
       "duration_s": 18,
       "duration_source": "authored",
@@ -18330,14 +18527,14 @@ window.FFH.storyData = {
           "tuition-bar"
         ],
         "mechanic": "gender_shelf_sort",
-        "teaches": {
-          "subject": "der_die_das",
-          "mode": "TEACH",
+        "ramp": {
+          "cue": "gender_rail_pulse",
           "icon_delay_s": 0
         }
       },
-      "cumulative_s": 61,
-      "critical_path_index": 6
+      "cumulative_s": 101,
+      "critical_path_index": 11,
+      "sets_note": "shift_no +1, r_klaus +1"
     },
     {
       "id": "shift_2_anticipate",
@@ -18345,12 +18542,12 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_DARKSTORE",
-        "time": "19:20",
+        "time": "20:35",
         "light": "interior_fluorescent_cold",
         "camera": "first_person_pick"
       },
       "cast": [
-        "NPC_NINA"
+        "NPC_KLAUS"
       ],
       "props": [
         "shelf_der",
@@ -18360,41 +18557,34 @@ window.FFH.storyData = {
         "thermal_bag"
       ],
       "audio": [
-        "ceiling_voice_ramp",
         "pick_confirm",
-        "mispick_buzz"
+        "mispick_buzz",
+        "rail_pulse_hum"
       ],
       "prose": [
-        "Second manifest. The warehouse bell rings louder.",
-        "The audio voice calls out 1.5 seconds BEFORE the shelf lights up! Guessing by shelf color tier earns a 2.0x Early Pick Bonus!",
-        "Nina Voss: Pick on the sound, rookie! Don't wait for your eyes!"
+        "Second manifest. Klaus changes something on the terminal without announcing it, which is how Klaus announces things.",
+        "Now the rail lights a second and a half before the item icon resolves. Colour first. Name later.",
+        "Klaus: Commit on the colour. If you wait to be told what it is, you're just shopping."
       ],
       "choices": [
         {
-          "label": "[Listen for the article and pick before the shelf glows!]",
+          "label": "[Trust the pink rail before you know what's on it.]",
           "to": "shift_3_test",
           "effects": [
-            {
-              "var": "wallet",
-              "expr": "wallet + 17.5"
-            },
             {
               "var": "shift_no",
               "expr": "shift_no + 1"
             }
           ],
           "prose": [
-            "You hear 'Der Kaffee' and slam the bottom blue shelf before the icon even renders. Double early payout!"
+            "Blue rail. Your hand is on the bottom shelf before the icon admits it's coffee. Double pay for the early commit.",
+            "Klaus: There it is."
           ]
         }
       ],
       "effects": [],
-      "beat": "ANTICIPATE: 1.5s icon delay. Player starts listening, not looking.",
+      "beat": "ANTICIPATE: 1.5s icon delay. Player commits on colour, not name.",
       "origin": "new",
-      "payout": {
-        "formula": "base 15.0 + early streak multiplier 2.0x",
-        "wallet": 17.5
-      },
       "mode": "gameplay",
       "duration_s": 14,
       "duration_source": "authored",
@@ -18403,14 +18593,13 @@ window.FFH.storyData = {
           "hud-freshness-bar"
         ],
         "mechanic": "freshness",
-        "teaches": {
-          "subject": "der_die_das",
-          "mode": "ANTICIPATE",
+        "ramp": {
+          "cue": "gender_rail_pulse",
           "icon_delay_s": 1.5
         }
       },
-      "cumulative_s": 75,
-      "critical_path_index": 7
+      "cumulative_s": 115,
+      "critical_path_index": 12
     },
     {
       "id": "shift_3_test",
@@ -18418,12 +18607,12 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_DARKSTORE",
-        "time": "19:50",
+        "time": "21:10",
         "light": "interior_fluorescent_cold",
         "camera": "first_person_pick"
       },
       "cast": [
-        "NPC_NINA"
+        "NPC_KLAUS"
       ],
       "props": [
         "shelf_der",
@@ -18433,24 +18622,20 @@ window.FFH.storyData = {
         "manifest_long"
       ],
       "audio": [
-        "ceiling_voice_test_mode",
         "pick_confirm_fast",
-        "mispick_buzz"
+        "mispick_buzz",
+        "rail_pulse_hum"
       ],
       "prose": [
-        "Shift 3. Pure audio recognition. The visual helper icons are gone completely.",
-        "The voice calls: 'Die Banane!' Your hand instinctively darts to the middle shelf.",
-        "You've been in Germany for barely three hours, and you're sorting municipal logistics by German grammatical gender in under 0.1 seconds."
+        "Shift three. Two and a half seconds of pure colour before the icon resolves, and you have stopped waiting for it.",
+        "Pink. Middle. Gone. Blue. Bottom. Gone. You are not reading. You are moving.",
+        "You have been in this country six hours and you are sorting groceries by German grammatical gender at a speed that would alarm your mother."
       ],
       "choices": [
         {
-          "label": "[Finish the rush order by ear!]",
+          "label": "[Finish the run on colour alone.]",
           "to": "shift_receipt",
           "effects": [
-            {
-              "var": "wallet",
-              "expr": "wallet + 20.0"
-            },
             {
               "var": "shift_no",
               "expr": "shift_no + 1"
@@ -18458,21 +18643,21 @@ window.FFH.storyData = {
             {
               "var": "heart",
               "expr": "heart + 6"
+            },
+            {
+              "var": "r_klaus",
+              "expr": "r_klaus + 1"
             }
           ],
           "prose": [
-            "Nina Voss checks the dispatch terminal with a faint smirk.",
-            "Nina Voss: Not bad, England. Not bad at all. Print the receipt."
+            "Klaus checks the terminal. Something happens to his face that is almost certainly not a smile.",
+            "Klaus: Hm. Print the receipt."
           ]
         }
       ],
       "effects": [],
-      "beat": "THE AHA. Icon never arrives; the grammar has become spatial instinct.",
+      "beat": "THE AHA. The icon stops mattering. The daft filing system has become a search accelerator.",
       "origin": "new",
-      "payout": {
-        "formula": "base 15.0 + perfect audio accuracy + customer doorstep tip",
-        "wallet": 20
-      },
       "mode": "gameplay",
       "duration_s": 12,
       "duration_source": "authored",
@@ -18481,14 +18666,14 @@ window.FFH.storyData = {
           "hud-integrity-bar"
         ],
         "mechanic": "bag_integrity",
-        "teaches": {
-          "subject": "der_die_das",
-          "mode": "TEST",
+        "ramp": {
+          "cue": "gender_rail_pulse",
           "icon_delay_s": 2.5
         }
       },
-      "cumulative_s": 87,
-      "critical_path_index": 8
+      "cumulative_s": 127,
+      "critical_path_index": 13,
+      "sets_note": "shift_no +1, heart +6, r_klaus +1"
     },
     {
       "id": "shift_receipt",
@@ -18496,7 +18681,7 @@ window.FFH.storyData = {
       "threads": 2,
       "stage": {
         "loc": "B_DARKSTORE",
-        "time": "09:30",
+        "time": "21:40",
         "light": "interior_fluorescent_cold",
         "camera": "first_person_pick"
       },
@@ -18514,15 +18699,15 @@ window.FFH.storyData = {
         "carton"
       ],
       "audio": [
-        "ceiling_voice_der",
-        "ceiling_voice_die",
-        "ceiling_voice_das",
-        "pick_confirm"
+        "pick_confirm",
+        "rail_pulse_hum"
       ],
       "prose": [
-        "The register chimes as an itemized payslip prints out.",
-        "Nina Voss: Base wage 15€, accuracy bonus, 2.0x early streak, and a polite customer tip for saying Bitte at the door.",
-        "Nina Voss: That's 52.50€ earned across your first three runs. Reinvest in the Bike Shop for an E-Bike, or save it for your 250€ tuition."
+        "The register prints a receipt roughly the length of your forearm. Nina Voss appears holding a double espresso and the energy of someone on her fourth.",
+        "Nina Voss: Base wage thirteen. Accuracy seven fifty. Trial-period deduction, nine twenty-five.",
+        "You: Trial-period deduction.",
+        "Nina Voss: You are on trial. It is deducted. Congratulations, that is the most German sentence anyone will say to you this week.",
+        "Nina Voss: Eleven twenty-five. Real rate from tomorrow. Wallet: {wallet}€."
       ],
       "choices": [
         {
@@ -18531,14 +18716,20 @@ window.FFH.storyData = {
           "gate": null,
           "effects": [],
           "prose": [
-            "Fifty-two quid in one evening. Still a long way to 250€, but your tuition bar is visibly climbing."
+            "Eleven quid. It is not nothing, which is the surprising part.",
+            "The tuition bar moves. Barely. But it moves, and you find you are watching it."
           ]
         }
       ],
-      "effects": [],
-      "beat": "THE RECEIPT: names the money so the tuition bar means something",
+      "effects": [
+        {
+          "var": "wallet",
+          "expr": "wallet + 11.25"
+        }
+      ],
+      "beat": "THE RECEIPT: names the money so the tuition bar means something. The deduction is the gag.",
       "origin": "story.ink + restructured",
-      "econ_note": "no wallet change here: the three shift scenes already paid 9.50 + 10.50 + 11.50 = 31.50",
+      "econ_note": "wallet +11.25 once. Ends Act I at ~31.50, which is what makes Lokker's 30 EUR hurt.",
       "sets_note": "shift_no +1, r_nina +1",
       "mode": "blocking",
       "duration_s": 12,
@@ -18550,8 +18741,13 @@ window.FFH.storyData = {
         ],
         "mechanic": "shift_receipt"
       },
-      "cumulative_s": 99,
-      "critical_path_index": 9
+      "cumulative_s": 139,
+      "critical_path_index": 14,
+      "payout": {
+        "formula": "trial rate: baseWage 13.00 + accuracy 7.50 - trial deduction 9.25 = 11.25 net",
+        "wallet": 11.25,
+        "note": "Act I is ONE evening shift shown in three ramp stages, so it pays ONCE, here. The trial deduction is the joke and it is also what keeps the player near 30 EUR for the Act II Kaution fork. Later shifts use the real engine payout (wallet + pay)."
+      }
     },
     {
       "id": "rita_first",
@@ -18559,7 +18755,7 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_UNI",
-        "time": "19:25",
+        "time": "21:50",
         "light": "night_lantern",
         "weather": "cold_clear",
         "camera": "single_close"
@@ -18592,8 +18788,8 @@ window.FFH.storyData = {
       "duration_s": 6,
       "duration_source": "authored",
       "unlocks": {},
-      "cumulative_s": 105,
-      "critical_path_index": 10
+      "cumulative_s": 145,
+      "critical_path_index": 15
     },
     {
       "id": "night_one",
@@ -18601,7 +18797,7 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "LM_CANAL",
-        "time": "20:10",
+        "time": "22:05",
         "light": "night_lantern_water",
         "weather": "still_cold",
         "camera": "wide_reflection_hold"
@@ -18636,7 +18832,7 @@ window.FFH.storyData = {
           ]
         },
         {
-          "label": "\"I got in late. I missed the office. I have seventeen euros.\"",
+          "label": "\"I got in late. I missed the office. I've got {wallet}€.\"",
           "gate": null,
           "to": "night_one_end",
           "effects": [
@@ -18665,8 +18861,8 @@ window.FFH.storyData = {
       "duration_s": 14,
       "duration_source": "authored",
       "unlocks": {},
-      "cumulative_s": 119,
-      "critical_path_index": 11
+      "cumulative_s": 159,
+      "critical_path_index": 16
     },
     {
       "id": "night_one_end",
@@ -18674,7 +18870,7 @@ window.FFH.storyData = {
       "threads": 1,
       "stage": {
         "loc": "B_WG",
-        "time": "21:30",
+        "time": "22:40",
         "light": "interior_dim_single",
         "camera": "room_wide_static"
       },
@@ -18712,8 +18908,8 @@ window.FFH.storyData = {
       "duration_s": 6,
       "duration_source": "authored",
       "unlocks": {},
-      "cumulative_s": 125,
-      "critical_path_index": 12
+      "cumulative_s": 165,
+      "critical_path_index": 17
     },
     {
       "id": "act_two",
@@ -18773,9 +18969,7 @@ window.FFH.storyData = {
       "mode": "blocking",
       "duration_s": 8,
       "duration_source": "authored",
-      "unlocks": {},
-      "cumulative_s": 133,
-      "critical_path_index": 13
+      "unlocks": {}
     },
     {
       "id": "lokker_kaution",
@@ -18834,9 +19028,7 @@ window.FFH.storyData = {
       "mode": "blocking",
       "duration_s": 10,
       "duration_source": "authored",
-      "unlocks": {},
-      "cumulative_s": 143,
-      "critical_path_index": 14
+      "unlocks": {}
     },
     {
       "id": "act_two_fork",
@@ -18860,8 +19052,8 @@ window.FFH.storyData = {
         "city_morning_loop"
       ],
       "prose": [
-        "You have thirty-one fifty in your pocket and Lokker wants thirty of it.",
-        "Which is fine. Which is exactly fine, and leaves you one euro fifty and a two hundred and fifty euro tuition bill.",
+        "You have {wallet}€ and Lokker wants thirty of it.",
+        "Which is fine. Which is exactly fine, and leaves you the change and a two hundred and fifty euro tuition bill.",
         "Two streets over there is a pizzeria with the shutter half up, and a man inside with a bicycle upside down on a table."
       ],
       "choices": [
@@ -18875,7 +19067,7 @@ window.FFH.storyData = {
           ]
         },
         {
-          "label": "[Try the pizzeria first. Keep the thirty-one fifty as a runway.]",
+          "label": "[Try the pizzeria first. Keep the money as a runway.]",
           "to": "mathias_loan",
           "gate": null,
           "effects": [],
@@ -18891,8 +19083,7 @@ window.FFH.storyData = {
       "duration_s": 8,
       "duration_source": "authored",
       "unlocks": {},
-      "cumulative_s": 151,
-      "critical_path_index": 15
+      "econ_note": "Reads wallet live. Never hardcode. After the Act I trial shift this lands near 31.50, which is the point."
     },
     {
       "id": "kaution_pay",
@@ -18977,9 +19168,7 @@ window.FFH.storyData = {
           "stamp-seal"
         ],
         "mechanic": "document_dossier"
-      },
-      "cumulative_s": 161,
-      "critical_path_index": 16
+      }
     },
     {
       "id": "act_two_end",
@@ -19024,9 +19213,7 @@ window.FFH.storyData = {
       "mode": "blocking",
       "duration_s": 8,
       "duration_source": "authored",
-      "unlocks": {},
-      "cumulative_s": 169,
-      "critical_path_index": 17
+      "unlocks": {}
     },
     {
       "id": "act_three_open",
@@ -19075,9 +19262,7 @@ window.FFH.storyData = {
       "mode": "overlay",
       "duration_s": 8,
       "duration_source": "authored",
-      "unlocks": {},
-      "cumulative_s": 177,
-      "critical_path_index": 18
+      "unlocks": {}
     },
     {
       "id": "hub",
@@ -19176,9 +19361,7 @@ window.FFH.storyData = {
       "mode": "blocking",
       "duration_s": 6,
       "duration_source": "authored",
-      "unlocks": {},
-      "cumulative_s": 183,
-      "critical_path_index": 19
+      "unlocks": {}
     },
     {
       "id": "knot_paper",
@@ -19233,9 +19416,7 @@ window.FFH.storyData = {
       "mode": "blocking",
       "duration_s": 8,
       "duration_source": "authored",
-      "unlocks": {},
-      "cumulative_s": 191,
-      "critical_path_index": 20
+      "unlocks": {}
     },
     {
       "id": "the_circle",
@@ -19288,9 +19469,7 @@ window.FFH.storyData = {
       "mode": "blocking",
       "duration_s": 4,
       "duration_source": "estimated_from_wordcount",
-      "unlocks": {},
-      "cumulative_s": 195,
-      "critical_path_index": 21
+      "unlocks": {}
     },
     {
       "id": "the_circle_2",
@@ -19344,9 +19523,7 @@ window.FFH.storyData = {
       "mode": "blocking",
       "duration_s": 17,
       "duration_source": "estimated_from_wordcount",
-      "unlocks": {},
-      "cumulative_s": 212,
-      "critical_path_index": 22
+      "unlocks": {}
     },
     {
       "id": "the_circle_3",
@@ -19410,9 +19587,7 @@ window.FFH.storyData = {
       "mode": "blocking",
       "duration_s": 12,
       "duration_source": "authored",
-      "unlocks": {},
-      "cumulative_s": 224,
-      "critical_path_index": 23
+      "unlocks": {}
     },
     {
       "id": "mathias_loan",
@@ -19602,9 +19777,9 @@ window.FFH.storyData = {
         "thermal_bag"
       ],
       "audio": [
-        "ceiling_voice_ramp",
         "pick_confirm",
-        "mispick_buzz"
+        "mispick_buzz",
+        "rail_pulse_hum"
       ],
       "prose": [
         "Nina Voss: Shift {shift_no}. Manifest's longer than yesterday. It gets longer every day, that's not a mistake, that's the job growing.",
@@ -19878,8 +20053,8 @@ window.FFH.storyData = {
           ]
         },
         {
-          "label": "Vocab Cards. 35€. Der, die, das, on paper, in your pocket.",
-          "gate": "not has_vocabcards && wallet >= 35",
+          "label": "Shift Rota Cards. 35€. Next week's runs, before anyone else sees them.",
+          "gate": "not has_rotacards && wallet >= 35",
           "to": "shop",
           "effects": [
             {
@@ -19887,7 +20062,7 @@ window.FFH.storyData = {
               "expr": "wallet - 35.0"
             },
             {
-              "var": "has_vocabcards",
+              "var": "has_rotacards",
               "expr": "true"
             }
           ],
@@ -19949,7 +20124,7 @@ window.FFH.storyData = {
       "origin": "story.ink",
       "econ_note": "wallet -45 | -50 | -35 | -25 | -20; body +8 (ebike)",
       "gate": "shift_no >= 1",
-      "sets_note": "has_ebike, has_thermalbag, has_vocabcards, has_labels, has_notepad, knows_trennung",
+      "sets_note": "has_ebike, has_thermalbag, has_rotacards, has_labels, has_notepad, knows_trennung",
       "mode": "blocking",
       "duration_s": 12,
       "duration_source": "authored",
@@ -21084,7 +21259,7 @@ window.FFH.storyData = {
       ],
       "audio": [
         "paper_tear",
-        "stair_voice_below"
+        "rail_pulse_hum"
       ],
       "prose": [
         "-> night_tick ->",
@@ -21188,14 +21363,17 @@ window.FFH.storyData = {
           "expr": "100"
         }
       ],
-      "beat": "THE DRIP: rent every morning regardless",
+      "beat": "THE DRIP: rent every morning regardless [TUNNEL: entered via {tunnel:'night_tick', then:<scene>}; it has no outgoing edge by design — the runner returns to `then`.]",
       "origin": "story.ink",
       "econ_note": "day +1, wallet -8.00 rent, body +5 (cap 100)",
       "sets_note": "day, wallet, body",
       "mode": "overlay",
       "duration_s": 3,
       "duration_source": "authored",
-      "unlocks": {}
+      "unlocks": {},
+      "cumulative_s": 168,
+      "critical_path_index": 18,
+      "tunnel": true
     },
     {
       "id": "act_four",
@@ -21492,8 +21670,8 @@ window.FFH.storyData = {
         "thermal_bag"
       ],
       "audio": [
-        "ceiling_voice_test_mode",
-        "pick_confirm_fast"
+        "pick_confirm_fast",
+        "rail_pulse_hum"
       ],
       "prose": [
         "~ temp pay = 10.0 + 3.0 * shift_no + 14.0",
@@ -22603,14 +22781,59 @@ window.FFH.storyData = {
       "origin": "story.ink",
       "econ_note": "readout: wallet, body, heart",
       "gate": "ENDING by heart: >=70 Angekommen | >=40 Geschafft | else Ueberlebt",
-      "divert": "END",
+      "divert": "the_end",
       "mode": "blocking",
       "duration_s": 16,
       "duration_source": "authored",
       "unlocks": {}
+    },
+    {
+      "id": "the_end",
+      "act": "V",
+      "threads": 1,
+      "stage": {
+        "loc": "LM_MARKTPLATZ",
+        "time": "10:45",
+        "light": "overcast_noon",
+        "weather": "cold_clear",
+        "camera": "wide_pull_back_final"
+      },
+      "cast": [],
+      "props": [
+        "aufenthaltstitel",
+        "suitcase_unpacked"
+      ],
+      "audio": [
+        "city_day_loop",
+        "tram_bell_distant"
+      ],
+      "prose": [
+        "Twenty-eight days. One card, in a plastic sleeve, with your face on it looking like a man who has not slept.",
+        "You go back to Room 4 and you unpack the suitcase, finally, and it takes eleven minutes, and you were dreading it for four weeks.",
+        "Nico puts the kettle on without being asked. The radiator ticks. Somewhere below, Lokker is measuring something.",
+        "You still have no idea why bread is neither a boy nor a girl. You are fairly sure that is not the point."
+      ],
+      "choices": [],
+      "effects": [
+        {
+          "var": "hasVisaExtended",
+          "expr": "true"
+        }
+      ],
+      "beat": "TERMINAL: the suitcase finally opens. Mirrors night_one_end.",
+      "origin": "new — closes the five_out dead-end",
+      "terminal": true,
+      "outcome": "WIN",
+      "mode": "blocking",
+      "duration_s": 14,
+      "duration_source": "authored",
+      "unlocks": {
+        "phase": "WIN"
+      }
     }
   ]
-};
+}
+;
 
 
 /* --- FILE: src/config/gameConfig.js --- */
@@ -23735,6 +23958,20 @@ window.FFH.StoryRunner = class {
       return true;
     });
 
+    // A terminal scene ends the run. The narrative track used to divert to a scene
+    // id of "END" that does not exist, so its final beat dead-ended in DIALOGUE
+    // instead of resolving. Terminal scenes now declare their own outcome.
+    if (scene.terminal) {
+      // scene.effects were already applied by startScene; do not re-apply them.
+      const outcome = scene.outcome === 'LOSE' ? 'LOSE' : 'WIN';
+      const prose = (scene.prose || []).map(line => this.interpolate(line));
+      if (this.game.ui && this.game.ui.showStoryOverlay) {
+        this.game.ui.showStoryOverlay(prose, []);
+      }
+      setTimeout(() => this.game.transitionTo(outcome), (scene.duration_s || 8) * 1000);
+      return;
+    }
+
     if (mode === 'gameplay') {
       this.handleGameplayScene(scene, validChoices);
     } else if (mode === 'blocking') {
@@ -23888,8 +24125,12 @@ window.FFH.StoryRunner = class {
   }
 
   handleGameplayScene(scene, choices) {
-    const teaches = scene.teaches || {};
-    const iconDelay = teaches.icon_delay_s !== undefined ? teaches.icon_delay_s : 0.0;
+    // Ramp data lives at unlocks.ramp.icon_delay_s. This used to read a top-level
+    // `scene.teaches` that no scene has ever had, so it always resolved to 0 and
+    // flattened the ramp on the story path. Leaving it undefined is deliberate:
+    // pickPhase then falls back to the canonical window.FFH.iconRevealDelay().
+    const ramp = (scene.unlocks && scene.unlocks.ramp) || {};
+    const iconDelay = ramp.icon_delay_s;
 
     this.game.transitionTo('PICK', {
       storyScene: scene,
@@ -26799,7 +27040,8 @@ window.FFH.NPC_DATABASE = window.FFH.NPC_DATABASE || {};
 
 
 /* --- FILE: src/data/items.js --- */
-// German Vocabulary Dictionary with Spaced Repetition (1/47 Leitner System)
+// Item catalogue. Each item carries the grammatical gender that decides
+// which of the three warehouse shelf tiers it lives on.
 window.FFH = window.FFH || {};
 
 window.FFH.items = [
@@ -26830,66 +27072,6 @@ window.FFH.items = [
   { id: 'ruhezeit', gender: 'die', color: '#FF006E', hex: 0xFF006E, nameDe: 'Ruhezeit', pluralDe: 'Ruhezeiten', nameEn: 'Quiet Hours (22:00+)', icon: '🌙', category: 'Culture', audioKey: 'ruhezeit', exampleDe: 'Die Ruhezeit beginnt pünktlich um 22:00 Uhr.', exampleEn: 'Quiet hours begin promptly at 22:00.' }
 ];
 
-// Spaced Repetition (1/47 Interval Box Manager)
-window.FFH.SpacedRepetition = {
-  // Intervals in reviews: Box 1 (immediate), Box 2 (1 shift), Box 3 (4 shifts), Box 4 (7 shifts)
-  INTERVALS: [0, 1, 4, 7],
-
-  init: (state = window.FFH.state) => {
-    if (!state.vocabSRS) {
-      state.vocabSRS = {};
-      // Initialize starting grocery vocabulary into Box 1
-      window.FFH.items.forEach(item => {
-        state.vocabSRS[item.id] = {
-          id: item.id,
-          box: 1,
-          nextReviewShift: 1,
-          correctCount: 0,
-          incorrectCount: 0,
-          unlocked: item.category === 'Food'
-        };
-      });
-    }
-  },
-
-  unlockWord: (wordId, state = window.FFH.state) => {
-    window.FFH.SpacedRepetition.init(state);
-    if (state.vocabSRS[wordId]) {
-      state.vocabSRS[wordId].unlocked = true;
-    }
-  },
-
-  recordReview: (wordId, isCorrect, state = window.FFH.state) => {
-    window.FFH.SpacedRepetition.init(state);
-    const entry = state.vocabSRS[wordId];
-    if (!entry) return;
-
-    if (isCorrect) {
-      entry.correctCount++;
-      entry.box = Math.min(4, entry.box + 1);
-    } else {
-      entry.incorrectCount++;
-      entry.box = 1; // Demote back to Box 1 on mistake
-    }
-
-    const interval = window.FFH.SpacedRepetition.INTERVALS[entry.box - 1] || 1;
-    entry.nextReviewShift = (state.currentShift || 1) + interval;
-  },
-
-  getUnlockedWords: (state = window.FFH.state) => {
-    window.FFH.SpacedRepetition.init(state);
-    return window.FFH.items.filter(item => state.vocabSRS[item.id]?.unlocked);
-  },
-
-  getDueWords: (state = window.FFH.state) => {
-    window.FFH.SpacedRepetition.init(state);
-    const cur = state.currentShift || 1;
-    return window.FFH.items.filter(item => {
-      const s = state.vocabSRS[item.id];
-      return s && s.unlocked && s.nextReviewShift <= cur;
-    });
-  }
-};
 
 
 /* --- FILE: src/data/shifts.js --- */
@@ -27399,12 +27581,6 @@ window.FFH.audioTriggers = {
 };
 
 
-/* --- FILE: src/data/voiceSprites.js --- */
-// Far From Home - Clean Audio Manifest
-window.FFH = window.FFH || {};
-window.FFH.voiceSprites = {};
-
-
 /* --- FILE: src/core/grammarEngine.js --- */
 window.FFH = window.FFH || {};
 
@@ -27561,19 +27737,19 @@ window.FFH.shopUpgrades = [
     id: 'shelfLabels',
     nameEn: 'Shelf Labels',
     cost: 25,
-    effectEn: 'Gender symbol (▲●■) shown on each item, not just the rail',
+    effectEn: 'Stamps the tier symbol (▲●■) on every item, not just the rail',
     icon: '🏷️'
   },
   {
     id: 'pocketNotepad',
     nameEn: 'Pocket Notepad',
     cost: 20,
-    effectEn: 'One re-listen per shift :  replays current item audio',
+    effectEn: 'One free rail re-pulse per shift when you lose the thread',
     icon: '📋'
   },
   {
     id: 'vocabCards',
-    nameEn: 'Vocab Cards',
+    nameEn: 'Shift Rota Cards',
     cost: 35,
     effectEn: '-0.8s icon delay, +25% early-pick bonus',
     icon: '🎴'
@@ -28218,7 +28394,7 @@ window.FFH.createLevel0Room = function(state = window.FFH.state) {
     room.add(desk, pad, lamp);
   }
 
-  // 4. Vocab Cards & Shelf Labels (Study Corkboard on Back Wall)
+  // 4. Shift Rota Cards & Shelf Labels (Study Corkboard on Back Wall)
   if (upgrades.vocabCards || upgrades.shelfLabels) {
     const boardMat = window.FFH.createCelMaterial(0xC58B58);
     const corkboard = new THREE.Mesh(boxGeo, boardMat);
@@ -33839,8 +34015,9 @@ window.FFH.AudioEngine = class {
 
 
 /* --- FILE: src/audio/speech.js --- */
-// Audio & Speech Engine with Character Acoustic Profiles, Typewriter Blips & Speech Recognition
-// Procedural Retro Character Talk-Blip and Audio Engine (Animal Crossing / Celeste style)
+// Procedural audio engine. Every sound here is synthesised at runtime from
+// oscillators - there are no recorded voice assets in this build by design.
+// Character talk-blips are pitched per speaker (Animal Crossing / Celeste style).
 window.FFH = window.FFH || {};
 
 window.FFH.SpeechEngine = class SpeechEngine {
@@ -33919,13 +34096,6 @@ window.FFH.SpeechEngine = class SpeechEngine {
     osc.stop(now + 0.08);
   }
 
-  speakKey(key, npcKey = null) {
-    this.playTalkBlip(npcKey);
-  }
-
-  speakGermanText(text, npcKey = null) {
-    this.playTalkBlip(npcKey);
-  }
 };
 
 
@@ -34044,83 +34214,6 @@ window.FFH.UI = class {
     if (hud) {
       hud.innerHTML = ''; // Clear and disable overlapping persistent HUD
       
-      if (state.upgrades?.vocabNotebook) {
-        // Add Vocab Notebook button to persistent UI layer
-        hud.innerHTML = `
-          <div style="width: 100%; display: flex; justify-content: flex-end; padding: 10px;">
-            <button id="btn-vocab-notebook" style="
-              pointer-events: auto;
-              background: #FFD166;
-              border: 3px solid #222;
-              border-radius: 8px;
-              width: 50px;
-              height: 50px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              cursor: pointer;
-              box-shadow: 0 4px 0 #222;
-              font-size: 24px;
-            ">📔</button>
-          </div>
-          <div id="vocab-modal" style="
-            display: none;
-            position: absolute;
-            top: 70px; right: 10px; width: 300px;
-            background: #FFF; border: 3px solid #222; border-radius: 8px;
-            padding: 15px; box-shadow: 4px 6px 0 rgba(0,0,0,0.3);
-            pointer-events: auto; z-index: 2000;
-            max-height: 400px; overflow-y: auto; font-family: sans-serif;
-          ">
-            <h2 style="margin:0 0 10px 0; border-bottom: 2px solid #EEE; padding-bottom: 5px;">Vocab Notebook</h2>
-            <div id="vocab-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-            <button id="btn-close-vocab" style="margin-top:10px; width:100%; padding:8px; background:#222; color:#FFF; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE</button>
-          </div>
-        `;
-
-        const btn = document.getElementById('btn-vocab-notebook');
-        const modal = document.getElementById('vocab-modal');
-        const list = document.getElementById('vocab-list');
-        const closeBtn = document.getElementById('btn-close-vocab');
-
-        if (btn) {
-          btn.addEventListener('click', () => {
-            if (modal.style.display === 'none') {
-              this.game.sfx.playSfx('click');
-              modal.style.display = 'block';
-              list.innerHTML = '';
-              // Populate known items
-              const items = window.FFH.GROCERY_ITEMS || [];
-              items.forEach(item => {
-                const el = document.createElement('div');
-                el.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#F8F9FA; padding:6px 10px; border-radius:4px; border:1px solid #DDD;';
-                
-                // Audio button
-                const btnAudio = document.createElement('button');
-                btnAudio.innerText = '🔊';
-                btnAudio.style.cssText = 'background:none; border:none; cursor:pointer; font-size:16px; margin-right:8px;';
-                btnAudio.onclick = () => {
-                  window.FFH.playGermanAudio(item.gender, item.name);
-                };
-
-                const textSpan = document.createElement('span');
-                textSpan.innerHTML = `<strong>${item.gender}</strong> ${item.name} <span style="color:#666; font-size:12px;">(${item.en})</span>`;
-                
-                el.appendChild(btnAudio);
-                el.appendChild(textSpan);
-                list.appendChild(el);
-              });
-            } else {
-              modal.style.display = 'none';
-            }
-          });
-        }
-        if (closeBtn) {
-          closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-          });
-        }
-      }
     }
   }
 
@@ -35759,6 +35852,23 @@ Object.assign(window.FFH.UI.prototype, {
       justify-content: space-between;
     `;
 
+    // Pocket Notepad button. Rendered only when the upgrade is owned, so the
+    // €20 purchase produces a visible new control in the shift HUD.
+    const hasNotepad = !!(this.game.state.upgrades && this.game.state.upgrades.pocketNotepad);
+    const notepadButton = hasNotepad ? `
+      <button id="btn-replay-audio" title="Re-pulse the shelf rail (once per shift)" style="
+        flex: 0 0 auto;
+        width: 44px; height: 44px;
+        background: #FFD166;
+        border: 2.5px solid #222;
+        border-radius: 8px;
+        box-shadow: 0 3px 0 #222;
+        font-size: 20px;
+        cursor: pointer;
+        pointer-events: auto;
+      ">📋</button>
+    ` : '';
+
     // Checklist entries matching the reference handwriting look
     let checklistLines = '';
     uniqueItems.forEach((item, index) => {
@@ -35846,39 +35956,55 @@ Object.assign(window.FFH.UI.prototype, {
         ⚡ HURRY!
       </div>
 
-      <!-- Bottom Audio Word Dock & Items -->
-      <div style="display: flex; gap: 8px; justify-content: center; overflow-x: auto; padding: 6px; pointer-events: auto;">
+      <!-- Bottom Item Dock -->
+      <div style="display: flex; gap: 8px; justify-content: center; align-items: center; overflow-x: auto; padding: 6px; pointer-events: auto;">
         ${bottomIcons}
+        ${notepadButton}
       </div>
     `;
 
     this.container.appendChild(hud);
 
-    // Audio Replay logic (one per shift)
+    // Pocket Notepad: one re-pulse per shift. Owning the upgrade is what unlocks
+    // it -- without it the button stays dead, which is the point of buying it.
     const btnReplay = document.getElementById('btn-replay-audio');
-    if (btnReplay && !this.game.state.notepadUsedThisShift) {
-      btnReplay.addEventListener('click', () => {
-        this.game.state.notepadUsedThisShift = true;
+    if (btnReplay) {
+      const owned = !!(this.game.state.upgrades && this.game.state.upgrades.pocketNotepad);
+      const spent = !!this.game.state.notepadUsedThisShift;
+      if (!owned || spent) {
         btnReplay.style.background = '#DDD';
         btnReplay.style.cursor = 'not-allowed';
-        
-        const currentPrompt = this.game.state.activeOrder ? this.game.state.activeOrder.find(it => !it.packed) : null;
-        if (currentPrompt && currentPrompt.id) {
-          this.game.speech.speakKey(currentPrompt.id.toLowerCase());
-        }
-      });
+        btnReplay.style.opacity = owned ? '0.5' : '0.3';
+        btnReplay.title = owned ? 'Already used this shift' : 'Buy the Pocket Notepad to unlock';
+      } else {
+        btnReplay.addEventListener('click', () => {
+          this.game.state.notepadUsedThisShift = true;
+          btnReplay.style.background = '#DDD';
+          btnReplay.style.cursor = 'not-allowed';
+          btnReplay.style.opacity = '0.5';
+
+          const currentPrompt = this.game.state.activeOrder ? this.game.state.activeOrder.find(it => !it.packed) : null;
+          const pick = this.game.phases && this.game.phases.PICK;
+          if (currentPrompt && pick && typeof pick.pulseRailForGender === 'function') {
+            pick.pulseRailForGender(currentPrompt.gender);
+          }
+        });
+      }
     }
-  },
+  }
+,
 
   hideWarehouseManifest() {
     this.clear();
-  },
+  }
+,
   updatePickHUD(timeLeft, totalDuration, freshness) {
     const timerText = document.getElementById('pick-timer-text');
     if (timerText) {
       timerText.innerText = Math.ceil(timeLeft) + 's';
     }
-  },
+  }
+,
 
   showRideInstructions(onStart) {
     this.clear();
@@ -35989,7 +36115,8 @@ Object.assign(window.FFH.UI.prototype, {
       this.clear();
       onStart();
     });
-  },
+  }
+,
 
   showRideHUD() {
     this.clear();
@@ -36020,7 +36147,8 @@ Object.assign(window.FFH.UI.prototype, {
       </div>
     `;
     this.container.appendChild(hud);
-  },
+  }
+,
 
   updateRideHUD(integrity, freshness) {
     const iBar = document.getElementById('hud-integrity-bar');
@@ -36035,7 +36163,8 @@ Object.assign(window.FFH.UI.prototype, {
       if (freshness < 30) fBar.style.background = '#E63946';
       else if (freshness < 60) fBar.style.background = '#F4A261';
     }
-  },
+  }
+,
 
   showIntercomUI() {
     this.clear();
@@ -36164,7 +36293,8 @@ Object.assign(window.FFH.UI.prototype, {
         phase.buzz(idx);
       });
     });
-  },
+  }
+,
 
   showShiftSummaryUI() {
     this.clear();
@@ -36272,7 +36402,8 @@ Object.assign(window.FFH.UI.prototype, {
       this.game.sfx.playSfx('success'); // or 'kaching' if we add one
       window.FFH.finishShift(this.game);
     });
-  },
+  }
+,
 
   showShopUI() {
     this.clear();
@@ -36633,7 +36764,7 @@ Object.assign(window.FFH.UI.prototype, {
 
 
 /* --- FILE: src/ui/screens/hudDictionary.js --- */
-// Vocabulary Dictionary & Skill Tree Modals
+// Skill Tree Modal
 window.FFH = window.FFH || {};
 
 Object.assign(window.FFH.UI.prototype, {
@@ -36762,168 +36893,6 @@ Object.assign(window.FFH.UI.prototype, {
 
     renderTree();
     (document.getElementById('ui-container') || document.body).appendChild(modal);
-  },
-
-  showRideMockScreen() {
-    // Redundant now that phase is fully implemented. Leave empty.
-  },
-
-
-  showDictionaryModal() {
-    const existing = document.getElementById('dictionary-modal');
-    if (existing) existing.remove();
-
-    const unlocked = window.FFH.SpacedRepetition ? window.FFH.SpacedRepetition.getUnlockedWords(this.game.state) : window.FFH.items;
-    const dueCount = window.FFH.SpacedRepetition ? window.FFH.SpacedRepetition.getDueWords(this.game.state).length : 0;
-
-    const modal = document.createElement('div');
-    modal.id = 'dictionary-modal';
-    modal.style.cssText = `
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(13, 27, 42, 0.88);
-      backdrop-filter: blur(6px);
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      padding: 16px 14px;
-      box-sizing: border-box;
-      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-      animation: fadeIn 0.2s ease;
-      pointer-events: auto;
-    `;
-
-    modal.innerHTML = `
-      <div style="background: #FFFFFF; border-radius: 16px; border-top: 4px solid #2EC4B6; border-bottom: 4px solid #264653; border-left: 2px solid #264653; border-right: 2px solid #264653; display: flex; flex-direction: column; height: 100%; box-shadow: 0 12px 32px rgba(0,0,0,0.4); overflow: hidden;">
-        <!-- Header -->
-        <div style="padding: 14px 16px; border-bottom: 2px solid #F0F0F0; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 16px; font-weight: 900; color: #1D3557;">📖 Vokabel-Wörterbuch</div>
-            <div style="font-size: 10.5px; color: #2A9D8F; font-weight: 800;">${unlocked.length} Wörter Gelernt • Leitner Box (1/47)</div>
-          </div>
-          <button id="btn-close-dict" style="background: #F8F9FA; border: 2px solid #264653; border-radius: 8px; width: 30px; height: 30px; font-weight: 900; color: #264653; cursor: pointer;">✕</button>
-        </div>
-
-        <!-- Practice Banner -->
-        <div style="background: #FFF3CD; border-bottom: 2px solid #FFEBAA; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 11px; font-weight: 900; color: #856404;">🎯 Spaced Repetition Practice</div>
-            <div style="font-size: 10px; color: #856404;">${dueCount > 0 ? dueCount + ' words ready for review!' : 'All words reviewed for this shift!'}</div>
-          </div>
-          <button id="btn-start-quiz" style="background: #E76F51; color: #FFF; border: 2px solid #264653; border-radius: 8px; padding: 6px 12px; font-weight: 900; font-size: 11px; cursor: pointer; box-shadow: 0 2px 0 #D65A3C;">🎮 PRACTICE</button>
-        </div>
-
-        <!-- Word List / Quiz Container -->
-        <div id="dict-content-body" style="flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
-        </div>
-      </div>
-    `;
-
-    document.getElementById('ui-container').appendChild(modal);
-
-    const renderWordList = () => {
-      const body = modal.querySelector('#dict-content-body');
-      body.innerHTML = unlocked.map(item => {
-        const srs = (this.game.state.vocabSRS && this.game.state.vocabSRS[item.id]) || { box: 1 };
-        const boxStars = '★'.repeat(srs.box) + '☆'.repeat(4 - srs.box);
-        const genderColor = item.gender === 'der' ? '#3A86FF' : item.gender === 'die' ? '#FF006E' : '#8338EC';
-        const audioKey = item.audioKey || item.id;
-        return `
-          <div style="background: #F8F9FA; border: 2px solid #E9ECEF; border-left: 5px solid ${genderColor}; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 24px;">${item.icon || '📦'}</span>
-              <div>
-                <div style="font-size: 13px; font-weight: 900; color: #1D3557;">
-                  <span style="color: ${genderColor};">${item.gender}</span> ${item.nameDe}
-                </div>
-                <div style="font-size: 10.5px; color: #6C757D; font-style: italic;">${item.nameEn} • ${item.exampleDe || ''}</div>
-              </div>
-            </div>
-            <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-              <button class="btn-dict-audio" data-gender="${item.gender}" data-word="${item.nameDe}" style="background: #FFE8D6; border: 1px solid #E76F51; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;" title="Preview item acoustic sound">🎵</button>
-              <div style="font-size: 9px; color: #F4A261; font-weight: 900;">Box ${srs.box} ${boxStars}</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      body.querySelectorAll('.btn-dict-audio').forEach((btn, idx) => {
-        btn.addEventListener('click', () => {
-          if (this.game && this.game.speech) {
-            this.game.speech.playOptionChime(idx);
-          }
-        });
-      });
-    };
-
-    const renderQuizMinigame = () => {
-      const body = modal.querySelector('#dict-content-body');
-      const testItem = unlocked[Math.floor(Math.random() * unlocked.length)];
-      if (!testItem) return;
-
-      const genders = ['der', 'die', 'das'];
-      body.innerHTML = `
-        <div style="text-align: center; padding: 12px 0;">
-          <div style="font-size: 12px; font-weight: 800; color: #2A9D8F; text-transform: uppercase;">Grammar Gender Flashcard</div>
-          <div style="font-size: 48px; margin: 8px 0;">${testItem.icon || '📦'}</div>
-          <div style="font-size: 22px; font-weight: 900; color: #1D3557; margin-bottom: 4px;">___ ${testItem.nameDe}</div>
-          <div style="font-size: 12px; color: #6C757D; font-style: italic;">${testItem.nameEn}</div>
-        </div>
-
-        <div style="display: flex; gap: 8px; margin-top: 12px;">
-          ${genders.map(g => `
-            <button class="btn-quiz-answer" data-choice="${g}" style="
-              flex: 1;
-              padding: 14px 10px;
-              background: ${g === 'der' ? '#3A86FF' : g === 'die' ? '#FF006E' : '#8338EC'};
-              color: #FFF;
-              border: 2px solid #264653;
-              border-radius: 10px;
-              font-size: 16px;
-              font-weight: 900;
-              cursor: pointer;
-              box-shadow: 0 4px 0 #1D3557;
-            ">${g}</button>
-          `).join('')}
-        </div>
-
-        <div id="quiz-feedback" style="margin-top: 16px; text-align: center; font-weight: 900; font-size: 13px; min-height: 24px;"></div>
-      `;
-
-      body.querySelectorAll('.btn-quiz-answer').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const choice = btn.getAttribute('data-choice');
-          const isCorrect = choice === testItem.gender;
-          const fb = body.querySelector('#quiz-feedback');
-
-          if (window.FFH.SpacedRepetition) {
-            window.FFH.SpacedRepetition.recordReview(testItem.id, isCorrect, this.game.state);
-          }
-
-          if (isCorrect) {
-            this.game.sfx.playSfx('early_success');
-            fb.innerHTML = `<span style="color: #2A9D8F;">✓ Richtig! ${testItem.gender} ${testItem.nameDe} (${testItem.nameEn})! (+Box Promoted)</span>`;
-          } else {
-            this.game.sfx.playSfx('error');
-            fb.innerHTML = `<span style="color: #E63946;">✗ Falsch! Es heißt: ${testItem.gender} ${testItem.nameDe} (${testItem.nameEn})</span>`;
-          }
-
-          setTimeout(() => {
-            renderQuizMinigame();
-          }, 1200);
-        });
-      });
-    };
-
-    modal.querySelector('#btn-close-dict').addEventListener('click', () => {
-      modal.remove();
-    });
-
-    modal.querySelector('#btn-start-quiz').addEventListener('click', () => {
-      renderQuizMinigame();
-    });
-
-    renderWordList();
   }
 });
 
@@ -38110,7 +38079,7 @@ window.FFH.PickPhase = class {
     this.bagMesh.position.set(1.0, 0.1, 1.0);
     this.game.scene.add(this.bagMesh);
 
-    // Audio-Leads-Manifest: Setup reveal timing and speak first item
+    // Rail-leads-manifest: the gender rail pulses before the icon resolves.
     const firstUnpacked = state.activeOrder[0];
     if (firstUnpacked) {
       firstUnpacked.promptStarted = true;
@@ -38118,10 +38087,10 @@ window.FFH.PickPhase = class {
         ? this.currentStoryParams.iconDelay
         : window.FFH.iconRevealDelay(state.currentShift, state.upgrades);
       firstUnpacked.revealAt = Date.now() + delaySec * 1000;
-      // Play pre-recorded voice sprite for the specific item
-      if (firstUnpacked.id) {
-        this.game.speech.speakKey(firstUnpacked.id.toLowerCase());
-      }
+      // Dispatcher call-out blip. The *informative* cue is the rail pulse below:
+      // the gender rail flashes before the item icon resolves, which is what
+      // opens the early-pick window.
+      this.game.speech.playTalkBlip('NPC_NINA');
       setTimeout(() => {
         this.pulseRailForGender(firstUnpacked.gender);
       }, 200);
@@ -38138,7 +38107,7 @@ window.FFH.PickPhase = class {
         }, 300);
       } else if (sceneId === 'shift_2_anticipate') {
         setTimeout(() => {
-          this.game.ui.showTutorialBanner("Nina: 1.5s delay. Listen first! Tap shelf early for 2.0x Early Bonus!", '#FF9F1C', 8000);
+          this.game.ui.showTutorialBanner("Nina: 1.5s delay. Watch the rail! Tap that shelf early for 2.0x Early Bonus!", '#FF9F1C', 8000);
         }, 300);
       } else if (sceneId === 'shift_3_test') {
         setTimeout(() => {
@@ -38212,9 +38181,7 @@ window.FFH.PickPhase = class {
         if (!currentPrompt.promptStarted) {
           currentPrompt.promptStarted = true;
           currentPrompt.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
-          if (currentPrompt.id) {
-            this.game.speech.speakKey(currentPrompt.id.toLowerCase());
-          }
+          this.game.speech.playTalkBlip('NPC_NINA');
           this.pulseRailForGender(currentPrompt.gender);
           this.game.ui.showWarehouseManifest();
         } else if (!currentPrompt.revealed && Date.now() >= currentPrompt.revealAt) {

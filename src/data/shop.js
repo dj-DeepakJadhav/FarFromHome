@@ -21,19 +21,19 @@ window.FFH.shopUpgrades = [
     id: 'shelfLabels',
     nameEn: 'Shelf Labels',
     cost: 25,
-    effectEn: 'Gender symbol (▲●■) shown on each item, not just the rail',
+    effectEn: 'Stamps the tier symbol (▲●■) on every item, not just the rail',
     icon: '🏷️'
   },
   {
     id: 'pocketNotepad',
     nameEn: 'Pocket Notepad',
     cost: 20,
-    effectEn: 'One re-listen per shift :  replays current item audio',
+    effectEn: 'One free rail re-pulse per shift when you lose the thread',
     icon: '📋'
   },
   {
     id: 'vocabCards',
-    nameEn: 'Vocab Cards',
+    nameEn: 'Shift Rota Cards',
     cost: 35,
     effectEn: '-0.8s icon delay, +25% early-pick bonus',
     icon: '🎴'

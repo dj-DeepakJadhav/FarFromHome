@@ -12,4 +12,6 @@ Before claiming completion or assembling the final release zip, verify:
 2. **Top-Level `index.html`**: Must exist at repository root and be self-contained / relative-linked.
 3. **Zero External Requests**: No CDN links, Google Fonts, or external scripts.
 4. **Portrait Aspect Ratio**: Locked to 390×844 mobile viewport.
-5. **No Broken Fallbacks**: Missing voice clips must fail silently; do not call `window.speechSynthesis`.
+5. **Zero Recorded Audio**: The bundle must contain no audio files, no base64 audio, and no `window.speechSynthesis` calls. All sound is synthesised at runtime from oscillators. If you find an audio asset, it does not belong here.
+6. **Judge-Facing Copy Audit**: Every submission document (`Docs/submission/*`) must be free of claims about voice acting, spoken German, pronunciation, listening tests, spaced repetition, a vocabulary dictionary or notebook, and any framing of the game as educational. Pitch the comedy thesis instead. See `AGENTS.md` §3.1.
+7. **Shop Names Match Code**: Upgrade names quoted anywhere must match `src/data/shop.js` exactly — E-Bike, Thermal Bag, Shelf Labels, Pocket Notepad, Shift Rota Cards.

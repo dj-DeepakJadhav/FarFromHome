@@ -61,7 +61,6 @@ function assemble() {
     'src/data/objAssets.js',
     'src/data/dialogue.js',
     'src/data/audioTriggers.js',
-    'src/data/voiceSprites.js',
     'src/core/grammarEngine.js',
     'src/data/shop.js',
     'src/data/skillTree.js',

@@ -1,30 +1,31 @@
 # Far From Home: Kruma Express — Design Intent Document
-*Word Count: 445 words (Strict Limit: ≤ 500 words) — recount with `sed '1,3d' DESIGN_INTENT_DOC.md | wc -w`*
+*Recount with `sed '1,3d' DESIGN_INTENT_DOC.md | wc -w` (strict limit: ≤ 500 words)*
 
 ## 1. Game Title and Genre
 **Far From Home: Kruma Express** — Narrative Life & Courier Management Simulation (Fixed Portrait Mobile WebGL, 390×844).
 
 ## 2. Target Player and Pitch
-Built for mobile and browser players who love tactile management simulations (*Startup Panic*, *Coffee Talk*) and heartfelt narrative games (*Messenger by Abeto*, DW's *Nicos Weg*). 
+For players who like tactile management sims (*Good Pizza, Great Pizza*) and character-led narrative games (*Coffee Talk*, *Messenger by Abeto*).
 
-You play an international student newly arrived in historic Lübeck, Germany, on a 28-day visa with only **€20 in your pocket**. To secure your permanent residence permit (*Aufenthaltstitel*), you must conquer the 4-document German Bureaucracy Gauntlet: earn courier wages at Kruma Express, pay your **€250 Semesterbeitrag** (Tuition), sign your **Rental Lease** with Hans Lokker, complete your **Anmeldung** at the Bürgeramt with Herr Vogel, and unlock your **Sperrkonto** at Sparkasse Bank with Frau Weber.
+You are an international student who has just landed in Lübeck with **€20, one suitcase, and 28 days** before your visa expires. To stay, you must beat the German bureaucracy gauntlet: earn courier wages at Kruma Express, pay the **€250 Semesterbeitrag**, sign a lease with Hans Lokker, complete your **Anmeldung** with Herr Vogel at the Bürgeramt, and unlock your **Sperrkonto** with Frau Weber — then put the whole stamped dossier in front of Dr. Lindemann.
 
-The game is **100% English-first for instant playability**, enriched with authentic German studio voice acting and cultural charm that brings the world alive without educational friction.
+The tone is the point: **British deadpan comedy colliding with German municipal precision.** Every office is immovable, every rule real, none of it on your side.
+
+**This is not a language-learning game.** It teaches nothing and asks you to recall nothing. Play is 100% English-first. German is scenery — signage, officialese, and the punchline below.
 
 ## 3. How to Play & Core Controls
-Designed for **single-thumb mobile portrait** touch and pointer play:
-- **City Exploration**: Cycle through the 3D diorama of Lübeck. Visit the University, Bürgeramt, Bank, and local shops to advance your persistent paperwork checklist.
-- **Warehouse Packing**: Fast-paced grocery packing with dynamic shift modes (Standard vs. High-Stakes VIP Rush). Items display English names with subtle German subtitles (`Milk (die Milch)`).
-- **Spatial Color Tiers**: Shelves feature high-contrast grammatical categories: Bottom = Blue (*der* ▲), Middle = Pink (*die* ●), Top = Purple (*das* ■). Rhythmic audio callouts guide player focus.
-- **Doorstep Etiquette**: Engage in rich English dialogue with voiced German greetings (*"Guten Tag!"*) and cultural etiquette choices to secure generous customer tips.
-- **Dorm Room Upgrades**: Reinvest wages into tangible 3D room upgrades (E-Bike motor, Thermal Bag, Study Corkboard) that visibly furnish your student dorm and accelerate future shifts.
+Designed for **single-thumb portrait** touch and pointer play:
+- **City Exploration**: Cycle a 3D Lübeck with tap-to-move. Visit the University, Bürgeramt, Bank and shops to advance your paperwork.
+- **Warehouse Packing**: Fast grocery picking against a shift clock. Items are labelled English-first, with the German small and grey: `Milk (die Milch)`.
+- **The Absurd Filing System**: German nouns have arbitrary genders, so of course the warehouse is filed by them. An apple is a boy. A banana is a girl. Bread is neither. Bottom = **der** (Blue ▲), Middle = **die** (Pink ●), Top = **das** (Purple ■). You needn't understand it — you must obey it, fast. Before each icon resolves, its **gender rail pulses**; commit to that tier early for a **2.0× Early Pick** bonus. The joke is also a search accelerator: it cuts the shelf you scan by two thirds.
+- **Doorstep Etiquette**: Hand-offs where *Sie* vs. *Du* and *Ruhezeit* either land or misfire, moving your tip.
+- **Room Upgrades**: Reinvest wages into upgrades that visibly furnish your room and change your numbers.
 
 ## 4. Core Progression & Economic Engine
-Three intertwined progression engines drive the experience:
-1. **The Management Engine (Invest ➔ Harvest ➔ Upgrade ➔ Observe Growth)**: Courier packing shifts generate wages and tip multipliers; dorm workbench upgrades visibly transform your room.
-2. **The 3-Branch Expat Skill Tree**: Level up your character across *The Hustler* (bike speed & rush tips), *The Bureaucrat* (tax exemptions & legal aid with AStA's Dr. Schmidt), and *The Diplomat* (thrift, *Pfand* bonuses, and *Stoßlüften* stamina recovery).
-3. **The 4-Document Dossier Gauntlet**: Your persistent HUD systematically ticks off essential legal milestones (Matriculation ➔ Lease ➔ Anmeldung ➔ Sperrkonto ➔ Residence Permit).
+1. **The Management Engine (Invest ➔ Harvest ➔ Upgrade ➔ Observe Growth)**: Shifts generate wages, streaks and tips; five shop upgrades (E-Bike, Thermal Bag, Shelf Labels, Pocket Notepad, Shift Rota Cards) each change both a stat and something you can see.
+2. **The 4-Document Dossier**: A persistent HUD readout ticking off Matriculation ➔ Lease ➔ Anmeldung ➔ Sperrkonto ➔ Residence Permit — the mountain on the horizon behind every shift.
 
 ## 5. Prototype Scope & Technical Feasibility
-- 100% offline, airgapped runtime packaged as a single self-contained `index.html` (11.1MB uncompressed, limit 35MB).
-- Rich 3D parametric city generation with stepped-gable Altbau architecture, custom normal+depth Sobel ink outlines, and interactive diorama rooms.
+- 100% offline, airgapped, single self-contained `index.html` (~11 MB; limit 35 MB).
+- Parametric 3D city generation, stepped-gable Altbau, Sobel ink outlines, diorama rooms.
+- **No audio assets ship.** All sound is synthesised at runtime from oscillators, so the game is fully playable muted.

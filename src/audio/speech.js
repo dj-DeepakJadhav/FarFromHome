@@ -1,5 +1,6 @@
-// Audio & Speech Engine with Character Acoustic Profiles, Typewriter Blips & Speech Recognition
-// Procedural Retro Character Talk-Blip and Audio Engine (Animal Crossing / Celeste style)
+// Procedural audio engine. Every sound here is synthesised at runtime from
+// oscillators - there are no recorded voice assets in this build by design.
+// Character talk-blips are pitched per speaker (Animal Crossing / Celeste style).
 window.FFH = window.FFH || {};
 
 window.FFH.SpeechEngine = class SpeechEngine {
@@ -78,11 +79,4 @@ window.FFH.SpeechEngine = class SpeechEngine {
     osc.stop(now + 0.08);
   }
 
-  speakKey(key, npcKey = null) {
-    this.playTalkBlip(npcKey);
-  }
-
-  speakGermanText(text, npcKey = null) {
-    this.playTalkBlip(npcKey);
-  }
 };

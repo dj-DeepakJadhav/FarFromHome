@@ -251,6 +251,20 @@ window.FFH.StoryRunner = class {
       return true;
     });
 
+    // A terminal scene ends the run. The narrative track used to divert to a scene
+    // id of "END" that does not exist, so its final beat dead-ended in DIALOGUE
+    // instead of resolving. Terminal scenes now declare their own outcome.
+    if (scene.terminal) {
+      // scene.effects were already applied by startScene; do not re-apply them.
+      const outcome = scene.outcome === 'LOSE' ? 'LOSE' : 'WIN';
+      const prose = (scene.prose || []).map(line => this.interpolate(line));
+      if (this.game.ui && this.game.ui.showStoryOverlay) {
+        this.game.ui.showStoryOverlay(prose, []);
+      }
+      setTimeout(() => this.game.transitionTo(outcome), (scene.duration_s || 8) * 1000);
+      return;
+    }
+
     if (mode === 'gameplay') {
       this.handleGameplayScene(scene, validChoices);
     } else if (mode === 'blocking') {
@@ -404,8 +418,12 @@ window.FFH.StoryRunner = class {
   }
 
   handleGameplayScene(scene, choices) {
-    const teaches = scene.teaches || {};
-    const iconDelay = teaches.icon_delay_s !== undefined ? teaches.icon_delay_s : 0.0;
+    // Ramp data lives at unlocks.ramp.icon_delay_s. This used to read a top-level
+    // `scene.teaches` that no scene has ever had, so it always resolved to 0 and
+    // flattened the ramp on the story path. Leaving it undefined is deliberate:
+    // pickPhase then falls back to the canonical window.FFH.iconRevealDelay().
+    const ramp = (scene.unlocks && scene.unlocks.ramp) || {};
+    const iconDelay = ramp.icon_delay_s;
 
     this.game.transitionTo('PICK', {
       storyScene: scene,

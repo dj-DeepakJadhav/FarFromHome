@@ -41,6 +41,23 @@ Object.assign(window.FFH.UI.prototype, {
       justify-content: space-between;
     `;
 
+    // Pocket Notepad button. Rendered only when the upgrade is owned, so the
+    // €20 purchase produces a visible new control in the shift HUD.
+    const hasNotepad = !!(this.game.state.upgrades && this.game.state.upgrades.pocketNotepad);
+    const notepadButton = hasNotepad ? `
+      <button id="btn-replay-audio" title="Re-pulse the shelf rail (once per shift)" style="
+        flex: 0 0 auto;
+        width: 44px; height: 44px;
+        background: #FFD166;
+        border: 2.5px solid #222;
+        border-radius: 8px;
+        box-shadow: 0 3px 0 #222;
+        font-size: 20px;
+        cursor: pointer;
+        pointer-events: auto;
+      ">📋</button>
+    ` : '';
+
     // Checklist entries matching the reference handwriting look
     let checklistLines = '';
     uniqueItems.forEach((item, index) => {
@@ -128,39 +145,55 @@ Object.assign(window.FFH.UI.prototype, {
         ⚡ HURRY!
       </div>
 
-      <!-- Bottom Audio Word Dock & Items -->
-      <div style="display: flex; gap: 8px; justify-content: center; overflow-x: auto; padding: 6px; pointer-events: auto;">
+      <!-- Bottom Item Dock -->
+      <div style="display: flex; gap: 8px; justify-content: center; align-items: center; overflow-x: auto; padding: 6px; pointer-events: auto;">
         ${bottomIcons}
+        ${notepadButton}
       </div>
     `;
 
     this.container.appendChild(hud);
 
-    // Audio Replay logic (one per shift)
+    // Pocket Notepad: one re-pulse per shift. Owning the upgrade is what unlocks
+    // it -- without it the button stays dead, which is the point of buying it.
     const btnReplay = document.getElementById('btn-replay-audio');
-    if (btnReplay && !this.game.state.notepadUsedThisShift) {
-      btnReplay.addEventListener('click', () => {
-        this.game.state.notepadUsedThisShift = true;
+    if (btnReplay) {
+      const owned = !!(this.game.state.upgrades && this.game.state.upgrades.pocketNotepad);
+      const spent = !!this.game.state.notepadUsedThisShift;
+      if (!owned || spent) {
         btnReplay.style.background = '#DDD';
         btnReplay.style.cursor = 'not-allowed';
-        
-        const currentPrompt = this.game.state.activeOrder ? this.game.state.activeOrder.find(it => !it.packed) : null;
-        if (currentPrompt && currentPrompt.id) {
-          this.game.speech.speakKey(currentPrompt.id.toLowerCase());
-        }
-      });
+        btnReplay.style.opacity = owned ? '0.5' : '0.3';
+        btnReplay.title = owned ? 'Already used this shift' : 'Buy the Pocket Notepad to unlock';
+      } else {
+        btnReplay.addEventListener('click', () => {
+          this.game.state.notepadUsedThisShift = true;
+          btnReplay.style.background = '#DDD';
+          btnReplay.style.cursor = 'not-allowed';
+          btnReplay.style.opacity = '0.5';
+
+          const currentPrompt = this.game.state.activeOrder ? this.game.state.activeOrder.find(it => !it.packed) : null;
+          const pick = this.game.phases && this.game.phases.PICK;
+          if (currentPrompt && pick && typeof pick.pulseRailForGender === 'function') {
+            pick.pulseRailForGender(currentPrompt.gender);
+          }
+        });
+      }
     }
-  },
+  }
+,
 
   hideWarehouseManifest() {
     this.clear();
-  },
+  }
+,
   updatePickHUD(timeLeft, totalDuration, freshness) {
     const timerText = document.getElementById('pick-timer-text');
     if (timerText) {
       timerText.innerText = Math.ceil(timeLeft) + 's';
     }
-  },
+  }
+,
 
   showRideInstructions(onStart) {
     this.clear();
@@ -271,7 +304,8 @@ Object.assign(window.FFH.UI.prototype, {
       this.clear();
       onStart();
     });
-  },
+  }
+,
 
   showRideHUD() {
     this.clear();
@@ -302,7 +336,8 @@ Object.assign(window.FFH.UI.prototype, {
       </div>
     `;
     this.container.appendChild(hud);
-  },
+  }
+,
 
   updateRideHUD(integrity, freshness) {
     const iBar = document.getElementById('hud-integrity-bar');
@@ -317,7 +352,8 @@ Object.assign(window.FFH.UI.prototype, {
       if (freshness < 30) fBar.style.background = '#E63946';
       else if (freshness < 60) fBar.style.background = '#F4A261';
     }
-  },
+  }
+,
 
   showIntercomUI() {
     this.clear();
@@ -446,7 +482,8 @@ Object.assign(window.FFH.UI.prototype, {
         phase.buzz(idx);
       });
     });
-  },
+  }
+,
 
   showShiftSummaryUI() {
     this.clear();
@@ -554,7 +591,8 @@ Object.assign(window.FFH.UI.prototype, {
       this.game.sfx.playSfx('success'); // or 'kaching' if we add one
       window.FFH.finishShift(this.game);
     });
-  },
+  }
+,
 
   showShopUI() {
     this.clear();

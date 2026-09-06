@@ -37,32 +37,62 @@ Every AI agent (Antigravity, Claude Code, Gemini CLI, subagents) working in this
 | **Playability** | **25%** | Zero blocking bugs, zero uncaught exceptions. Controls must be single-thumb touch/pointer friendly. |
 | **Core Loop Design** | **20%** | **Invest ➔ Harvest ➔ Upgrade ➔ Observe Growth.** The economy must be the driving engine. |
 | **Focus** | **15%** | **Depth is rewarded. Sprawl is heavily penalized.** Never build disconnected half-systems. |
-| **Originality** | **10%** | Double down on the signature mechanic: *German grammar (`der/die/das`) as a spatial search filter*. |
+| **Originality** | **10%** | Double down on the single thesis: *British deadpan comedy colliding with German municipal precision*, expressed through the `der/die/das` three-tier shelf gag. |
 
 ### 🚨 Critical Anti-Patterns & Prohibitions
 - **DO NOT waste time on visual over-engineering**: The official rules state: *"Visual polish is deliberately not scored; the floor is legibility."* Never spend hours tweaking shaders if core loop, upgrades, or pacing need work.
 - **DO NOT build open-world sprawl**: City exploration must remain a fast, snappy interactive diorama hub—not a 5-minute walking maze that delays reaching shifts.
 - **DO NOT hallucinate out-of-scope systems**: No multiplayer, no space colonies, no complex calendar chains.
+- **DO NOT reintroduce removed claims or systems** (see §3.1). This is the most common failure mode for agents working from stale context.
 
 ---
 
 ## 3. The 90-Second Golden Pacing Rule
 
-The game's signature pedagogical breakthrough must be experienced by judges in under 90 seconds:
-- **Shift 1 (TEACH - 0.0s delay)**: Audio + icon together. Shows *der* (Blue ▲), *die* (Pink ●), *das* (Purple ■).
-- **Shift 2 (ANTICIPATE - 1.5s delay)**: Audio first. Guessing by shelf color tier pays a **2.0× Early Bonus**.
-- **Shift 3 (TEST - 2.5s delay)**: Pure audio recognition. The player picks by listening alone.
+*Far From Home: Kruma Express* is a **narrative courier-management sim**. Its single thesis is
+**British deadpan comedy colliding with German municipal precision**. It is **not** a
+language-learning game and makes **no pedagogical claim**. Judges must feel the joke land in
+under 90 seconds:
+
+- **Shift 1 (0.0s icon delay)**: Rail pulse and item icon arrive together. Klaus explains, deadpan, that an apple is a boy and a banana is a girl, and that the warehouse is therefore filed by gender.
+- **Shift 2 (1.5s icon delay)**: The gender rail **pulses first**. Reading the pulse and tapping that tier before the icon resolves pays a **2.0× Early Pick** bonus.
+- **Shift 3+ (2.5s icon delay)**: The rail pulse is the whole cue. The player is now filing groceries by grammatical gender at speed and finds this funny.
+
+The cue is **visual, never audio**. Tiers are read by colour and symbol —
+Bottom = `der` = Blue `#3A86FF` ▲ · Middle = `die` = Pink `#FF006E` ● · Top = `das` = Purple `#8338EC` ■.
+Items are labelled **English-first**; the player never needs to know German.
 
 **If the player cannot reach Shift 3 within 90 seconds, the pacing is broken and must be tuned.**
 
----
+### 3.1 🚫 Permanently Removed — Never Reintroduce These Claims
+
+The following were removed from the build on 2026-09-06. No agent may describe them as
+existing, restore them in docs, or rebuild them without an explicit human instruction:
+
+1. **All recorded audio / voice acting.** There has never been any. Every sound is synthesised
+   at runtime from oscillators: SFX (`src/audio/sfx.js`) plus pitched per-character talk-blips
+   (`src/audio/speech.js`). `src/data/voiceSprites.js` is **deleted**;
+   `speakKey()` / `speakGermanText()` are **deleted**. Banned phrases: *studio voice acting,
+   voiced NPCs, pre-baked voice sprites, audio-first, 12 Grocery Nouns, spoken German,
+   🔊 pronunciation preview, listening test*.
+2. **Spaced repetition / Leitner boxes.** `SpacedRepetition` is **deleted** from `src/data/items.js`.
+3. **Vocabulary dictionary + self-quiz modal.** Deleted from `src/ui/screens/hudDictionary.js`,
+   which now contains only `showSkillTreeModal`.
+4. **Vocab Notebook HUD button.** Deleted from `src/ui/hud.js`.
+5. **Any framing of the game as educational, pedagogical, or language-learning.** German text in
+   dialogue (Beamtendeutsch, *"NEIN! Ruhezeit!"*, *Sie*/*Du* etiquette) stays — it is comedy
+   flavour. Never call it teaching.
+6. **The skill tree is not a headline system.** Six of its nine effects are dead writes. The code
+   stays; the claim goes. Keep it out of every judge-facing feature list.
+
+**Rule of thumb: if you are unsure whether something exists in the build, cut the claim.**
 
 ## 4. Special Award Targets ($15K Each)
 
 1. **Most Innovative ($15K)**:
-   - The *der/die/das* 3-tier spatial search filter cutting warehouse picking time by 66%.
+   - The *der/die/das* 3-tier spatial shelf: a real German grammatical absurdity turned into a colour-and-symbol search filter, played entirely for the joke.
 2. **Most Satisfying Progression ($15K)**:
-   - The €20 ➔ €250 tuition goal curve where every shop upgrade (**E-Bike**, **Thermal Bag**, **Shelf Labels**, **Vocab Notepad**, **Flashcards**) has an immediate, unmistakable mechanical and visual impact.
+   - The €20 ➔ €250 tuition goal curve where every one of the 5 shop upgrades (**E-Bike** €45, **Thermal Bag** €50, **Shelf Labels** €25, **Pocket Notepad** €20, **Shift Rota Cards** €35) has an immediate, unmistakable mechanical and visual impact. Use these exact names — the catalogue lives in `src/data/shop.js`.
 
 ---
 
@@ -71,7 +101,7 @@ The game's signature pedagogical breakthrough must be experienced by judges in u
 All agents must actively maintain and keep the submission package in sync with codebase changes:
 1. **Design Intent Document (`Docs/submission/DESIGN_INTENT_DOC.md`)**: Must remain strictly **≤ 500 words** at all times.
 2. **Devpost Form Answers (`Docs/submission/DEVPOST_SUBMISSION_FORM.md`)**: Must reflect the current game features accurately.
-3. **Video Storyboard (`Docs/submission/VIDEO_SCRIPT_AND_STORYBOARD.md`)**: Must match the actual playable flow.
+3. **Video Storyboard (`Docs/submission/VIDEO_SCRIPT_AND_STORYBOARD.md`)**: Must match the actual playable flow and must be shootable from the current build. No narration may claim audio, voice acting, or learning outcomes (see §3.1).
 4. **Submission Checklist (`Docs/submission/SUBMISSION_CHECKLIST.md`)**: Must be verified before declaring the build submission-ready.
 
 ---
@@ -138,4 +168,17 @@ To prevent runtime errors like `Uncaught ReferenceError: <var> is not defined` i
 3. **Loop & Per-Frame Blast Radius Audit**:
    - For edits inside per-frame `update(delta)` loops, inspect all references down to the end of the method to ensure no hoisted identifiers were shadowed or scoped away.
 
+---
 
+## Narrative edits
+
+`assets/narrative/story.json` is the single source of truth for prose, branching,
+economy deltas, unlocks and pacing. **Read [`Docs/STORY_FORMAT.md`](Docs/STORY_FORMAT.md)
+before editing it**, and run:
+
+```bash
+node build/check-story.js
+```
+
+It fails the build on reintroduced audio/vocabulary claims, dangling scene targets,
+dead UI unlocks, backwards Act I timestamps and terminal scenes with no outcome.

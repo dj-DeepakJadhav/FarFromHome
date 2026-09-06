@@ -17,7 +17,7 @@
 │  - Persistent Header: Tuition (€20 / €250), Strikes (0/3)          │
 │  - Warehouse Pick HUD: Time remaining, Der/Die/Das pulse rails     │
 │  - In-City Delivery HUD: Freshness bar, Delivery destination pin   │
-│  - Dialogue Card: Bilingual German/English + 🔊 Audio preview      │
+│  - Dialogue Card: English lines with German comedy flavour text    │
 │  - Shift Debrief Receipt & Bike Shop Gear Catalog                  │
 ├────────────────────────────────────────────────────────────────────┤
 │  THREE.JS SCENE RENDERING                                          │
@@ -31,9 +31,10 @@
 │  SPATIAL ACCELERATION & NAVIGATION                                 │
 │  - three-mesh-bvh (BVH Raycasting & Mesh Sliding Collision)        │
 ├────────────────────────────────────────────────────────────────────┤
-│  AUDIO & MICRO-NLP                                                 │
+│  PROCEDURAL AUDIO & MICRO-NLP                                      │
 │  - Symbolic German Morphology Engine (grammarEngine.js)            │
-│  - Pre-Baked Studio Character Audio & Web Audio SFX Engine         │
+│  - Web Audio SFX + per-character oscillator talk-blips (0 KB, no   │
+│    recorded assets of any kind in the bundle)                      │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -48,16 +49,16 @@ BOOT ──► CITY_EXPLORATION ──► PICK ──► CITY_EXPLORATION (Deliv
 
 ---
 
-## 2. Character Roster & Behavioral Roles (*Nicos Weg* Inspired)
+## 2. Character Roster & Behavioral Roles
 
 ### Core Representative Cast & Story Representatives
 1. **Nico (Student WG Flatmate - `B_WG`)**: Anxious, well-meaning flatmate who tests your recycling discipline with yogurt pots and offers peppermint tea.
 2. **Frau Klein (Local Resident - `B_UNI` Steps)**: Dry pensioner with potatoes who mocks 90-minute German municipal office hours at 17:01.
 3. **Rita Schneider (University Registrar - `B_UNI`)**: Bureaucratic registrar; demands proof of €250 *Semesterbeitrag* payment to issue the Enrollment Certificate (*Immatrikulationsbescheinigung*).
-4. **Klaus (Kruma Shift 1 Instructor - `B_DARKSTORE`)**: Deadpan warehouse trainer who teaches the 3-gender shelf filter on Day 2 morning.
+4. **Klaus (Kruma Shift 1 Instructor - `B_DARKSTORE`)**: Deadpan warehouse trainer who explains, entirely straight-faced, that an apple is a boy and a banana is a girl, and that the shelves are filed accordingly.
 5. **Nina Voss (Warehouse Dispatcher - `B_DARKSTORE`)**: Pragmatic Kruma Express manager; assigns shifts, monitors packing quotas, tracks strikes, and unlocks shop gear upgrades.
 6. **Mathias Becker (Mechanic & Pizzeria Boss - `B_PIZZA` / `B_BIKESHOP`)**: Immigrant restaurateur & bike mechanic who sells e-bike gear upgrades and orders kitchen ingredients.
-7. **Martha Beck / Oma Martha (Master Baker - `B_BAKERY`)**: Teaches traditional German noun gender patterns (*-ung = die*), rewards polite formal etiquette (*Sie*), and shares local wisdom.
+7. **Martha Beck / Oma Martha (Master Baker - `B_BAKERY`)**: Rewards polite formal etiquette (*Sie*), grumbles about the shelf-filing regulations, and shares local wisdom.
 8. **Hans Lokker (Apartment Landlord & Caretaker - `B_SUBLET` / `B_WG`)**: Enforces house rules, quiet hours (*Ruhezeit*), waste sorting (*Mülltrennung*), and collects the €30 Kaution deposit for the student lease.
 9. **Herr Vogel (Rathaus Bürgeramt Official - `B_RATHAUS`)**: Formal town hall bureaucrat; tests formal *Beamtendeutsch* and stamps your *Meldebescheinigung* (Address Registration).
 10. **Frau Weber (Sparkasse Bank Officer - `B_BANK`)**: Methodical bank officer; verifies enrollment and *Anmeldung* to unlock your blocked student account (*Sperrkonto*).
@@ -71,43 +72,35 @@ BOOT ──► CITY_EXPLORATION ──► PICK ──► CITY_EXPLORATION (Deliv
 
 ## 3. Micro-AI & German Morphology Engine (`src/core/grammarEngine.js`)
 
-A 100% offline, lightweight symbolic morphology system grounded in standard beginner grammar (*Basic German: A Grammar and Workbook* by Schenke/Seago & Goethe/telc A1):
+A 100% offline, lightweight symbolic morphology system. Its job is **comedy fidelity**,
+not instruction: it lets dispatch notes, customer complaints and Beamtendeutsch forms
+inflect themselves correctly so the bureaucracy sounds authentically, absurdly precise.
+The player is never asked to know any of it.
 
-### 3.1 Core A1 Grammar Rules Codified in Engine
-1. **Gender & Articles (Units 1–3)**:
-   - Definite (*der, die, das*) & Indefinite (*ein, eine, ein*).
-   - Negative article (*kein, keine, kein*).
-2. **Case System — Nominativ vs. Akkusativ vs. Dativ (Units 4, 19, 21)**:
-   - **Nominative (Subject)**: *"Das Zimmer ist groß."*
-   - **Accusative (Direct Object / Food / Packing)**: *"Ich brauche **den** Apfel / **einen** Kaffee / **die** Milch."* (Masculine *der $\rightarrow$ den / einen* change).
-   - **Dative (Locations, Persons, Prepositions *mit, bei, nach, zu, aus*)**: *"Ich fahre mit **dem** Fahrrad zum **Rathaus**."*, *"Das Zimmer gefällt **mir**."*
-3. **Verb Conjugation & Word Order (Units 5–8)**:
-   - Regular (*kommen, wohnen, arbeiten, lernen*) & Irregular (*sein, haben, fahren, sprechen*).
-   - **V2 Rule (Verb in Second Position)**: *"Heute **fahre** ich zur Bank."*
-   - **Yes/No Questions (Verb First)**: *"**Haben** Sie das Formular?"*
-   - **W-Questions (Question Word + Verb)**: *"Wo **ist** die Universität?"*, *"Wie viel **kostet** die Miete?"*
-4. **Modal Verbs (Units 11–13)**:
-   - *müssen* (must): *"Ich muss den Semesterbeitrag bezahlen."*
-   - *können* (can): *"Können Sie mir helfen?"*
-   - *möchten* (would like): *"Ich möchte den Mietvertrag unterschreiben."*
-   - *dürfen* (allowed to): *"Hier darf man nicht rauchen."*
-5. **Separable Verbs (Unit 9)**:
-   - *ausfüllen* $\rightarrow$ *"Füllen Sie das Formular **aus**."*
-   - *unterschreiben* $\rightarrow$ *"Hier müssen Sie **unterschreiben**."*
-   - *anmelden* $\rightarrow$ *"Ich möchte mich **anmelden**."*
-   - *freischalten* $\rightarrow$ *"Wir schalten das Sperrkonto **frei**."*
-6. **Formal vs. Informal Register (Unit 2)**:
-   - Polite / Official (*Sie / Ihnen / Ihr*): Used for Rita, Herr Vogel, Dr. Lindemann, Hans Lokker, and customers for +tips.
-   - Informal / Student (*Du / Dir / Dein*): Used with Nico, Priya, and warehouse colleagues.
+### 3.1 Rules Codified in the Engine
+1. **Gender & Articles**: definite (*der, die, das*), indefinite (*ein, eine, ein*), negative (*kein, keine, kein*).
+2. **Case System**: nominative, accusative (*den Apfel / einen Kaffee*), dative (*mit dem Fahrrad*).
+3. **Verb Conjugation & Word Order**: regular and irregular verbs, the V2 rule, yes/no questions (verb first), W-questions.
+4. **Modal Verbs**: *müssen, können, möchten, dürfen* — the native tongue of a municipal office.
+5. **Separable Verbs**: *ausfüllen, unterschreiben, anmelden, freischalten*.
+6. **Register**: formal *Sie* for Rita, Herr Vogel, Dr. Lindemann and Hans Lokker; informal *Du* for Nico and warehouse colleagues. Getting the register wrong is a punchline and a tip modifier, never a test.
 
-### 3.2 The Spatial Gender Shelf System
-- 🔵 **Masculine (`der` ▲ - Bottom Shelf):** *der Apfel*, *der Käse*, *der Kaffee*, *der Kuchen*, *der Schinken*, *der Wein*
-- 🔴 **Feminine (`die` ● - Middle Shelf):** *die Milch*, *die Banane*, *die Karotte*, *die Pizza*, *die Butter*, *die Dose*
-- 🟣 **Neuter (`das` ■ - Top Shelf):** *das Brot*, *das Wasser*, *das Ei*, *das Brötchen*, *das Bier*, *das Fleisch*
+### 3.2 The Spatial Gender Shelf — The Joke, Not The Lesson
+German nouns have arbitrary grammatical genders, so of course the warehouse is filed by
+them. Items are labelled **English-first**; the player reads the shelf by **colour and
+symbol** alone and never needs a word of German:
 
----
+- 🔵 **Bottom tier — `der` ▲ — Blue `#3A86FF`**: Apple, Cheese, Coffee, Cake, Ham, Wine
+- 🔴 **Middle tier — `die` ● — Pink `#FF006E`**: Milk, Banana, Carrot, Pizza, Butter, Can
+- 🟣 **Top tier — `das` ■ — Purple `#8338EC`**: Bread, Water, Egg, Roll, Beer, Meat
 
-## 4. A1 German Vocabulary & Kenney 3D Asset Mapping
+The anticipation cue is **visual**: the gender rail pulses before the item icon resolves.
+Tapping the correct tier inside that window pays the **2.0× Early Pick** bonus.
+Ramp: Shift 1 = 0.0s · Shift 2 = 1.5s · Shift 3+ = 2.5s.
+
+## 4. Item Catalogue & Kenney 3D Asset Mapping
+
+> In-game the player sees the **English** name plus the tier colour/symbol. The German column is data used by the morphology engine for flavour text and by the shelf sorter — it is never something the player is quizzed on.
 
 | ID | Article | German Noun | Plural | English | 3D Kenney Model Key | Tier / Shelf |
 | :--- | :---: | :--- | :--- | :--- | :--- | :---: |

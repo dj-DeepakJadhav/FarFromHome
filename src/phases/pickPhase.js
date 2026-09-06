@@ -69,7 +69,7 @@ window.FFH.PickPhase = class {
     this.bagMesh.position.set(1.0, 0.1, 1.0);
     this.game.scene.add(this.bagMesh);
 
-    // Audio-Leads-Manifest: Setup reveal timing and speak first item
+    // Rail-leads-manifest: the gender rail pulses before the icon resolves.
     const firstUnpacked = state.activeOrder[0];
     if (firstUnpacked) {
       firstUnpacked.promptStarted = true;
@@ -77,10 +77,10 @@ window.FFH.PickPhase = class {
         ? this.currentStoryParams.iconDelay
         : window.FFH.iconRevealDelay(state.currentShift, state.upgrades);
       firstUnpacked.revealAt = Date.now() + delaySec * 1000;
-      // Play pre-recorded voice sprite for the specific item
-      if (firstUnpacked.id) {
-        this.game.speech.speakKey(firstUnpacked.id.toLowerCase());
-      }
+      // Dispatcher call-out blip. The *informative* cue is the rail pulse below:
+      // the gender rail flashes before the item icon resolves, which is what
+      // opens the early-pick window.
+      this.game.speech.playTalkBlip('NPC_NINA');
       setTimeout(() => {
         this.pulseRailForGender(firstUnpacked.gender);
       }, 200);
@@ -97,7 +97,7 @@ window.FFH.PickPhase = class {
         }, 300);
       } else if (sceneId === 'shift_2_anticipate') {
         setTimeout(() => {
-          this.game.ui.showTutorialBanner("Nina: 1.5s delay. Listen first! Tap shelf early for 2.0x Early Bonus!", '#FF9F1C', 8000);
+          this.game.ui.showTutorialBanner("Nina: 1.5s delay. Watch the rail! Tap that shelf early for 2.0x Early Bonus!", '#FF9F1C', 8000);
         }, 300);
       } else if (sceneId === 'shift_3_test') {
         setTimeout(() => {
@@ -171,9 +171,7 @@ window.FFH.PickPhase = class {
         if (!currentPrompt.promptStarted) {
           currentPrompt.promptStarted = true;
           currentPrompt.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
-          if (currentPrompt.id) {
-            this.game.speech.speakKey(currentPrompt.id.toLowerCase());
-          }
+          this.game.speech.playTalkBlip('NPC_NINA');
           this.pulseRailForGender(currentPrompt.gender);
           this.game.ui.showWarehouseManifest();
         } else if (!currentPrompt.revealed && Date.now() >= currentPrompt.revealAt) {

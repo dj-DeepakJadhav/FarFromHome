@@ -1,4 +1,5 @@
-// German Vocabulary Dictionary with Spaced Repetition (1/47 Leitner System)
+// Item catalogue. Each item carries the grammatical gender that decides
+// which of the three warehouse shelf tiers it lives on.
 window.FFH = window.FFH || {};
 
 window.FFH.items = [
@@ -29,63 +30,3 @@ window.FFH.items = [
   { id: 'ruhezeit', gender: 'die', color: '#FF006E', hex: 0xFF006E, nameDe: 'Ruhezeit', pluralDe: 'Ruhezeiten', nameEn: 'Quiet Hours (22:00+)', icon: '🌙', category: 'Culture', audioKey: 'ruhezeit', exampleDe: 'Die Ruhezeit beginnt pünktlich um 22:00 Uhr.', exampleEn: 'Quiet hours begin promptly at 22:00.' }
 ];
 
-// Spaced Repetition (1/47 Interval Box Manager)
-window.FFH.SpacedRepetition = {
-  // Intervals in reviews: Box 1 (immediate), Box 2 (1 shift), Box 3 (4 shifts), Box 4 (7 shifts)
-  INTERVALS: [0, 1, 4, 7],
-
-  init: (state = window.FFH.state) => {
-    if (!state.vocabSRS) {
-      state.vocabSRS = {};
-      // Initialize starting grocery vocabulary into Box 1
-      window.FFH.items.forEach(item => {
-        state.vocabSRS[item.id] = {
-          id: item.id,
-          box: 1,
-          nextReviewShift: 1,
-          correctCount: 0,
-          incorrectCount: 0,
-          unlocked: item.category === 'Food'
-        };
-      });
-    }
-  },
-
-  unlockWord: (wordId, state = window.FFH.state) => {
-    window.FFH.SpacedRepetition.init(state);
-    if (state.vocabSRS[wordId]) {
-      state.vocabSRS[wordId].unlocked = true;
-    }
-  },
-
-  recordReview: (wordId, isCorrect, state = window.FFH.state) => {
-    window.FFH.SpacedRepetition.init(state);
-    const entry = state.vocabSRS[wordId];
-    if (!entry) return;
-
-    if (isCorrect) {
-      entry.correctCount++;
-      entry.box = Math.min(4, entry.box + 1);
-    } else {
-      entry.incorrectCount++;
-      entry.box = 1; // Demote back to Box 1 on mistake
-    }
-
-    const interval = window.FFH.SpacedRepetition.INTERVALS[entry.box - 1] || 1;
-    entry.nextReviewShift = (state.currentShift || 1) + interval;
-  },
-
-  getUnlockedWords: (state = window.FFH.state) => {
-    window.FFH.SpacedRepetition.init(state);
-    return window.FFH.items.filter(item => state.vocabSRS[item.id]?.unlocked);
-  },
-
-  getDueWords: (state = window.FFH.state) => {
-    window.FFH.SpacedRepetition.init(state);
-    const cur = state.currentShift || 1;
-    return window.FFH.items.filter(item => {
-      const s = state.vocabSRS[item.id];
-      return s && s.unlocked && s.nextReviewShift <= cur;
-    });
-  }
-};

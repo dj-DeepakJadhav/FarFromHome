@@ -36,8 +36,28 @@
 ## 2. Master Decision Rationale Matrix ("Why Did We Make These Decisions?")
 
 ### Q1: Why is the game 100% English-first with German as atmospheric flavor?
-* **Decision**: We eliminated mandatory German grammar puzzles from primary dialogue and shelf navigation, making English the default with authentic German voice acting and subtle subtitles (`Milk (die Milch)`).
-* **Rationale**: Hackathon judges evaluate game prototypes in **3 to 5 minutes**. Mandatory German grammar exams created severe cognitive friction and turned off non-German speakers. English-first dialogue allows instant emotional immersion while German voice acting preserves rich cultural charm.
+* **Decision**: We eliminated mandatory German grammar puzzles from primary dialogue and shelf navigation, making English the default with subtle German subtitles (`Milk (die Milch)`).
+* **Rationale**: Hackathon judges evaluate game prototypes in **3 to 5 minutes**. Mandatory German grammar exams created severe cognitive friction and turned off non-German speakers. English-first dialogue allows instant emotional immersion while German text preserves cultural charm.
+* **Superseded 2026-09-06 (Q1b)**: this entry originally credited "authentic German voice
+  acting" for the cultural charm. No recorded audio ever shipped, and none ships now —
+  all sound is runtime oscillator synthesis. The charm is carried by text and character
+  writing instead. See Q1b below.
+
+### Q1b: Why did we drop language learning and audio entirely? (2026-09-06)
+* **Decision**: Removed the language-learning framing, spaced repetition (Leitner boxes),
+  the vocabulary dictionary and self-quiz, the Vocab Notebook HUD button, and every claim
+  about voice acting or spoken German. Kept the three-tier `der/die/das` shelf, reframed
+  from a lesson into the game's central joke.
+* **Rationale**: We were pitching two games at once — a comedy about German bureaucracy
+  and a vocabulary trainer — and the second one was the weaker half. The quiz UI was never
+  reachable from any menu, the scheduler never fed the pick loop, and the "audio-first"
+  core ran on oscillator beeps because no voice assets were ever produced. Claiming
+  systems that do not exist is a credibility risk a judge can catch in one minute.
+* **What this cost us**: nothing mechanically. The shelf already imposed zero language
+  burden — items are labelled English-first and the tiers are read by colour and symbol.
+* **What it bought us**: a single coherent thesis (British deadpan vs. German municipal
+  precision), and a mechanic that is simultaneously the joke, the theme and the skill
+  ceiling.
 
 ### Q2: Why do we have the 20-Hour Work Limit and Off-the-Books Cash Shifts?
 * **Decision**: We added the `⏱️ 0/20h` weekly legal quota meter to the HUD, and let players choose between official Kruma shifts and shady night cash gigs at Mathias's Pizzeria (*Schwarzarbeit*).

@@ -6,7 +6,7 @@
 >
 > **Deadline: 8 September 2026, 1:00 PM PDT.**
 >
-> Status here was verified against `src/` and a running build on 2026-09-02.
+> Status here was verified against `src/` and a running build on 2026-09-06.
 > Do not tick a box from intent. Tick it from a check you actually ran, and say
 > how you checked.
 
@@ -30,6 +30,24 @@
 
 ## 🟠 High — credibility risks a judge can see
 
+- [ ] **Wire the three restored Act One scenes so they actually play.**
+  `wg_buzzer`, `golden_hour` and `kruma_flyer` were authored into
+  `assets/narrative/story.json` on 2026-09-06 from
+  `Docs/archive/ACT_ONE_BRITISH_COMEDY.md` (scenes 3, 6 and 9). They validate and are
+  reachable in the graph, but `handleBritishSpecialBeats` / `BRITISH_BEAT_MAP`
+  (`src/core/storyActions.js:119`) routes Act I through building interactions, so they
+  never fire in normal play. Needs a beat-map entry or a city-exploration trigger.
+  Verify with `game.storyRunner.startScene('wg_buzzer')` then check `currentScene.id`.
+  See `Docs/STORY_FORMAT.md` §12.
+
+
+- [ ] **Add a fast-start / skip-prologue path to the title screen.** *(Highest-value
+  item remaining — worth more rubric points than anything else on this list.)*
+  A judge who has to sit through the Day 1 prologue may never reach the warehouse,
+  and the 90-second rule is scored on what they actually see. Add a second title
+  button (e.g. `SKIP TO SHIFT`) that seeds the state a completed Day 1 would leave
+  behind (€20.25 wallet, Day 2 07:00, Klaus tutorial armed) and drops straight into
+  the warehouse. Keep the full prologue as the default first button.
 - [x] **Rename the two colliding character pairs.** Resolved:
   - `Martha Webber` -> `Martha Beck` (baker, `B_BAKERY`). `Frau Weber` remains the Sparkasse banker.
   - `Nina Lindemann` -> `Nina Voss` (dispatcher, `B_DARKSTORE`). `Dr. Lindemann` remains the immigration officer.
@@ -50,7 +68,8 @@
   objectively; the *look* is not. Check scale, orientation and that the gender
   colour ring still reads clearly behind the model.
 - [ ] **Re-verify the 90-second pacing rule** end to end. Time a cold run from boot
-  to Shift 3. If it exceeds 90 s, tune before touching anything else.
+  to Shift 3 — via the fast-start path once it exists, and again from a cold boot.
+  If it exceeds 90 s, tune before touching anything else.
 
 ---
 
@@ -63,7 +82,7 @@
 
 ---
 
-## ✅ Verified done (2026-09-02)
+## ✅ Verified done
 
 Checked against source, not claimed from memory.
 
@@ -71,9 +90,30 @@ Checked against source, not claimed from memory.
       `hasAnmeldung`, `isSperrkontoUnlocked`, `hasVisaExtended` all present in state.
 - [x] **Prominent goal HUD** — `DAY 1/28`, `DOCS ▫▫▫▫`, `€20` render on the city
       screen. (The archived plan still listed this as pending.)
+- [x] **Language-learning framing removed (2026-09-06).** The game is a narrative
+      courier-management sim; its single thesis is British deadpan comedy colliding
+      with German municipal precision. No pedagogical claim remains in any
+      judge-facing document. The der/die/das shelf stays as the comedy mechanic:
+      arbitrary noun genders, so of course the warehouse is filed by them.
+- [x] **Spaced repetition deleted (2026-09-06)** — `SpacedRepetition` / Leitner
+      boxes removed from `src/data/items.js`.
+- [x] **Vocabulary dictionary and self-quiz modal deleted (2026-09-06)** —
+      `src/ui/screens/hudDictionary.js` now contains only the skill-tree modal.
+      The dictionary UI was already unreachable dead code.
+- [x] **Vocab Notebook HUD button deleted (2026-09-06)** — removed from
+      `src/ui/hud.js`; it was gated on an upgrade id that never existed.
+- [x] **Audio claims corrected (2026-09-06)** — the build never contained recorded
+      audio or voice acting. Every sound is synthesised at runtime from oscillators:
+      SFX plus pitched per-character talk-blips (`src/audio/speech.js`).
+      `src/data/voiceSprites.js`, `speakKey()` and `speakGermanText()` are deleted.
+      The pick-phase anticipation cue is the **visual** gender-rail pulse.
+- [x] **Shop catalogue renamed (2026-09-06)** — "Vocab Cards" is now **Shift Rota
+      Cards**; `pocketNotepad` grants one free rail re-pulse per shift, is correctly
+      gated on ownership, and renders in the shift HUD only when owned. See
+      `Docs/CANONICAL_NUMBERS.md` §3.
 - [x] **3-branch skill tree** — `src/data/skillTree.js`, wired into `src/ui/hud.js`.
-- [x] **Spaced repetition vocab** — `SpacedRepetition` Leitner boxes in
-      `src/data/items.js`.
+      *Not a headline system: 6 of its 9 effects are dead writes. The code stays;
+      do not advertise it to judges.*
 - [x] **English-first item labels** — `src/ui/hud.js` renders
       `Milk (die Milch)`. Only the old screenshots show otherwise.
 - [x] **Shelf tiers bottom/middle/top by gender** — `src/phases/pickPhase.js:293`.

@@ -15,10 +15,11 @@ The project uses vanilla ES6 JavaScript and Three.js (r128) packaged into an off
 | `MonoBehaviour.Update()` | `phase.update(delta, timeSec)` via `requestAnimationFrame` | `src/phases/*.js` |
 | `ScriptableObject` (Data Tables) | Frozen JS Objects / Modules (`NPC_DATABASE`, `items`, `shifts`) | `src/data/*.js` |
 | `Canvas` / `uGUI` / `UI Toolkit` | HTML5 DOM Overlay (`#ui-container`, CSS absolute positioning) | `src/ui/hud.js`, `src/ui/screens/*.js` |
+| `EditorWindow`-style modals | Screen modules mixed into `window.FFH.UI.prototype` via `Object.assign` (e.g. `hudModals.js`, `hudDictionary.js` — which now defines only `showSkillTreeModal`) | `src/ui/screens/*.js` |
 | `Transform` & `GameObject` | `THREE.Object3D`, `THREE.Group`, `THREE.Mesh` | `src/render/*.js` |
 | `CharacterController` / `NavMesh` | `CityInput` + `pathfinding.js` + `three-mesh-bvh` collision | `src/phases/city/cityInput.js`, `src/core/pathfinding.js` |
 | `CinemachineVirtualCamera` | `CityCamera` with zoom interpolation & damping lerp | `src/phases/city/cityCamera.js` |
-| `AudioSource` / `AudioClip` | Web Audio API wrapper with pre-baked sound sprites | `src/audio/sfx.js`, `src/audio/speech.js` |
+| `AudioSource` / `AudioClip` | Web Audio API oscillators — every sound is synthesised at runtime; there are **no** recorded audio assets | `src/audio/sfx.js` (SFX), `src/audio/speech.js` (`SpeechEngine.playTalkBlip` / `playOptionChime`) |
 | `PlayerPrefs` / Save Game | `localStorage` JSON serialization (`window.FFH.saveGame`) | `src/main.js` |
 
 ---
@@ -47,7 +48,9 @@ GameManager (window.FFH.game)
   |     (Cel-shading + Sobel Edge Ink Outlines).
   |
   +-- AudioManager (src/audio/)
-        SFX triggers and Studio German character audio clips.
+        Fully procedural. sfx.js synthesises UI/world SFX; speech.js emits
+        per-character pitched talk-blips (Animal Crossing style) from
+        oscillator profiles. Zero bytes of recorded audio ship in the bundle.
 ```
 
 ---
@@ -74,8 +77,9 @@ public interface IGamePhase {
 
 2. **`PICK` (`src/phases/pickPhase.js`)**:
    - **Unity Equivalent**: Warehouse Minigame Scene.
-   - 2.5D fixed perspective. Generates the 3-tier warehouse shelf (`der` = Blue, `die` = Pink, `das` = Purple).
-   - Evaluates player pick accuracy, early rhythm bonuses (2.0x), and combo streaks.
+   - 2.5D fixed perspective. Generates the 3-tier warehouse shelf (`der` = Blue ▲, `die` = Pink ●, `das` = Purple ■). Items are labelled English-first; the tier is read by colour and symbol.
+   - The **gender rail pulses before the item icon resolves** (`pulseRailForGender`). Icon delay ramps 0.0s / 1.5s / 2.5s via `window.FFH.iconRevealDelay` in `src/data/shifts.js`.
+   - Evaluates player pick accuracy, the 2.0x Early Pick bonus for tapping inside the pulse window, and combo streaks.
 
 3. **`INTERIOR` (`src/phases/interiorPhase.js`)**:
    - **Unity Equivalent**: Split-Screen Narrative Cutscene / Dialogue Stage.
@@ -84,11 +88,11 @@ public interface IGamePhase {
 
 4. **`DIALOGUE` (`src/phases/dialoguePhase.js`)**:
    - **Unity Equivalent**: Fullscreen Visual Novel / Conversation Mode.
-   - Drives character conversations, portrait display, and German audio preview.
+   - Drives character conversations, portrait display, and typewriter text reveal with procedural per-character talk-blips.
 
 5. **`SHOP` (`src/phases/shopPhase.js`)**:
    - **Unity Equivalent**: Upgrade / Inventory Shop Screen.
-   - Displays available bike gear (E-Bike, Thermal Bag, Shelf Labels) and modifies global economy tunables.
+   - Displays the 5 upgrades defined in `src/data/shop.js` (E-Bike €45, Thermal Bag €50, Shelf Labels €25, Pocket Notepad €20, Shift Rota Cards €35 — id `vocabCards`) and modifies global economy tunables.
 
 To switch phases anywhere in code:
 ```javascript
@@ -147,7 +151,6 @@ window.FFH.NPC_DATABASE['NPC_MATHIAS'] = {
   id: 'NPC_MATHIAS',
   name: 'Herr Mathias Becker',
   building: 'B_PIZZA',
-  greetingAudio: 'guten_tag',
   personality: { ... },
   dialogue: (state) => { ... }
 };
@@ -174,12 +177,13 @@ window.FFH.NPCMemoryManager.recordEncounter('NPC_NICO', 'recycled_pfand', +15, s
 1. EXPLORE & DISPATCH (City Navigation)
    Ride bike through 3D Altstadt to Kruma Express.
    
-2. WAREHOUSE PICKING (Audio & Spatial Match)
-   Spoken German manifest ("Die Milch!", "Der Apfel!").
-   Player sorts into 3 color shelves:
-   - Der (Blue ▲)
-   - Die (Pink ●)
-   - Das (Purple ■)
+2. WAREHOUSE PICKING (Spatial Match)
+   A dispatch blip fires and the gender rail PULSES; the item icon
+   resolves a beat later. Tap the pulsing tier early for a 2.0x bonus.
+   Three colour-coded shelves (English-first labels):
+   - der (Blue ▲)
+   - die (Pink ●)
+   - das (Purple ■)
    
 3. COURIER RUN (Tactile Map Delivery)
    Courier rides across cobblestones to customer beacon.

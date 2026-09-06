@@ -2,13 +2,18 @@
 ## Master Game Design Document — MHCP Game Prototype Submission
 
 > **Genre**: Narrative Life & Courier Management Simulation  
-> **Inspiration**: *Nicos Weg* (DW German Learning Series) × *Messenger by Abeto* × *Coffee Talk / Good Pizza, Great Pizza*  
+> **Inspiration**: *Peep Show* / *The Inbetweeners* deadpan × *Messenger by Abeto* × *Coffee Talk / Good Pizza, Great Pizza*  
 > **Platform**: Mobile-first WebGL, fixed portrait 390×844  
 > **Packaging**: Single `index.html` (game source unminified), zero CDNs, 100% offline, ≤ 35 MB  
 > **Engine**: Three.js r128 (vendored), plain ES6 — zero external build dependencies  
 
 > **Master Game Design Authority**: Single Master Blueprint for Far From Home: Kruma Express.
 > **Narrative Dynamic**: Relatable British deadpan comedy (*Peep Show*, *Inbetweeners*, *Hitchhiker's Guide*) meets unyielding German municipal precision. Simple vocabulary, instant laughs, zero highbrow pretension.
+> **This is not a language-learning game.** It makes no pedagogical claim and teaches
+> nothing. German appears as *comedy texture* — signage, Beamtendeutsch, the absurd
+> filing logic of the warehouse. The player never needs to understand a word of it.
+> **There is no recorded audio in this build.** Every sound is synthesised at runtime
+> from oscillators. See §5.
 > **Code-Data Architecture**: `assets/narrative/story.json` is the authoritative narrative asset and is automatically inlined into `window.FFH.storyData` during release assembly for 100% offline compliance.
 > **Canonical Numbers**: All economic tunables, build sizes, and prices are strictly governed by [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
 > **Tasks**: Tracked in [`TASKS.md`](TASKS.md). Submission deliverables live in [`submission/`](submission/).
@@ -27,11 +32,11 @@ To matriculate and secure your permanent residence permit (*Aufenthaltstitel*), 
 5. **Unlock Blocked Account (*Sperrkonto*)**: Present your enrollment certificate and *Meldebescheinigung* to Banker **Frau Weber** to unlock your monthly living funds.
 6. **Foreigners' Registration Office (*Ausländerbehörde*)**: Present all stamped documents to Case Worker **Frau Dr. Lindemann** before Day 28 to receive your Residence Permit (*Aufenthaltstitel*).
 
-**The Signature Charm**: To succeed, you explore a charming, living isometric diorama of Lübeck (*Messenger*), fulfill high-speed grocery orders, ride through cobblestone streets to deliver parcels directly on the city map, and practice cultural etiquette (*Sie* vs. *Du*, *Ruhezeit*, tipping) at customer doorways. **Gameplay and dialogues are 100% English-first for instant frictionless playability, enriched with authentic studio German voice acting and color-coded shelf categories (Blue/Pink/Purple)** that make warehouse picking feel like a rhythmic, addictive arcade management loop.
+**The Signature Charm**: To succeed, you explore a charming, living isometric diorama of Lübeck (*Messenger*), fulfill high-speed grocery orders, ride through cobblestone streets to deliver parcels directly on the city map, and observe cultural etiquette (*Sie* vs. *Du*, *Ruhezeit*, tipping) at customer doorways. **Gameplay and dialogue are 100% English-first**, and the warehouse is filed by grammatical gender into three colour-coded tiers (Blue/Pink/Purple) — an arbitrary bureaucratic sorting rule you must obey at speed, which is exactly the joke.
 
 ---
 
-## 2. Character Cast, Quirky Behaviors & Humor Dynamics (*Nicos Weg* Meets *Coffee Talk*)
+## 2. Character Cast, Quirky Behaviors & Humor Dynamics (*Peep Show* Meets *Coffee Talk*)
 
 To make every interaction memorable, characters have distinct, exaggerated personalities and humorous idiosyncrasies reflecting real life in Germany:
 
@@ -113,13 +118,13 @@ The 3D Altstadt atmosphere dynamically advances as the Day 1 visa clock ticks:
  │                                                                             │
  │  1. [CITY_EXPLORATION] — Living Lübeck Island Diorama (Messenger Style)     │
  │     • Explore the continuous 3D Altstadt on your bicycle with tap-to-move.  │
- │     • Talk to voiced NPCs directly in the city with dual German/English.   │
+ │     • Talk to NPCs directly in the city. English-first, German for laughs.  │
  │     • Discover local needs, story quests, and clock in at Kruma Dispatch.   │
  │                                                                             │
- │  2. [PICK] — Warehouse Packing Shift (Audio-First Pedagogical Core)         │
- │     • Spoken German orders called out ("Die Milch!", "Der Apfel!").         │
- │     • 3-tier shelves color-coded by gender (Der=Blue ▲, Die=Pink ●, Das=Purple ■). │
- │     • Spatial sorting cuts search time by 66% — earn massive early streaks! │
+ │  2. [PICK] — Warehouse Packing Shift (The Absurd Filing System)             │
+ │     • Orders arrive as a manifest; the gender rail pulses before the icon.  │
+ │     • 3-tier shelves colour-coded by gender (der=Blue ▲, die=Pink ●, das=Purple ■). │
+ │     • Gender filing cuts the shelf you must scan by 66% — huge streaks!     │
  │                                                                             │
  │  3. [CITY_DELIVERY] — In-Map Courier Run (Real City Navigation)             │
  │     • Step out of the warehouse with the packed order on your bike.         │
@@ -128,13 +133,13 @@ The 3D Altstadt atmosphere dynamically advances as the Day 1 visa clock ticks:
  │                                                                             │
  │  4. [DIALOGUE] — Customer Doorway Handoff (Front-Facing 2.5D Diorama)       │
  │     • Deliver package at the warm customer doorway diorama.                 │
- │     • Meaningful, voiced German dialogue (*Sie* vs. *Du*, polite greetings).│
+ │     • Etiquette choices that land or misfire (*Sie* vs. *Du*, *Ruhezeit*).  │
  │     • Earn customer satisfaction tip bonuses (+€3 to +€15).                 │
  │                                                                             │
  │  5. [DEBRIEF & SHOP] — Shift Receipt & Visible Economic Upgrades            │
  │     • Itemized payout: Base wage + Early Streak + Tips - Deductions.        │
  │     • Visit the Bike Shop: Invest in visible E-Bikes, Thermal Bags,         │
- │       Warehouse Shelf Labels, and Vocab Notebooks.                          │
+ │       Shelf Labels, Pocket Notepad and Shift Rota Cards.                    │
  │     • Watch your Tuition Fund grow from €20 to €250 to win the game!        │
  │                                                                             │
  └─────────────────────────────────────────────────────────────────────────────┘
@@ -142,15 +147,24 @@ The 3D Altstadt atmosphere dynamically advances as the Day 1 visa clock ticks:
 
 ---
 
-## 4. The Core Packing Mechanic: Spatial Color Sorting & Audio Cues
+## 4. The Core Packing Mechanic: Gender as an Absurd Filing System
 
-The packing minigame is designed for **instant arcade flow and tactile rhythm**:
+The packing minigame is designed for **instant arcade flow and tactile rhythm**. It is
+also the game's central gag.
+
+German nouns carry an arbitrary grammatical gender. Kruma Express, being a German
+warehouse, therefore files its stock by that gender — not by temperature, not by
+aisle, not by anything a courier would find useful. An apple is a boy. A banana is a
+girl. Bread is neither. You are not asked to understand this. You are asked to obey
+it, quickly, before your shift clock runs out.
+
+Klaus sets the tone on Day 2: *"An apple is a boy, a banana is a girl. Pick them right."*
 
 ### 4.1 Spatial Gender Tiers & English-First Manifest
 The warehouse shelf is structured into **three horizontal tiers, sorted purely by
-grammatical gender**, each color-coded with high visual contrast:
+grammatical gender**, each colour-coded with high visual contrast:
 
-| Tier | Article | Color | Symbol | Canonical Items (English First) |
+| Tier | Article | Colour | Symbol | Canonical Items (English First) |
 | :--- | :--- | :---: | :---: | :--- |
 | **Bottom** | **der** | Blue `#3A86FF` | ▲ | Apple *(der Apfel)*, Cheese *(der Käse)*, Coffee *(der Kaffee)* |
 | **Middle** | **die** | Pink `#FF006E` | ● | Milk *(die Milch)*, Banana *(die Banane)*, Carrot *(die Karotte)*, Pizza *(die Pizza)* |
@@ -160,36 +174,55 @@ grammatical gender**, each color-coded with high visual contrast:
 > "Chilled & Drinks", "Fresh & Snacks" and "Bakery & Dry". Those labels were never
 > in the code and they contradict the data — milk is not in the chilled row, and
 > apple, cheese and coffee share the bottom row only because all three are *der*.
-> The mechanic is coherent as gender sorting. The category names broke it.
+> The mechanic is coherent as gender filing. The category names broke it.
 
-- Items on the packing manifest display **English first** with subtle German subtitles: `Milk (die Milch)`.
-- When the order audio plays, the character voice announces the item in German (`"Die Milch!"`), providing a rhythmic audio lead.
-- English-speaking judges instantly recognize the item name and color tier in under 0.1 seconds, achieving fast, satisfying combo streaks with zero cognitive friction.
+**Zero language burden.** The manifest lists items **English first** with the German
+in small grey parentheses: `Milk (die Milch)`. The shelf itself carries no German text
+at all — just 3D grocery models on coloured rails. A player who has never seen German
+reads "Milk", sees pink, taps the middle tier. The German is scenery.
 
-### 4.2 The Rhythm Ramp
-- **Shift 1 (Immediate Cue - Delay 0.0s)**: Audio and icon arrive simultaneously. Pure arcade sorting.
-- **Shift 2 (Anticipation - Delay 1.5s)**: Audio plays first. Tapping the correct color shelf tier before the icon reveals grants a **2.0× Early Speed Multiplier**.
-- **Shift 3+ (Expert Flow - Delay 2.5s)**: Extended audio window for seasoned couriers to maximize streak payouts.
+### 4.2 The Rhythm Ramp — a *visual* anticipation cue
+When a new item is called, its **gender rail pulses** before the item icon resolves on
+the manifest. That pulse is the whole tell: it names the shelf without naming the item.
+Tapping the correct tier during that window is the **2.0× Early Pick** bonus.
+
+- **Shift 1 (Immediate — delay 0.0s)**: rail and icon arrive together. Pure arcade sorting.
+- **Shift 2 (Anticipation — delay 1.5s)**: rail pulses first. Commit early, get 2.0×.
+- **Shift 3+ (Expert Flow — delay 2.5s)**: a long window for couriers who trust the colour.
+
+This is the "Aha!" beat: the moment a player realises the daft filing system is
+actually a *search accelerator*, because it cuts the shelf they have to scan by two
+thirds.
 
 ---
 
-## 5. Deterministic Micro-NLP & Voiced Audio Architecture
+## 5. Text Generation & Audio Architecture
 
-### 5.1 100% Offline Symbolic Morphology Engine (`src/core/grammarEngine.js`)
-- Dynamically constructs grammatically flawless German requests based on NPC needs:
+### 5.1 Offline Symbolic Morphology Engine (`src/core/grammarEngine.js`)
+Deterministically constructs grammatically correct German request lines for NPC
+flavour text, so that signage and dialogue read as real German rather than as
+mangled placeholder:
   - Accusative: *"Ich brauche **den** Käse für die Pizza."*
   - Polite/Formal: *"Könnten Sie mir bitte **das** Mehl bringen?"*
-- Calculates noun cases (*Nominativ*, *Akkusativ*, *Dativ*) and gender agreements deterministically with zero runtime latency.
 
-### 5.2 Pre-Baked Studio Voice Acting Manifest (`src/audio/`)
-- Eliminates robotic system voices by bundling expressive, character-acted German audio clips:
-  - **Oma Martha**: Warm, grandmotherly, encouraging.
-  - **Herr Mathias**: Expressive, lively Italian-German restaurant boss.
-  - **Frau Rita**: Crisp, formal, bureaucratic registrar.
-  - **Nina Voss**: Friendly, energetic, street-smart dispatcher.
-  - **12 Grocery Nouns**: Clear studio pronunciation of every item with its article.
-- Audio footprint is **< 1 MB total**, fully within the 35 MB competition limit.
-- Tapping the 🔊 icon on any dialogue choice previews the spoken German pronunciation before selecting.
+It resolves noun case (*Nominativ*, *Akkusativ*, *Dativ*) and gender agreement from
+lookup tables with zero runtime latency and zero network use. **It is a text
+generator, not a teaching tool** — nothing in the game asks the player to produce,
+parse or recall German.
+
+### 5.2 Audio: 100% procedural, zero recorded assets
+**This build ships no audio files.** Nothing is streamed, nothing is inlined, and the
+audio budget is effectively 0 KB. Every sound is synthesised at runtime by
+`src/audio/speech.js` and the SFX layer:
+
+- **Character talk-blips** — each speaker has a pitch/filter/waveform profile
+  (Nina bright triangle, Lokker low sawtooth, Vogel square, and so on), so dialogue
+  reads as characterised chatter in the *Animal Crossing* / *Celeste* tradition.
+- **Interface and economy SFX** — taps, mispicks, cash, stamps.
+
+There is deliberately **no voice acting and no spoken German**. The pick loop's
+anticipation cue is visual (the rail pulse, §4.2), not auditory — which also means the
+core mechanic is fully playable muted, on a silent phone, and in a noisy judging room.
 
 ---
 
@@ -209,13 +242,13 @@ grammatical gender**, each color-coded with high visual contrast:
    - *Mechanical*: Halves food freshness decay during city delivery.
 3. **Warehouse Shelf Labels (€25)**:
    - *Visual*: Permanently mounts metallic `DER`, `DIE`, and `DAS` plaques on shelf rails.
-   - *Mechanical*: Displays gender symbols on items for faster spatial navigation.
-4. **Pocket Vocab Notebook (€20)**:
-   - *Visual*: Adds an interactive dictionary icon to the HUD.
-   - *Mechanical*: Allows one re-listen per shift to replay spoken German nouns.
-5. **Vocab Cards (€35)**:
-   - *Visual*: Flashcard deck in student room.
-   - *Mechanical*: -0.8s icon delay, +25% early-pick accuracy bonus.
+   - *Mechanical*: Stamps the tier symbol (▲●■) on every item, not just the rail.
+4. **Pocket Notepad (€20)**:
+   - *Visual*: Adds a study desk and lamp to the student room; a 📋 button appears in the shift HUD.
+   - *Mechanical*: One free rail re-pulse per shift, for when you lose the thread mid-order.
+5. **Shift Rota Cards (€35)**:
+   - *Visual*: Pinned card deck on the student room corkboard.
+   - *Mechanical*: -0.8s icon delay, +25% early-pick bonus.
 
 ---
 
@@ -252,15 +285,17 @@ The narrative design is structured around **Jamie Antonisse's GDC Narrative Prot
 
 ## 9. Progression Systems Beyond the Core Loop
 
-Two systems ship on top of the shift loop and are frequently missed by older docs:
+- **Shop upgrades** (`src/data/shop.js`) — five purchases, every one of which changes
+  both a number and something you can see, in the warehouse or in your room. See §6.
+- **The 4-document dossier** — the persistent HUD readout that turns bureaucratic
+  errands into a progress bar (§8, *The Mountain on the Horizon*).
 
-- **3-Branch Expat Skill Tree** (`src/data/skillTree.js`, surfaced in `src/ui/hud.js`):
-  *The Courier Hustler* (speed, pick grace, VIP tips), *The Bureaucrat* (legal aid
-  with AStA's Dr. Schmidt, exemptions) and *The Diplomat* (thrift, *Pfand* bonuses,
-  *Stoßlüften* stamina). Funded by `skillPoints` earned through play.
-- **Spaced-Repetition Vocabulary** (`SpacedRepetition` in `src/data/items.js`):
-  a 4-box Leitner system that schedules which nouns reappear, so vocabulary
-  genuinely consolidates across shifts rather than resetting.
+> **Removed 2026-09-06.** Earlier drafts advertised a spaced-repetition vocabulary
+> system (Leitner boxes) and a vocabulary dictionary with a self-quiz. Both are gone
+> from the build: the quiz UI was never reachable from any menu, and the scheduler
+> never fed the pick loop. A three-branch skill tree also exists in `src/data/skillTree.js`
+> but is **not** advertised as a headline system, because most of its effects are not
+> yet read by gameplay code. Do not re-add any of these to the pitch.
 
 ---
 
@@ -270,5 +305,6 @@ Two systems ship on top of the shift loop and are frequently missed by older doc
 - **Runtime**: 100% Offline Single-File `index.html` (Concatenated via `build/assemble.js`).
 - **Dependencies**: Three.js r128 (Inlined / local). Zero external network calls,
   verified in the DevTools Network tab: the document loads and nothing else.
+- **Audio assets**: none. All sound is procedurally synthesised (§5.2).
 - **Bundle Footprint**: see [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
 
