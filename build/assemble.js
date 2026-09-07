@@ -45,6 +45,7 @@ function assemble() {
     'src/core/economy.js',
     'src/core/storyRunner.js',
     'src/core/storyActions.js',
+    'src/core/mechanicInterceptor.js',
     'src/core/templateManager.js',
     'src/core/npcBehaviorTree.js',
     'src/data/prologueQuests.js',
@@ -83,12 +84,12 @@ function assemble() {
     'src/render/particles.js',
     'src/audio/sfx.js',
     'src/audio/speech.js',
+    'src/ui/screens/hudModals.js',
     'src/ui/hud.js',
     'src/ui/screens/hudScreens.js',
     'src/ui/screens/hudShifts.js',
     'src/ui/screens/hudDialogue.js',
     'src/ui/screens/hudDictionary.js',
-    'src/ui/screens/hudModals.js',
     'src/phases/pick/pickShelfView.js',
     'src/phases/pick/pickFeedback.js',
     'src/phases/pickPhase.js',
@@ -158,9 +159,22 @@ function assemble() {
   }
   const storyDataScript = `\nwindow.FFH = window.FFH || {};\nwindow.FFH.storyData = ${storyJsonData};\n`;
 
+  // 2b. Inline assets/Music/bgMusic.mp3 as a data URI for 100% offline
+  // compliance. Must stay in sync with window.FFH.MUSIC.src in
+  // src/config/gameConfig.js (same file, dev path).
+  let musicDataScript = '\nwindow.FFH = window.FFH || {};\nwindow.FFH.musicDataUri = null;\n';
+  const musicPath = path.join(root, 'assets', 'Music', 'bgMusic.mp3');
+  if (fs.existsSync(musicPath)) {
+    const musicBytes = fs.readFileSync(musicPath);
+    musicDataScript = `\nwindow.FFH = window.FFH || {};\nwindow.FFH.musicDataUri = "data:audio/mpeg;base64,${musicBytes.toString('base64')}";\n`;
+    console.log(`- Inlining bgMusic.mp3 (${Math.round(musicBytes.length / 1024)} KB)`);
+  } else {
+    console.warn('WARNING: assets/Music/bgMusic.mp3 missing; release ships without music.');
+  }
+
   // 3. Remove all dev script tags and replace with inlined release scripts
   const devScriptsPattern = /<!-- Game Source Code -->[\s\S]*?<\/body>/;
-  const inlineBlock = `<script>${storyDataScript}\n${mergedSourceCode}\n</script>\n</body>`;
+  const inlineBlock = `<script>${storyDataScript}\n${musicDataScript}\n${mergedSourceCode}\n</script>\n</body>`;
   outputHtml = outputHtml.replace(devScriptsPattern, inlineBlock);
   
   // Write index.html to workspace root

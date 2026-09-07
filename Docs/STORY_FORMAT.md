@@ -257,7 +257,9 @@ never from a character being stupid.
 ## 11. Adding a scene — checklist
 
 1. Unique snake_case `id`. Add it to `scenes[]` near its act neighbours.
-2. `stage.time` moves **forward** relative to the scene before it.
+2. `stage.time` moves **forward** relative to the scene before it. An overnight cut
+   must advance the clock via a `day` effect (e.g. `day1_sleep`'s choice sets
+   `{ "var": "day", "expr": "2" }`) — the validator is day-aware and honours it.
 3. `prose` in the voice above. 3–6 lines.
 4. A route out: `choices[].to`, `next`, `divert`, or `terminal` + `outcome`.
 5. Money as `{wallet}€`, never a literal.

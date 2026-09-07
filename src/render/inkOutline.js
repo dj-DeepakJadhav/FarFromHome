@@ -1,7 +1,6 @@
 // Real ink-outline post-processing: renders a view-space normal + depth pass,
 // then Sobel-detects discontinuities in both and paints dark lines over the
-// normal render. This is what gives the hand-inked comic look — the existing
-// INK_OUTLINE ShaderMaterial only fakes a rim darkening per-surface and cannot
+// normal render. This is what gives the hand-inked comic look (the existing)// INK_OUTLINE ShaderMaterial only fakes a rim darkening per-surface and cannot
 // produce actual silhouette or crease lines.
 window.FFH = window.FFH || {};
 

@@ -82,13 +82,19 @@ class GameEngine {
     this.animate = this.animate.bind(this);
     this.animate();
 
-    // Screen size change lock
-    window.addEventListener('resize', () => this.resize());
-    window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 100));
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', () => this.resize());
-      window.visualViewport.addEventListener('scroll', () => this.resize());
-    }
+    // Attach one-time global user gesture listener to unlock background music playback
+    const startAudioOnGesture = () => {
+      if (this.sfx && typeof this.sfx.startMusic === 'function') {
+        this.sfx.startMusic();
+      }
+      window.removeEventListener('pointerdown', startAudioOnGesture);
+      window.removeEventListener('keydown', startAudioOnGesture);
+      window.removeEventListener('touchstart', startAudioOnGesture);
+    };
+    window.addEventListener('pointerdown', startAudioOnGesture);
+    window.addEventListener('keydown', startAudioOnGesture);
+    window.addEventListener('touchstart', startAudioOnGesture);
+
     this.resize();
   }
 

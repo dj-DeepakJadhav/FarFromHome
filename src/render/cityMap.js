@@ -1934,6 +1934,21 @@ window.FFH.buildLubeckCityWorld = function() {
     }
   }
 
+  // Inject invisible standalone story landmarks (like LM_MARKTPLATZ) so they can act as navigation/trigger targets
+  if (window.FFH.STORY_LOC_POSITIONS) {
+    const landmarks = ['LM_MARKTPLATZ', 'LM_ALTSTADT', 'LM_CANAL'];
+    for (const lm of landmarks) {
+      if (window.FFH.STORY_LOC_POSITIONS[lm]) {
+        const c = window.FFH.STORY_LOC_POSITIONS[lm];
+        const g = new THREE.Group();
+        g.position.set(c.x, 0, c.z);
+        g.userData = { type: lm, poi: lm };
+        worldGroup.add(g);
+        interactiveMeshes.push(g);
+      }
+    }
+  }
+
   // Floating Sky Clouds
   for (let c = 0; c < 30; c++) {
     const cloud = registry.createCloud();

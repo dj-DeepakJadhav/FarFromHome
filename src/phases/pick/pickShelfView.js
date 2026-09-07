@@ -98,6 +98,18 @@ window.FFH.buildWarehouseShelf = function({ shift, order, upgrades, shelfWorldPo
     shelfGroup.position.copy(shelfWorldPos);
   }
 
+  // Dedicated shelf light rig. The navy warehouse shell swallows ambient
+  // light and the Kenney food models are lit (Phong) materials, while the
+  // cel-shaded shelf around them is unlit, without their own key + fill
+  // the groceries render near-black. Parented to the shelf so the rig
+  // follows it and is disposed with it on phase exit.
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
+  keyLight.position.set(4, 7, 6);
+  shelfGroup.add(keyLight);
+  const fillLight = new THREE.PointLight(0xfff2d9, 1.2, 7.0);
+  fillLight.position.set(0, 1.6, 2.4);
+  shelfGroup.add(fillLight);
+
   // Rotate shelf so its open front (+Z in local space) faces the camera (+X, +Z in world space)
   shelfGroup.rotation.y = Math.PI / 4;
 

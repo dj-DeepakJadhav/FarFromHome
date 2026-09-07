@@ -63,7 +63,11 @@ window.FFH.InteriorPhase = class {
         this.npcMesh.userData.floorY = charY;
         this.npcMesh.position.set(charX, charY, charZ);
         this.npcMesh.rotation.y = charRotY;
-        this.npcMesh.scale.multiplyScalar(charScale);
+        
+        // Prevent giant NPCs by capping multiplier for the default generic model
+        const finalScale = charScale > 1.5 && this.npcMesh.userData.glbKey === 'character-a' ? 1.0 : charScale;
+        this.npcMesh.scale.multiplyScalar(finalScale);
+        
         scene.add(this.npcMesh);
 
       }

@@ -1,5 +1,11 @@
 // Shift Gameplay, Manifest, Ride HUD & Shop UI
 window.FFH = window.FFH || {};
+if (!window.FFH.UI) {
+  window.FFH.UI = function(game) {
+    this.game = game;
+    this.container = document.getElementById('ui-container');
+  };
+}
 
 Object.assign(window.FFH.UI.prototype, {
   showWarehouseManifest() {
@@ -155,7 +161,7 @@ Object.assign(window.FFH.UI.prototype, {
     this.container.appendChild(hud);
 
     // Pocket Notepad: one re-pulse per shift. Owning the upgrade is what unlocks
-    // it -- without it the button stays dead, which is the point of buying it.
+    // it, without it the button stays dead, which is the point of buying it.
     const btnReplay = document.getElementById('btn-replay-audio');
     if (btnReplay) {
       const owned = !!(this.game.state.upgrades && this.game.state.upgrades.pocketNotepad);

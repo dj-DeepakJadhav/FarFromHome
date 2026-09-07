@@ -101,21 +101,45 @@ while (stack.length) {
 for (const s of scenes) if (!reach.has(s.id)) warn(s.id, 'unreachable from act_one');
 
 // ---------- act I timeline must move forward ----------
+// Day-aware: a choice effect like { "var": "day", "expr": "2" } (see day1_sleep)
+// rolls the clock over to the next day, so 22:00 -> 20:05 next evening is forward.
+function daySetBy(effects) {
+  for (const e of effects || []) {
+    if (e && e.var === 'day' && /^\d+$/.test(String(e.expr).trim())) return parseInt(e.expr, 10);
+  }
+  return null;
+}
+function firstExit(s) {
+  if (typeof s.next === 'string') return { to: s.next, setDay: null };
+  if (typeof s.divert === 'string') return { to: s.divert, setDay: null };
+  for (const c of s.choices || []) {
+    if (typeof c.to === 'string') return { to: c.to, setDay: daySetBy(c.effects) };
+    if (c.to && typeof c.to === 'object') return { to: c.to.then, setDay: daySetBy(c.effects) };
+  }
+  for (const ce of s.conditional_edges || []) if (ce.to) return { to: ce.to, setDay: null };
+  return null;
+}
 const actOnePath = [];
 {
   let cur = 'act_one';
+  let day = 1;
   const seen = new Set();
   while (cur && byId.has(cur) && !seen.has(cur)) {
     seen.add(cur);
     const s = byId.get(cur);
-    if (s.act === 'I') actOnePath.push(s);
-    cur = targets(s)[0];
+    const entryDay = daySetBy(s.effects);
+    if (entryDay != null) day = entryDay;
+    if (s.act === 'I') actOnePath.push({ scene: s, day });
+    const exit = firstExit(s);
+    if (exit && exit.setDay != null) day = exit.setDay;
+    cur = exit && exit.to;
   }
 }
 for (let i = 0; i < actOnePath.length - 1; i++) {
   const a = actOnePath[i], b = actOnePath[i + 1];
-  const ta = (a.stage || {}).time, tb = (b.stage || {}).time;
-  if (ta && tb && tb < ta) err(b.id, `stage.time ${tb} goes backwards from ${a.id} (${ta})`);
+  const ta = (a.scene.stage || {}).time, tb = (b.scene.stage || {}).time;
+  if (ta && tb && (b.day < a.day || (b.day === a.day && tb < ta)))
+    err(b.scene.id, `stage.time ${tb} (day ${b.day}) goes backwards from ${a.scene.id} (${ta}, day ${a.day})`);
 }
 
 // ---------- generated pacing ----------

@@ -1,18 +1,5 @@
 window.FFH = window.FFH || {};
 
-window.FFH.ACT1_STAGES = {
-  ARRIVAL_ZOB: 'ARRIVAL_ZOB',         // At ZOB bus station, suitcase struggle
-  TRANSIT_TO_WG: 'TRANSIT_TO_WG',     // Navigating south to Student WG (B_WG)
-  WG_DOOR: 'WG_DOOR',                 // At B_WG door, buzzer intercom puzzle
-  WG_ROOM4: 'WG_ROOM4',               // Inside Room 4, Nico meet & Mülltrennung test
-  TRANSIT_TO_UNI: 'TRANSIT_TO_UNI',   // Golden hour sprint across bridges to B_UNI
-  UNI_LOCKED: 'UNI_LOCKED',           // At B_UNI, registry closed at 17:00, need job
-  JOB_HUNT_PIZZA: 'JOB_HUNT_PIZZA',   // At B_PIZZA, ask Mathias for job (rejected)
-  JOB_HUNT_BAKERY: 'JOB_HUNT_BAKERY', // At B_BAKERY, Oma Martha reveals Kruma Express
-  RETURN_TO_WG: 'RETURN_TO_WG',       // Night walk home to WG
-  DAY1_SLEEP: 'DAY1_SLEEP'            // Sleep, day recap, transition to Day 2 Shift 1
-};
-
 window.FFH.ECONOMY = {
     STARTING_WALLET: 20,
     TUITION_GOAL: 250,
@@ -132,7 +119,23 @@ window.FFH.finishShift = function(game) {
   }
 };
 
-// A fresh run. Called on boot and on restart — nothing may persist between runs,
+// Re-add legacy ACT1_STAGES so existing save files and edge logic don't throw undefined errors.
+// StoryRunner handles narrative progression now, but these strings are still used in state.act1Stage.
+window.FFH.ACT1_STAGES = {
+  ARRIVAL_ZOB: 'ARRIVAL_ZOB',
+  TRANSIT_TO_WG: 'TRANSIT_TO_WG',
+  WG_BUZZER: 'WG_BUZZER',
+  WG_INTERIOR: 'WG_INTERIOR',
+  MUELL_INTRO: 'MUELL_INTRO',
+  TRANSIT_TO_UNI: 'TRANSIT_TO_UNI',
+  UNI_RUSH: 'uni_rush',
+  PIZZERIA: 'pizzeria_job',
+  BAKERY: 'bakery_job',
+  KRUMA_FLYER: 'kruma_flyer',
+  DONE: 'DONE'
+};
+
+// A fresh run. Called on boot and on restart (nothing may persist between runs),
 // which is why this returns a new object rather than mutating one in place.
 window.FFH.createRunState = function () {
   return {
@@ -289,8 +292,7 @@ window.FFH.createRunState = function () {
   };
 };
 
-// Clear the per-shift meters. Called at the start of every PICK phase — without
-// this, integrity and freshness only ever decay and shift 4 starts unwinnable.
+// Clear the per-shift meters. Called at the start of every PICK phase (without)// this, integrity and freshness only ever decay and shift 4 starts unwinnable.
 window.FFH.resetShiftState = function (state) {
   state.bagIntegrity = 100;
   state.freshness = 100;
@@ -316,7 +318,7 @@ window.FFH.round2 = function (n) {
 
 window.FFH.state = window.FFH.createRunState();
 
-window.FFH.saveGame = function(game) {
+window.FFH.saveGame = function(game, slotId = 1, customName = null) {
   try {
     let spawnPos = null;
     let timeOfDay = 0.35;
@@ -330,29 +332,28 @@ window.FFH.saveGame = function(game) {
       }
     }
 
-    // Determine target spawn based on canonical act1Stage
     const s = game.state;
     const Stages = window.FFH.ACT1_STAGES || {};
     let objectiveStage = s.act1Stage || Stages.ARRIVAL_ZOB;
 
     if (s.day >= 2 || s.act1Stage === Stages.DAY1_SLEEP) {
       objectiveStage = 'day2_kruma';
-      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // Outside WG facing south to Kruma
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 };
     } else if (s.act1Stage === Stages.RETURN_TO_WG) {
       objectiveStage = 'return_to_wg_sleep';
-      if (!spawnPos) spawnPos = { x: 7.8, z: 20.0 }; // Outside Bakery
+      if (!spawnPos) spawnPos = { x: 7.8, z: 20.0 };
     } else if (s.act1Stage === Stages.JOB_HUNT_BAKERY) {
       objectiveStage = 'bakery_hunt';
-      if (!spawnPos) spawnPos = { x: 28.6, z: 25.0 }; // Outside Pizzeria
+      if (!spawnPos) spawnPos = { x: 28.6, z: 25.0 };
     } else if (s.act1Stage === Stages.JOB_HUNT_PIZZA) {
       objectiveStage = 'pizzeria_hunt';
-      if (!spawnPos) spawnPos = { x: 20.8, z: 18.0 }; // Outside Uni
+      if (!spawnPos) spawnPos = { x: 20.8, z: 18.0 };
     } else if (s.act1Stage === Stages.UNI_LOCKED || s.act1Stage === Stages.TRANSIT_TO_UNI) {
       objectiveStage = 'uni_rush';
-      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // Outside WG
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 };
     } else if (s.act1Stage === Stages.WG_ROOM4 || s.act1Stage === Stages.WG_DOOR) {
       objectiveStage = 'nico_room4';
-      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 }; // At Nico's WG door
+      if (!spawnPos) spawnPos = { x: 7.8, z: 28.0 };
     }
 
     const stageOrder = [
@@ -369,7 +370,14 @@ window.FFH.saveGame = function(game) {
     ];
     const finishedObjectivesCount = Math.max(0, stageOrder.indexOf(s.act1Stage));
 
+    const timestamp = new Date().toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+    const slotLabel = customName || `Day ${s.day || 1} • ${(s.wallet || 0).toFixed(2)}€ (${timestamp})`;
+
     const saveData = {
+      slotId: slotId,
+      slotLabel: slotLabel,
+      timestamp: timestamp,
+      savedAtMs: Date.now(),
       state: game.state,
       spawnPos: spawnPos,
       timeOfDay: timeOfDay,
@@ -392,32 +400,38 @@ window.FFH.saveGame = function(game) {
       saveData.phaseKey = 'SHOP';
     }
 
-    localStorage.setItem('FFH_SAVE_GAME', JSON.stringify(saveData));
-    console.log(`[SaveSystem] Saved successfully at stage '${objectiveStage}' (${finishedObjectivesCount} completed). Spawn:`, spawnPos);
+    // Save into auto slot key AND slot-specific key
+    localStorage.setItem(`FFH_SAVE_SLOT_${slotId}`, JSON.stringify(saveData));
+    localStorage.setItem('FFH_SAVE_GAME', JSON.stringify(saveData)); // backward compat default
+
+    console.log(`[SaveSystem] Saved Slot ${slotId} ('${slotLabel}') at stage '${objectiveStage}'.`);
+    return saveData;
   } catch(e) {
     console.error("Failed to save game:", e);
+    return null;
   }
 };
 
-window.FFH.loadGame = function(game) {
+window.FFH.loadGame = function(game, slotId = null) {
   try {
-    const raw = localStorage.getItem('FFH_SAVE_GAME');
+    let key = 'FFH_SAVE_GAME';
+    if (slotId) {
+      key = `FFH_SAVE_SLOT_${slotId}`;
+    }
+    const raw = localStorage.getItem(key);
     if (!raw) return false;
     const saveData = JSON.parse(raw);
     if (!saveData || !saveData.state) return false;
 
-    // Hard wipe if save lacks canonical act1Stage
     if (!saveData.state.act1Stage) {
-      console.warn("[SaveSystem] Legacy save detected without act1Stage. Performing hard wipe.");
-      localStorage.removeItem('FFH_SAVE_GAME');
+      console.warn("[SaveSystem] Legacy save detected. Cleaning invalid slot.");
+      localStorage.removeItem(key);
       return false;
     }
-    
-    // Merge clean run state with saved attributes
+
     game.state = Object.assign(window.FFH.createRunState(), saveData.state);
     window.FFH.state = game.state;
 
-    // Restore pending story target if present
     if (saveData.pendingStoryTarget && game.storyRunner) {
       game.storyRunner.pendingStoryTarget = saveData.pendingStoryTarget;
     }
@@ -436,4 +450,26 @@ window.FFH.loadGame = function(game) {
     console.error("Failed to load game:", e);
     return false;
   }
+};
+
+window.FFH.getSaveSlots = function() {
+  const slots = [1, 2, 3];
+  return slots.map(id => {
+    const raw = localStorage.getItem(`FFH_SAVE_SLOT_${id}`);
+    if (!raw) return { id, empty: true };
+    try {
+      const data = JSON.parse(raw);
+      return {
+        id,
+        empty: false,
+        label: data.slotLabel || `Slot ${id}`,
+        day: data.state ? data.state.day : 1,
+        wallet: data.state ? data.state.wallet : 20,
+        objective: data.activeObjective || 'Explore Lübeck',
+        timestamp: data.timestamp || 'Saved'
+      };
+    } catch(e) {
+      return { id, empty: true };
+    }
+  });
 };

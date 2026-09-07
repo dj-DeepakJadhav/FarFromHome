@@ -385,10 +385,10 @@ Object.assign(window.FFH.NPC_DATABASE, {
       if (isFirstMeeting) {
         return {
           speaker: 'Herr Hans Lokker (Caretaker)',
-          en: '*Clicks pocket watch shut* I am Hans Lokker, caretaker. Rule number one: Mülltrennung! Blue for paper, yellow for plastic, black for rest. Never mix them up!',
+          en: '*Checks wristwatch at 21:59* Guten Abend. I am Hans Lokker. In this WG, rules are not suggestions (they are physical laws of nature). Mülltrennung! Blue for paper, yellow for plastic, black for rest. If you put cardboard in the residual bin, the entire neighborhood will weep.',
           options: [
             {
-              label: '🗑️ "Understood, Herr Lokker: Blue, yellow, and black."',
+              label: '🇬🇧 "Understood, Herr Lokker: Blue, yellow, and black. I will treat the recycling bins with religious devotion."',
               action: (game) => {
                 addLokkerMemory('introduced_lokker');
                 addLokkerMemory('learned_muelltrennung');
@@ -399,7 +399,7 @@ Object.assign(window.FFH.NPC_DATABASE, {
                 }
 
                 window.FFH.NPC_DATABASE['NPC_LOKKER'].currentResponse = {
-                  en: 'Good. Explore the town first, but remember the university closes by evening!',
+                  en: 'Satisfactory. Also remember: at 22:00:00, Ruhezeit begins. If your footstep exceeds 40 decibels, I will know.',
                   options: [
                     { label: '🚶 "I will explore the town and head to uni!"', action: (g) => g.transitionTo('CITY_EXPLORATION') },
                     { label: '🏠 "Thank you, Herr Lokker."', action: (g) => g.transitionTo('CITY_EXPLORATION') }

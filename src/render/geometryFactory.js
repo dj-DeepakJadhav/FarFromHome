@@ -24,7 +24,10 @@ function loadFoodModel(key) {
   const promise = new Promise((resolve, reject) => {
     try {
       if (mtlText) {
-        const materials = _mtlLoader.parse(mtlText);
+        // Explicit empty texture base path: the .mtl atlas reference is an
+        // inlined data: URI (see build/bundle_obj.js) which resolveURL()
+        // passes through untouched, keeping the offline build request-free.
+        const materials = _mtlLoader.parse(mtlText, '');
         // Avoid materials.preload() as it triggers image loader requests for non-existent PNG textures
         _objLoader.setMaterials(materials);
       } else {
@@ -149,14 +152,14 @@ window.FFH.createItemMesh = function(itemType, genderColorHex) {
 
   // Load and attach authentic Kenney 3D Food Kit model if available
   const modelMap = {
-    carton: { key: 'carton.obj', scale: 2.2, y: -0.2 },
-    sphere: { key: 'apple.obj', scale: 2.3, y: -0.2 },
-    box: { key: 'bread.obj', scale: 2.2, y: -0.1 },
-    cylinder: { key: 'soda-bottle.obj', scale: 2.2, y: -0.2 },
-    curve: { key: 'banana.obj', scale: 2.3, y: -0.2 },
-    wedge: { key: 'cheese.obj', scale: 2.3, y: -0.2 },
-    egg: { key: 'egg.obj', scale: 2.4, y: -0.2 },
-    cone: { key: 'carrot.obj', scale: 2.3, y: -0.2 }
+    carton: { key: 'carton.obj', scale: 1.1, y: -0.1 },
+    sphere: { key: 'apple.obj', scale: 1.15, y: -0.1 },
+    box: { key: 'bread.obj', scale: 1.0, y: -0.05 },
+    cylinder: { key: 'soda-bottle.obj', scale: 1.1, y: -0.1 },
+    curve: { key: 'banana.obj', scale: 1.1, y: -0.1 },
+    wedge: { key: 'cheese.obj', scale: 1.15, y: -0.1 },
+    egg: { key: 'egg.obj', scale: 1.2, y: -0.1 },
+    cone: { key: 'carrot.obj', scale: 1.1, y: -0.1 }
   };
 
   const modelInfo = modelMap[itemType];
@@ -173,6 +176,24 @@ window.FFH.createItemMesh = function(itemType, genderColorHex) {
           group.remove(placeholderMesh);
         }
         group.add(kenneyMesh);
+
+        // Offline safety net: an undecodable colormap atlas samples black.
+        // If the map image failed, drop it and fall back to the solid
+        // gender-tier colour so the item stays readable instead of black.
+        setTimeout(() => {
+          kenneyMesh.traverse((child) => {
+            if (!child.isMesh) return;
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
+            mats.forEach((m) => {
+              const img = m && m.map && m.map.image;
+              if (img && img.complete && img.naturalWidth === 0) {
+                m.map = null;
+                if (m.color) m.color.set(genderColorHex);
+                m.needsUpdate = true;
+              }
+            });
+          });
+        }, 3000);
       }).catch((err) => {
         // Keep procedural placeholderMesh intact if OBJ parsing fails
       });

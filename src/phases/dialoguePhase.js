@@ -102,14 +102,22 @@ window.FFH.DialoguePhase = class {
 
     // 2. Spawn NPC behind counter or desk according to room type
     if (window.FFH.createNPCMesh) {
-      this.npcGroup = window.FFH.createNPCMesh(npcEntry ? npcEntry.modelKey || 'NPC_CHAR_A' : 'NPC_CHAR_A');
+      // Pass the actual NPC key so createNPCMesh can look up the correct GLB mapping.
+      // Do not fallback to 'NPC_CHAR_A' here, because it bypasses the mapping logic.
+      this.npcGroup = window.FFH.createNPCMesh(this.targetNpcKey || 'NPC_CHAR_A');
       const ROOM_NPC_PRESETS = window.FFH.ROOM_NPC_PRESETS || {};
       const preset = ROOM_NPC_PRESETS[bType] || { x: -0.25, y: 0.38, z: -0.8, rotY: 0.85, scale: 2.6 };
       this.currentCharY = preset.y;
       this.npcGroup.userData.floorY = preset.y;
       this.npcGroup.position.set(preset.x, preset.y, preset.z);
       this.npcGroup.rotation.y = preset.rotY;
-      this.npcGroup.scale.multiplyScalar(preset.scale);
+      
+      // The generic/named meshes come back pre-scaled to 0.55 from createNPCMesh.
+      // If we are spawning the Wanderer (NPC_CHAR_A) due to missing npcKey, we do not want to 
+      // blow them up to scale 2.6 if the preset expects it. Let's cap the final scale to prevent giants.
+      const finalScale = preset.scale > 1.5 && this.npcGroup.userData.glbKey === 'character-a' ? 1.0 : preset.scale;
+      this.npcGroup.scale.multiplyScalar(finalScale);
+      
       this.game.scene.add(this.npcGroup);
     }
 

@@ -97,6 +97,18 @@ window.FFH.createWarehouseRoom = function() {
     c.position.set(x, 0.22, -1.0);
     room.add(c);
   }
+  // Cool overhead fluorescents: the navy shell absorbs the warm room light,
+  // so the pick shelf (lit Standard/Phong Kenney models) needs its own rig.
+  const tubeMat = window.FFH.createCelMaterial(0xEAF6FF);
+  for (const tx of [-0.9, 0.9]) {
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.2, 8), tubeMat);
+    tube.rotation.z = Math.PI / 2;
+    tube.position.set(0, 2.45, tx * 0.4);
+    room.add(tube);
+  }
+  const coolLight = new THREE.PointLight(0xEAF6FF, 1.6, 9.0);
+  coolLight.position.set(0, 2.4, 0.4);
+  room.add(coolLight);
   return room;
 };
 

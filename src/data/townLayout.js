@@ -1,4 +1,4 @@
-// Hand-authored curated town layout — loose inspiration from Lübeck's
+// Hand-authored curated town layout (loose inspiration from L)übeck's
 // Altstadt shape (a river looping around three sides, one gate as the land
 // approach), not real OSM data. See Docs/ for the approved reference layout.
 window.FFH = window.FFH || {};
@@ -37,7 +37,7 @@ window.FFH.townLayout = {
     width: 40,
   },
   // Explicit spawn coordinates ON the street, deliberately NOT the dark
-  // store's own position — a building entry's x/z is its CENTRE, so spawning
+  // store's own position (a building entry)'s x/z is its CENTRE, so spawning
   // there puts the character inside the walls (which is exactly what happened
   // the first time: the "sky" was the unlit interior of the store).
   // The dark store is 24x18 units, so this sits clear of its footprint while

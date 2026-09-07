@@ -14,7 +14,7 @@ window.FFH.StoryGraph = [
     note: "Ring the correct bell to enter.",
     choices: [
       {
-        label: "MÃ¼ller",
+        label: "Müller",
         borderLeft: "#718096",
         action: (game) => {
           if (game.sfx) game.sfx.playSfx('error');

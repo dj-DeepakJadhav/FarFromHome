@@ -1,15 +1,42 @@
 // ============================================================
-//  FAR FROM HOME — Central Tuning Config
-//  Edit values here to adjust feel without touching logic files.
+//  FAR FROM HOME (Central Tuning Config)//  Edit values here to adjust feel without touching logic files.
 //  All systems read from window.FFH.CONFIG at runtime.
 // ============================================================
 window.FFH = window.FFH || {};
 
+// ============================================================
+//  BACKGROUND MUSIC (single place to swap)/tune the music track.
+//  src:    dev path served over HTTP (python -m http.server). The release
+//          build inlines assets/Music/bgMusic.mp3 as a data URI instead
+//          (see build/assemble.js) (keep the filename in sync there).
+//  volume: 0.0 (silent) .. 1.0 (full). Live-read on every unlock event.
+//  loop:   true = seamless repeat, false = play once per session.
+// ============================================================
+window.FFH.MUSIC = {
+  src: 'assets/Music/bgMusic.mp3',
+  volume: 0.35,
+  loop: true,
+  autoPlay: true
+};
+
 window.FFH.CONFIG = {
 
   // ----------------------------------------------------------
-  //  CAMERA — follow camera behaviour in city exploration
+  //  AUDIO & BACKGROUND MUSIC CONFIGURATION
   // ----------------------------------------------------------
+  audio: {
+    // Path to the background music file (dev mode or asset reference)
+    bgMusicSrc: 'assets/Music/bgMusic.mp3',
+
+    // Volume level: 0.0 (silent) to 1.0 (max volume). Default: 0.35
+    bgMusicVolume: 0.2,
+
+    // Replay music in a continuous loop
+    bgMusicLoop: true,
+
+    // Automatically start background music on first user interaction
+    bgMusicAutoPlay: true
+  },
 
   // ----------------------------------------------------------
   //  ENVIRONMENT ANIMATION SPEEDS
@@ -23,18 +50,17 @@ window.FFH.CONFIG = {
   camera: {
     // Default zoom level on scene entry (OrthographicCamera zoom multiplier).
     // Higher = larger/closer character on screen.
-    // Range: [minZoom .. maxZoom]  |  Tested sweet-spot: 2.4 – 3.2
+    // Range: [minZoom .. maxZoom]  |  Tested sweet-spot: 2.4 ,  3.2
     defaultZoom:  2.88,
 
-    // Minimum zoom (pinch-out / scroll-out limit) — wide overview
-    minZoom:      1.0,
+    // Minimum zoom (pinch-out / scroll-out limit) (wide overview
+    minZoom):      1.0,
 
-    // Maximum zoom (pinch-in / scroll-in limit) — very close over-the-shoulder
-    maxZoom:      3.84,
+    // Maximum zoom (pinch-in / scroll-in limit) (very close over)-the-shoulder
+    maxZoom: 2.0,
 
-    // Fixed Miniature mode: locks camera to a classic tabletop isometric perspective
-    // (no disorienting rotation, no lookahead wall-pushing, no idle sway).
-    fixedMiniature: true,
+    // Fixed Miniature mode: set false to allow free camera rotation (Q/E keys & pointer drag)
+    fixedMiniature: false,
 
     // Initial camera orbit angle when entering the city (degrees, clockwise from north).
     // 135 = classic isometric SE corner (clean diorama street view)
@@ -42,7 +68,7 @@ window.FFH.CONFIG = {
 
     // Camera height above the focal point (world units).
     baseHeightFar: 1.15,   // height at minZoom
-    baseHeightClose: 0.65,   // height at maxZoom
+    baseHeightClose: 0.9,   // height at maxZoom
 
     // Camera lateral distance behind the player (world units).
     baseDistanceFar: 1.75,  // distance at minZoom
@@ -74,11 +100,11 @@ window.FFH.CONFIG = {
   },
 
   // ----------------------------------------------------------
-  //  TOUCH / DRAG INPUT — virtual joystick & messenger steering
+  //  TOUCH / DRAG INPUT (virtual joystick)& messenger steering
   // ----------------------------------------------------------
   touch: {
-    // True: "Messenger" style — No visible joystick UI. Mouse/Touch drag anywhere steers the character. Camera orbit is disabled.
-    // False: Original style — Visible touch joystick on mobile. Mouse drag orbits the camera on desktop.
+    // True: "Messenger" style (No visible joystick UI). Mouse/Touch drag anywhere steers the character. Camera orbit is disabled.
+    // False: Original style (Visible touch joystick on mobile). Mouse drag orbits the camera on desktop.
     messengerStyleInput: true,
 
     // Dead zone in pixels: thumb must move this far before movement registers.
@@ -92,7 +118,7 @@ window.FFH.CONFIG = {
     // 1.0 = linear.  1.8 = gentle ramp-up, fast only at the rim.  Lower = more sensitive.
     responseCurve: 1.8,
 
-    // Direction smoothing rate (0–1). Lower = smoother but more sluggish.
+    // Direction smoothing rate (0, 1). Lower = smoother but more sluggish.
     // 0.28 = good balance.  0.5 = snappier.  0.15 = very floaty.
     smoothRate: 0.28,
 
@@ -103,7 +129,7 @@ window.FFH.CONFIG = {
   },
 
   // ----------------------------------------------------------
-  //  MOVEMENT SPEED — player speed in world units / second
+  //  MOVEMENT SPEED (player speed in world units)/ second
   // ----------------------------------------------------------
   movement: {
     // Joystick / WASD direct-control speed (without e-bike upgrade).
@@ -123,8 +149,7 @@ window.FFH.CONFIG = {
   },
 
   // ----------------------------------------------------------
-  //  UI / NAVIGATION AIDS — toggle HUD helper features
-  // ----------------------------------------------------------
+  //  UI / NAVIGATION AIDS (toggle HUD helper features)// ----------------------------------------------------------
   ui: {
     // ── Navigation Aids (each toggleable independently) ──────
     // 3D rotating arrow above the target building roof.
@@ -148,7 +173,7 @@ window.FFH.CONFIG = {
     // ── Thought Bubble / Inner Monologue Popups ──────────────────────
     thoughtBubble: {
       // true  = characters appear one-by-one (typewriter effect).
-      // false = full text appears instantly (default — faster to read).
+      // false = full text appears instantly (default (faster to read)).
       typewriterEnabled: false,
 
       // Characters revealed per second when typewriterEnabled = true.
@@ -166,12 +191,12 @@ window.FFH.CONFIG = {
       readingTimeMs: 2800,
 
       // Fade-in / fade-out animation duration (ms).
-      fadeMs: 400,
+      fadeMs: 200,
     },
   },
 
   // ----------------------------------------------------------
-  //  ENVIRONMENT — sky, clouds, butterflies, and birds tuning
+  //  ENVIRONMENT (sky), clouds, butterflies, and birds tuning
   // ----------------------------------------------------------
   environment: {
     clouds: {
@@ -210,32 +235,35 @@ window.FFH.CONFIG = {
 window.FFH.ROOM_NPC_PRESETS = {
   // B_PIZZA / PIZZERIA (Mathias Becker behind pizza service counter)
   // Counter is at x: -0.5, y: -0.21, z: -0.6 with height 0.85
-  'PIZZERIA': { x: -0.50, y: -0.21, z: -1.05, rotY: 0.15, scale: 2.2 },
-  'B_PIZZA': { x: -0.50, y: -0.21, z: -1.05, rotY: 0.15, scale: 2.2 },
+  'PIZZERIA': { x: -0.50, y: -0.21, z: -1.05, rotY: 0.15, scale: 1 },
+  'B_PIZZA': { x: -0.50, y: -0.21, z: -1.05, rotY: 0.15, scale: 1 },
   
   // B_BAKERY / BAKERY (Martha Beck behind pastry display showcase)
   // Showcase is at x: -0.4, y: -0.21, z: -0.6 with height 0.85
-  'BAKERY': { x: -0.40, y: -0.21, z: -1.05, rotY: 0.15, scale: 2.2 },
-  'B_BAKERY': { x: -0.40, y: -0.21, z: -1.05, rotY: 0.15, scale: 2.2 },
+  'BAKERY': { x: -0.40, y: -0.21, z: -1.05, rotY: 0.15, scale: 1 },
+  'B_BAKERY': { x: -0.40, y: -0.21, z: -1.05, rotY: 0.15, scale: 1 },
 
   // B_UNI / UNI / UNI_LOBBY (Rita Schneider behind admissions counter)
-  'UNI': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
-  'UNI_LOBBY': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
-  'B_UNI': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
+  'UNI': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 1 },
+  'UNI_LOBBY': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 1 },
+  'B_UNI': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 1 },
 
   // B_AUSLAENDER / AUSLAENDER (Dr. Lindemann behind immigration desk)
   'AUSLAENDER': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
   'B_AUSLAENDER': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
 
   // B_WG / WG_ROOM / WG_KITCHEN (Nico standing on the rug in dorm room)
-  // No counter in front — stands at floor/rug level (y: -0.21, scale: 1.8 fits room height)
+  // No counter in front (stands at floor)/rug level (y: -0.21, scale: 1.8 fits room height)
   'WG_ROOM': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
   'WG_KITCHEN': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
   'B_WG': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
 
   // OTHERS
-  'DARKSTORE': { x: -0.50, y: -0.21, z: -0.50, rotY: 0.35, scale: 2.2 },
-  'B_DARKSTORE': { x: -0.50, y: -0.21, z: -0.50, rotY: 0.35, scale: 2.2 },
+  // DARKSTORE (Nina/Klaus on the staff side of the dispatch desk: desk back
+  // edge is z=-0.2, rack front is z=-1.05; y=0 puts feet on the floor since
+  // npcFactory offsets the waist-origin rig; scale 1.2 clears the 0.8 counter)
+  'DARKSTORE': { x: -0.60, y: 0.0, z: -0.55, rotY: 0.35, scale: 1.2 },
+  'B_DARKSTORE': { x: -0.60, y: 0.0, z: -0.55, rotY: 0.35, scale: 1.2 },
   'RATHAUS': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
   'B_RATHAUS': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
   'BANK': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },

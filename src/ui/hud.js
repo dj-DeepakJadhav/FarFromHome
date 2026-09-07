@@ -1,13 +1,17 @@
 // HUD overlays renderer
-window.FFH.UI = class {
-  constructor(game) {
+window.FFH = window.FFH || {};
+
+if (!window.FFH.UI) {
+  window.FFH.UI = function(game) {
     this.game = game;
     this.container = document.getElementById('ui-container');
-  }
+  };
+}
 
+Object.assign(window.FFH.UI.prototype, {
   clear() {
-    this.container.innerHTML = '';
-  }
+    if (this.container) this.container.innerHTML = '';
+  },
 
   fadeToBlack(durationMs, callback) {
     let overlay = document.getElementById('fade-overlay');
@@ -21,7 +25,7 @@ window.FFH.UI = class {
     void overlay.offsetWidth;
     overlay.style.opacity = '1';
     setTimeout(() => { if (callback) callback(); }, durationMs);
-  }
+  },
 
   fadeFromBlack(durationMs, callback) {
     let overlay = document.getElementById('fade-overlay');
@@ -35,7 +39,7 @@ window.FFH.UI = class {
     } else {
       if (callback) callback();
     }
-  }
+  },
 
   showGenericInteractionModal(template, onCompleteCallback) {
     const parent = document.getElementById('ui-container') || document.body;
@@ -105,7 +109,7 @@ window.FFH.UI = class {
          container.appendChild(btn);
        });
     }
-  }
+  },
 
   updatePersistentHUD(state) {
     const hud = document.getElementById('persistent-hud');
@@ -113,7 +117,7 @@ window.FFH.UI = class {
       hud.innerHTML = ''; // Clear and disable overlapping persistent HUD
       
     }
-  }
+  },
 
   showTutorialBanner(text, color = '#E76F51', duration = 4000) {
     // If the city quest text is present, update it directly with a highlight pulse so there is zero UI overlapping
@@ -131,9 +135,13 @@ window.FFH.UI = class {
     const el = document.createElement('div');
     el.id = 'ffh-tutorial-banner';
     el.innerHTML = `<span style="margin-right: 6px;">💡</span>${text}`;
+    // Context-aware positioning: position in lower area (bottom: 75px) above item dock during PICK phase
+    const isPickPhase = this.game && (this.game.currentPhase === this.game.phases.PICK || this.game.currentPhase === this.game.phases.PICK_ITEM);
+    const topPositionCss = isPickPhase ? 'bottom: 75px; top: auto;' : 'top: 135px;';
+
     el.style.cssText = `
       position: absolute;
-      top: 110px;
+      ${topPositionCss}
       left: 14px;
       right: 14px;
       background: #FFFFFF;
@@ -142,18 +150,18 @@ window.FFH.UI = class {
       border-top: 2px solid #264653;
       border-bottom: 2px solid #264653;
       color: #264653;
-      padding: 10px 14px;
+      padding: ${isPickPhase ? '8px 12px' : '10px 14px'};
       border-radius: 8px;
       font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
       font-weight: 800;
-      font-size: 11px;
-      line-height: 1.4;
+      font-size: ${isPickPhase ? '10.5px' : '11px'};
+      line-height: 1.35;
       text-align: left;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.22);
       pointer-events: none;
       z-index: 10000;
       opacity: 0;
-      transform: translateY(-10px);
+      transform: translateY(${isPickPhase ? '5px' : '-10px'});
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     `;
     parent.appendChild(el);
@@ -172,7 +180,7 @@ window.FFH.UI = class {
         setTimeout(() => el.remove(), 250);
       }
     }, duration);
-  }
+  },
 
   spawnFloatingText(text, clientX, clientY, color = '#2A9D8F') {
     const el = document.createElement('div');
@@ -203,11 +211,11 @@ window.FFH.UI = class {
       el.style.opacity = '0';
       setTimeout(() => el.remove(), 300);
     }, 550);
-  }
+  },
 
   spawnWandererThought(text) {
     this.showThoughtBubble(text, 3800);
-  }
+  },
 
   showThoughtBubble(text, duration = null) {
     const existing = document.getElementById('ffh-thought-bubble');
@@ -224,20 +232,31 @@ window.FFH.UI = class {
     const contW = container.clientWidth || 390;
     const contH = container.clientHeight || 844;
 
-    // Position directly over player character head in 3D screen space if in CITY_EXPLORATION
+    // Context-Aware Thought Bubble Placement:
+    // - Room Phases (DIALOGUE, INTERIOR, SHOP): Positioned in upper 25% viewport (top: 15-20%) so it never overlaps the bottom 48vh conversation drawer or room interactables.
+    // - Pick Minigame (PICK_ITEM): Positioned at very top (top: 10%) above rail.
+    // - City Exploration (CITY_EXPLORATION): Positioned dynamically over player head in 3D screen space.
     let screenX = contW / 2;
-    let screenY = contH * 0.45;
+    let screenY = contH * 0.20;
     
-    if (this.game && this.game.currentPhase === this.game.phases.CITY_EXPLORATION) {
+    const curPhase = this.game ? this.game.currentPhase : null;
+    const curPhaseName = this.game ? (this.game.currentPhaseName || (curPhase && curPhase.constructor ? curPhase.constructor.name : '')) : '';
+
+    if (curPhase && curPhase === this.game.phases.CITY_EXPLORATION) {
       const cityPhase = this.game.phases.CITY_EXPLORATION;
-      const cam = this.game.cameras.mainCamera;
+      const cam = this.game.cameras ? this.game.cameras.mainCamera : null;
       if (cityPhase && cityPhase.playerPos && cam) {
         const headPos = cityPhase.playerPos.clone();
         headPos.y += 1.8; // Height offset above player head
         headPos.project(cam);
         screenX = (headPos.x * 0.5 + 0.5) * contW;
-        screenY = (-headPos.y * 0.5 + 0.5) * contH;
+        screenY = (-headPos.y * 0.5 + 0.5) * contH - 10; // Slightly above head
       }
+    } else if (curPhase && (curPhase === this.game.phases.PICK_ITEM || curPhaseName.includes('Pick'))) {
+      screenY = contH * 0.10; // Top of screen above pick shelf
+    } else {
+      // Room / Dialogue / Shop Phase: Place cleanly in top 22% viewport (room ceiling area)
+      screenY = contH * 0.22;
     }
 
     // Clamp horizontally to stay cleanly visible inside the game viewport
@@ -338,7 +357,7 @@ window.FFH.UI = class {
         setTimeout(() => el.remove(), fadeMs + 50);
       }
     }, totalDuration);
-  }
+  },
 
   showCompassUI(direction) {
     let compass = document.getElementById('ffh-compass-ui');
@@ -370,14 +389,14 @@ window.FFH.UI = class {
       document.body.appendChild(compass);
     }
     compass.style.display = 'flex';
-  }
+  },
 
   hideCompassUI() {
     const compass = document.getElementById('ffh-compass-ui');
     if (compass) {
       compass.style.display = 'none';
     }
-  }
+  },
 
   triggerStampMoment(docTitle, docEmoji = '📜') {
     // 1. Audio: Amtsschimmel heavy stamp (*CLACK-THUD!*)
@@ -452,8 +471,7 @@ window.FFH.UI = class {
         setTimeout(() => overlay.remove(), 400);
       }
     }, 1800);
-  }
-
+  },
 
   // One status strip, rendered identically on every in-shift screen so the
   // player never loses track of goal progress, strikes, or owned gear.
@@ -489,8 +507,7 @@ window.FFH.UI = class {
         ${gear ? `<div style="margin-top:6px;">${gear}</div>` : ''}
       </div>
     `;
-  }
-
+  },
 
   showRoomHubUI() {
     this.clear();
@@ -651,7 +668,7 @@ window.FFH.UI = class {
         this.game.transitionTo('CITY_EXPLORATION');
       });
     }
-  }
+  },
 
   showCityExplorerHUD(onActionCallback) {
     this.clear();
@@ -673,7 +690,7 @@ window.FFH.UI = class {
     `;
 
     // Objective is exclusively driven by game.state.activeObjective (set by storyRunner).
-    // If nothing is set the tracker is hidden — player roams freely until story sets the next goal.
+    // If nothing is set the tracker is hidden (player roams freely until story sets the next goal).
     // The header bar starts hidden in a new game until the player's first interaction.
     const showHeader = (s.firstObjectiveRevealed || s.shift_no > 0);
 
@@ -912,7 +929,7 @@ window.FFH.UI = class {
             <span id="city-quest-text" style="line-height: 1.3;">${(s.firstObjectiveRevealed && !s.isTypingObjective) ? objectiveText : ''}</span>
           </div>
 
-          <!-- Cumulative Archetype Badge -->
+          <!-- Cumulative Archetype Badge & Pause / Profile Menu Button -->
           <div id="archetype-badge" style="
             background: #2B2D42;
             color: #E9C46A;
@@ -928,14 +945,16 @@ window.FFH.UI = class {
             justify-content: center;
             gap: 4px;
             white-space: nowrap;
+            cursor: pointer;
+            pointer-events: auto;
             opacity: ${s.firstObjectiveRevealed ? 1 : 0};
-          ">
+          " title="Click to Pause Game & Open Menu">
             ${(() => {
               const d = s.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
               if (d.hustler >= d.bureaucrat && d.hustler >= d.diplomat && d.hustler > 0) return '⚡ Hustler';
               if (d.bureaucrat >= d.hustler && d.bureaucrat >= d.diplomat && d.bureaucrat > 0) return '📑 Bureaucrat';
               if (d.diplomat >= d.hustler && d.diplomat >= d.bureaucrat && d.diplomat > 0) return '🤝 Diplomat';
-              return '👤 Profile';
+              return '⏸️ Menu';
             })()}
           </div>
         </div>
@@ -1005,6 +1024,17 @@ window.FFH.UI = class {
       });
     }
 
+    // Wire Profile / Pause Menu Badge button
+    const profileBadge = document.getElementById('archetype-badge');
+    if (profileBadge) {
+      profileBadge.addEventListener('click', () => {
+        if (this.game && this.game.sfx) this.game.sfx.playSfx('click');
+        if (typeof this.showPauseModal === 'function') {
+          this.showPauseModal();
+        }
+      });
+    }
+
     const testNpcBtn = document.getElementById('btn-test-npc');
     if (testNpcBtn) {
       testNpcBtn.addEventListener('click', (e) => {
@@ -1030,15 +1060,13 @@ window.FFH.UI = class {
         this.game.transitionTo('BOOT');
       });
     }
-  }
+  },
 
   showPOICard(poiData) {
-    // Disabled — no POI location card popups ever appear
-    const card = document.getElementById('city-poi-card');
+    // Disabled (no POI location card popups ever appear
+    const card)= document.getElementById('city-poi-card');
     if (card) card.style.display = 'none';
-  }
-
-
+  },
 
   updateQuestTracker() {
     // Refresh city explorer HUD if active to show updated quest status
@@ -1053,7 +1081,7 @@ window.FFH.UI = class {
         this.showPOICard(lastPoi);
       }
     }
-  }
+  },
 
   showStoryOverlay(overlayData, onChoiceSelected) {
     const existing = document.getElementById('story-overlay-container');
@@ -1156,7 +1184,7 @@ window.FFH.UI = class {
         }, 200);
       });
     });
-  }
+  },
 
   updateCityExplorerHUD(distance, angleRad, isActive) {
     const indicator = document.getElementById('delivery-distance-indicator');
@@ -1173,6 +1201,5 @@ window.FFH.UI = class {
     const deg = (angleRad * 180 / Math.PI);
     document.getElementById('delivery-distance-arrow').style.transform = `rotate(${deg}deg)`;
   }
-
-};
+});
 

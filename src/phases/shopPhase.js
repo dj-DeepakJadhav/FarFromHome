@@ -170,7 +170,7 @@ window.FFH.ShopPhase = class {
         </div>
       </div>
 
-      <div style="font-size: 11px; font-weight: 900; color: #264653; margin-top: 2px;">🚴 EQUIPMENT & GEAR UPGRADES:</div>
+      <div style="font-size: 11px; font-weight: 900; color: #264653; margin-top: 2px;">🚴 EQUIPMENT & GEAR DIRECTORY:</div>
       <div id="shop-items-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
       <button id="btn-room-skills" style="
         width: 100%;
@@ -220,9 +220,9 @@ window.FFH.ShopPhase = class {
     const list = box.querySelector('#shop-items-list');
     window.FFH.shopUpgrades.forEach(upg => {
       const isOwned = state.upgrades[upg.id];
-      const isAffordable = state.wallet >= upg.cost;
       const name = upg.nameEn || upg.name || upg.id;
       const desc = upg.effectEn || upg.desc || '';
+      const locName = upg.locationName || 'City Shop';
       
       const row = document.createElement('div');
       row.style.cssText = `
@@ -244,45 +244,23 @@ window.FFH.ShopPhase = class {
           <span style="font-size: 12px; font-weight: 900; color: #264653;">${name}</span>
         </div>
         <div style="font-size: 10px; color: #666; margin-top: 2px; line-height: 1.25;">${desc}</div>
+        <div style="font-size: 9.5px; color: #E76F51; font-weight: 800; margin-top: 3px;">📍 ${isOwned ? 'Equipped in Room' : `Available at: ${locName}`}</div>
       `;
       
-      const btn = document.createElement('button');
-      btn.textContent = isOwned ? "OWNED" : `€${upg.cost.toFixed(2)}`;
+      const btn = document.createElement('div');
+      btn.textContent = isOwned ? "EQUIPPED" : `€${upg.cost.toFixed(2)}`;
       btn.style.cssText = `
         padding: 6px 10px;
         border-radius: 6px;
         font-weight: 900;
         font-size: 11px;
         border: 2px solid #264653;
-        background: ${isOwned ? '#ADB5BD' : (isAffordable ? '#2EC4B6' : '#FF6B6B')};
-        color: ${isOwned ? '#495057' : '#FFFFFF'};
-        cursor: ${isOwned ? 'default' : 'pointer'};
+        background: ${isOwned ? '#2A9D8F' : '#E9C46A'};
+        color: ${isOwned ? '#FFFFFF' : '#264653'};
         box-shadow: 0 2px 0 #264653;
         flex-shrink: 0;
+        text-align: center;
       `;
-
-      if (!isOwned) {
-        btn.onclick = () => {
-          if (isAffordable) {
-            state.wallet = window.FFH.round2(state.wallet - upg.cost);
-            state.upgrades[upg.id] = true;
-            this.game.sfx.playSfx('success');
-            
-            // Live-refresh the 3D room diorama to show the new item immediately
-            if (this.shopRoom) {
-              this.game.scene.remove(this.shopRoom);
-              this.shopRoom = window.FFH.createLevel0Room(state);
-              this.shopRoom.position.set(0, 0, 0);
-              this.game.scene.add(this.shopRoom);
-            }
-
-            this.renderShopUI();
-            this.game.ui.updatePersistentHUD(state);
-          } else {
-            this.game.sfx.playSfx('error');
-          }
-        };
-      }
 
       row.appendChild(info);
       row.appendChild(btn);
@@ -353,8 +331,11 @@ window.FFH.ShopPhase = class {
       sleepBtn.onclick = () => {
         state.day = (state.day || 1) + 1;
         state.freshness = 100;
+        state.body = 100; // Restore stamina every full sleep
+        state.collectedPfandIds = []; // Respawn Pfand bottles daily across Lübeck
+
         this.game.sfx.playSfx('success');
-        this.game.ui.spawnFloatingText(`☀️ Tag ${state.day}: Guten Morgen! Fresh morning start.`, window.innerWidth / 2, window.innerHeight / 2, '#FFB703');
+        this.game.ui.spawnFloatingText(`☀️ Tag ${state.day}: Guten Morgen! Stamina & Pfand Bottles Restored.`, window.innerWidth / 2, window.innerHeight / 2, '#FFB703');
         
         // Reset daylight cycle to morning
         if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.updateAtmosphericTime) {
@@ -414,7 +395,7 @@ window.FFH.ShopPhase = class {
           We are so endlessly proud of your courage. One day soon, you will hold that degree."
         </p>
         <div style="text-align: right; font-weight: bold; color: #8D5B4C; font-size: 13px; margin-bottom: 16px;">
-          — Maa & Papa ❤️
+          (Maa)& Papa ❤️
         </div>
         <button id="btn-close-postcard" style="
           width: 100%;
@@ -465,10 +446,9 @@ window.FFH.ShopPhase = class {
         font-family: monospace, sans-serif;
       ">
         <div style="border-bottom: 2px solid #333; padding-bottom: 6px; margin-bottom: 10px; font-weight: 900; font-size: 13px; color: #D62828;">
-          📌 HAUSORDNUNG — HANS LOKKER
-        </div>
+          📌 HAUSORDNUNG (HANS LOKKER)</div>
         <div style="font-size: 11px; line-height: 1.5; color: #222; margin-bottom: 14px;">
-          <strong>1. RUHEZEIT (Quiet Hours):</strong> STRICTLY 22:00 – 07:00. No loud footsteps or slamming corridor doors!<br><br>
+          <strong>1. RUHEZEIT (Quiet Hours):</strong> STRICTLY 22:00 ,  07:00. No loud footsteps or slamming corridor doors!<br><br>
           <strong>2. MÜLLTRENNUNG (Waste Sorting):</strong><br>
           &nbsp;• 🟦 <strong>Blaue Tonne:</strong> Paper, clean cardboard, study notes.<br>
           &nbsp;• 🟨 <strong>Gelber Sack:</strong> Packaging, plastic bottles, yogurt cups.<br>

@@ -53,8 +53,8 @@ window.FFH.getSafeGLTFLoader = function() {
   if (!window.FFH._safeGLTFLoader) {
     const manager = new THREE.LoadingManager();
     manager.setURLModifier((url) => {
-      if (url.includes('colormap.png') || url.includes('colormap.PNG')) {
-        // Return the actual colormap embedded by the build script
+      // Intercept any texture reference (like colormap.png or relative texture paths) in bundled GLTF models
+      if (!url.startsWith('data:') && !url.startsWith('blob:')) {
         return window.FFH.CHARACTER_TEXTURE_BASE64 || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
       }
       return url;

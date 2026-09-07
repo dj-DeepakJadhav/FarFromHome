@@ -25,7 +25,7 @@ window.FFH.CityExplorationPhase = class {
     this.playerPos = new THREE.Vector3(10.4, 0.05, 5.2);
     this.targetMovePos = null;
     this.hasFirstInteracted = false;
-    this.moveSpeed = this.game.state.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
+    this.moveSpeed = this.game.state?.upgrades?.ebike ? 20.0 : 12.0; // -40% transit time (12 / 0.6)
     this.playerHeading = Math.PI / 4; // Fixed Isometric Heading (45 degrees)
     this.playerRadius = 0.4;      // Collision cylinder radius
     
@@ -142,6 +142,8 @@ window.FFH.CityExplorationPhase = class {
   }
 
   enter(data) {
+    this.moveSpeed = this.game.state?.upgrades?.ebike ? 20.0 : 12.0;
+
     // Clear previous scene objects
     while (this.game.scene.children.length > 0) {
       const obj = this.game.scene.children[this.game.scene.children.length - 1];
@@ -1152,6 +1154,15 @@ window.FFH.CityExplorationPhase = class {
         const moveAngle = Math.atan2(dirX, dirZ);
         this.playerHeading = moveAngle;
 
+        // Drain body stamina gradually while moving/cycling (-0.45 body per sec)
+        if (this.game.state.body !== undefined) {
+          const moveDist = Math.hypot(resolved.x - curX, resolved.z - curZ);
+          this.game.state.body = Math.max(0, window.FFH.round2(this.game.state.body - (moveDist * 0.08)));
+          if (this.game.ui && this.game.ui.refreshStats) {
+            this.game.ui.refreshStats(this.game.state);
+          }
+        }
+
         // If player made zero progress due to wall collision, abort path after short delay
         if (Math.abs(resolved.x - curX) < 0.001 && Math.abs(resolved.z - curZ) < 0.001) {
           this.stuckTimer = (this.stuckTimer || 0) + delta;
@@ -1325,8 +1336,8 @@ window.FFH.CityExplorationPhase = class {
       // Navigation Ground Path: Animated Chevrons
       if (this.navPathGroup) {
         if (!chevronsEnabled) {
-          // Disabled — hide group and all individual children immediately
-          this.navPathGroup.visible = false;
+          // Disabled (hide group and all individual children immediately
+          this).navPathGroup.visible = false;
           if (this.navChevronPool) {
             for (let i = 0; i < this.navChevronPool.length; i++) {
               this.navChevronPool[i].visible = false;
@@ -1452,8 +1463,9 @@ window.FFH.CityExplorationPhase = class {
         this.game.state.freshness = Math.max(0, this.game.state.freshness - (delta * decayRate));
         
         // Doorway Dialogue Handoff (auto transition when near)
-        if (dist < 2.0) {
+        if (dist < 2.2) {
           // We've stepped up to the customer's doorway!
+          this.game.state.activeDelivery = false;
           this.game.transitionTo('DIALOGUE', { isDelivery: true });
         }
       }

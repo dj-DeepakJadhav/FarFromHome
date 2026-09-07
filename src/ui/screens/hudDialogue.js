@@ -1,5 +1,11 @@
 // Dialogue Box UI
 window.FFH = window.FFH || {};
+if (!window.FFH.UI) {
+  window.FFH.UI = function(game) {
+    this.game = game;
+    this.container = document.getElementById('ui-container');
+  };
+}
 
 Object.assign(window.FFH.UI.prototype, {
   showDialogueBox(npcEntry, dialogueData, onOptionChosen) {

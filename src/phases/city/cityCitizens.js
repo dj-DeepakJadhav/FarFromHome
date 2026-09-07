@@ -1,4 +1,4 @@
-﻿// CityCitizens: Manages spawning, roaming, and behavior tree ticks for ambient Lübeck citizens.
+// CityCitizens: Manages spawning, roaming, and behavior tree ticks for ambient Lübeck citizens.
 window.FFH = window.FFH || {};
 
 window.FFH.CityCitizens = class {
@@ -30,7 +30,7 @@ window.FFH.CityCitizens = class {
       if (roadTiles.length === 0) break;
       const spawnTile = roadTiles[Math.floor(Math.random() * roadTiles.length)];
       const homeTile = roadTiles[Math.floor(Math.random() * roadTiles.length)];
-      const modelKey = NPC_CHAR_;
+      const modelKey = `NPC_CHAR_${letters[i % letters.length]}`;
       const mesh = window.FFH.createNPCMesh ? window.FFH.createNPCMesh(modelKey) : null;
       if (mesh) {
         mesh.position.set(spawnTile.x, 0.12, spawnTile.z);
@@ -38,6 +38,7 @@ window.FFH.CityCitizens = class {
       }
       
       this.roamingCitizens.push({
+        id: `citizen_${i}`,
         position: new THREE.Vector3(spawnTile.x, 0.12, spawnTile.z),
         homePosition: new THREE.Vector3(homeTile.x, 0.12, homeTile.z),
         targetPos: null,
@@ -58,10 +59,55 @@ window.FFH.CityCitizens = class {
 
   update(delta) {
     if (!this.roamingCitizens || !this.citizenBehaviorTree) return;
+    const playerPos = this.phase.playerPos;
+
     this.roamingCitizens.forEach(citizen => {
+      // 1. Tick behavior tree for pathfinding and goal logic
       this.citizenBehaviorTree.tick(citizen, delta, this.game);
-      if (citizen.mesh && window.FFH.updateNPCAnimation) {
-        window.FFH.updateNPCAnimation(citizen.mesh, delta);
+
+      // 2. Collision Avoidance against Main Player Courier (Soft Repulsion Sphere)
+      if (playerPos && citizen.position) {
+        const dx = citizen.position.x - playerPos.x;
+        const dz = citizen.position.z - playerPos.z;
+        const distToPlayer = Math.hypot(dx, dz);
+        const MIN_PLAYER_DIST = 1.1; // Minimum distance between player and citizen
+
+        if (distToPlayer < MIN_PLAYER_DIST && distToPlayer > 0.001) {
+          const pushFactor = (MIN_PLAYER_DIST - distToPlayer) / MIN_PLAYER_DIST;
+          citizen.position.x += (dx / distToPlayer) * pushFactor * 0.08;
+          citizen.position.z += (dz / distToPlayer) * pushFactor * 0.08;
+          if (citizen.mesh) {
+            citizen.mesh.position.x = citizen.position.x;
+            citizen.mesh.position.z = citizen.position.z;
+          }
+        }
+      }
+
+      // 3. Collision Avoidance between NPCs
+      this.roamingCitizens.forEach(other => {
+        if (other !== citizen && other.position && citizen.position) {
+          const dx = citizen.position.x - other.position.x;
+          const dz = citizen.position.z - other.position.z;
+          const dist = Math.hypot(dx, dz);
+          const MIN_NPC_DIST = 0.85;
+
+          if (dist < MIN_NPC_DIST && dist > 0.001) {
+            const pushFactor = (MIN_NPC_DIST - dist) / MIN_NPC_DIST;
+            citizen.position.x += (dx / dist) * pushFactor * 0.04;
+            citizen.position.z += (dz / dist) * pushFactor * 0.04;
+            if (citizen.mesh) {
+              citizen.mesh.position.x = citizen.position.x;
+              citizen.mesh.position.z = citizen.position.z;
+            }
+          }
+        }
+      });
+
+      // 4. Update Animations & Procedural Walk Bobbing
+      if (citizen.mesh) {
+        if (window.FFH.updateNPCAnimation) {
+          window.FFH.updateNPCAnimation(citizen.mesh, delta);
+        }
       }
     });
   }

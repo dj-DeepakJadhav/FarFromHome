@@ -174,8 +174,10 @@ window.FFH.createNPCMesh = function(npcKey) {
     const nextAction = group.userData.actions[name.toLowerCase()];
     if (!nextAction) return;
 
-    const fadeDuration = (typeof duration === 'number') ? duration : 0.25;
     const current = group.userData.currentAction;
+    if (current === nextAction && current.isRunning()) return;
+
+    const fadeDuration = (typeof duration === 'number') ? duration : 0.25;
 
     if (current && current !== nextAction) {
       current.fadeOut(fadeDuration);

@@ -45,8 +45,8 @@ window.FFH.createCourierCharacter = function () {
   // Procedural body setup
   const proceduralGroup = new THREE.Group();
 
-  // Torso / hoodie — slightly tapered box reads as a jacket from behind
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.26), mat(CHAR_COLORS.jacket));
+  // Torso / hoodie (slightly tapered box reads as a jacket from behind
+  const torso)= new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.26), mat(CHAR_COLORS.jacket));
   torso.position.y = 1.09;
   proceduralGroup.add(torso);
 
@@ -85,8 +85,8 @@ window.FFH.createCourierCharacter = function () {
   armR.position.set(0.255, 1.05, 0);
   proceduralGroup.add(armR);
 
-  // Skirt — cone frustum flares like the reference
-  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.3, 12), mat(CHAR_COLORS.skirt));
+  // Skirt (cone frustum flares like the reference
+  const skirt)= new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.3, 12), mat(CHAR_COLORS.skirt));
   skirt.position.y = 0.72;
   proceduralGroup.add(skirt);
 
@@ -109,7 +109,7 @@ window.FFH.createCourierCharacter = function () {
 
   g.add(proceduralGroup);
 
-  // Delivery backpack — the hero silhouette element, on the camera-facing side
+  // Delivery backpack (the hero silhouette element), on the camera-facing side
   const pack = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.42, 0.2), mat(CHAR_COLORS.pack));
   pack.position.set(0, 1.11, -0.22);
   g.add(pack);

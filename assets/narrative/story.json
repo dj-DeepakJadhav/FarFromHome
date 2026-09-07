@@ -116,8 +116,9 @@
         "tram_bell_distant"
       ],
       "prose": [
-        "So this is Germany. Clean. Tidy. And possessing a bus shelter roughly the size of a toaster. If I try to stand under that, my knees will stick out into oncoming traffic.",
-        "Twenty euros in my jacket pocket. A visa that expires in four weeks. And a handwritten note with 'Room 4, WG Am Burgtor' on it."
+        "So this is Germany. Clean, tidy, and blessed with a bus shelter roughly the size of a toaster. If I try standing under that, my knees will stick straight out into traffic.",
+        "Twenty quid left in my coat, four weeks on my visa, and a handwritten note from a landlord demanding a 'Wohnungsgeberbestätigung'. No idea what that means, but it sounds like something you'd use to break a lock.",
+        "Rule one of moving abroad: look confident, even when your phone has no signal and your suitcase is missing a wheel."
       ],
       "choices": [
         {
@@ -217,9 +218,9 @@
         "intercom_click"
       ],
       "prose": [
-        "The buzzer panel has three names on it and no numbers, which feels deliberate.",
+        "The buzzer panel lists three brass nameplates and zero apartment numbers. Typical.",
         "MEIER. HAUSMEISTER SCHMIDT. WG 3B.",
-        "You are looking for a Nico. There is no Nico. There is only the German postal system's opinion of a Nico."
+        "You're looking for Nico. There is no button for Nico, only three choices and your own instincts."
       ],
       "choices": [
         {
@@ -249,7 +250,7 @@
           ]
         },
         {
-          "label": "[WG 3B — the one that isn't a surname]",
+          "label": "[WG 3B (the one that isn)'t a surname]",
           "gate": null,
           "to": "wg_door",
           "effects": [
@@ -305,11 +306,7 @@
         "radiator_tick"
       ],
       "prose": [
-        "Room 4 is on the second floor of a stepped-gable Altbau. The stairwell smells of old floor wax and radiators.",
-        "Outside the kitchen, a tall lad in woolen socks is standing frozen over the counter with a mug of peppermint tea.",
-        "Nico: Halt! Don't move! Are you the new flatmate for Room 4?",
-        "You: Yeah, mate. Just dragged my suitcase across the bridge.",
-        "Nico: Put the bag down slowly. We have to address something of international diplomatic importance."
+        "Nico: Halt! Are you the new flatmate for Room 4? Put your bag down slowly!"
       ],
       "choices": [
         {
@@ -379,10 +376,8 @@
         "radiator_tick"
       ],
       "prose": [
-        "Nico points dramatically at the three plastic bins beneath the sink.",
-        "Nico: Two things before you unpack.",
-        "Nico: One - the university office shuts at 17:00 sharp. It's now past six. If you knock at 17:01, they look at you like you've committed treason.",
-        "Nico: Two - and I am genuinely begging you here. Mülltrennung. The bins."
+        "Nico: Two things before you unpack. The university office shuts at 17:00 sharp.",
+        "Nico: And please sort your trash in the correct bins!"
       ],
       "choices": [
         {
@@ -512,10 +507,8 @@
         "radiator_tick"
       ],
       "prose": [
-        "Nico taps an official-looking brown envelope on the kitchen desk.",
-        "Nico: One more crisis. That letter arrived for Room 4 this afternoon.",
-        "You open it: Hochschule Lübeck — 250€ Semesterbeitrag matriculation due by Friday, or your visa registration is cancelled.",
-        "Nico: You have twenty quid and four weeks on your visa. You need cash tonight. Head toward the Holstentor market — there's always someone hiring if you have legs."
+        "Nico: Your university tuition of 250€ is due by Friday! You need cash fast.",
+        "Nico: Head toward the Holstentor market to find work!"
       ],
       "choices": [
         {
@@ -536,12 +529,12 @@
             }
           ],
           "prose": [
-            "Nico: Good luck. Watch out for Frau Meier on the ground floor — don't slam the door!"
+            "Nico: Good luck. Watch out for Frau Meier on the ground floor (don)'t slam the door!"
           ]
         }
       ],
       "effects": [],
-      "beat": "MOTIVATES finding work tonight — player must discover Kruma Express themselves via pizzeria and bakery",
+      "beat": "MOTIVATES finding work tonight (player must discover Kruma Express themselves via pizzeria and bakery)",
       "origin": "new",
       "duration_s": 6,
       "duration_source": "authored",
@@ -671,7 +664,7 @@
         }
       ],
       "effects": [],
-      "beat": "first defeat / the locked door — player now searches for work: pizzeria then bakery then Kruma",
+      "beat": "first defeat / the locked door (player now searches for work): pizzeria then bakery then Kruma",
       "origin": "story.ink",
       "econ_note": "heart +3 / -3",
       "divert": "pizzeria_job",
@@ -705,12 +698,7 @@
         "oven_whoosh"
       ],
       "prose": [
-        "The pizzeria shutter is half raised. A cloud of hot garlic, oregano, and boiling anger drifts into the street.",
-        "Mathias Becker is aggressively slamming a ball of dough against a marble counter.",
-        "You: Good evening! Any chance you're hiring a delivery courier?",
-        "Mathias stops, wipes flour on his apron, and looks you up and down like you're an uninvited tax auditor.",
-        "Mathias: Delivery driver?! Do you speak Italian? No! Do you know how to spin dough? No! And your German sounds like a broken lawnmower!",
-        "Mathias: We are closed! Try the bakery down the street before I throw this rolling pin!"
+        "Mathias: No couriers needed tonight! Try the bakery down the street!"
       ],
       "choices": [
         {
@@ -734,7 +722,7 @@
         }
       ],
       "effects": [],
-      "beat": "REJECTION 1: pizzeria — too late, no one to train, try elsewhere",
+      "beat": "REJECTION 1: pizzeria (too late), no one to train, try elsewhere",
       "origin": "new",
       "econ_note": "no economy change",
       "mode": "blocking",
@@ -769,14 +757,8 @@
         "bread_rustle"
       ],
       "prose": [
-        "A warm amber glow shines through the glass of Bäckerei Hansa. An elderly baker in a white apron is dusting flour off a wooden peel.",
-        "You knock gently on the door. She looks at the clock, shakes her head, but turns the brass key anyway.",
-        "Martha Beck: We are closed, my dear. Unless you want a loaf of day-old Roggenbrot?",
-        "You: Actually, Frau Beck, I'm looking for work. Anything honest.",
-        "Martha Beck: To knead bread in Germany you need a B1 language certificate and three years of flour apprenticeship! My customers want to chat about the Baltic weather in proper German.",
-        "She softens, looks at your thin jacket, and slips a warm Franzbrötchen pastry into your hand.",
-        "Martha Beck: But listen to me. Around the corner near the Holstentor is Kruma Express. A dark store. Night delivery couriers. They ask what you can lift, not what you can prove.",
-        "Martha Beck: Ask for Klaus. Tell him Martha sent you. And eat that pastry before it gets cold!"
+        "Martha Beck: We are closed, my dear! But if you need work, try Kruma Express near the Holstentor.",
+        "Martha Beck: Ask for Klaus and tell him Martha sent you!"
       ],
       "choices": [
         {
@@ -809,10 +791,10 @@
         }
       ],
       "effects": [],
-      "beat": "REJECTION 2 / DISCOVERY: bakery — language barrier, but Martha gives the Kruma lead and a Franzbroetchen",
+      "beat": "REJECTION 2 / DISCOVERY: bakery (language barrier), but Martha gives the Kruma lead and a Franzbroetchen",
       "origin": "new",
       "econ_note": "r_martha +1 or +2; free Franzbroetchen (body +2 implied)",
-      "sets_note": "first meeting with Martha — she remembers this",
+      "sets_note": "first meeting with Martha (she remembers this)",
       "mode": "blocking",
       "duration_s": 14,
       "duration_source": "authored",
@@ -846,14 +828,14 @@
       "prose": [
         "The lamps come on all at once, like they were waiting for permission.",
         "There is a yellow flyer cable-tied to the post, laminated against weather, because of course it is.",
-        "KRUMA EXPRESS — 10-MINUTE GROCERY DELIVERY. Riders wanted. Own bicycle preferred. Immediate cash. Behind the Holstentor.",
+        "KRUMA EXPRESS (10)-MINUTE GROCERY DELIVERY. Riders wanted. Own bicycle preferred. Immediate cash. Behind the Holstentor.",
         "You: Right. I can pedal, and I can panic. That's most of the job description."
       ],
       "choices": [
         {
           "label": "[Take the flyer. It's laminated; it'll survive you.]",
           "gate": null,
-          "to": "shift_1_teach",
+          "to": "day1_sleep",
           "effects": [
             {
               "var": "heart",
@@ -867,7 +849,7 @@
         {
           "label": "[Photograph it and go. Leave it for the next one.]",
           "gate": null,
-          "to": "shift_1_teach",
+          "to": "day1_sleep",
           "effects": [
             {
               "var": "heart",
@@ -894,6 +876,41 @@
       },
       "cumulative_s": 83,
       "critical_path_index": 10
+    },
+    {
+      "id": "day1_sleep",
+      "act": "I",
+      "threads": 1,
+      "stage": {
+        "loc": "B_WG",
+        "time": "22:00",
+        "light": "night_interior",
+        "camera": "single_close"
+      },
+      "cast": [],
+      "props": [],
+      "audio": [],
+      "prose": [
+        "You walk back to Room 4. Exhausted.",
+        "Tomorrow, Kruma Express. It opens at 07:00."
+      ],
+      "choices": [
+        {
+          "label": "[Go to sleep]",
+          "to": "shift_1_teach",
+          "effects": [
+            {
+              "var": "day",
+              "expr": "2"
+            }
+          ]
+        }
+      ],
+      "unlocks": {
+        "mechanic": "day1_recap"
+      },
+      "cumulative_s": 83,
+      "critical_path_index": 11
     },
     {
       "id": "shift_1_teach",
@@ -924,17 +941,12 @@
         "rail_pulse_hum"
       ],
       "prose": [
-        "Kruma Express is a shed with ambitions. Strip lights, a freezer humming in a key nobody chose, and a man in a tabard holding a clipboard like it owes him money.",
-        "Klaus: You're the one Martha rang about. Right. Rules.",
-        "Klaus: Shelves are sorted by grammatical gender. Bottom is der, and it's blue. Middle is die, and it's pink. Top is das, and it's purple.",
-        "You: Sorted by... gender? Of the food?",
-        "Klaus: Of the word. An apple is a boy. A banana is a girl. Bread is neither and I'd advise against asking why.",
-        "You: And this is better than putting the bread near the bread.",
-        "Klaus: It is one third of a shelf instead of a whole one. It is the most efficient stupid thing you will ever see. Tabard's on the hook."
+        "Klaus der Blitz: Welcome to Kruma! Shelves are sorted by German word gender: der at the bottom, die in the middle, das on top.",
+        "Klaus der Blitz: Match the colors and pick fast!"
       ],
       "choices": [
         {
-          "label": "[Clock in. Rail and icon arrive together — nothing to outrun yet.]",
+          "label": "[Clock in. Rail and icon arrive together (nothing to outrun yet).]",
           "to": "shift_2_anticipate",
           "effects": [
             {
@@ -972,7 +984,7 @@
         }
       },
       "cumulative_s": 101,
-      "critical_path_index": 11,
+      "critical_path_index": 12,
       "sets_note": "shift_no +1, r_klaus +1"
     },
     {
@@ -1038,7 +1050,7 @@
         }
       },
       "cumulative_s": 115,
-      "critical_path_index": 12
+      "critical_path_index": 13
     },
     {
       "id": "shift_3_test",
@@ -1111,7 +1123,7 @@
         }
       },
       "cumulative_s": 127,
-      "critical_path_index": 13,
+      "critical_path_index": 14,
       "sets_note": "shift_no +1, heart +6, r_klaus +1"
     },
     {
@@ -1142,11 +1154,7 @@
         "rail_pulse_hum"
       ],
       "prose": [
-        "The register prints a receipt roughly the length of your forearm. Nina Voss appears holding a double espresso and the energy of someone on her fourth.",
-        "Nina Voss: Base wage thirteen. Accuracy seven fifty. Trial-period deduction, nine twenty-five.",
-        "You: Trial-period deduction.",
-        "Nina Voss: You are on trial. It is deducted. Congratulations, that is the most German sentence anyone will say to you this week.",
-        "Nina Voss: Eleven twenty-five. Real rate from tomorrow. Wallet: {wallet}€."
+        "Klaus der Blitz: Good shift! Here is your pay slip. Real rate starts tomorrow!"
       ],
       "choices": [
         {
@@ -1181,7 +1189,7 @@
         "mechanic": "shift_receipt"
       },
       "cumulative_s": 139,
-      "critical_path_index": 14,
+      "critical_path_index": 15,
       "payout": {
         "formula": "trial rate: baseWage 13.00 + accuracy 7.50 - trial deduction 9.25 = 11.25 net",
         "wallet": 11.25,
@@ -1228,7 +1236,7 @@
       "duration_source": "authored",
       "unlocks": {},
       "cumulative_s": 145,
-      "critical_path_index": 15
+      "critical_path_index": 16
     },
     {
       "id": "night_one",
@@ -1301,7 +1309,7 @@
       "duration_source": "authored",
       "unlocks": {},
       "cumulative_s": 159,
-      "critical_path_index": 16
+      "critical_path_index": 17
     },
     {
       "id": "night_one_end",
@@ -1348,7 +1356,7 @@
       "duration_source": "authored",
       "unlocks": {},
       "cumulative_s": 165,
-      "critical_path_index": 17
+      "critical_path_index": 18
     },
     {
       "id": "act_two",
@@ -1430,9 +1438,7 @@
       ],
       "audio": [],
       "prose": [
-        "Herr Hans Lokker: Kaution. Deposit. Thirty euros. You have three days.",
-        "Herr Hans Lokker: No deposit, no signed lease. And you will find that without a signed lease this city does not believe you live in it.",
-        "He is not enjoying this. Somehow that is worse than if he were."
+        "Herr Lokker: I need thirty euros deposit for your lease. You have three days!"
       ],
       "choices": [
         {
@@ -1474,7 +1480,7 @@
       "act": "II",
       "threads": 2,
       "stage": {
-        "loc": "LM_MARKTPLATZ",
+        "loc": "B_WG",
         "time": "08:30",
         "light": "dawn_grey",
         "weather": "overcast",
@@ -1548,10 +1554,7 @@
         "pen_scratch"
       ],
       "prose": [
-        "Lokker counts it twice, then writes on a form in handwriting from another century.",
-        "Herr Hans Lokker: Wohnungsgeberbestaetigung. Landlord's confirmation. This proves you sleep here.",
-        "Herr Hans Lokker: Take it to the Buergeramt. They will not believe you exist without it, and I am not being funny.",
-        "Wallet: {wallet}€."
+        "Herr Lokker: Here is your landlord confirmation form. Take it to the Bürgeramt for registration!"
       ],
       "choices": [
         {
@@ -2123,11 +2126,7 @@
         "oven_roar_low"
       ],
       "prose": [
-        "Herr Mathias Becker: Naples. Nineteen ninety-four. I arrived with a bag and a cousin's address, and the cousin had moved.",
-        "He says it flatly, like a weather report.",
-        "Herr Mathias Becker: Somebody gave me forty marks. I never paid him back, because he wouldn't let me. So.",
-        "He puts three tens on the table and slides them across with two fingers.",
-        "Herr Mathias Becker: Thirty. You pay me back when it's easy, not when it's hard. And if you come in here looking guilty I will throw a pizza at you."
+        "Mathias: Here is thirty euros to help you out. Pay me back whenever you can!"
       ],
       "choices": [
         {
@@ -2701,10 +2700,7 @@
         "yard_ambience"
       ],
       "prose": [
-        "Klaus der Blitz: Listen. You need money faster than the day shift gives it to you. I've watched you do the sums on your hand.",
-        "Klaus der Blitz: There's a night route. Off the roster. Harbour to the industrial park, twenty-two hundred to four. Sixty euros, cash, no receipt.",
-        "Klaus der Blitz: The road out there has no lights and the potholes will try to kill you. I did it for six years. Look at me. Look at the leg.",
-        "Klaus der Blitz: I'm not recommending it. I'm telling you it exists, because somebody told me and I'd rather it was me that told you."
+        "Klaus der Blitz: Need extra cash? There is an late night delivery route available. Sixty euros cash!"
       ],
       "choices": [
         {
@@ -3802,7 +3798,7 @@
           "expr": "100"
         }
       ],
-      "beat": "THE DRIP: rent every morning regardless [TUNNEL: entered via {tunnel:'night_tick', then:<scene>}; it has no outgoing edge by design — the runner returns to `then`.]",
+      "beat": "THE DRIP: rent every morning regardless [TUNNEL: entered via {tunnel:'night_tick', then:<scene>}; it has no outgoing edge by design (the runner returns to)`then`.]",
       "origin": "story.ink",
       "econ_note": "day +1, wallet -8.00 rent, body +5 (cap 100)",
       "sets_note": "day, wallet, body",
@@ -3811,7 +3807,7 @@
       "duration_source": "authored",
       "unlocks": {},
       "cumulative_s": 168,
-      "critical_path_index": 18,
+      "critical_path_index": 19,
       "tunnel": true
     },
     {
@@ -3880,15 +3876,7 @@
         "printer_short"
       ],
       "prose": [
-        "Frau Weber at the Sparkasse, third desk.",
-        "You put Anke's single sheet on the counter. She reads it, nods once, and starts typing. The whole thing takes nine minutes.",
-        "You explain the circle to her for the third time in three weeks, and this time you do not stop talking, and eventually she holds up a hand and says \"there is a provisional form\" as though you had simply never asked.",
-        "Frau Weber: My mother phoned me about you. She phones me about approximately everybody.",
-        "Frau Weber: There is a twenty-five euro account setup fee. I am waiving it. Do not tell her I did, she'll send me more of you.",
-        "Frau Weber: Setup fee, twenty-five euros. Yes, I know. I do not set them.",
-        "Frau Weber: Account open. First monthly disbursement, fifty euros, is already on it.",
-        "Frau Weber: Take the account number to the Buergeramt. Today, not tomorrow. The stamp queue on Fridays is a punishment.",
-        "Wallet: {wallet}€."
+        "Frau Weber: Account opened! Take your account number to the Bürgeramt today!"
       ],
       "choices": [
         {
@@ -4012,11 +4000,7 @@
         "stamp_thud_hard"
       ],
       "prose": [
-        "Herr Vogel: Anmeldung.",
-        "STAMP.",
-        "Herr Vogel: Meldebescheinigung. You are registered as resident in the Hansestadt Luebeck.",
-        "He hands it over and then, unexpectedly, keeps hold of it for a half second longer.",
-        "Herr Vogel: I stamp about ninety of these a week. Yours took twenty days, which is not good. I would like you to know that I know that."
+        "Herr Vogel: Your residency registration is stamped and complete!"
       ],
       "choices": [
         {
@@ -5081,16 +5065,7 @@
         "page_turn_slow"
       ],
       "prose": [
-        "Dr Lindemann: There are three unregistered night movements logged against this address by the harbour depot.",
-        "Dr Lindemann: I am not going to ask about them, because the file is otherwise clean and because I know exactly who runs that route and I have been trying to close it since 2019.",
-        "Dr Lindemann: There is a second name in here. A co-signature from a third-year at your address, on the twelfth.",
-        "Dr Lindemann: People in your position do not usually put other people's names in their file. It costs them nothing and they still do not do it.",
-        "She turns the last page and stops.",
-        "Dr Lindemann: There is a reference here from Kruma dispatch.",
-        "She reads it. Her face does something very small and completely private, and then goes back to being a face at a desk.",
-        "Dr Lindemann: It is a good reference. Whoever wrote it does not write those.",
-        "Dr Lindemann: Aufenthaltstitel, paragraph sixteen b. Residence permit for the purpose of study. Three years.",
-        "Dr Lindemann: Do you understand what you are signing?"
+        "Dr Lindemann: Your paperwork is complete. Your three-year student visa is approved!"
       ],
       "choices": [
         {
@@ -5260,7 +5235,7 @@
         }
       ],
       "beat": "TERMINAL: the suitcase finally opens. Mirrors night_one_end.",
-      "origin": "new — closes the five_out dead-end",
+      "origin": "new (closes the five)_out dead-end",
       "terminal": true,
       "outcome": "WIN",
       "mode": "blocking",

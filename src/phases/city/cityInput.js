@@ -447,6 +447,23 @@ window.FFH.CityInput = class {
     if (this.keysDown['d'] || this.keysDown['arrowright']) keyRt += 1;
     if (this.keysDown['a'] || this.keysDown['arrowleft']) keyRt -= 1;
 
+    // Q/E Keys rotate camera manually around player
+    if (this.phase.cameraController) {
+      const rotSpeed = 0.03;
+      if (this.keysDown['q']) {
+        if (this.phase.cameraController.manualCameraAngle === undefined) {
+          this.phase.cameraController.manualCameraAngle = this.phase.cameraController.camCurrentAngle || 0;
+        }
+        this.phase.cameraController.manualCameraAngle -= rotSpeed;
+      }
+      if (this.keysDown['e']) {
+        if (this.phase.cameraController.manualCameraAngle === undefined) {
+          this.phase.cameraController.manualCameraAngle = this.phase.cameraController.camCurrentAngle || 0;
+        }
+        this.phase.cameraController.manualCameraAngle += rotSpeed;
+      }
+    }
+
     if (keyFwd !== 0 || keyRt !== 0) {
       const fwdX = -Math.sin(camAngle);
       const fwdZ = -Math.cos(camAngle);

@@ -18,9 +18,9 @@ window.FFH.StoryRunner = class {
   // Routes to 'b_' (British Comedy) storyboard when activeStoryChannel is 'british',
   // with fallback to legacy scenes if configured or when no 'b_' override exists.
   resolveSceneId(sceneId) {
-    if (!sceneId) return null;
+    if (!sceneId) return sceneId;
+    const prefix = 'b_';
     const channel = (this.game && this.game.state && this.game.state.activeStoryChannel) || 'british';
-    const prefix = (this.game && this.game.state && this.game.state.storyChannelPrefix) || 'b_';
 
     if (channel === 'british') {
       // If already prefixed with b_, check direct
@@ -31,9 +31,6 @@ window.FFH.StoryRunner = class {
       const britishCandidate = `${prefix}${sceneId}`;
       if (this.scenesById && this.scenesById[britishCandidate]) {
         return britishCandidate;
-      }
-      if (window.FFH.BRITISH_BEAT_MAP && window.FFH.BRITISH_BEAT_MAP[sceneId]) {
-        return window.FFH.BRITISH_BEAT_MAP[sceneId];
       }
     }
     return sceneId;
@@ -139,11 +136,7 @@ window.FFH.StoryRunner = class {
     const resolvedId = this.resolveSceneId(sceneId);
     const channel = (this.game && this.game.state && this.game.state.activeStoryChannel) || 'british';
 
-    if (channel === 'british') {
-      if (window.FFH.handleBritishSpecialBeats && window.FFH.handleBritishSpecialBeats(resolvedId, this.game)) {
-        return;
-      }
-    }
+    // handleBritishSpecialBeats logic removed, storyRunner now plays all scenes natively
 
     const scene = this.scenesById ? (this.scenesById[resolvedId] || this.scenesById[sceneId]) : null;
     if (!scene) {
@@ -163,7 +156,16 @@ window.FFH.StoryRunner = class {
       this.handleUnlocks(scene.unlocks);
     }
 
-    this.renderScene(scene);
+    if (!this.mechanicInterceptor) {
+      if (window.FFH.MechanicInterceptor) {
+        this.mechanicInterceptor = new window.FFH.MechanicInterceptor(this.game);
+      }
+    }
+    const intercepted = this.mechanicInterceptor ? this.mechanicInterceptor.intercept(scene) : false;
+    
+    if (!intercepted) {
+      this.renderScene(scene);
+    }
   }
 
   handleUnlocks(unlocks) {
@@ -275,7 +277,14 @@ window.FFH.StoryRunner = class {
   }
 
   handleOverlayScene(scene, choices) {
-    if (this.game.currentPhase !== 'CITY_EXPLORATION') {
+    const loc = scene.stage && scene.stage.loc;
+    const isRoomLoc = loc === 'B_WG' || (loc && (loc.includes('WG') || loc.includes('Dorm') || loc.includes('Room')));
+
+    if (isRoomLoc) {
+      if (this.game.currentPhase !== 'DIALOGUE' && this.game.currentPhase !== 'SHOP') {
+        this.game.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', isStory: true });
+      }
+    } else if (this.game.currentPhase !== 'CITY_EXPLORATION') {
       const wasDialogue = this.game.currentPhase === 'DIALOGUE';
       this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: wasDialogue });
     }
@@ -296,22 +305,37 @@ window.FFH.StoryRunner = class {
       });
     }
 
+    // Dynamic Progressive Choice Filtering for Hub / Multi-Option Scenes:
+    // If a scene provides more than 3 choices (e.g. hub or multi-branch node), filter choices using target scene gates,
+    // or limit to the top 3 available progressive choices so the screen is never cluttered with 6+ options at once.
+    let displayChoices = choices || [];
+    if (displayChoices.length > 3) {
+      displayChoices = displayChoices.filter(ch => {
+        const targetId = ch.to || ch.next;
+        const targetScene = targetId ? (this.scenesById ? this.scenesById[targetId] : null) : null;
+        if (targetScene && targetScene.gate) {
+          return this.checkGate(targetScene.gate, s);
+        }
+        return true;
+      }).slice(0, 3);
+    }
+
     // Show clean choice buttons overlay after thoughts finish
     setTimeout(() => {
-      if (choices && choices.length && this.game.ui && this.game.ui.showStoryOverlay) {
+      if (displayChoices && displayChoices.length && this.game.ui && this.game.ui.showStoryOverlay) {
         const overlayData = {
           sceneId: scene.id,
           beat: scene.beat,
           stage: scene.stage,
           prose: [], // No dark modal box; prose rendered above player head
-          choices: choices.map((ch, idx) => ({
+          choices: displayChoices.map((ch, idx) => ({
             idx: idx,
             label: this.interpolate(ch.label),
             original: ch
           }))
         };
         this.game.ui.showStoryOverlay(overlayData, (choiceIndex) => {
-          const choice = choices[choiceIndex];
+          const choice = displayChoices[choiceIndex];
           if (scene.id === 'act_one') {
             this.game.state.actOneChoiceDone = true;
             const Stages = window.FFH.ACT1_STAGES || {};
@@ -374,12 +398,15 @@ window.FFH.StoryRunner = class {
       }
     }
 
+    // Filter & cap dialogue choices to max 3 progressive options per turn
+    const displayBlockingChoices = choices.length > 3 ? choices.slice(0, 3) : choices;
+
     const dialogueData = {
       speaker: speaker,
       actionIntro: actionLines.join(' '),
       text: spokenLines.length ? spokenLines.join(' ') : actionLines.join(' '),
       isStory: true,
-      options: choices.map((ch, idx) => ({
+      options: displayBlockingChoices.map((ch, idx) => ({
         idx: idx,
         label: this.interpolate(ch.label),
         original: ch
@@ -468,6 +495,8 @@ window.FFH.StoryRunner = class {
       this.game.state.actOneStarted = true;
     }
 
+    const choiceProse = (choice.prose || []).map(p => this.interpolate(p));
+
     if (target) {
       // --- Exploration Handshake ---
       // If the target scene is at a DIFFERENT map location from the current one,
@@ -492,15 +521,47 @@ window.FFH.StoryRunner = class {
         console.log(`StoryRunner: Travel required to ${targetLoc} for scene "${target}". Entering city exploration.`);
         this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.game.currentPhase === 'DIALOGUE' });
 
+        // Show choice.prose as thought bubbles AFTER entering city map, with a short delay
+        let thoughtDelay = 600;
+        for (const line of choiceProse) {
+          const lineTime = Math.max(3200, line.length * 40);
+          setTimeout(() => {
+            if (this.game.ui && this.game.ui.spawnWandererThought) {
+              this.game.ui.spawnWandererThought(line, lineTime);
+            }
+          }, thoughtDelay);
+          thoughtDelay += lineTime + 300;
+        }
+
         if (this.game.ui && this.game.ui.playObjectiveRevealSequence) {
           // Only automatically play the sequence if the tutorial reveal has already happened.
           // If it hasn't, cityExplorationPhase will trigger it on the very first screen tap.
-          if (this.game.state.firstObjectiveRevealed) {
-            this.game.ui.playObjectiveRevealSequence(false);
-          }
+          setTimeout(() => {
+            if (this.game.state.firstObjectiveRevealed) {
+              this.game.ui.playObjectiveRevealSequence(false);
+            }
+          }, 400);
         }
       } else {
-        this.startScene(target);
+        // Same-location: show choice prose as thought bubbles then chain to next scene
+        if (choiceProse.length > 0) {
+          let delay = 0;
+          if (this.game.ui && this.game.ui.hideDialogueBox) {
+            this.game.ui.hideDialogueBox();
+          }
+          for (const line of choiceProse) {
+            const lineTime = Math.max(3000, line.length * 40);
+            setTimeout(() => {
+              if (this.game.ui && this.game.ui.spawnWandererThought) {
+                this.game.ui.spawnWandererThought(line, lineTime);
+              }
+            }, delay);
+            delay += lineTime + 300;
+          }
+          setTimeout(() => this.startScene(target), delay);
+        } else {
+          this.startScene(target);
+        }
       }
     } else {
       console.log('StoryRunner: Flow reached leaf or hub. Transitioning to city exploration.');

@@ -185,6 +185,14 @@ window.FFH.PickPhase = class {
         this.exit();
         // Pre-compute last payout in case time runs out
         this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
+
+        // If triggered via StoryRunner, hand control back to the story engine
+        if (this.currentStoryParams && typeof this.currentStoryParams.onComplete === 'function') {
+          const callback = this.currentStoryParams.onComplete;
+          this.currentStoryParams = null;
+          callback();
+          return;
+        }
         
         // Select random Altbau townhouse as delivery destination
         const pool = [];

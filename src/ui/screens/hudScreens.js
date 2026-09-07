@@ -1,12 +1,138 @@
 // Title, Boot, Win & Lose Screens
 window.FFH = window.FFH || {};
+if (!window.FFH.UI) {
+  window.FFH.UI = function(game) {
+    this.game = game;
+    this.container = document.getElementById('ui-container');
+  };
+}
 
 Object.assign(window.FFH.UI.prototype, {
+  showSaveSlotsModal() {
+    const parent = document.getElementById('ui-container') || document.body;
+    const prev = document.getElementById('ffh-slots-modal');
+    if (prev) prev.remove();
+
+    const slots = window.FFH.getSaveSlots ? window.FFH.getSaveSlots() : [];
+    const modal = document.createElement('div');
+    modal.id = 'ffh-slots-modal';
+    modal.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 10005;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      pointer-events: auto;
+      animation: fadeIn 0.2s ease-out;
+    `;
+
+    let slotsHtml = '';
+    slots.forEach(slot => {
+      slotsHtml += `
+        <div style="
+          background: #F8F9FA;
+          border: 2px solid ${slot.empty ? '#CBD5E1' : '#2EC4B6'};
+          border-radius: 12px;
+          padding: 12px 14px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        ">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="font-size: 13px; font-weight: 900; color: #1D3557;">
+              💾 Slot ${slot.id}: ${slot.empty ? 'Empty Slot' : `Day ${slot.day} Checkpoint`}
+            </div>
+            <div style="font-size: 11px; color: #64748B; font-weight: 700;">
+              ${slot.empty ? 'No saved game data' : `Wallet: <span style="color:#2A9D8F;">${slot.wallet.toFixed(2)}€</span> • ${slot.timestamp}`}
+            </div>
+            ${!slot.empty ? `<div style="font-size: 10px; color: #E76F51; font-weight: 800; margin-top: 2px;">🎯 ${slot.objective}</div>` : ''}
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            ${!slot.empty ? `
+              <button class="btn-load-slot-action" data-slot="${slot.id}" style="
+                background: #2EC4B6; color: #FFF; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 900; cursor: pointer;
+              ">▶️ Load</button>
+              <button class="btn-wipe-slot-action" data-slot="${slot.id}" style="
+                background: #E63946; color: #FFF; border: none; border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 900; cursor: pointer;
+              ">🗑️ Clear</button>
+            ` : `
+              <span style="font-size: 11px; color: #94A3B8; font-style: italic;">Empty</span>
+            `}
+          </div>
+        </div>
+      `;
+    });
+
+    modal.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3.5px solid #264653;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 340px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      ">
+        <div style="background: #264653; padding: 16px; text-align: center; color: #FFFFFF;">
+          <div style="font-size: 18px; font-weight: 900; letter-spacing: 0.5px;">💾 SAVE GAME SLOTS</div>
+          <div style="font-size: 11px; color: #E9C46A; font-weight: 700; margin-top: 2px;">Select Checkpoint to Playtest & Debug</div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          ${slotsHtml}
+
+          <button id="btn-close-slots-modal" style="
+            background: #475569; color: #FFFFFF; border: none; border-radius: 10px;
+            padding: 12px; font-size: 13px; font-weight: 900; cursor: pointer; margin-top: 4px;
+          ">✕ Close</button>
+        </div>
+      </div>
+    `;
+
+    parent.appendChild(modal);
+
+    document.getElementById('btn-close-slots-modal').onclick = () => modal.remove();
+
+    modal.querySelectorAll('.btn-load-slot-action').forEach(btn => {
+      btn.onclick = () => {
+        const slotId = parseInt(btn.getAttribute('data-slot'), 10);
+        modal.remove();
+        this.clear();
+        this.game.clearTitleDiorama();
+
+        const loadResult = window.FFH.loadGame(this.game, slotId);
+        if (loadResult) {
+          const targetPhase = loadResult.phaseKey || 'CITY_EXPLORATION';
+          this.game.transitionTo(targetPhase, {
+            spawnPos: loadResult.spawnPos,
+            timeOfDay: loadResult.timeOfDay
+          });
+        }
+      };
+    });
+
+    modal.querySelectorAll('.btn-wipe-slot-action').forEach(btn => {
+      btn.onclick = () => {
+        const slotId = parseInt(btn.getAttribute('data-slot'), 10);
+        localStorage.removeItem(`FFH_SAVE_SLOT_${slotId}`);
+        if (this.game.sfx) this.game.sfx.playSfx('wrong');
+        this.showSaveSlotsModal(); // re-render
+      };
+    });
+  },
   showBootScreen() {
     this.clear();
 
-    // Let the 3D scene render in the background — do NOT set a solid color
-    // The city will be visible behind the menu panel
+    // Let the 3D scene render in the background (do NOT set a solid color)// The city will be visible behind the menu panel
     if (this.game && this.game.scene) {
       this.game.scene.background = new THREE.Color(0x87CEEB); // soft sky fallback if no renderer yet
     }
@@ -80,6 +206,19 @@ Object.assign(window.FFH.UI.prototype, {
             flex: 1;
           ">Continue</button>
 
+          <button id="btn-load-slots" class="astryx-btn" title="Select Save Slot" style="
+            display: block;
+            background: #2EC4B6;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          ">💾 Slots</button>
+
           <button id="btn-delete-save" title="Wipe save & start fresh" class="astryx-btn" style="
             display: none;
             background: rgba(255, 255, 255, 0.1);
@@ -88,8 +227,8 @@ Object.assign(window.FFH.UI.prototype, {
             color: #FFFFFF;
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
-            width: 50px;
-            min-width: 50px;
+            width: 44px;
+            min-width: 44px;
             font-size: 18px;
             cursor: pointer;
             flex-shrink: 0;
@@ -150,13 +289,27 @@ Object.assign(window.FFH.UI.prototype, {
     const continueRow = document.getElementById('continue-row');
 
     // Show continue row only if a save exists
-    if (localStorage.getItem('FFH_SAVE_GAME')) {
+    if (localStorage.getItem('FFH_SAVE_GAME') || localStorage.getItem('FFH_SAVE_SLOT_1') || localStorage.getItem('FFH_SAVE_SLOT_2') || localStorage.getItem('FFH_SAVE_SLOT_3')) {
       continueRow.style.display = 'flex';
       btnDeleteSave.style.display = 'block';
     }
 
+    const btnLoadSlots = document.getElementById('btn-load-slots');
+    if (btnLoadSlots) {
+      btnLoadSlots.addEventListener('click', () => {
+        this.showSaveSlotsModal();
+      });
+    }
+
     // Delete save: tap once to arm (turns red), tap again to confirm wipe
     let deleteSaveArmed = false;
+    // Ensure background music starts on first user touch/click gesture on boot screen
+    const ensureMusicStarted = () => {
+      if (this.game && this.game.sfx && typeof this.game.sfx.startMusic === 'function') {
+        this.game.sfx.startMusic();
+      }
+    };
+
     if (btnDeleteSave) {
       btnDeleteSave.addEventListener('click', () => {
         if (!deleteSaveArmed) {
@@ -165,7 +318,7 @@ Object.assign(window.FFH.UI.prototype, {
           btnDeleteSave.style.background = '#E76F51';
           btnDeleteSave.style.color = '#FFF';
           btnDeleteSave.style.borderColor = '#C0392B';
-          btnDeleteSave.title = 'Tap again to confirm — save will be wiped!';
+          btnDeleteSave.title = 'Tap again to confirm (save will be wiped)!';
           // Auto-disarm after 2s
           setTimeout(() => {
             if (deleteSaveArmed) {
@@ -178,8 +331,8 @@ Object.assign(window.FFH.UI.prototype, {
             }
           }, 2000);
         } else {
-          // Confirmed — wipe save
-          localStorage.removeItem('FFH_SAVE_GAME');
+          // Confirmed (wipe save
+          localStorage).removeItem('FFH_SAVE_GAME');
           if (this.game.sfx) this.game.sfx.playSfx('wrong');
           continueRow.style.display = 'none';
           // Flash the new game button as a hint
@@ -199,6 +352,7 @@ Object.assign(window.FFH.UI.prototype, {
         btnNewGame.style.boxShadow = '0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25)';
       });
       btnNewGame.addEventListener('click', () => {
+        ensureMusicStarted();
         this.game.sfx.playSfx('success');
         this.game.state = window.FFH.createRunState();
         window.FFH.state = this.game.state;
@@ -254,7 +408,7 @@ Object.assign(window.FFH.UI.prototype, {
             if (t < 1.0) {
               requestAnimationFrame(animLoop);
             } else {
-              // 5. Camera has settled close to character back view — enable inputs & hold angle
+              // 5. Camera has settled close to character back view (enable inputs)& hold angle
               cityPhase.cameraHoldTimer = 4.0;
               cityPhase.inputDisabled = false;
               
@@ -279,6 +433,7 @@ Object.assign(window.FFH.UI.prototype, {
         btnContinue.style.boxShadow = '0 6px 0 #1A56C0, 0 8px 10px rgba(0,0,0,0.25)';
       });
       btnContinue.addEventListener('click', () => {
+        ensureMusicStarted();
         this.game.sfx.playSfx('success');
         const loadResult = window.FFH.loadGame(this.game);
         const nextPhase = (loadResult && loadResult.phaseKey) ? loadResult.phaseKey : 'CITY_EXPLORATION';
@@ -352,10 +507,15 @@ Object.assign(window.FFH.UI.prototype, {
     if (btnSound) {
       let soundEnabled = true;
       btnSound.addEventListener('click', () => {
+        ensureMusicStarted();
         soundEnabled = !soundEnabled;
         btnSound.innerText = soundEnabled ? 'SOUND: ON' : 'SOUND: OFF';
-        // Note: Full audio muting would require plumbing through AudioEngine
-        if (this.game.sfx) this.game.sfx.muted = !soundEnabled;
+        if (this.game.sfx) {
+          this.game.sfx.muted = !soundEnabled;
+          if (this.game.sfx.musicEl) {
+            this.game.sfx.musicEl.muted = !soundEnabled;
+          }
+        }
         if (this.game.speech) this.game.speech.muted = !soundEnabled;
       });
     }

@@ -86,16 +86,16 @@ window.FFH.STORY_LOC_POSITIONS = {
 window.FFH = window.FFH || {};
 
 window.FFH.STORY_OBJECTIVE_MAP = {
-  'act_one':          '🧳 Find Room 4 — Student WG (drag your suitcase south)',
-  'b_act_one':        '🧳 Find Room 4 — Student WG (drag your suitcase south)',
-  'wg_door':          '🏠 Find Room 4 — Student WG (south)',
-  'wg_door_scenic':   '🏠 Find Room 4 — Student WG (south)',
-  'wg_door_fast':     '🏠 Find Room 4 — Student WG (south)',
+  'act_one':          '🧳 Find Room 4 (Student WG)(drag your suitcase south)',
+  'b_act_one':        '🧳 Find Room 4 (Student WG)(drag your suitcase south)',
+  'wg_door':          '🏠 Find Room 4 (Student WG)(south)',
+  'wg_door_scenic':   '🏠 Find Room 4 (Student WG)(south)',
+  'wg_door_fast':     '🏠 Find Room 4 (Student WG)(south)',
   'nico_sends_kruma': '🎓 Check out Lübeck University (east across the bridge)',
   'uni_closed':       '🎓 Check out Lübeck University (east across the bridge)',
-  'pizzeria_job':     '🍕 Try the pizzeria near the market — ask about work',
-  'bakery_job':       '🥐 Try the bakery — ask about work',
-  'shift_1_teach':    '📦 Kruma Express — Nina is expecting you (behind the Holstentor)'
+  'pizzeria_job':     '🍕 Try the pizzeria near the market (ask about work)',
+  'bakery_job':       '🥐 Try the bakery (ask about work)',
+  'shift_1_teach':    '📦 Kruma Express (Nina is expecting you)(behind the Holstentor)'
 };
 
 window.FFH.STORY_LOC_NAMES = {
@@ -116,71 +116,19 @@ window.FFH.STORY_LOC_NAMES = {
 // British Story Beat Mappings
 window.FFH = window.FFH || {};
 
-window.FFH.BRITISH_BEAT_MAP = {
-  'act_one': 'b_act_one',
-  'wg_door': 'b_wg_door',
-  'wg_door_scenic': 'b_wg_door',
-  'wg_door_fast': 'b_wg_door',
-  'nico_kitchen': 'b_wg_door',
-  'nico_sends_kruma': 'b_uni_locked',
-  'uni_closed': 'b_uni_locked',
-  'pizzeria_job': 'b_pizzeria_job',
-  'bakery_job': 'b_bakery_job',
-  'shift_1_teach': 'b_shift_1_teach'
-};
+window.FFH.BRITISH_BEAT_MAP = {};
 
 // British Story Special Handlers
 window.FFH = window.FFH || {};
 
 window.FFH.handleBritishSpecialBeats = function(resolvedId, game) {
-  const cx = game.phases && game.phases.CITY_EXPLORATION;
-  if (resolvedId === 'b_wg_door' || resolvedId === 'b_uni_locked' || resolvedId === 'b_pizzeria_job' || resolvedId === 'b_bakery_job') {
-    const poiMap = {
-      'b_wg_door': 'B_WG',
-      'b_uni_locked': 'B_UNI',
-      'b_pizzeria_job': 'B_PIZZA',
-      'b_bakery_job': 'B_BAKERY'
-    };
-    if (cx && cx.triggerBuildingInteraction) {
-      cx.triggerBuildingInteraction(poiMap[resolvedId]);
-      return true;
-    }
-  } else if (resolvedId === 'day1_sleep' || resolvedId === 'b_day1_sleep') {
-    if (cx) {
-      cx.isEnteringBuilding = false;
-      cx.inputDisabled = false;
-    }
-    if (game.ui && game.ui.showDayRecapModal && cx && game.state.hasVisitedLockedUni && !game.state.hasSleptDay1) {
-      game.ui.showDayRecapModal(() => {
-        game.state.hasSleptDay1 = true;
-        game.state.day = 2;
-        game.state.questStep = 4;
-        game.state.activeObjective = 'Tag 2 (07:00): Head to Kruma Express Dark Store for Shift 1!';
-        if (game.ui && game.ui.updateQuestTracker) game.ui.updateQuestTracker();
-        if (game.ui && game.ui.refreshStats) game.ui.refreshStats(game.state);
-        cx.updateAtmosphericTime && cx.updateAtmosphericTime(0.30);
-        if (game.ui && game.ui.spawnWandererThought) {
-          game.ui.spawnWandererThought('Day 2. Sun is up, tea is drunk, and my landlord is still threatening eviction. Time to tackle Kruma Express.');
-        }
-        if (window.FFH && window.FFH.saveGame) window.FFH.saveGame(game);
-        cx.startBuildingExit && cx.startBuildingExit();
-      });
-      return true;
-    }
-  }
   return false;
 };
 
 // British POI Fallback Map
 window.FFH = window.FFH || {};
 
-window.FFH.BRITISH_POI_FALLBACK = {
-  'b_wg_door': 'B_WG',
-  'b_uni_locked': 'B_UNI',
-  'b_pizzeria_job': 'B_PIZZA',
-  'b_bakery_job': 'B_BAKERY',
-  'b_shift_1_teach': 'B_DARKSTORE'
-};
+window.FFH.BRITISH_POI_FALLBACK = {};
 
 // NPC Speaker Name Mapping
 window.FFH = window.FFH || {};

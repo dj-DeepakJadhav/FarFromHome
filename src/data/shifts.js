@@ -1,7 +1,6 @@
 // Shift configuration.
 //
-// Shifts repeat indefinitely and escalate — the genre is defined by the
-// organisers as a "repeating invest-harvest-upgrade loop with visible growth",
+// Shifts repeat indefinitely and escalate (the genre is defined by the)// organisers as a "repeating invest-harvest-upgrade loop with visible growth",
 // so there is no fixed list of three. Everything is a curve in getShift(n).
 
 window.FFH.SHIFT_STORIES = [

@@ -225,16 +225,16 @@ Object.assign(window.FFH.NPC_DATABASE, {
       if (isFirstMeeting) {
         return {
           speaker: 'Herr Vogel (Bürgeramt Official)',
-          en: 'Guten Tag. I am Herr Vogel, municipal clerk at the Lübeck Bürgeramt. Under §17 of the Federal Registration Act (Bundesmeldegesetz), all residents must register their living address within 14 days. Without a signed confirmation from your landlord, no Meldebescheinigung can be issued. Do you have your paperwork ready?',
+          en: 'Guten Tag. Under §17 of the Federal Registration Act, living in Germany without an official Meldebescheinigung is legally equivalent to not existing at all. Do you possess your landlord\'s signed confirmation, or are you currently an imaginary person?',
           options: [
             {
-              label: '🏛️ "Good day, Herr Vogel. Pleased to meet you. I am preparing my registration."',
+              label: '🇬🇧 "Good day, Herr Vogel. I prefer existing if possible. Here is my paperwork."',
               action: (game) => {
                 addVogelMemory('introduced_vogel');
                 addVogelMemory('polite_to_vogel');
                 game.state.npcRelationships['NPC_VOGEL'] = Math.min(100, (game.state.npcRelationships['NPC_VOGEL'] || 50) + 15);
                 window.FFH.NPC_DATABASE['NPC_VOGEL'].currentResponse = {
-                  en: 'Excellent. Make sure the landlord\'s signature from Herr Lokker is legible and your passport is valid. Orderliness is the foundation of legal certainty.',
+                  en: 'Splendid. Herr Lokker\'s signature must sit inside the box, not touch the border. A signature touching the border is a municipal tragedy.',
                   options: [
                     { label: '📑 "I will present my documents."', action: (g) => g.transitionTo('DIALOGUE', { npcKey: 'NPC_VOGEL' }) },
                     { label: '🚪 "I will return once I have everything."', action: (g) => g.transitionTo('CITY_EXPLORATION') }

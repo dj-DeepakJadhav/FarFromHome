@@ -14,6 +14,7 @@ window.FFH.AudioEngine = class {
   }
   
   playSfx(type) {
+    if (this.muted || (window.FFH.CONFIG && window.FFH.CONFIG.audio && window.FFH.CONFIG.audio.sfxMuted)) return;
     this.init();
     if (!this.ctx) return;
     if (this.ctx.state === 'suspended') {
@@ -323,5 +324,92 @@ window.FFH.AudioEngine = class {
     this.init();
     if (!this.ctx) return;
     this.startAmbience(type === 'night');
+  }
+
+  // Background music track (mp3). Separate HTMLAudio element so it never
+  // fights the procedural Web Audio SFX. Release build plays the inlined
+  // data URI (window.FFH.musicDataUri); dev plays MUSIC.src over HTTP.
+  // Browsers block audio before a user gesture, so call startMusic() from
+  // a pointer/key event (wired in main.js init).
+  startMusic() {
+    const audioCfg = (window.FFH.CONFIG && window.FFH.CONFIG.audio) || {};
+    const musicCfg = window.FFH.MUSIC || {};
+
+    const src = window.FFH.musicDataUri || audioCfg.bgMusicSrc || musicCfg.src;
+    if (!src) return;
+
+    if (!this.musicEl || this.musicEl.src !== src) {
+      if (this.musicEl) {
+        try { this.musicEl.pause(); } catch (e) {}
+      }
+      this.musicEl = new Audio(src);
+    }
+
+    const isLooping = audioCfg.bgMusicLoop !== undefined ? audioCfg.bgMusicLoop : (musicCfg.loop !== false);
+    const volumeVal = (typeof audioCfg.bgMusicVolume === 'number') ? audioCfg.bgMusicVolume : ((typeof musicCfg.volume === 'number') ? musicCfg.volume : 0.35);
+
+    const isMuted = audioCfg.bgMusicMuted !== undefined ? !!audioCfg.bgMusicMuted : false;
+    this.musicEl.loop = isLooping;
+    this.musicEl.volume = Math.max(0, Math.min(1, volumeVal));
+    this.musicEl.muted = isMuted;
+
+    if (!isMuted && this.musicEl.paused) {
+      this.musicEl.play().catch(() => {});
+    }
+  }
+
+  stopMusic() {
+    if (this.musicEl) {
+      try { this.musicEl.pause(); } catch (e) {}
+    }
+  }
+
+  setMusicMuted(isMuted) {
+    const muteBool = !!isMuted;
+    if (window.FFH.CONFIG && window.FFH.CONFIG.audio) {
+      window.FFH.CONFIG.audio.bgMusicMuted = muteBool;
+    }
+    if (this.musicEl) {
+      this.musicEl.muted = muteBool;
+      if (!muteBool && this.musicEl.paused) {
+        this.musicEl.play().catch(() => {});
+      }
+    } else if (!muteBool) {
+      this.startMusic();
+    }
+  }
+
+  setSfxMuted(isMuted) {
+    const muteBool = !!isMuted;
+    if (window.FFH.CONFIG && window.FFH.CONFIG.audio) {
+      window.FFH.CONFIG.audio.sfxMuted = muteBool;
+    }
+    this.muted = muteBool;
+  }
+
+  setMusicVolume(v) {
+    const clamped = Math.max(0, Math.min(1, v));
+    if (window.FFH.CONFIG && window.FFH.CONFIG.audio) {
+      window.FFH.CONFIG.audio.bgMusicVolume = clamped;
+    }
+    if (window.FFH.MUSIC) {
+      window.FFH.MUSIC.volume = clamped;
+    }
+    if (this.musicEl) {
+      this.musicEl.volume = clamped;
+    }
+  }
+
+  setMusicLoop(shouldLoop) {
+    const loopBool = !!shouldLoop;
+    if (window.FFH.CONFIG && window.FFH.CONFIG.audio) {
+      window.FFH.CONFIG.audio.bgMusicLoop = loopBool;
+    }
+    if (window.FFH.MUSIC) {
+      window.FFH.MUSIC.loop = loopBool;
+    }
+    if (this.musicEl) {
+      this.musicEl.loop = loopBool;
+    }
   }
 };
