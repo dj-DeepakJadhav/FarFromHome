@@ -248,21 +248,17 @@ window.FFH.CityExplorationPhase = class {
     // Step 1: Station Arrival Auto-Trigger for British Comedy Storyline
     if (!this.game.state.hasShownStationArrivalThought && (!data || !data.fromBuildingExit)) {
       this.game.state.hasShownStationArrivalThought = true;
+      // The arrival narration is authored in story.json (scene "act_one") and
+      // played by StoryRunner. A hardcoded copy used to live here and fired on
+      // its own timer, so two different wordings of the same joke raced each
+      // other. Only the objective reveal belongs in this phase.
       setTimeout(() => {
-        if (this.game.ui && this.game.ui.spawnWandererThought) {
-          this.game.ui.spawnWandererThought(
-            "So this is Germany. Clean. Tidy. And possessing a bus shelter roughly the size of a toaster. If I try to stand in there, my knees will be in Austria."
-          );
+        if (!this.game.state.firstObjectiveRevealed && this.game.ui && this.game.ui.triggerFirstObjectiveReveal) {
+          this.game.ui.triggerFirstObjectiveReveal();
+        } else {
+          this.revealCompass();
         }
-        // Then 3.5s later, trigger the initial objective reveal and compass pointing South to WG
-        setTimeout(() => {
-          if (!this.game.state.firstObjectiveRevealed && this.game.ui && this.game.ui.triggerFirstObjectiveReveal) {
-            this.game.ui.triggerFirstObjectiveReveal();
-          } else {
-            this.revealCompass();
-          }
-        }, 3600);
-      }, 2500);
+      }, 2600);
     }
 
     if (data && data.fromBuildingExit) {
@@ -910,7 +906,7 @@ window.FFH.CityExplorationPhase = class {
     const poiType = poiData.type || poiData.name || '';
     if (poiType.startsWith('A')) {
       if (this.game.ui && this.game.ui.spawnWandererThought) {
-        this.game.ui.spawnWandererThought("Just an ordinary townhouse. Better focus on finding my room.");
+        this.game.ui.spawnWandererThought("Just a townhouse. Find the room.");
       }
       return;
     }

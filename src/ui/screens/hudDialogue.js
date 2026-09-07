@@ -8,6 +8,22 @@ if (!window.FFH.UI) {
 }
 
 Object.assign(window.FFH.UI.prototype, {
+  // StoryRunner calls this before chaining to the next scene, but it was never
+  // implemented. Both call sites are guarded with `if (this.game.ui.hideDialogueBox)`,
+  // so they silently did nothing and the previous speaker's option buttons
+  // stayed on screen over the next scene. The player was left tapping dead
+  // buttons while the real choices rendered underneath the drawer, which reads
+  // as the game being stuck.
+  hideDialogueBox() {
+    const box = document.getElementById('dialogue-overlay-box');
+    if (!box) return;
+    if (box._typewriterTimer) clearInterval(box._typewriterTimer);
+    if (this.game && this.game.speech && this.game.speech.stopListening) {
+      this.game.speech.stopListening();
+    }
+    box.remove();
+  },
+
   showDialogueBox(npcEntry, dialogueData, onOptionChosen) {
     const existing = document.getElementById('dialogue-overlay-box');
     if (existing) {

@@ -33,9 +33,7 @@ window.FFH.InteriorPhase = class {
       if (city.targetMarker) city.targetMarker.visible = false;
     }
 
-    // Hide City HUD
-    const hud = document.getElementById('hud');
-    if (hud) hud.style.display = 'none';
+    // HUD visibility is owned by Game.syncHudVisibility(); do not hide it here.
 
     // 3. Instantiate the 3D Diorama Room in the center (0, 0, 0)
     this.dioramaRoom = this.buildRoom(config.roomType);

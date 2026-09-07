@@ -17,6 +17,80 @@ window.FFH.StoryRunner = class {
   // Modular Story Channel & Identifier Resolver
   // Routes to 'b_' (British Comedy) storyboard when activeStoryChannel is 'british',
   // with fallback to legacy scenes if configured or when no 'b_' override exists.
+  // Phase identity. `game.currentPhase` holds the phase OBJECT, so comparing it
+  // to a string literal was always true and every guard below silently passed.
+  // Compare against `currentPhaseName`, which holds the key.
+  phaseIs(...names) {
+    return names.indexOf(this.game.currentPhaseName) !== -1;
+  }
+
+  // Interior / exterior routing is declared by the scene, not guessed from the
+  // location name. `stage.space` is authored in story.json for all 85 scenes:
+  //   exterior  -> open world, free movement
+  //   threshold -> at a door, not yet admitted (city still visible behind)
+  //   interior  -> inside a room diorama
+  spaceOf(scene) {
+    const st = scene && scene.stage;
+    const space = st && st.space;
+    if (space === 'interior' || space === 'exterior' || space === 'threshold') {
+      return space;
+    }
+    // Legacy fallback for any scene authored without the field.
+    const loc = (st && st.loc) || '';
+    return loc.startsWith('LM_') || loc.endsWith('_YARD') ? 'exterior' : 'interior';
+  }
+
+  phaseForSpace(space) {
+    return space === 'exterior' ? 'CITY_EXPLORATION' : 'DIALOGUE';
+  }
+
+  // The scene's first cast member is the speaker the diorama should build.
+  // Falling back to NPC_NICO for every scene is what put Nico behind the
+  // bakery counter and the Rathaus desk.
+  // Prose plays as a cancellable queue, not a fan of fire-and-forget timers,
+  // so a tap can advance to the next line. The old version scheduled every
+  // line upfront at a fixed offset, which is why narration could not be
+  // skipped at all. `onDone` runs once the last line has had its time.
+  playProseQueue(lines, onDone) {
+    this.cancelProseQueue();
+    let i = 0;
+    const step = () => {
+      if (i >= lines.length) {
+        this._proseTimer = null;
+        window.FFH.advanceProse = null;
+        if (onDone) onDone();
+        return;
+      }
+      const line = lines[i++];
+      const lineTime = (line.length * 16) + Math.max(1200, line.length * 22);
+      if (this.game.ui && this.game.ui.showThoughtBubble) {
+        this.game.ui.showThoughtBubble(line, lineTime);
+      }
+      this._proseTimer = setTimeout(step, lineTime + 250);
+    };
+    // Tapping a bubble skips its remaining dwell and shows the next line.
+    window.FFH.advanceProse = () => {
+      if (this._proseTimer) {
+        clearTimeout(this._proseTimer);
+        this._proseTimer = null;
+      }
+      step();
+    };
+    step();
+  }
+
+  cancelProseQueue() {
+    if (this._proseTimer) {
+      clearTimeout(this._proseTimer);
+      this._proseTimer = null;
+    }
+    window.FFH.advanceProse = null;
+  }
+
+  npcKeyFor(scene) {
+    return (scene && scene.cast && scene.cast.length) ? scene.cast[0] : null;
+  }
+
   resolveSceneId(sceneId) {
     if (!sceneId) return sceneId;
     const prefix = 'b_';
@@ -114,7 +188,7 @@ window.FFH.StoryRunner = class {
       this.game.ui.updatePersistentHUD(state);
     }
     
-    if (this.game.currentPhase === 'CITY_EXPLORATION' && this.game.ui && this.game.ui.refreshStats) {
+    if (this.phaseIs('CITY_EXPLORATION') && this.game.ui && this.game.ui.refreshStats) {
       // Refresh the stats visibly in the HUD without a full DOM teardown
       this.game.ui.refreshStats(state);
     }
@@ -277,33 +351,34 @@ window.FFH.StoryRunner = class {
   }
 
   handleOverlayScene(scene, choices) {
-    const loc = scene.stage && scene.stage.loc;
-    const isRoomLoc = loc === 'B_WG' || (loc && (loc.includes('WG') || loc.includes('Dorm') || loc.includes('Room')));
+    const space = this.spaceOf(scene);
+    const wantPhase = this.phaseForSpace(space);
 
-    if (isRoomLoc) {
-      if (this.game.currentPhase !== 'DIALOGUE' && this.game.currentPhase !== 'SHOP') {
-        this.game.transitionTo('DIALOGUE', { npcKey: 'NPC_NICO', isStory: true });
+    // An overlay scene draws its own choice buttons, so any dialogue drawer
+    // left over from the previous scene has to go. Otherwise the old speaker's
+    // options sit on top of the new ones.
+    if (this.game.ui && this.game.ui.hideDialogueBox) {
+      this.game.ui.hideDialogueBox();
+    }
+
+    if (wantPhase === 'DIALOGUE') {
+      // Interior and threshold scenes both play as a two-shot, but a threshold
+      // scene keeps the city behind the speaker: you are at the door, not in.
+      if (!this.phaseIs('DIALOGUE', 'SHOP')) {
+        this.game.transitionTo('DIALOGUE', {
+          npcKey: this.npcKeyFor(scene) || 'NPC_NICO',
+          isStory: true,
+          atThreshold: space === 'threshold',
+          loc: scene.stage && scene.stage.loc
+        });
       }
-    } else if (this.game.currentPhase !== 'CITY_EXPLORATION') {
-      const wasDialogue = this.game.currentPhase === 'DIALOGUE';
-      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: wasDialogue });
+    } else if (!this.phaseIs('CITY_EXPLORATION')) {
+      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.phaseIs('DIALOGUE') });
     }
 
     const rawProse = scene.prose || [];
     const processedProse = rawProse.map(p => this.interpolate(p));
 
-    let delay = 0;
-    if (processedProse.length) {
-      processedProse.forEach((line) => {
-        const lineTime = (line.length * 32) + Math.max(2800, line.length * 40);
-        setTimeout(() => {
-          if (this.game.ui && this.game.ui.showThoughtBubble) {
-            this.game.ui.showThoughtBubble(line, lineTime);
-          }
-        }, delay);
-        delay += lineTime + 400; // Small breath between thoughts
-      });
-    }
 
     // Dynamic Progressive Choice Filtering for Hub / Multi-Option Scenes:
     // If a scene provides more than 3 choices (e.g. hub or multi-branch node), filter choices using target scene gates,
@@ -320,8 +395,9 @@ window.FFH.StoryRunner = class {
       }).slice(0, 3);
     }
 
-    // Show clean choice buttons overlay after thoughts finish
-    setTimeout(() => {
+    // Choices appear once the prose queue drains, so skipping ahead brings
+    // them forward instead of leaving the player waiting on a dead timer.
+    const showChoices = () => {
       if (displayChoices && displayChoices.length && this.game.ui && this.game.ui.showStoryOverlay) {
         const overlayData = {
           sceneId: scene.id,
@@ -347,7 +423,7 @@ window.FFH.StoryRunner = class {
             setTimeout(() => {
               if (this.game.ui && this.game.ui.spawnWandererThought) {
                 this.game.ui.spawnWandererThought(
-                  "Why did I even bother choosing? The GPS navigation arrow is just going to force-feed me the shortest path anyway. The illusion of free will in Germany is very tidy."
+                  "The arrow was going to send me that way regardless."
                 );
               }
             }, 800);
@@ -366,7 +442,8 @@ window.FFH.StoryRunner = class {
         }
         this.selectChoice({ next: scene.next || scene.divert });
       }
-    }, delay);
+    };
+    this.playProseQueue(processedProse, showChoices);
   }
 
   handleBlockingScene(scene, choices) {
@@ -414,7 +491,18 @@ window.FFH.StoryRunner = class {
     };
 
     if (this.game.phases.DIALOGUE) {
-      this.game.transitionTo('DIALOGUE', { npcKey: npcKey, isStory: true });
+      // 66 of 85 scenes are `blocking`, so this is the routing that matters.
+      // It used to force a room diorama for every one of them, which put
+      // outdoor beats (the Kruma flyer, the locked Admissions door, Frau Klein
+      // on the steps) inside a room. Interior scenes commit to the diorama;
+      // threshold and exterior scenes keep the city visible behind the speaker.
+      const space = this.spaceOf(scene);
+      this.game.transitionTo('DIALOGUE', {
+        npcKey: npcKey,
+        isStory: true,
+        atThreshold: space !== 'interior',
+        loc: scene.stage && scene.stage.loc
+      });
 
       // Apply camera adjustments inside the diorama room
       const cam = this.game.cameras && this.game.cameras.mainCamera;
@@ -451,6 +539,12 @@ window.FFH.StoryRunner = class {
     // pickPhase then falls back to the canonical window.FFH.iconRevealDelay().
     const ramp = (scene.unlocks && scene.unlocks.ramp) || {};
     const iconDelay = ramp.icon_delay_s;
+
+    // The prologue is over once a minigame owns the screen; the skip affordance
+    // has nothing left to skip.
+    if (this.game.ui && this.game.ui.hideSkipIntro) {
+      this.game.ui.hideSkipIntro();
+    }
 
     this.game.transitionTo('PICK', {
       storyScene: scene,
@@ -519,12 +613,12 @@ window.FFH.StoryRunner = class {
           this.game.ui.hideDialogueBox();
         }
         console.log(`StoryRunner: Travel required to ${targetLoc} for scene "${target}". Entering city exploration.`);
-        this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.game.currentPhase === 'DIALOGUE' });
+        this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.phaseIs('DIALOGUE') });
 
         // Show choice.prose as thought bubbles AFTER entering city map, with a short delay
         let thoughtDelay = 600;
         for (const line of choiceProse) {
-          const lineTime = Math.max(3200, line.length * 40);
+          const lineTime = Math.max(1400, line.length * 22);
           setTimeout(() => {
             if (this.game.ui && this.game.ui.spawnWandererThought) {
               this.game.ui.spawnWandererThought(line, lineTime);
@@ -543,29 +637,24 @@ window.FFH.StoryRunner = class {
           }, 400);
         }
       } else {
-        // Same-location: show choice prose as thought bubbles then chain to next scene
+        // Same-location: play the choice's reaction prose, then chain onward.
+        // This runs through playProseQueue so the lines are tap-advanceable like
+        // every other narration. It used to schedule fixed timers via
+        // spawnWandererThought, which meant up to five seconds of dead air
+        // between picking an option and the next choices appearing, with
+        // nothing on screen responding to taps.
+        if (this.game.ui && this.game.ui.hideDialogueBox) {
+          this.game.ui.hideDialogueBox();
+        }
         if (choiceProse.length > 0) {
-          let delay = 0;
-          if (this.game.ui && this.game.ui.hideDialogueBox) {
-            this.game.ui.hideDialogueBox();
-          }
-          for (const line of choiceProse) {
-            const lineTime = Math.max(3000, line.length * 40);
-            setTimeout(() => {
-              if (this.game.ui && this.game.ui.spawnWandererThought) {
-                this.game.ui.spawnWandererThought(line, lineTime);
-              }
-            }, delay);
-            delay += lineTime + 300;
-          }
-          setTimeout(() => this.startScene(target), delay);
+          this.playProseQueue(choiceProse, () => this.startScene(target));
         } else {
           this.startScene(target);
         }
       }
     } else {
       console.log('StoryRunner: Flow reached leaf or hub. Transitioning to city exploration.');
-      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.game.currentPhase === 'DIALOGUE' });
+      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.phaseIs('DIALOGUE') });
     }
   }
 };

@@ -19,8 +19,8 @@ window.FFH.MechanicInterceptor = class MechanicInterceptor {
         npcKey: null,
         titleBadge: 'ENTRANCE',
         title: 'Apartment Buzzer',
-        text: 'The buzzer panel has three names on it and no numbers. Which one is Nico?',
-        note: 'Ring the correct bell to enter.',
+        text: 'Three names on the buzzer. No apartment numbers.',
+        note: 'None of them says Nico.',
         choices: [
           {
             label: 'MEIER',

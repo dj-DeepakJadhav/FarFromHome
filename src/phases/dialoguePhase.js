@@ -60,15 +60,18 @@ window.FFH.DialoguePhase = class {
       this.npcGroup = null;
     }
 
-    // 1. Hide City Explorer UI and scene elements
-    const hud = document.getElementById('hud');
-    if (hud) hud.style.display = 'none';
+    // 1. Hide City Explorer scene elements.
+    // HUD visibility is owned by Game.syncHudVisibility(); do not hide it here.
 
+    // A threshold scene (stage.space === 'threshold') happens at a door the
+    // player has not been admitted through, so the city stays visible behind
+    // the speaker. Interior scenes hide it and commit to the room diorama.
+    this.atThreshold = !!params.atThreshold;
     if (this.game.phases.CITY_EXPLORATION.worldGroup) {
-      this.game.phases.CITY_EXPLORATION.worldGroup.visible = false;
+      this.game.phases.CITY_EXPLORATION.worldGroup.visible = this.atThreshold;
     }
     if (this.game.phases.CITY_EXPLORATION.courier) {
-      this.game.phases.CITY_EXPLORATION.courier.visible = false;
+      this.game.phases.CITY_EXPLORATION.courier.visible = this.atThreshold;
     }
 
     this.targetNpcKey = params.isDelivery ? 'NPC_DELIVERY_CUSTOMER' : (params.npcKey || 'NPC_RITA');

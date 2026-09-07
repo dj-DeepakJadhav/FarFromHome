@@ -119,6 +119,48 @@ Object.assign(window.FFH.UI.prototype, {
     }
   },
 
+  // "Skip intro" appears only while the prologue is playing, which is a normal
+  // affordance a first-time player already understands. It is deliberately not
+  // on the main menu: a "start at shift 1" button there asks a new player to
+  // choose without any context.
+  showSkipIntro() {
+    if (document.getElementById('ffh-skip-intro')) return;
+    const parent = document.getElementById('game-container') || document.body;
+    const el = document.createElement('button');
+    el.id = 'ffh-skip-intro';
+    el.textContent = 'Skip intro \u203A';
+    el.style.cssText = `
+      position: absolute;
+      right: 10px;
+      bottom: 12px;
+      z-index: 99998;
+      background: rgba(18, 24, 38, 0.72);
+      color: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    `;
+    el.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (this.game && this.game.startFirstShift) {
+        this.game.startFirstShift();
+      }
+    });
+    parent.appendChild(el);
+  },
+
+  hideSkipIntro() {
+    const el = document.getElementById('ffh-skip-intro');
+    if (el) el.remove();
+  },
+
   showTutorialBanner(text, color = '#E76F51', duration = 4000) {
     // If the city quest text is present, update it directly with a highlight pulse so there is zero UI overlapping
     const questTextEl = document.getElementById('city-quest-text');
@@ -226,7 +268,7 @@ Object.assign(window.FFH.UI.prototype, {
 
     const el = document.createElement('div');
     el.id = 'ffh-thought-bubble';
-    el.innerHTML = `<span style="opacity:0.8; margin-right:4px;">💭</span><em id="thought-bubble-text" style="font-style:italic;"></em>`;
+    el.innerHTML = `<em id="thought-bubble-text" style="font-style:italic;"></em>`;
     
     const container = document.getElementById('game-container') || document.body;
     const contW = container.clientWidth || 390;
@@ -280,7 +322,8 @@ Object.assign(window.FFH.UI.prototype, {
       letter-spacing: 0.2px;
       line-height: 1.4;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-      pointer-events: none;
+      pointer-events: auto;
+      cursor: pointer;
       z-index: 99999;
       opacity: 0;
       transition: opacity 0.3s ease-out, transform 0.3s ease-out;
@@ -290,6 +333,18 @@ Object.assign(window.FFH.UI.prototype, {
       overflow-wrap: break-word;
       text-align: center;
     `;
+    // Narration is skippable. The bubble used to be pointer-events:none, so a
+    // player could not dismiss a line at all and act_one was 37s of dead air.
+    el.addEventListener('pointerdown', (ev) => {
+      ev.stopPropagation();
+      if (window.FFH && typeof window.FFH.advanceProse === 'function') {
+        window.FFH.advanceProse();
+      } else {
+        if (el._typewriterTimer) clearInterval(el._typewriterTimer);
+        el.remove();
+      }
+    });
+
     container.appendChild(el);
 
     requestAnimationFrame(() => {

@@ -132,7 +132,7 @@ window.FFH.StoryGraph = [
               city.startBuildingExit && city.startBuildingExit();
               if (game.ui && game.ui.spawnWandererThought) {
                 setTimeout(() => {
-                  game.ui.spawnWandererThought("The sun is going down. The city looks dead pretty in this golden light. Still completely broke, of course, but the scenery is lovely.");
+                  game.ui.spawnWandererThought("Still broke. Nice light, though.");
                 }, 1200);
               }
             }

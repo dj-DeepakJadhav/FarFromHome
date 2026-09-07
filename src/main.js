@@ -229,10 +229,53 @@ class GameEngine {
         }
       }
 
+      // The state machine is the single owner of HUD visibility.
+      // Phases used to hide #hud themselves and never restore it, so the day
+      // counter, wallet and objective vanished for the rest of the session on
+      // the first conversation. Do not reintroduce per-phase display toggles.
+      this.syncHudVisibility(phaseKey);
+
       // Update the HUD after transitioning, so it shows the correct state
       if (this.ui && this.ui.updatePersistentHUD) {
         this.ui.updatePersistentHUD(this.state);
       }
+    }
+  }
+
+  // Phases where the player is inside the run and needs the economy readout.
+  // BOOT / WIN / LOSE own the whole screen and suppress it.
+  syncHudVisibility(phaseKey) {
+    const hidden = (phaseKey === 'BOOT' || phaseKey === 'WIN' || phaseKey === 'LOSE');
+    const hud = document.getElementById('hud');
+    if (hud) hud.style.display = hidden ? 'none' : '';
+    const persistent = document.getElementById('persistent-hud');
+    if (persistent) persistent.style.display = hidden ? 'none' : '';
+  }
+
+  // Begin a fresh run at Shift 1, bypassing Act I. Reached two ways, neither of
+  // which puts a bypass on the main menu: the "Skip intro" affordance that
+  // appears while the prologue is playing, and the ?quickstart=1 URL parameter
+  // (used for the submission link, invisible to a normal player).
+  startFirstShift() {
+    this.state = window.FFH.createRunState();
+    window.FFH.state = this.state;
+    this.state.currentShift = 1;
+    this.state.day = 1;
+    if (window.FFH.resetShiftState) {
+      window.FFH.resetShiftState(this.state);
+    }
+    if (this.ui) {
+      this.ui.hideSkipIntro && this.ui.hideSkipIntro();
+      this.ui.clear();
+    }
+    this.clearTitleDiorama();
+
+    // shift_1_teach is mode:gameplay, so StoryRunner transitions to PICK and
+    // supplies the ramp delay. Falling back to a bare PICK loses that.
+    if (this.storyRunner) {
+      this.storyRunner.startScene('shift_1_teach');
+    } else {
+      this.transitionTo('PICK');
     }
   }
 
@@ -340,4 +383,16 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.FFH_GAME = game;
   window.game = game;
   game.init();
+
+  // ?quickstart=1 opens directly on Shift 1. This exists so the submission
+  // link can land a reviewer in the core loop without putting a bypass button
+  // on the main menu, where it would confuse a first-time player.
+  try {
+    if (new URLSearchParams(window.location.search).get('quickstart') === '1') {
+      setTimeout(() => {
+        game.unlockAudio();
+        game.startFirstShift();
+      }, 300);
+    }
+  } catch (e) { /* no URLSearchParams support: fall through to the title screen */ }
 });

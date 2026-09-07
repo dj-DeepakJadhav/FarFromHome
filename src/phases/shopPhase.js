@@ -170,7 +170,8 @@ window.FFH.ShopPhase = class {
         </div>
       </div>
 
-      <div style="font-size: 11px; font-weight: 900; color: #264653; margin-top: 2px;">🚴 EQUIPMENT & GEAR DIRECTORY:</div>
+      <div style="font-size: 11px; font-weight: 900; color: #264653; margin-top: 2px;">YOUR GEAR</div>
+      <div style="font-size: 9.5px; color: #666; font-weight: 700; margin-top: -2px;">Bought at the shop that stocks it, not from here.</div>
       <div id="shop-items-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
       <button id="btn-room-skills" style="
         width: 100%;
@@ -247,8 +248,13 @@ window.FFH.ShopPhase = class {
         <div style="font-size: 9.5px; color: #E76F51; font-weight: 800; margin-top: 3px;">📍 ${isOwned ? 'Equipped in Room' : `Available at: ${locName}`}</div>
       `;
       
-      const btn = document.createElement('div');
-      btn.textContent = isOwned ? "EQUIPPED" : `€${upg.cost.toFixed(2)}`;
+      // Gear is bought at the shop that stocks it, not from the dorm. This row
+      // used to render a price on a plain div with no handler at all, so the
+      // whole upgrade catalog looked purchasable and silently was not. It is
+      // now explicitly a directory: owned gear reads as equipped, unowned gear
+      // routes you to the POI that sells it.
+      const btn = document.createElement('button');
+      btn.textContent = isOwned ? 'EQUIPPED' : 'FIND IT';
       btn.style.cssText = `
         padding: 6px 10px;
         border-radius: 6px;
@@ -260,7 +266,24 @@ window.FFH.ShopPhase = class {
         box-shadow: 0 2px 0 #264653;
         flex-shrink: 0;
         text-align: center;
+        cursor: ${isOwned ? 'default' : 'pointer'};
       `;
+
+      if (!isOwned) {
+        btn.onclick = () => {
+          state.activeObjective = `Buy the ${name} at ${locName}`;
+          if (this.game.sfx) this.game.sfx.playSfx('click');
+          if (this.game.ui && this.game.ui.spawnFloatingText) {
+            this.game.ui.spawnFloatingText(
+              `${name}: ${locName}`,
+              window.innerWidth / 2, window.innerHeight / 2, '#E76F51'
+            );
+          }
+          if (this.game.ui && this.game.ui.updatePersistentHUD) {
+            this.game.ui.updatePersistentHUD(state);
+          }
+        };
+      }
 
       row.appendChild(info);
       row.appendChild(btn);

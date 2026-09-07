@@ -25,7 +25,13 @@ window.FFH.AudioEngine = class {
     }
     
     const now = this.ctx.currentTime;
-    
+
+    // Alias legacy / misspelled keys onto real sounds. Seven call sites asked
+    // for 'wrong' and 'doorbell_wrong', which were never implemented here, so
+    // every one of those failure events played in silence.
+    const ALIASES = { wrong: 'error', doorbell_wrong: 'error' };
+    if (ALIASES[type]) type = ALIASES[type];
+
     if (type === 'success') {
       // Pleasant coin chime
       const osc = this.ctx.createOscillator();

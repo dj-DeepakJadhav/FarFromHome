@@ -152,131 +152,138 @@ Object.assign(window.FFH.UI.prototype, {
       padding: 25px 20px 35px 20px;
       box-sizing: border-box;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: radial-gradient(circle at 50% 40%, rgba(13, 27, 42, 0) 0%, rgba(13, 27, 42, 0.25) 50%, rgba(13, 27, 42, 0.8) 100%);
+      background: radial-gradient(circle at 50% 42%, rgba(13, 27, 42, 0.18) 0%, rgba(13, 27, 42, 0.45) 55%, rgba(13, 27, 42, 0.88) 100%);
     `;
 
     bootDiv.innerHTML = `
       <style>
         .astryx-btn {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-          transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+          transition: transform 0.12s ease, box-shadow 0.12s ease;
         }
-        .astryx-btn:active {
-          transform: scale(0.96) !important;
-          opacity: 0.8 !important;
+        .ffh-chunk {
+          border: 3px solid #14213D;
+          border-radius: 14px;
+          font-weight: 800;
+          letter-spacing: 1.2px;
+          text-transform: uppercase;
+          cursor: pointer;
+          width: 100%;
+          padding: 15px 18px;
+          font-size: 15px;
+        }
+        .ffh-chunk:active {
+          transform: translateY(4px) !important;
+          box-shadow: 0 1px 0 #14213D !important;
+        }
+        .ffh-primary { background: #F6BD60; color: #14213D; box-shadow: 0 5px 0 #14213D; }
+        .ffh-secondary { background: #FFFFFF; color: #14213D; box-shadow: 0 5px 0 #14213D; }
+        .ffh-ghost {
+          background: rgba(20, 33, 61, 0.72);
+          color: #FFFFFF;
+          border: 2px solid rgba(255,255,255,0.42);
+          box-shadow: none;
+          font-size: 13px;
+          padding: 11px 18px;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
         }
       </style>
 
-      <div style="pointer-events: none; text-align: center; margin-bottom: 70px; flex-shrink: 0;">
-        <h1 style="
-          color: #1D3557;
-          -webkit-text-stroke: 2px #FFFFFF;
-          font-size: 54px;
-          font-weight: 700;
-          margin: 0;
-          letter-spacing: 6px;
-          text-transform: uppercase;
-          line-height: 1.15;
-          text-shadow: 0 16px 32px rgba(29, 53, 87, 0.4);
-        ">FAR FROM<br>HOME</h1>
+      <button id="btn-sound" class="astryx-btn" title="Sound" style="
+        pointer-events: auto;
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border-radius: 50%;
+        background: rgba(20, 33, 61, 0.55);
+        border: 2px solid rgba(255,255,255,0.35);
+        color: #FFFFFF;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 20;
+      "></button>
+
+      <div style="pointer-events: none; text-align: center; margin-bottom: 46px; flex-shrink: 0;">
+        <div style="
+          display: inline-block;
+          background: #14213D;
+          border: 3px solid #FFFFFF;
+          border-radius: 16px;
+          padding: 14px 22px 12px 22px;
+          box-shadow: 0 8px 0 rgba(0,0,0,0.28);
+        ">
+          <h1 style="
+            color: #FFFFFF;
+            font-size: 40px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            line-height: 1.05;
+          ">Far From<br>Home</h1>
+          <div style="
+            margin-top: 9px;
+            color: #F6BD60;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 3.5px;
+            text-transform: uppercase;
+          ">Kruma Express</div>
+
+          <div style="
+            margin: 12px auto 0 auto;
+            width: 46px;
+            height: 2px;
+            background: rgba(255,255,255,0.28);
+          "></div>
+
+          <div style="
+            margin-top: 11px;
+            color: rgba(255,255,255,0.92);
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.65;
+            letter-spacing: 0.2px;
+          ">Twenty euros. Twenty eight days.<br>One very German city.</div>
+        </div>
       </div>
 
       <div style="
         pointer-events: auto;
         z-index: 10;
-        width: 260px;
+        width: 250px;
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
+        gap: 11px;
       ">
-        <div id="continue-row" style="display: none; flex-direction: row; gap: 8px; width: 100%;">
-          <button id="btn-continue" class="astryx-btn" style="
-            display: block;
-            background: rgba(255, 255, 255, 0.95);
-            color: #000000;
-            border: none;
-            padding: 15px 20px;
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
-            flex: 1;
-          ">Continue</button>
-
-          <button id="btn-load-slots" class="astryx-btn" title="Select Save Slot" style="
-            display: block;
-            background: #2EC4B6;
-            color: #FFFFFF;
-            border: none;
-            border-radius: 12px;
-            padding: 15px 14px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          ">💾 Slots</button>
-
-          <button id="btn-delete-save" title="Wipe save & start fresh" class="astryx-btn" style="
-            display: none;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            color: #FFFFFF;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            width: 44px;
-            min-width: 44px;
-            font-size: 18px;
-            cursor: pointer;
-            flex-shrink: 0;
-            padding: 0;
-          ">🗑️</button>
+        <div id="continue-row" style="display: none; flex-direction: column; gap: 11px; width: 100%;">
+          <button id="btn-continue" class="astryx-btn ffh-chunk ffh-primary">Continue</button>
+          <button id="btn-load-slots" class="astryx-btn ffh-chunk ffh-ghost">Load Game</button>
         </div>
 
-        <button id="btn-new-game" class="astryx-btn" style="
-          background: rgba(255, 255, 255, 0.95);
-          color: #000000;
-          border: none;
-          padding: 15px 20px;
-          font-size: 15px;
-          font-weight: 600;
-          letter-spacing: 1px;
-          border-radius: 12px;
-          cursor: pointer;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
-          width: 100%;
-        ">New Game</button>
-        
-        <button id="btn-sound" class="astryx-btn" style="
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          color: #FFFFFF;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          padding: 14px 20px;
-          font-size: 14px;
-          font-weight: 500;
-          border-radius: 12px;
-          cursor: pointer;
-          width: 100%;
-          letter-spacing: 0.5px;
-        ">Sound: On</button>
+        <button id="btn-new-game" class="astryx-btn ffh-chunk ffh-secondary">New Game</button>
       </div>
 
       <div style="
         pointer-events: none;
         position: absolute;
-        bottom: 24px;
+        bottom: 22px;
         left: 0;
         right: 0;
         text-align: center;
-        font-size: 10px;
-        color: rgba(255,255,255,0.3);
-        font-weight: 500;
-        letter-spacing: 1px;
+        font-size: 9.5px;
+        color: rgba(255,255,255,0.42);
+        font-weight: 600;
+        letter-spacing: 1.2px;
       ">Meta Horizon Creator Competition 2026</div>
     `;
 
@@ -288,11 +295,22 @@ Object.assign(window.FFH.UI.prototype, {
     const btnDeleteSave = document.getElementById('btn-delete-save');
     const continueRow = document.getElementById('continue-row');
 
-    // Show continue row only if a save exists
-    if (localStorage.getItem('FFH_SAVE_GAME') || localStorage.getItem('FFH_SAVE_SLOT_1') || localStorage.getItem('FFH_SAVE_SLOT_2') || localStorage.getItem('FFH_SAVE_SLOT_3')) {
-      continueRow.style.display = 'flex';
-      btnDeleteSave.style.display = 'block';
+    // Continue and Load Game only exist once there is something to load.
+    // With no save, New Game becomes the primary (gold) action instead of the
+    // secondary one, so the front door always has exactly one obvious button.
+    // Wiping a save lives per-slot inside the Load Game modal, which is where
+    // a player looks for it; a trash can on the main menu read as a dev tool.
+    const hasSave = !!(localStorage.getItem('FFH_SAVE_GAME')
+      || localStorage.getItem('FFH_SAVE_SLOT_1')
+      || localStorage.getItem('FFH_SAVE_SLOT_2')
+      || localStorage.getItem('FFH_SAVE_SLOT_3'));
+    if (hasSave) {
+      if (continueRow) continueRow.style.display = 'flex';
+    } else if (btnNewGame) {
+      btnNewGame.classList.remove('ffh-secondary');
+      btnNewGame.classList.add('ffh-primary');
     }
+    if (btnDeleteSave) btnDeleteSave.style.display = 'none';
 
     const btnLoadSlots = document.getElementById('btn-load-slots');
     if (btnLoadSlots) {
@@ -345,14 +363,6 @@ Object.assign(window.FFH.UI.prototype, {
     }
 
     if (btnNewGame) {
-      btnNewGame.addEventListener('mousedown', () => {
-        btnNewGame.style.transform = 'translateY(4px)';
-        btnNewGame.style.boxShadow = '0 2px 0 #9E7D1A, 0 4px 6px rgba(0,0,0,0.2)';
-      });
-      btnNewGame.addEventListener('mouseup', () => {
-        btnNewGame.style.transform = 'none';
-        btnNewGame.style.boxShadow = '0 6px 0 #9E7D1A, 0 8px 10px rgba(0,0,0,0.25)';
-      });
       btnNewGame.addEventListener('click', () => {
         ensureMusicStarted();
         this.game.sfx.playSfx('success');
@@ -417,6 +427,8 @@ Object.assign(window.FFH.UI.prototype, {
               if (this.game.storyRunner) {
                 this.game.storyRunner.startScene('act_one');
               }
+              // Offer the skip only once the prologue is actually running.
+              if (this.showSkipIntro) this.showSkipIntro();
             }
           };
 
@@ -426,14 +438,6 @@ Object.assign(window.FFH.UI.prototype, {
     }
 
     if (btnContinue) {
-      btnContinue.addEventListener('mousedown', () => {
-        btnContinue.style.transform = 'translateY(4px)';
-        btnContinue.style.boxShadow = '0 2px 0 #1A56C0, 0 4px 6px rgba(0,0,0,0.2)';
-      });
-      btnContinue.addEventListener('mouseup', () => {
-        btnContinue.style.transform = 'none';
-        btnContinue.style.boxShadow = '0 6px 0 #1A56C0, 0 8px 10px rgba(0,0,0,0.25)';
-      });
       btnContinue.addEventListener('click', () => {
         ensureMusicStarted();
         this.game.sfx.playSfx('success');
@@ -507,9 +511,17 @@ Object.assign(window.FFH.UI.prototype, {
     }
     
     if (btnSound) {
+      // Inline SVG rather than an emoji, so it inherits colour and stays crisp.
       const updateBtnSoundText = () => {
         const isMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted && window.FFH.CONFIG?.audio?.sfxMuted);
-        btnSound.innerText = isMuted ? 'Sound: Off' : 'Sound: On';
+        const speaker = '<path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor"/>';
+        const waves = '<path d="M16 8.5a4 4 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
+        const slash = '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
+        btnSound.innerHTML =
+          '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">'
+          + speaker + (isMuted ? slash : waves) + '</svg>';
+        btnSound.style.opacity = isMuted ? '0.55' : '1';
+        btnSound.setAttribute('aria-label', isMuted ? 'Sound off' : 'Sound on');
       };
       updateBtnSoundText();
       btnSound.addEventListener('click', () => {
@@ -539,7 +551,8 @@ Object.assign(window.FFH.UI.prototype, {
         window.FFH.setShaderStyle(e.target.value);
       });
     }
-  },
+  }
+,
 
   showWinScreen() {
     this.clear();
@@ -608,7 +621,8 @@ Object.assign(window.FFH.UI.prototype, {
     document.getElementById('btn-restart').addEventListener('click', () => {
       window.location.reload();
     });
-  },
+  }
+,
 
   showLoseScreen() {
     const s = this.game.state;

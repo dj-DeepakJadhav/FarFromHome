@@ -67,7 +67,7 @@ window.FFH.handleCityBuildingInteraction = function(phase, poiType) {
     if (poiType === 'B_ZOB' || poiType.includes('ZOB') || poiType.includes('Station')) {
       if (this.game.ui && this.game.ui.spawnWandererThought) {
         this.game.ui.spawnWandererThought(
-          "Bus Timetable: 'No buses inside town center. Walk.' Brilliant. Welcome to Germany, mate. Drag your 25kg suitcase across the cobblestones."
+          "The timetable says no buses in the town centre. Walk."
         );
       }
       cancelAndExit();

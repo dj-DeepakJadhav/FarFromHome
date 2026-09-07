@@ -343,7 +343,11 @@ window.FFH.PickPhase = class {
     
     // Spawn floating score / combo text
     const streakLabel = state.streak > 1 ? ` (x${window.FFH.streakMultiplier(state.streak).toFixed(1)})` : '';
-    const labelText = isEarly ? `gehört! +${itemDef.nameDe}!${streakLabel}` : `+${itemDef.nameDe}!${streakLabel}`;
+    // English-first, no emoji. "gehört!" was a leftover from the abandoned
+    // audio-cue design and nameDe alone broke the zero-language-burden rule.
+    const labelText = isEarly
+      ? `EARLY  +${itemDef.nameEn}${streakLabel}`
+      : `+${itemDef.nameEn}${streakLabel}`;
     const labelColor = isEarly ? '#FFD700' : '#2A9D8F';
     this.game.ui.spawnFloatingText(labelText, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, labelColor);
 
@@ -402,7 +406,7 @@ window.FFH.PickPhase = class {
 
     this.game.sfx.playSfx('error');
     this.game.particles.spawnErrorSparks(mesh.position.x, mesh.position.y, mesh.position.z);
-    this.game.ui.spawnFloatingText(`❌ FALSCH! (-${window.FFH.ECONOMY.MISPICK_INTEGRITY_COST}%)`, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, '#E63946');
+    this.game.ui.spawnFloatingText(`Wrong shelf  (-${window.FFH.ECONOMY.MISPICK_INTEGRITY_COST}%)`, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, '#E63946');
     this.shakeItem(mesh);
     this.game.ui.showWarehouseManifest();
   }
