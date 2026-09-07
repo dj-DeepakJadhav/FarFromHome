@@ -303,9 +303,11 @@ Object.assign(window.FFH.UI.prototype, {
 
     // Delete save: tap once to arm (turns red), tap again to confirm wipe
     let deleteSaveArmed = false;
-    // Ensure background music starts on first user touch/click gesture on boot screen
+    // Ensure background music & audio contexts start on first user touch/click gesture on boot screen
     const ensureMusicStarted = () => {
-      if (this.game && this.game.sfx && typeof this.game.sfx.startMusic === 'function') {
+      if (this.game && typeof this.game.unlockAudio === 'function') {
+        this.game.unlockAudio();
+      } else if (this.game && this.game.sfx && typeof this.game.sfx.startMusic === 'function') {
         this.game.sfx.startMusic();
       }
     };
@@ -331,8 +333,8 @@ Object.assign(window.FFH.UI.prototype, {
             }
           }, 2000);
         } else {
-          // Confirmed (wipe save
-          localStorage).removeItem('FFH_SAVE_GAME');
+          // Confirmed (wipe save)
+          localStorage.removeItem('FFH_SAVE_GAME');
           if (this.game.sfx) this.game.sfx.playSfx('wrong');
           continueRow.style.display = 'none';
           // Flash the new game button as a hint
@@ -505,18 +507,29 @@ Object.assign(window.FFH.UI.prototype, {
     }
     
     if (btnSound) {
-      let soundEnabled = true;
+      const updateBtnSoundText = () => {
+        const isMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted && window.FFH.CONFIG?.audio?.sfxMuted);
+        btnSound.innerText = isMuted ? 'Sound: Off' : 'Sound: On';
+      };
+      updateBtnSoundText();
       btnSound.addEventListener('click', () => {
         ensureMusicStarted();
-        soundEnabled = !soundEnabled;
-        btnSound.innerText = soundEnabled ? 'SOUND: ON' : 'SOUND: OFF';
-        if (this.game.sfx) {
-          this.game.sfx.muted = !soundEnabled;
-          if (this.game.sfx.musicEl) {
-            this.game.sfx.musicEl.muted = !soundEnabled;
+        const currentlyMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted && window.FFH.CONFIG?.audio?.sfxMuted);
+        const nextMuted = !currentlyMuted;
+        if (this.game) {
+          if (this.game.sfx) {
+            if (typeof this.game.sfx.setMusicMuted === 'function') {
+              this.game.sfx.setMusicMuted(nextMuted);
+            }
+            if (typeof this.game.sfx.setSfxMuted === 'function') {
+              this.game.sfx.setSfxMuted(nextMuted);
+            }
+          }
+          if (this.game.speech) {
+            this.game.speech.muted = nextMuted;
           }
         }
-        if (this.game.speech) this.game.speech.muted = !soundEnabled;
+        updateBtnSoundText();
       });
     }
 

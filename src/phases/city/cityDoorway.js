@@ -141,7 +141,7 @@ window.FFH.CityDoorway = class {
       this.activeDoorPoi = activePoiKey;
 
       // Respect CONFIG.ui.doorBeaconEnabled (false hides all 3D beacon visuals
-      const compassEnabled)= window.FFH.CONFIG?.ui?.doorBeaconEnabled ?? true;
+      const compassEnabled = window.FFH.CONFIG?.ui?.doorBeaconEnabled ?? true;
       this.doorwayBeacon.visible = compassEnabled;
       this.doorwayBeacon.position.set(doorPos.x, 0.05, doorPos.z);
 

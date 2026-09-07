@@ -1063,8 +1063,8 @@ Object.assign(window.FFH.UI.prototype, {
   },
 
   showPOICard(poiData) {
-    // Disabled (no POI location card popups ever appear
-    const card)= document.getElementById('city-poi-card');
+    // Disabled (no POI location card popups ever appear)
+    const card = document.getElementById('city-poi-card');
     if (card) card.style.display = 'none';
   },
 

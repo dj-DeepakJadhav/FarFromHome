@@ -45,8 +45,8 @@ window.FFH.createCourierCharacter = function () {
   // Procedural body setup
   const proceduralGroup = new THREE.Group();
 
-  // Torso / hoodie (slightly tapered box reads as a jacket from behind
-  const torso)= new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.26), mat(CHAR_COLORS.jacket));
+  // Torso
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.26), mat(CHAR_COLORS.jacket));
   torso.position.y = 1.09;
   proceduralGroup.add(torso);
 
@@ -86,7 +86,7 @@ window.FFH.createCourierCharacter = function () {
   proceduralGroup.add(armR);
 
   // Skirt (cone frustum flares like the reference
-  const skirt)= new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.3, 12), mat(CHAR_COLORS.skirt));
+  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.3, 12), mat(CHAR_COLORS.skirt));
   skirt.position.y = 0.72;
   proceduralGroup.add(skirt);
 

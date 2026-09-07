@@ -6,6 +6,9 @@ window.FFH.AudioEngine = class {
     this.motorGain = null;
     this.ambienceNodes = null;
     this.bgmTimer = null;
+    this.muted = false;
+    this.musicEl = null;
+    this._currentMusicSrc = null;
   }
   
   init() {
@@ -326,11 +329,13 @@ window.FFH.AudioEngine = class {
     this.startAmbience(type === 'night');
   }
 
+  isMusicPlaying() {
+    return !!(this.musicEl && !this.musicEl.paused && !this.musicEl.ended);
+  }
+
   // Background music track (mp3). Separate HTMLAudio element so it never
   // fights the procedural Web Audio SFX. Release build plays the inlined
   // data URI (window.FFH.musicDataUri); dev plays MUSIC.src over HTTP.
-  // Browsers block audio before a user gesture, so call startMusic() from
-  // a pointer/key event (wired in main.js init).
   startMusic() {
     const audioCfg = (window.FFH.CONFIG && window.FFH.CONFIG.audio) || {};
     const musicCfg = window.FFH.MUSIC || {};
@@ -338,10 +343,11 @@ window.FFH.AudioEngine = class {
     const src = window.FFH.musicDataUri || audioCfg.bgMusicSrc || musicCfg.src;
     if (!src) return;
 
-    if (!this.musicEl || this.musicEl.src !== src) {
+    if (!this.musicEl || this._currentMusicSrc !== src) {
       if (this.musicEl) {
         try { this.musicEl.pause(); } catch (e) {}
       }
+      this._currentMusicSrc = src;
       this.musicEl = new Audio(src);
     }
 
@@ -354,7 +360,10 @@ window.FFH.AudioEngine = class {
     this.musicEl.muted = isMuted;
 
     if (!isMuted && this.musicEl.paused) {
-      this.musicEl.play().catch(() => {});
+      const p = this.musicEl.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {});
+      }
     }
   }
 

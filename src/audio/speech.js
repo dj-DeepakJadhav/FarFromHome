@@ -25,12 +25,18 @@ window.FFH.SpeechEngine = class SpeechEngine {
       'NPC_ANKE': { pitch: 1.04, filterFreq: 3300, blipBase: 300, type: 'sine' },
       'NPC_DELIVERY_CUSTOMER': { pitch: 1.00, filterFreq: 2100, blipBase: 240, type: 'triangle' }
     };
+    this.muted = false;
+  }
+
+  setMuted(isMuted) {
+    this.muted = !!isMuted;
   }
 
   // Retro typewriter talk-blip customized per character (Animal Crossing / Celeste style)
   playTalkBlip(npcKey = null) {
+    if (this.muted || (window.FFH.CONFIG && window.FFH.CONFIG.audio && window.FFH.CONFIG.audio.sfxMuted)) return;
     if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+      this.audioContext.resume().catch(() => {});
     }
     const profile = (npcKey && this.characterProfiles[npcKey]) ? this.characterProfiles[npcKey] : { blipBase: 260, type: 'triangle' };
     const now = this.audioContext.currentTime;
@@ -55,8 +61,9 @@ window.FFH.SpeechEngine = class SpeechEngine {
 
   // Play pleasant acoustic preview chime for dialogue option selection
   playOptionChime(idx = 0) {
+    if (this.muted || (window.FFH.CONFIG && window.FFH.CONFIG.audio && window.FFH.CONFIG.audio.sfxMuted)) return;
     if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+      this.audioContext.resume().catch(() => {});
     }
     const now = this.audioContext.currentTime;
     const osc = this.audioContext.createOscillator();

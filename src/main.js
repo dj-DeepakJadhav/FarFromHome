@@ -82,20 +82,34 @@ class GameEngine {
     this.animate = this.animate.bind(this);
     this.animate();
 
-    // Attach one-time global user gesture listener to unlock background music playback
-    const startAudioOnGesture = () => {
-      if (this.sfx && typeof this.sfx.startMusic === 'function') {
-        this.sfx.startMusic();
-      }
-      window.removeEventListener('pointerdown', startAudioOnGesture);
-      window.removeEventListener('keydown', startAudioOnGesture);
-      window.removeEventListener('touchstart', startAudioOnGesture);
+    // Attach unlock audio listeners (both immediate boot attempt and on-gesture unlock)
+    this.unlockAudio();
+    const handleGesture = () => {
+      this.unlockAudio();
     };
-    window.addEventListener('pointerdown', startAudioOnGesture);
-    window.addEventListener('keydown', startAudioOnGesture);
-    window.addEventListener('touchstart', startAudioOnGesture);
+    window.addEventListener('pointerdown', handleGesture, { passive: true });
+    window.addEventListener('keydown', handleGesture, { passive: true });
+    window.addEventListener('touchstart', handleGesture, { passive: true });
+    window.addEventListener('click', handleGesture, { passive: true });
 
     this.resize();
+  }
+
+  unlockAudio() {
+    if (this.sfx) {
+      if (typeof this.sfx.init === 'function') {
+        this.sfx.init();
+      }
+      if (this.sfx.ctx && this.sfx.ctx.state === 'suspended') {
+        this.sfx.ctx.resume().catch(() => {});
+      }
+      if (typeof this.sfx.startMusic === 'function') {
+        this.sfx.startMusic();
+      }
+    }
+    if (this.speech && this.speech.audioContext && this.speech.audioContext.state === 'suspended') {
+      this.speech.audioContext.resume().catch(() => {});
+    }
   }
 
   initZoomControls() {

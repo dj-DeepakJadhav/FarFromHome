@@ -29,13 +29,17 @@ window.FFH.CONFIG = {
     bgMusicSrc: 'assets/Music/bgMusic.mp3',
 
     // Volume level: 0.0 (silent) to 1.0 (max volume). Default: 0.35
-    bgMusicVolume: 0.2,
+    bgMusicVolume: 0.35,
 
     // Replay music in a continuous loop
     bgMusicLoop: true,
 
     // Automatically start background music on first user interaction
-    bgMusicAutoPlay: true
+    bgMusicAutoPlay: true,
+
+    // Sound states
+    bgMusicMuted: false,
+    sfxMuted: false
   },
 
   // ----------------------------------------------------------
@@ -53,10 +57,10 @@ window.FFH.CONFIG = {
     // Range: [minZoom .. maxZoom]  |  Tested sweet-spot: 2.4 ,  3.2
     defaultZoom:  2.88,
 
-    // Minimum zoom (pinch-out / scroll-out limit) (wide overview
-    minZoom):      1.0,
+    // Minimum zoom (pinch-out / scroll-out limit) (wide overview)
+    minZoom:      1.0,
 
-    // Maximum zoom (pinch-in / scroll-in limit) (very close over)-the-shoulder
+    // Maximum zoom (pinch-in / scroll-in limit) (very close over-the-shoulder)
     maxZoom: 2.0,
 
     // Fixed Miniature mode: set false to allow free camera rotation (Q/E keys & pointer drag)

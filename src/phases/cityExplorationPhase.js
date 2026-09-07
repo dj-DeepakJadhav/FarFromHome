@@ -1337,7 +1337,7 @@ window.FFH.CityExplorationPhase = class {
       if (this.navPathGroup) {
         if (!chevronsEnabled) {
           // Disabled (hide group and all individual children immediately
-          this).navPathGroup.visible = false;
+          this.navPathGroup.visible = false;
           if (this.navChevronPool) {
             for (let i = 0; i < this.navChevronPool.length; i++) {
               this.navChevronPool[i].visible = false;
