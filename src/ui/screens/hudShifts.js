@@ -24,10 +24,28 @@ Object.assign(window.FFH.UI.prototype, {
       if (it.revealed || it.packed) itemCounts[it.id].revealed = true;
     });
 
-    const uniqueItems = Object.values(itemCounts).filter(it => it.promptStarted || it.revealed || it.packedCount > 0);
-    
+    // Shift 1 is the TEACH stage: the rail and the icon arrive together, so
+    // there is nothing to anticipate and no reason to hide the rest of the
+    // order. Showing the whole manifest gives the player something to plan
+    // with on their first contact with the mechanic. From shift 2 the ramp
+    // takes over and items reveal progressively, which is the actual gag.
+    // Key off the icon delay the pick phase is actually using, not off
+    // currentShift. Act I is one economic shift shown in three ramp stages, so
+    // currentShift stays 1 across all three; keying on it would have shown the
+    // full manifest during the anticipation stages and killed the ramp.
+    const pick = this.game.phases && this.game.phases.PICK;
+    const storyDelay = pick && pick.currentStoryParams ? pick.currentStoryParams.iconDelay : undefined;
+    const effectiveDelay = (storyDelay !== undefined)
+      ? storyDelay
+      : (window.FFH.iconRevealDelay ? window.FFH.iconRevealDelay(state.currentShift, state.upgrades) : 0);
+    const isTeachStage = (effectiveDelay === 0);
+
+    const uniqueItems = isTeachStage
+      ? Object.values(itemCounts)
+      : Object.values(itemCounts).filter(it => it.promptStarted || it.revealed || it.packedCount > 0);
+
     const currentPrompt = state.activeOrder.find(i => !i.packed);
-    if (currentPrompt && !itemCounts[currentPrompt.id].revealed) {
+    if (!isTeachStage && currentPrompt && !itemCounts[currentPrompt.id].revealed) {
       itemCounts[currentPrompt.id].isObfuscated = true;
     }
 
@@ -38,6 +56,9 @@ Object.assign(window.FFH.UI.prototype, {
     hud.style.cssText = `
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
+      /* Every other full-screen modal sits at 9500+. This one had no z-index at
+         all, so the persistent run strip (9000) covered the payslip header. */
+      z-index: 9500;
       pointer-events: none;
       font-family: "Comic Sans MS", "Chalkboard SE", "Caveat", -apple-system, sans-serif;
       box-sizing: border-box;
@@ -125,7 +146,9 @@ Object.assign(window.FFH.UI.prototype, {
 
     hud.innerHTML = `
       <!-- Top Bar: Shift & Timer + Compact Order Status -->
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; z-index: 10; gap: 8px;">
+      <!-- Offset below the persistent run strip (day / wallet / tuition bar),
+           which owns roughly the top 110px of the screen in every phase. -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; z-index: 10; gap: 8px; margin-top: 104px;">
         <div style="background: #FFFFFF; border: 2.5px solid #222; border-radius: 8px; padding: 6px 10px; box-shadow: 0 3px 0 #222; font-family: sans-serif; display: flex; flex-direction: column; gap: 2px;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <span style="font-weight: 900; font-size: 13px;">⏱️ <span id="pick-timer-text">${shift.pickTimeLimit}s</span></span>
@@ -520,6 +543,13 @@ Object.assign(window.FFH.UI.prototype, {
     const quotaBanner = payout.metQuota
       ? `<div style="background:#eef7ee; border:2px solid #2e7d32; color:#2e7d32; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">QUOTA MET (${payout.shift.quota}\u20AC)</div>`
       : `<div style="background:#fdecea; border:2px solid #c62828; color:#c62828; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">BELOW QUOTA (${payout.shift.quota}\u20AC) \u2014 STRIKE</div>`;
+    // The day the shift rolls into. finishShift charges these once the receipt
+    // is dismissed, so showing them here is the only place the player sees why
+    // the wallet moves less than the payout line suggests.
+    const dailyCosts = window.FFH.dailyCostsFor(state, (state.day || 1) + 1);
+    const dailyTotal = dailyCosts.reduce((sum, c) => sum + c.amount, 0);
+    const takeHome = window.FFH.round2(payout.netPayout - dailyTotal);
+
 
     hud.innerHTML = `
       <div style="text-align: center; border-bottom: 2px dashed #222; padding-bottom: 12px; margin-bottom: 15px;">
@@ -540,9 +570,16 @@ Object.assign(window.FFH.UI.prototype, {
         ${line('Doorstep Etiquette & Freshness Tip', '+' + payout.etiquetteTip.toFixed(2) + '\u20AC', '#3A86FF')}
         ${payout.damageDeductions > 0 ? line('Transit Damage (Lesson Learned)', '-' + payout.damageDeductions.toFixed(2) + '\u20AC', '#E63946') : ''}
         
-        <div style="border-top: 2px solid #222; padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; font-family: sans-serif;">
-          <span>NET PAYOUT DISBURSED</span>
+        <div style="border-top: 2px solid #222; padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 900; font-family: sans-serif;">
+          <span>SHIFT EARNINGS</span>
           <span style="color: #FF006E;">+${payout.netPayout.toFixed(2)}€</span>
+        </div>
+
+        ${dailyCosts.map(c => line('  ' + c.label, '-' + c.amount.toFixed(2) + '\u20AC', '#E63946')).join('')}
+
+        <div style="border-top: 2px solid #222; padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; font-family: sans-serif;">
+          <span>TAKE HOME</span>
+          <span id="receipt-take-home" style="color: ${takeHome >= 0 ? '#2A9D8F' : '#E63946'};">${takeHome >= 0 ? '+' : ''}${takeHome.toFixed(2)}€</span>
         </div>
       </div>
 
@@ -574,12 +611,28 @@ Object.assign(window.FFH.UI.prototype, {
     `;
 
     this.container.appendChild(hud);
-    
+    if (this.setHudHidden) this.setHudHidden(true);
+    if (this.clearTransientOverlays) this.clearTransientOverlays();
+
     // Animate tuition bar and play SFX
     setTimeout(() => {
-      const newWallet = this.game.state.wallet + payout.netPayout;
-      document.getElementById('tuition-bar').style.width = Math.min(100, (newWallet / window.FFH.ECONOMY.TUITION_GOAL) * 100) + '%';
-      document.getElementById('tuition-text').textContent = newWallet.toFixed(2) + '€ / ' + window.FFH.ECONOMY.TUITION_GOAL + '€';
+      // Show where the wallet actually lands: payout minus the day's costs.
+      const newWallet = window.FFH.round2(this.game.state.wallet + takeHome);
+      const goal = window.FFH.ECONOMY.TUITION_GOAL;
+      document.getElementById('tuition-bar').style.width = Math.min(100, (newWallet / goal) * 100) + '%';
+
+      const tText = document.getElementById('tuition-text');
+      const from = this.game.state.wallet;
+      const startAt = performance.now();
+      const tick = (now) => {
+        const t = Math.min(1, (now - startAt) / 1100);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const val = from + (newWallet - from) * eased;
+        tText.textContent = val.toFixed(2) + '€ / ' + goal + '€';
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+
       this.game.sfx.playSfx('early_success'); // Coin chime sound
     }, 500);
 
@@ -595,6 +648,16 @@ Object.assign(window.FFH.UI.prototype, {
     btn.addEventListener('click', () => {
       // Tactile cash register sound logic
       this.game.sfx.playSfx('success'); // or 'kaching' if we add one
+      if (this.setHudHidden) this.setHudHidden(false);
+
+      // If the story opened this as part of a day_end, hand control back to it
+      // rather than running the standalone shift-to-shop flow.
+      const sr = this.game.storyRunner;
+      if (sr && typeof sr._resumeAfterReceipt === 'function') {
+        this.clear();
+        sr._resumeAfterReceipt();
+        return;
+      }
       window.FFH.finishShift(this.game);
     });
   }

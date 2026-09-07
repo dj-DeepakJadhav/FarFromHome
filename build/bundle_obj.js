@@ -17,6 +17,21 @@ const path = require('path');
 
 // Must stay in sync with the modelMap in src/render/geometryFactory.js
 const USED_MODELS = [
+  'bottle-oil',
+  'cake',
+  'corn',
+  'croissant',
+  'cup-coffee',
+  'fish',
+  'grapes',
+  'lemon',
+  'meat-cooked',
+  'mushroom',
+  'onion',
+  'pear',
+  'pizza',
+  'salad',
+  'tomato',
   'apple',
   'banana',
   'bread',

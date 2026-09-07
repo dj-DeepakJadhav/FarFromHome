@@ -14,9 +14,9 @@ Last verified: 2026-09-06
 
 | Fact | Value | Source of truth |
 | :--- | :--- | :--- |
-| Release `index.html` (uncompressed) | **11.08 MB** | `node build/check-size.js` |
+| Release `index.html` (uncompressed) | **12.91 MB** | `node build/check-size.js` |
 | Competition hard limit | 35 MB | MHCP rules |
-| Headroom | ~68.3 % unused | — |
+| Headroom | ~63 % unused | — |
 | Viewport | 390 × 844 fixed portrait | `index.dev.html` |
 | Three.js | r128, vendored | `vendor/three.min.js` |
 | Runtime network requests | **0** (document only) | DevTools Network tab |
@@ -42,7 +42,8 @@ State it that way. Do not claim the whole file is unminified.
 | `STARTING_WALLET` | €20 |
 | `TUITION_GOAL` | €250 |
 | `KAUTION_DEPOSIT` | €30 |
-| `HOSTEL_DAILY_RENT` | €8 |
+| `HOSTEL_DAILY_RENT` | €8 | charged from day 3 while no lease |
+| `DAILY_FOOD_COST` | €5 | charged every day from day 2 |
 | `VISA_DAYS` | 28 |
 | `MAX_STRIKES` | 3 |
 | `ACCURACY_BONUS_PER_ITEM` | €2.50 |
@@ -67,7 +68,9 @@ State it that way. Do not claim the whole file is unminified.
 | `pocketNotepad` | Pocket Notepad | €20 | One free rail re-pulse per shift |
 | `vocabCards` | Shift Rota Cards | €35 | -0.8s icon delay, +25% early-pick bonus |
 
-> The `vocabCards` id is legacy; the shipped display name is **Shift Rota Cards**.
+> The `vocabCards` id is legacy and is **deliberately not renamed**: it appears in
+> saved games, and the player-facing name is already **Shift Rota Cards**. Renaming
+> would break save compatibility for no visible gain.
 > `pocketNotepad` is gated on ownership and its button renders in the shift HUD
 > only when owned.
 

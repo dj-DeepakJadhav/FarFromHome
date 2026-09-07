@@ -5,17 +5,54 @@ window.FFH.ECONOMY = {
     TUITION_GOAL: 250,
     KAUTION_DEPOSIT: 30,
     HOSTEL_DAILY_RENT: 8,
+    DAILY_FOOD_COST: 5,           // charged every day from day 2, lease or no lease
+
+    // Letter round (the post job, fail branch). Flat per-letter rate with no
+    // streak and no early-pick multiplier, because there is no sorting to be
+    // good at. A full round pays about 65% of a comparable Kruma shift, so
+    // Kruma stays the better job and going back for the trial is the player's
+    // own idea rather than a prompt.
+    // 6 letters at 4.00 pays 24.00 for a full round, against roughly 37.85 for a
+    // clean Kruma shift: about 63%. Deliberately worse per minute too, since the
+    // round is a walk and the shift is 13 seconds. Tune from playtest.
+    LETTER_RATE: 4.0,             // per letter DELIVERED, not carried
+    LETTER_ROUND_SIZE: 6,
+    LETTER_ROUND_SECONDS: 150,
     MAX_STRIKES: 3,
     VISA_DAYS: 28,
 
     ACCURACY_BONUS_PER_ITEM: 2.5,  // paid per item packed with no mis-tap on it
     STREAK_STEP: 0.14,              // multiplier gained per consecutive clean pick
-    STREAK_MAX: 2.5,               // cap, so a hot streak can at most double pay
+    // Reachable ceiling. itemsCount caps at 8 and STREAK_STEP is 0.14, so the
+    // best possible streak multiplier is 1 + 8*0.14 = 2.12. A cap of 2.5 could
+    // never be hit by any run, which made the constant a lie. At 2.0 a perfect
+    // late shift reaches the cap, which is what a cap is for.
+    STREAK_MAX: 2.0,
 
     MISPICK_INTEGRITY_COST: 8,     // bag damage for tapping the wrong item
     POTHOLE_INTEGRITY_COST: 15,    // bag damage per hazard hit on the ride
     EARLY_PICK_MULTIPLIER: 2.0     // Accuracy bonus multiplier for pre-icon picks
   };
+
+
+// Daily living costs for a given day. Shared by finishShift (which charges
+// them) and the shift receipt (which shows them before you dismiss it), so the
+// itemised list and the actual deduction cannot drift apart.
+window.FFH.dailyCostsFor = function (state, day) {
+  const E = window.FFH.ECONOMY;
+  const hasLease = !!(state.hasApartment
+    || state.has_lease
+    || (state.storyFlags && state.storyFlags.landlordConfirmationSigned));
+
+  const costs = [];
+  if (!hasLease && day >= 3) {
+    costs.push({ label: 'Hostel bed', amount: E.HOSTEL_DAILY_RENT || 8 });
+  }
+  if (day >= 2) {
+    costs.push({ label: 'Food', amount: E.DAILY_FOOD_COST || 5 });
+  }
+  return costs;
+};
 
 window.FFH.calculatePayout = function(state) {
   const E = window.FFH.ECONOMY;
@@ -75,6 +112,26 @@ window.FFH.calculatePayout = function(state) {
   };
 };
 
+
+// Trial performance, read by story gates (see `trialPassed` in story.json).
+//
+// The bar is intentionally very low. Failing the Kruma trial opens a whole
+// branch of the story, and that branch is meant to be a rare, felt setback for
+// someone who barely engaged, not a punishment for being slightly slow. Anyone
+// who actually plays the shift passes.
+window.FFH.TRIAL_MIN_PACKED_RATIO = 0.5;   // must pack at least half the order
+
+window.FFH.recordShiftPerformance = function (state) {
+  const order = state.activeOrder || [];
+  const packed = order.filter(it => it.packed).length;
+  state.lastPackedCount = packed;
+  state.lastOrderSize = order.length;
+  state.trialPassed = order.length === 0
+    ? true
+    : (packed / order.length) >= window.FFH.TRIAL_MIN_PACKED_RATIO;
+  return state.trialPassed;
+};
+
 window.FFH.finishShift = function(game) {
   const state = game.state;
   const payout = game.lastPayout || window.FFH.calculatePayout(state);
@@ -86,14 +143,26 @@ window.FFH.finishShift = function(game) {
   // Advance day by 1 for completed courier shift
   state.day = (state.day || 1) + 1;
 
-  // Hostel Rent: €8/night starting Day 3 if player hasn't secured an apartment lease
-  if (!state.hasApartment && state.day >= 3) {
-    const rent = window.FFH.ECONOMY.HOSTEL_DAILY_RENT || 8;
-    state.wallet = window.FFH.round2(Math.max(0, state.wallet - rent));
+  // Daily living costs, charged on the day rollover.
+  //
+  // The lease test used to read `hasApartment`, which the Act II story route
+  // never sets: kaution_pay sets `has_lease`. So paying the 30 euro deposit and
+  // signing the lease did not stop the hostel charge, and the player kept paying
+  // for a bed they had moved out of. Test the same flags the HUD documents row
+  // already treats as "lease secured".
+  const dailyCosts = window.FFH.dailyCostsFor(state, state.day);
+
+  const totalDaily = dailyCosts.reduce((sum, c) => sum + c.amount, 0);
+  if (totalDaily > 0) {
+    state.wallet = window.FFH.round2(Math.max(0, state.wallet - totalDaily));
     if (game.ui && game.ui.spawnFloatingText) {
-      game.ui.spawnFloatingText(`🏨 Hostel Bed: -${rent.toFixed(2)}€`, window.innerWidth / 2, window.innerHeight / 2 - 40, '#E76F51');
+      const summary = dailyCosts.map(c => `${c.label} -${c.amount.toFixed(2)}€`).join('   ');
+      game.ui.spawnFloatingText(summary, window.innerWidth / 2, window.innerHeight / 2 - 40, '#E76F51');
     }
   }
+
+  // Kept for the shift receipt to itemise; see the deductions block there.
+  state.lastDailyCosts = dailyCosts;
 
   // Clear delivery state so the marker resets for the next city exploration
   state.activeDelivery = false;
@@ -226,15 +295,6 @@ window.FFH.createRunState = function () {
     primaryEmployer: 'KRUMA_EXPRESS',
 
     // Expat Adaptation Skill Tree Progression
-    skillPoints: 1,
-    unlockedSkills: {},
-    bikeSpeedMult: 1.0,
-    pickGraceTimeBonus: 0,
-    vipTipMultiplier: 2.5,
-    wageBonusPercent: 0,
-    shopDiscount: 0,
-    pfandBonusMult: 1.0,
-    stosslueftenBonus: 25,
 
     npcRelationships: {
       NPC_RITA: 50,

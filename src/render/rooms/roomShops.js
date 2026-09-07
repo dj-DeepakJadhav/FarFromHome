@@ -99,16 +99,20 @@ window.FFH.createWarehouseRoom = function() {
   }
   // Cool overhead fluorescents: the navy shell absorbs the warm room light,
   // so the pick shelf (lit Standard/Phong Kenney models) needs its own rig.
-  const tubeMat = window.FFH.createCelMaterial(0xEAF6FF);
-  for (const tx of [-0.9, 0.9]) {
-    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.2, 8), tubeMat);
-    tube.rotation.z = Math.PI / 2;
-    tube.position.set(0, 2.45, tx * 0.4);
-    room.add(tube);
-  }
-  const coolLight = new THREE.PointLight(0xEAF6FF, 1.6, 9.0);
+  // The fluorescent tube geometry was removed. It sat at y=2.45, exactly where
+  // the top-tier groceries are, so it drew two white bars straight through the
+  // shelf; raised clear of the shelf it still floated free of the peaked roof
+  // and read as debris. The light itself is what the shelf actually needs.
+  const coolLight = new THREE.PointLight(0xEAF6FF, 0.8, 9.0);
   coolLight.position.set(0, 2.4, 0.4);
   room.add(coolLight);
+
+  // The shared room shell is 3.2 wide with 2.6 high walls, but the pick shelf is
+  // 3.7 wide and 3.4 tall, so the shelf physically did not fit: its uprights
+  // punched through the ceiling line and the crown molding at y=2.52 cut across
+  // the top tier, reading as stray beams over the groceries. Scale the shell so
+  // it actually contains the shelf.
+  room.scale.set(1.55, 1.55, 1.55);
   return room;
 };
 

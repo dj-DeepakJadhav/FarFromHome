@@ -63,3 +63,33 @@ window.FFH.getSafeGLTFLoader = function() {
   }
   return window.FFH._safeGLTFLoader;
 };
+
+// A flat scene.background made every room phase look like a colour swatch, and
+// because only the city phase ever set it, rooms inherited whatever sky the
+// city left behind: at dusk the dialogue diorama sat on a flat pink field.
+// A soft vertical gradient with a darker floor reads as depth for no cost.
+window.FFH.makeBackdrop = function (topHex, bottomHex) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 8;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, topHex);
+  grad.addColorStop(0.55, bottomHex);
+  grad.addColorStop(1, bottomHex);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.magFilter = THREE.LinearFilter;
+  tex.minFilter = THREE.LinearFilter;
+  return tex;
+};
+
+// Cached so a phase change does not rebuild a texture every time.
+window.FFH.BACKDROPS = {};
+window.FFH.getBackdrop = function (name, topHex, bottomHex) {
+  if (!window.FFH.BACKDROPS[name]) {
+    window.FFH.BACKDROPS[name] = window.FFH.makeBackdrop(topHex, bottomHex);
+  }
+  return window.FFH.BACKDROPS[name];
+};

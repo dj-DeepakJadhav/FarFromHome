@@ -62,7 +62,6 @@
       (British deadpan vs. German municipal precision). Verified 2026-09-06 by
       removing every advertised-but-hollow system: the language-learning framing,
       spaced repetition, the vocabulary dictionary/quiz and all audio claims are
-      gone from both the build and the docs. The skill tree is deliberately no
       longer advertised as a headline system.
 - [x] **Originality (10%)**: German *der/die/das* as a 3-tier spatial search filter —
       framed as an absurd bureaucratic filing rule, not as a lesson.

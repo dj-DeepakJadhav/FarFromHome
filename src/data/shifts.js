@@ -80,8 +80,21 @@ window.FFH.getShift = function (n) {
 
 // Item pool widens as shifts escalate so early orders stay learnable.
 window.FFH.getShiftItemPool = function (n) {
-  const all = window.FFH.items.map(it => it.id);
-  return all.slice(0, Math.min(all.length, 3 + n));
+  // This used to slice the front of the whole item list, which is not filtered
+  // by category: from shift 8 the slice reached `fahrrad` and the grocery shelf
+  // started stocking bicycles, keys and rental contracts. Draw from Food only,
+  // and take an equal number per gender so every tier can fill its four slots.
+  const food = window.FFH.items.filter(it => it.category === 'Food');
+  // At least four per gender so every tier can fill its four slots with
+  // distinct items on shift 1, widening as shifts escalate.
+  const perGender = Math.min(8, 4 + Math.floor(n / 2));
+  const pool = [];
+  ['der', 'die', 'das'].forEach(g => {
+    food.filter(it => it.gender === g)
+        .slice(0, perGender)
+        .forEach(it => pool.push(it.id));
+  });
+  return pool;
 };
 
 // TEACH on shift 1, ANTICIPATE on shift 2, TEST from shift 3 on.

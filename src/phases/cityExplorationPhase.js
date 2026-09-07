@@ -177,6 +177,15 @@ window.FFH.CityExplorationPhase = class {
     // Spawn 10 Roaming Citizens using the Behavior Tree
     this.roamingCitizens = [];
     this.citizenBehaviorTree = window.FFH.createCitizenBehaviorTree();
+
+    // Companion walks (the `companion_walk` mechanic). Built here so it shares
+    // the phase's playerPos and interactiveMeshes, and torn down with the phase.
+    this.companion = window.FFH.CityCompanion
+      ? new window.FFH.CityCompanion(this.game, this)
+      : null;
+    this.letterRound = window.FFH.CityLetterRound
+      ? new window.FFH.CityLetterRound(this.game, this)
+      : null;
     const S = window.FFH.TILE_SCALE || 2.0;
     const roadTiles = [];
     for (let z = 1; z < window.FFH.MAP_SIZE - 1; z++) {
@@ -509,6 +518,13 @@ window.FFH.CityExplorationPhase = class {
       this.questHintMarker = null;
       this.questHintArrow = null;
       this.questHintCircle = null;
+    }
+
+    if (this.companion) this.companion.stop();
+    if (this.letterRound) this.letterRound.stop();
+    if (this.worldSpeaker) {
+      this.game.scene.remove(this.worldSpeaker);
+      this.worldSpeaker = null;
     }
 
     if (this.worldGroup) {
@@ -1422,6 +1438,9 @@ window.FFH.CityExplorationPhase = class {
     }
 
 
+
+    if (this.companion) this.companion.update(delta);
+    if (this.letterRound) this.letterRound.update(delta);
 
     // 5. Update Follower Camera & Building Transparency Fading
     this.updateCamera(false, delta);

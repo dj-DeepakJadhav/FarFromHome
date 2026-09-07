@@ -173,19 +173,6 @@ window.FFH.ShopPhase = class {
       <div style="font-size: 11px; font-weight: 900; color: #264653; margin-top: 2px;">YOUR GEAR</div>
       <div style="font-size: 9.5px; color: #666; font-weight: 700; margin-top: -2px;">Bought at the shop that stocks it, not from here.</div>
       <div id="shop-items-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-      <button id="btn-room-skills" style="
-        width: 100%;
-        padding: 9px 12px;
-        border: 2px solid #264653;
-        border-radius: 8px;
-        background: #FF006E;
-        color: #FFFFFF;
-        font-weight: 900;
-        font-size: 12px;
-        cursor: pointer;
-        box-shadow: 0 3px 0 #A30046;
-        margin-top: 4px;
-      ">⭐ Open Expat Skill Tree (${state.skillPoints || 0} SP Available)</button>
       <button id="btn-sleep-morning" style="
         width: 100%;
         padding: 10px 14px;
@@ -339,13 +326,6 @@ window.FFH.ShopPhase = class {
       noteBtn.onclick = () => {
         state.storyFlags.fridgeNoteRead = true;
         this.showFridgeNoteModal();
-      };
-    }
-
-    const skillsBtn = box.querySelector('#btn-room-skills');
-    if (skillsBtn) {
-      skillsBtn.onclick = () => {
-        this.game.ui.showSkillTreeModal();
       };
     }
 

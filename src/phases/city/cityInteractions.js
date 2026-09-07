@@ -14,8 +14,15 @@ window.FFH.handleCityBuildingInteraction = function(phase, poiType) {
     const s = this.game.state;
     console.log(`[TBI] poi=${poiType} | buzzed=${s.hasBuzzedWG} | mull=${s.hasDoneMuelltrennung} | uni=${s.hasVisitedLockedUni} | pending=${sr && sr.pendingStoryTarget ? sr.pendingStoryTarget.poi : 'none'}`);
 
-    // Check if player is delivering an active grocery order to a customer
-    if (this.game.state.activeDelivery) {
+
+    // An explicit story target wins over a delivery. This check used to run
+    // FIRST, so a stale activeDelivery flag hijacked every POI in the game:
+    // tapping the university handed you Nico's breakfast. Nothing clears the
+    // flag on the story path, because finishShift never runs there, so it also
+    // has to be cleared when a story target resolves (below).
+    const storyTargetHere = !!(sr && sr.pendingStoryTarget && poiType === sr.pendingStoryTarget.poi);
+
+    if (this.game.state.activeDelivery && !storyTargetHere) {
       this.game.state.activeDelivery = false;
       if (this.game.ui && this.game.ui.hideCompassUI) {
         this.game.ui.hideCompassUI();
@@ -31,9 +38,12 @@ window.FFH.handleCityBuildingInteraction = function(phase, poiType) {
       if (this.game.ui && this.game.ui.hideCompassUI) {
         this.game.ui.hideCompassUI();
       }
-      this.game.state.activeObjective = null;
-      const qt = document.getElementById('city-quest-tracker');
-      if (qt) qt.style.opacity = '0';
+      // Nulling the state was not enough: the HUD only re-renders when
+      // something else asks it to, so a reached objective stayed on screen.
+      // (This also used to fade #city-quest-tracker, removed with the old bar.)
+      this.game.state.activeDelivery = false;   // never let it leak into the next POI
+      if (sr.clearObjective) sr.clearObjective();
+      else this.game.state.activeObjective = null;
       console.log(`CityExploration: Player tapped ${poiType}. Launching scene "${nextSceneId}".`);
       sr.startScene(nextSceneId);
       return;

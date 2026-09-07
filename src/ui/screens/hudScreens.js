@@ -427,8 +427,6 @@ Object.assign(window.FFH.UI.prototype, {
               if (this.game.storyRunner) {
                 this.game.storyRunner.startScene('act_one');
               }
-              // Offer the skip only once the prologue is actually running.
-              if (this.showSkipIntro) this.showSkipIntro();
             }
           };
 

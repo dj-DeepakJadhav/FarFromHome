@@ -14,6 +14,7 @@ window.FFH.PickPhase = class {
     this.activePicksCount = 0;
     this.shift = null;
     this.timeRemaining = 0;
+    this.briefingHold = false;
     this.pickDuration = 0;
 
     this.onTap = this.onTap.bind(this);
@@ -117,10 +118,16 @@ window.FFH.PickPhase = class {
     const cam = this.game.cameras.mainCamera;
     this.startCamPos = new THREE.Vector3().copy(cam.position);
     this.startCamZoom = cam.zoom || 1.0;
-    this.endCamTarget = new THREE.Vector3(0, 1.2, 0);
+    this.endCamTarget = new THREE.Vector3(0, 1.45, 0);
     // Offset matching isometric camera angle (down and facing front of shelf)
-    this.endCamPos = this.endCamTarget.clone().add(new THREE.Vector3(10.0, 13.5, 10.0)); 
-    this.endCamZoom = 2.4;
+    // Near-frontal, not isometric. At height 13.5 the camera looked down at 44
+    // degrees, so every shelf plank occluded the tier beneath it and the middle
+    // and bottom rows were barely readable. Height 4.5 is ~18 degrees: still
+    // dimensional, but all three tiers present their faces to the player.
+    this.endCamPos = this.endCamTarget.clone().add(new THREE.Vector3(10.0, 4.5, 10.0));
+    // The shelf occupied ~4.6% of a 390x844 screen at zoom 2.4, with ~35px
+    // between adjacent items, below the 44px minimum touch target.
+    this.endCamZoom = 2.75;
     
     this.isTransitioning = true;
     this.transitionTime = 0;
@@ -152,7 +159,20 @@ window.FFH.PickPhase = class {
       cam.lookAt(this.endCamTarget);
     }
 
-    if (this.timeRemaining > 0) {
+    // Idle spin on every un-packed item, so its silhouette reads from all sides
+    // rather than presenting one flat face to a near-frontal camera.
+    if (this.shelvedMeshes) {
+      for (const m of this.shelvedMeshes) {
+        if (m.visible && m.userData && m.userData.spinSpeed) {
+          m.rotation.y += m.userData.spinSpeed * delta;
+        }
+      }
+    }
+
+    // The shift clock is held while the briefing prose plays over the shelf.
+    // It used to run during the briefing, so the player lost seconds reading
+    // text they could not skip past.
+    if (this.timeRemaining > 0 && !this.briefingHold) {
       this.timeRemaining = Math.max(0, this.timeRemaining - delta);
       
       // Decay freshness off elapsed pick time
@@ -185,6 +205,10 @@ window.FFH.PickPhase = class {
         this.exit();
         // Pre-compute last payout in case time runs out
         this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
+
+        // Record trial performance for story gates. The bar is deliberately low:
+        // you only fail by barely engaging. Anyone actually playing passes.
+        window.FFH.recordShiftPerformance(this.game.state);
 
         // If triggered via StoryRunner, hand control back to the story engine
         if (this.currentStoryParams && typeof this.currentStoryParams.onComplete === 'function') {
@@ -234,7 +258,10 @@ window.FFH.PickPhase = class {
       } else if (sceneId === 'shift_2_anticipate') {
         manifestIds = ['kaese', 'milch', 'apfel', 'brot'];
       } else if (sceneId === 'shift_3_test') {
-        manifestIds = ['apfel', 'milch', 'brot', 'kaese', 'karton'];
+        // 'karton' is not an item id (the carton is 'milch'), so the Aha shift
+        // silently ran four items instead of the five it declares. 'karotte'
+        // keeps the tier spread even: der x2, die x2, das x1.
+        manifestIds = ['apfel', 'milch', 'brot', 'kaese', 'karotte'];
       }
 
       if (manifestIds) {
@@ -359,6 +386,9 @@ window.FFH.PickPhase = class {
         this.exit();
         // Pre-compute last payout
         this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
+
+        // Order fully packed: performance recorded on this path too.
+        window.FFH.recordShiftPerformance(this.game.state);
 
         // If triggered via StoryRunner, hand control back to the story engine
         if (this.currentStoryParams && typeof this.currentStoryParams.onComplete === 'function') {

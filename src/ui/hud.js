@@ -111,64 +111,439 @@ Object.assign(window.FFH.UI.prototype, {
     }
   },
 
-  updatePersistentHUD(state) {
-    const hud = document.getElementById('persistent-hud');
-    if (hud) {
-      hud.innerHTML = ''; // Clear and disable overlapping persistent HUD
-      
+  // The run readout, owned in one place and rendered into #game-container so
+  // that ui.clear() cannot wipe it on a phase change. This was previously a
+  // stub that blanked #persistent-hud and drew nothing, which is why the day
+  // counter and wallet disappeared the moment you entered a conversation.
+  //
+  // Energy and Heart are deliberately absent. They have no consequence in Acts
+  // I and II: nothing gates on heart anywhere, and body is read by a single
+  // Act III condition. The state and the story effects are untouched.
+  // Full-screen modals own the whole screen. The run strip is redundant behind
+  // one (the shift receipt shows the wallet and the tuition bar itself) and its
+  // objective line is usually stale in that moment. Suppression survives
+  // re-renders because updatePersistentHUD re-applies it after rebuilding.
+  // Cancel anything transient that would sit on top of a modal: an in-flight
+  // narration bubble (z-index 99999, so it beats every modal) and any tutorial
+  // banner. A payslip should not have the previous shift's narration over it.
+  clearTransientOverlays() {
+    if (this.game && this.game.storyRunner && this.game.storyRunner.cancelProseQueue) {
+      this.game.storyRunner.cancelProseQueue();
     }
+    const bubble = document.getElementById('ffh-thought-bubble');
+    if (bubble) {
+      if (bubble._typewriterTimer) clearInterval(bubble._typewriterTimer);
+      bubble.remove();
+    }
+    const banner = document.getElementById('ffh-tutorial-banner');
+    if (banner) banner.remove();
   },
 
-  // "Skip intro" appears only while the prologue is playing, which is a normal
-  // affordance a first-time player already understands. It is deliberately not
-  // on the main menu: a "start at shift 1" button there asks a new player to
-  // choose without any context.
-  showSkipIntro() {
-    if (document.getElementById('ffh-skip-intro')) return;
-    const parent = document.getElementById('game-container') || document.body;
-    const el = document.createElement('button');
-    el.id = 'ffh-skip-intro';
-    el.textContent = 'Skip intro \u203A';
-    el.style.cssText = `
-      position: absolute;
-      right: 10px;
-      bottom: 12px;
-      z-index: 99998;
-      background: rgba(18, 24, 38, 0.72);
-      color: rgba(255, 255, 255, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 999px;
-      padding: 7px 14px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    `;
-    el.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      if (this.game && this.game.startFirstShift) {
-        this.game.startFirstShift();
+  // The run strip sits at z-index 9000 and has now collided with three
+  // different modals (the payslip, the pause sheet, a POI card). Rather than
+  // patch each of ~14 modal creators, watch the DOM: while any modal is on
+  // screen the strip yields, and it comes back when the modal closes.
+  //
+  // Matches any element whose id ends in "-modal", plus the handful of
+  // full-screen surfaces that predate that convention.
+  startHudModalWatch() {
+    if (this._modalWatch) return;
+    const MODAL_IDS = ['city-poi-card', 'ffh-shift-receipt', 'ffh-slots-modal'];
+    const anyModalOpen = () => {
+      const nodes = document.querySelectorAll('[id$="-modal"], #' + MODAL_IDS.join(', #'));
+      for (const n of nodes) {
+        const s = getComputedStyle(n);
+        if (s.display !== 'none' && s.visibility !== 'hidden' && parseFloat(s.opacity) > 0.05) return true;
       }
-    });
-    parent.appendChild(el);
+      return false;
+    };
+    const sync = () => {
+      const open = anyModalOpen();
+      if (open !== this._modalWasOpen) {
+        this._modalWasOpen = open;
+        this.setHudHidden(open);
+      }
+    };
+    const parent = document.getElementById('game-container') || document.body;
+    this._modalWatch = new MutationObserver(sync);
+    this._modalWatch.observe(parent, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+    sync();
   },
 
-  hideSkipIntro() {
-    const el = document.getElementById('ffh-skip-intro');
-    if (el) el.remove();
+  setHudHidden(hidden) {
+    this._hudHidden = !!hidden;
+    const el = document.getElementById('ffh-persistent-hud');
+    if (el) el.style.display = this._hudHidden ? 'none' : 'flex';
+  },
+
+  // Money that snaps from one number to another does not read as a transaction.
+  // Counting it makes the economy legible, which matters most in a silent video.
+  countUp(el, from, to, ms, suffix) {
+    if (!el) return;
+    if (el._countTimer) cancelAnimationFrame(el._countTimer);
+    const start = performance.now();
+    const delta = to - from;
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / ms);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = (from + delta * eased).toFixed(2) + (suffix || '');
+      if (t < 1) {
+        el._countTimer = requestAnimationFrame(tick);
+      } else {
+        el._countTimer = null;
+      }
+    };
+    el._countTimer = requestAnimationFrame(tick);
+  },
+
+  updatePersistentHUD(state) {
+    const s = state || (this.game && this.game.state);
+    if (!s) return;
+
+    const parent = document.getElementById('game-container') || document.body;
+    let hud = document.getElementById('ffh-persistent-hud');
+    if (!hud) {
+      hud = document.createElement('div');
+      hud.id = 'ffh-persistent-hud';
+      hud.style.cssText = `
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        z-index: 9000;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      `;
+      parent.appendChild(hud);
+      this.startHudModalWatch();
+
+      // Delegated: updatePersistentHUD rebuilds its markup constantly, so
+      // per-element listeners would be lost on the next wallet change.
+      hud.addEventListener('click', (ev) => {
+        const menu = ev.target.closest('#ffh-hud-menu');
+        if (menu) {
+          if (this.game && this.game.sfx) this.game.sfx.playSfx('click');
+          if (typeof this.showPauseModal === 'function') this.showPauseModal();
+          return;
+        }
+      });
+    }
+
+    const goal = (window.FFH.ECONOMY && window.FFH.ECONOMY.TUITION_GOAL) || 250;
+    const wallet = window.FFH.round2(s.wallet || 0);
+    const pct = Math.max(0, Math.min(100, (wallet / goal) * 100));
+    const days = (window.FFH.ECONOMY && window.FFH.ECONOMY.VISA_DAYS) || 28;
+
+    const hasLease = !!(s.hasApartment || s.has_lease || (s.storyFlags && s.storyFlags.landlordConfirmationSigned));
+    const docs = [
+      { on: !!(s.isMatriculated || s.matriculated), label: 'University' },
+      { on: hasLease, label: 'Lease' },
+      { on: !!(s.hasAnmeldung || s.has_anmeldung), label: 'Anmeldung' },
+      { on: !!(s.isSperrkontoUnlocked || s.has_konto), label: 'Bank' }
+    ];
+    const docBoxes = docs.map(d => `
+      <span title="${d.label}" style="
+        width: 13px; height: 13px; border-radius: 3px;
+        border: 2px solid ${d.on ? '#2A9D8F' : '#9AA5B1'};
+        background: ${d.on ? '#2A9D8F' : '#FFFFFF'};
+        display: inline-block;
+        transition: background 0.35s ease, border-color 0.35s ease;
+      "></span>`).join('');
+
+    const objective = s.activeObjective ? String(s.activeObjective) : '';
+
+    // Range to the objective is stored on the UI, not read out of the DOM.
+    // updatePersistentHUD rebuilds its innerHTML on every call, so anything
+    // written straight into those nodes was wiped the next time the wallet
+    // moved. This is the minimap replacement, so it has to survive re-renders.
+    const range = this._objRange || { active: false, metres: '--m', deg: 0 };
+
+    hud.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3px solid #14213D;
+        border-radius: 12px;
+        box-shadow: 0 4px 0 #14213D;
+        padding: 7px 10px 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      ">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 900; color: #14213D; letter-spacing: 0.6px;">
+            DAY ${s.day || 1}/${days}
+          </span>
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: flex; align-items: center; gap: 4px;">${docBoxes}</span>
+            <button id="ffh-hud-menu" title="Pause & menu" style="
+              pointer-events: auto;
+              width: 26px; height: 22px;
+              padding: 0;
+              border: 2px solid #14213D;
+              border-radius: 6px;
+              background: #14213D;
+              color: #F6BD60;
+              font-size: 11px;
+              font-weight: 900;
+              line-height: 1;
+              cursor: pointer;
+            ">II</button>
+          </span>
+        </div>
+
+        <div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px;">
+            <span id="ffh-hud-wallet" style="font-size: 13px; font-weight: 900; color: #14213D; font-variant-numeric: tabular-nums;">
+              ${wallet.toFixed(2)}€
+            </span>
+            <span style="font-size: 10px; font-weight: 800; color: #6B7280;">
+              of ${goal}€ tuition
+            </span>
+          </div>
+          <div style="height: 8px; background: #E5E7EB; border-radius: 999px; overflow: hidden; border: 1px solid #14213D;">
+            <div id="ffh-tuition-fill" style="
+              width: ${pct}%;
+              height: 100%;
+              background: #F6BD60;
+              transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            "></div>
+          </div>
+        </div>
+
+        <div id="ffh-objective-row" style="
+          display: ${objective ? 'flex' : 'none'};
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          margin-top: 2px;
+          padding-top: 6px;
+          border-top: 2px dashed #C7CEDB;
+          font-size: 11px;
+          font-weight: 800;
+          color: #14213D;
+          line-height: 1.3;
+        ">
+          <span style="flex: 1; min-width: 0;">${objective}</span>
+          <span id="ffh-objective-range" style="
+            display: ${range.active ? 'inline-flex' : 'none'};
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+            font-variant-numeric: tabular-nums;
+            color: #2A9D8F;
+            font-weight: 900;
+          ">
+            <span id="ffh-objective-dist">${range.metres}</span>
+            <span id="ffh-objective-arrow" style="display: inline-block; transform-origin: center; transform: rotate(${range.deg}deg);">\u2B06</span>
+          </span>
+        </div>
+      </div>
+
+    `;
+  },
+
+  // Full-screen modals own the whole screen. The run strip is redundant behind
+  // one (the shift receipt shows the wallet and the tuition bar itself) and its
+  // objective line is usually stale in that moment. Suppression survives
+  // re-renders because updatePersistentHUD re-applies it after rebuilding.
+  // Cancel anything transient that would sit on top of a modal: an in-flight
+  // narration bubble (z-index 99999, so it beats every modal) and any tutorial
+  // banner. A payslip should not have the previous shift's narration over it.
+  clearTransientOverlays() {
+    if (this.game && this.game.storyRunner && this.game.storyRunner.cancelProseQueue) {
+      this.game.storyRunner.cancelProseQueue();
+    }
+    const bubble = document.getElementById('ffh-thought-bubble');
+    if (bubble) {
+      if (bubble._typewriterTimer) clearInterval(bubble._typewriterTimer);
+      bubble.remove();
+    }
+    const banner = document.getElementById('ffh-tutorial-banner');
+    if (banner) banner.remove();
+  },
+
+  setHudHidden(hidden) {
+    this._hudHidden = !!hidden;
+    const el = document.getElementById('ffh-persistent-hud');
+    if (el) el.style.display = this._hudHidden ? 'none' : 'flex';
+  },
+
+  // Money that snaps from one number to another does not read as a transaction.
+  // Counting it makes the economy legible, which matters most in a silent video.
+  countUp(el, from, to, ms, suffix) {
+    if (!el) return;
+    if (el._countTimer) cancelAnimationFrame(el._countTimer);
+    const start = performance.now();
+    const delta = to - from;
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / ms);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = (from + delta * eased).toFixed(2) + (suffix || '');
+      if (t < 1) {
+        el._countTimer = requestAnimationFrame(tick);
+      } else {
+        el._countTimer = null;
+      }
+    };
+    el._countTimer = requestAnimationFrame(tick);
+  },
+
+  updatePersistentHUD(state) {
+    const s = state || (this.game && this.game.state);
+    if (!s) return;
+
+    const parent = document.getElementById('game-container') || document.body;
+    let hud = document.getElementById('ffh-persistent-hud');
+    if (!hud) {
+      hud = document.createElement('div');
+      hud.id = 'ffh-persistent-hud';
+      hud.style.cssText = `
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        z-index: 9000;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      `;
+      parent.appendChild(hud);
+
+      // Delegated: updatePersistentHUD rebuilds its markup constantly, so
+      // per-element listeners would be lost on the next wallet change.
+      hud.addEventListener('click', (ev) => {
+        const menu = ev.target.closest('#ffh-hud-menu');
+        if (menu) {
+          if (this.game && this.game.sfx) this.game.sfx.playSfx('click');
+          if (typeof this.showPauseModal === 'function') this.showPauseModal();
+          return;
+        }
+      });
+    }
+
+    const goal = (window.FFH.ECONOMY && window.FFH.ECONOMY.TUITION_GOAL) || 250;
+    const wallet = window.FFH.round2(s.wallet || 0);
+    const pct = Math.max(0, Math.min(100, (wallet / goal) * 100));
+    const days = (window.FFH.ECONOMY && window.FFH.ECONOMY.VISA_DAYS) || 28;
+
+    const hasLease = !!(s.hasApartment || s.has_lease || (s.storyFlags && s.storyFlags.landlordConfirmationSigned));
+    const docs = [
+      { on: !!(s.isMatriculated || s.matriculated), label: 'University' },
+      { on: hasLease, label: 'Lease' },
+      { on: !!(s.hasAnmeldung || s.has_anmeldung), label: 'Anmeldung' },
+      { on: !!(s.isSperrkontoUnlocked || s.has_konto), label: 'Bank' }
+    ];
+    const docBoxes = docs.map(d => `
+      <span title="${d.label}" style="
+        width: 13px; height: 13px; border-radius: 3px;
+        border: 2px solid ${d.on ? '#2A9D8F' : '#9AA5B1'};
+        background: ${d.on ? '#2A9D8F' : '#FFFFFF'};
+        display: inline-block;
+        transition: background 0.35s ease, border-color 0.35s ease;
+      "></span>`).join('');
+
+    const objective = s.activeObjective ? String(s.activeObjective) : '';
+
+    // Range to the objective is stored on the UI, not read out of the DOM.
+    // updatePersistentHUD rebuilds its innerHTML on every call, so anything
+    // written straight into those nodes was wiped the next time the wallet
+    // moved. This is the minimap replacement, so it has to survive re-renders.
+    const range = this._objRange || { active: false, metres: '--m', deg: 0 };
+
+    hud.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        border: 3px solid #14213D;
+        border-radius: 12px;
+        box-shadow: 0 4px 0 #14213D;
+        padding: 7px 10px 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      ">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 900; color: #14213D; letter-spacing: 0.6px;">
+            DAY ${s.day || 1}/${days}
+          </span>
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: flex; align-items: center; gap: 4px;">${docBoxes}</span>
+            <button id="ffh-hud-menu" title="Pause & menu" style="
+              pointer-events: auto;
+              width: 26px; height: 22px;
+              padding: 0;
+              border: 2px solid #14213D;
+              border-radius: 6px;
+              background: #14213D;
+              color: #F6BD60;
+              font-size: 11px;
+              font-weight: 900;
+              line-height: 1;
+              cursor: pointer;
+            ">II</button>
+          </span>
+        </div>
+
+        <div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px;">
+            <span id="ffh-hud-wallet" style="font-size: 13px; font-weight: 900; color: #14213D; font-variant-numeric: tabular-nums;">
+              ${wallet.toFixed(2)}€
+            </span>
+            <span style="font-size: 10px; font-weight: 800; color: #6B7280;">
+              of ${goal}€ tuition
+            </span>
+          </div>
+          <div style="height: 8px; background: #E5E7EB; border-radius: 999px; overflow: hidden; border: 1px solid #14213D;">
+            <div id="ffh-tuition-fill" style="
+              width: ${pct}%;
+              height: 100%;
+              background: #F6BD60;
+              transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            "></div>
+          </div>
+        </div>
+
+        <div id="ffh-objective-row" style="
+          display: ${objective ? 'flex' : 'none'};
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          margin-top: 2px;
+          padding-top: 6px;
+          border-top: 2px dashed #C7CEDB;
+          font-size: 11px;
+          font-weight: 800;
+          color: #14213D;
+          line-height: 1.3;
+        ">
+          <span style="flex: 1; min-width: 0;">${objective}</span>
+          <span id="ffh-objective-range" style="
+            display: ${range.active ? 'inline-flex' : 'none'};
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+            font-variant-numeric: tabular-nums;
+            color: #2A9D8F;
+            font-weight: 900;
+          ">
+            <span id="ffh-objective-dist">${range.metres}</span>
+            <span id="ffh-objective-arrow" style="display: inline-block; transform-origin: center; transform: rotate(${range.deg}deg);">\u2B06</span>
+          </span>
+        </div>
+      </div>
+
+    `;
   },
 
   showTutorialBanner(text, color = '#E76F51', duration = 4000) {
-    // If the city quest text is present, update it directly with a highlight pulse so there is zero UI overlapping
-    const questTextEl = document.getElementById('city-quest-text');
-    if (questTextEl) {
-      questTextEl.innerHTML = `<span style="color: #E76F51; font-weight: 900;">${text}</span>`;
-      return;
-    }
-
+    // Used to hijack #city-quest-text when it existed, which also meant a
+    // tutorial line silently overwrote the player's objective. That element is
+    // gone and the objective is owned by the persistent strip, so this always
+    // draws its own banner now.
     const parent = document.getElementById('game-container') || document.body;
     // Remove any previous banner to prevent overlap
     const prev = document.getElementById('ffh-tutorial-banner');
@@ -295,7 +670,8 @@ Object.assign(window.FFH.UI.prototype, {
         screenY = (-headPos.y * 0.5 + 0.5) * contH - 10; // Slightly above head
       }
     } else if (curPhase && (curPhase === this.game.phases.PICK_ITEM || curPhaseName.includes('Pick'))) {
-      screenY = contH * 0.10; // Top of screen above pick shelf
+      // Clear of the persistent HUD strip, which occupies roughly the top 100px.
+      screenY = contH * 0.26;
     } else {
       // Room / Dialogue / Shop Phase: Place cleanly in top 22% viewport (room ceiling area)
       screenY = contH * 0.22;
@@ -309,19 +685,17 @@ Object.assign(window.FFH.UI.prototype, {
       left: ${screenX}px;
       top: ${screenY}px;
       transform: translate(-50%, -100%) scale(0.9);
-      background: rgba(18, 24, 38, 0.94);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 2px solid #FFD166;
-      border-radius: 16px;
+      background: #FFFFFF;
+      border: 3px solid #14213D;
+      border-radius: 14px;
       padding: 10px 16px;
-      color: #FFFFFF;
+      color: #14213D;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13.5px;
       font-weight: 700;
       letter-spacing: 0.2px;
       line-height: 1.4;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 5px 0 #14213D, 0 10px 18px rgba(0, 0, 0, 0.28);
       pointer-events: auto;
       cursor: pointer;
       z-index: 99999;
@@ -562,6 +936,16 @@ Object.assign(window.FFH.UI.prototype, {
         ${gear ? `<div style="margin-top:6px;">${gear}</div>` : ''}
       </div>
     `;
+
+    // Count from whatever was last on screen, so a payout or a purchase reads
+    // as money moving rather than a number blinking to a new value.
+    const prev = (this._hudLastWallet === undefined) ? wallet : this._hudLastWallet;
+    if (Math.abs(prev - wallet) > 0.005) {
+      this.countUp(document.getElementById('ffh-hud-wallet'), prev, wallet, 900, '\u20AC');
+    }
+    this._hudLastWallet = wallet;
+
+    if (this._hudHidden) hud.style.display = 'none';
   },
 
   showRoomHubUI() {
@@ -753,265 +1137,59 @@ Object.assign(window.FFH.UI.prototype, {
 
     this.refreshStats = (state) => {
       const s = state;
-      const bodyEl = document.getElementById('stat-val-body');
-      const heartEl = document.getElementById('stat-val-heart');
-      
-      if (bodyEl) {
-        bodyEl.textContent = `⚡${s.body !== undefined ? s.body : 100}`;
-        bodyEl.style.color = (s.body !== undefined && s.body < 30) ? '#E63946' : '#2A9D8F';
-        // Flash red on change
-        bodyEl.animate([{ color: '#FF0000', transform: 'scale(1.3)' }, { color: bodyEl.style.color, transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
-      }
-      
-      if (heartEl) {
-        heartEl.textContent = `❤️${s.heart !== undefined ? s.heart : 50}`;
-        heartEl.style.color = (s.heart !== undefined && s.heart < 30) ? '#E63946' : '#FF006E';
-        heartEl.animate([{ color: '#FF0000', transform: 'scale(1.3)' }, { color: heartEl.style.color, transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
-      }
-      
+      // Energy and Heart are no longer rendered (no consequence in Acts I-II),
+      // so the #stat-val-body / #stat-val-heart writes that used to live here
+      // were updating elements that do not exist. State is untouched.
       const walletEl = document.getElementById('stat-val-wallet');
       if (walletEl && s.wallet !== undefined) {
         walletEl.textContent = `${s.wallet.toFixed(2)}€`;
       }
     };
 
+    // The objective now lives in the persistent run strip, so this no longer
+    // types text into #city-quest-text or pulses #city-quest-tracker: both were
+    // removed with the old city header bar, and the 82 lines that animated them
+    // had been running against nulls ever since. What callers actually rely on
+    // is the state flip and the reveal chime.
     this.playObjectiveRevealSequence = (isBootSequence = false) => {
-      const headerBar = document.getElementById('city-header-bar');
-      const questTracker = document.getElementById('city-quest-tracker');
-      const questText = document.getElementById('city-quest-text');
-      
-      const fadeElements = [
-        document.getElementById('hud-day-box'),
-        document.getElementById('hud-docs-box'),
-        document.getElementById('hud-stats-box'),
-        document.getElementById('hud-wallet-box'),
-        document.getElementById('archetype-badge')
-      ].filter(Boolean);
-      
-      if (headerBar) {
-        if (isBootSequence) {
-          headerBar.style.display = 'flex';
-          headerBar.animate([
-            { transform: 'translateY(-20px)', opacity: 0 },
-            { transform: 'translateY(0)', opacity: 1 }
-          ], { duration: 600, easing: 'ease-out' });
-        }
+      const s = this.game && this.game.state;
+      if (!s) return;
 
-        const startTyping = () => {
-          const textToType = this.game.state.activeObjective || '';
-          if (questText) {
-            questText.innerHTML = '';
-            let i = 0;
-            const typeChar = () => {
-              if (i < textToType.length) {
-                questText.innerHTML += textToType.charAt(i);
-                if (this.game.sfx && i % 3 === 0) this.game.sfx.playSfx('click');
-                i++;
-                setTimeout(typeChar, 30);
-              } else {
-                onTypingFinished();
-              }
-            };
-            typeChar();
-          } else {
-            onTypingFinished();
-          }
-        };
+      s.isTypingObjective = false;
+      s.firstObjectiveRevealed = true;
 
-        if (isBootSequence) {
-          setTimeout(startTyping, 600);
-        } else {
-          startTyping();
-        }
-
-        const onTypingFinished = () => {
-          this.game.state.isTypingObjective = false;
-          if (questTracker) {
-            questTracker.style.transition = 'box-shadow 0.3s ease, transform 0.3s ease';
-            questTracker.style.boxShadow = '0 0 15px 4px #2EC4B6';
-            questTracker.style.transform = 'scale(1.02)';
-            if (this.game.sfx) this.game.sfx.playSfx('bell');
-            
-            setTimeout(() => {
-              questTracker.style.boxShadow = 'none';
-              questTracker.style.transform = 'none';
-            }, 800);
-          }
-
-          if (this.game.currentPhase && this.game.currentPhase.revealCompass) {
-            this.game.currentPhase.revealCompass();
-          }
-
-          if (isBootSequence) {
-            fadeElements.forEach((el, index) => {
-              setTimeout(() => {
-                el.style.opacity = 1;
-                el.animate([
-                  { transform: 'translateY(-5px)', opacity: 0 },
-                  { transform: 'translateY(0)', opacity: 1 }
-                ], { duration: 400, easing: 'ease-out' });
-              }, index * 250);
-            });
-            setTimeout(() => {
-              s.firstObjectiveRevealed = true;
-            }, fadeElements.length * 250 + 500);
-          }
-        };
-      }
+      if (this.updatePersistentHUD) this.updatePersistentHUD(s);
+      if (isBootSequence && this.game.sfx) this.game.sfx.playSfx('bell');
     };
-    
-    // Alias for backward compatibility with cityExplorationPhase.js
+
     this.triggerFirstObjectiveReveal = () => this.playObjectiveRevealSequence(true);
 
     explorerDiv.innerHTML = `
       <!-- Top Title & Unified Sleek Objective Header -->
+      <!-- Day, wallet, docs and the objective all live in the persistent run
+           strip now (updatePersistentHUD). This bar used to carry duplicates of
+           all four, so it rendered as a second white card behind the strip with
+           its own objective line in a different colour. It is now just an
+           invisible holder for the Menu badge, parked below the strip. -->
       <div id="city-header-bar" style="
-        display: ${showHeader ? 'flex' : 'none'};
+        display: none;
         box-sizing: border-box;
         width: 100%;
-        background: #FFFFFF;
-        border: 2.5px solid #264653;
-        border-radius: 12px;
-        padding: 8px 12px;
+        margin-top: 104px;
+        background: transparent;
+        border: none;
+        padding: 0;
         flex-direction: column;
         gap: 6px;
+        align-items: flex-end;
         color: #264653;
         pointer-events: auto;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.18);
         z-index: 100;
       ">
         <!-- Row 1: Day Clock, Wallet, and Dossier Tracker (4 Slots) -->
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 4px; overflow: visible;">
           <!-- Day Counter -->
-          <div id="hud-day-box" style="
-            background: #264653;
-            color: #FFFFFF;
-            border-radius: 8px;
-            padding: 4px 6px;
-            font-size: 11px;
-            font-weight: 900;
-            font-family: monospace;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            white-space: nowrap;
-            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
-          ">
-            <span>📅</span>
-            <span>DAY ${s.day || 1}/28</span>
-          </div>
-
-          <!-- 4-Slot Dossier Tracker -->
-          <div id="hud-docs-box" style="
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            background: #F0F4F8;
-            border: 1.5px solid #264653;
-            border-radius: 8px;
-            padding: 4px 5px;
-            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
-          " title="Dossier: Uni, WG Lease, Anmeldung, Bank">
-            <span style="font-size: 9px; font-weight: 900; color: #1D3557; margin-right: 1px;">DOCS:</span>
-            <!-- Slot 1: Matriculation -->
-            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${s.isMatriculated ? '#2A9D8F' : '#999'}; background: ${s.isMatriculated ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="University Matriculation">${s.isMatriculated ? '🎓' : ''}</span>
-            <!-- Slot 2: Lease -->
-            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#999'}; background: ${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Landlord Lease Confirmation">${(s.hasApartment || s.has_lease || s.storyFlags?.landlordConfirmationSigned) ? '🏠' : ''}</span>
-            <!-- Slot 3: Anmeldung -->
-            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#999'}; background: ${(s.hasAnmeldung || s.has_anmeldung) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Bürgeramt Address Registration">${(s.hasAnmeldung || s.has_anmeldung) ? '📑' : ''}</span>
-            <!-- Slot 4: Sperrkonto Bank -->
-            <span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#999'}; background: ${(s.isSperrkontoUnlocked || s.has_konto) ? '#2A9D8F' : '#FFF'}; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; color: #FFF; font-weight: 900;" title="Sparkasse Blocked Account Unlocked">${(s.isSperrkontoUnlocked || s.has_konto) ? '💳' : ''}</span>
-          </div>
-
-          <!-- Body & Heart Meters -->
-          <div id="hud-stats-box" style="
-            display: ${(s.actOneStarted || s.shift_no >= 0) ? 'flex' : 'none'};
-            align-items: center;
-            gap: 3px;
-            background: #F8F9FA;
-            border: 1.5px solid #264653;
-            border-radius: 8px;
-            padding: 3px 5px;
-            font-size: 10px;
-            font-weight: 900;
-            font-family: monospace;
-            white-space: nowrap;
-            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
-          " title="Body Stamina & Heart Morale">
-            <span id="stat-val-body" style="color: ${s.body < 30 ? '#E63946' : '#2A9D8F'}; transition: color 0.3s ease;">⚡${s.body !== undefined ? s.body : 100}</span>
-            <span style="color: #666; margin: 0 1px;">|</span>
-            <span id="stat-val-heart" style="color: ${s.heart < 30 ? '#E63946' : '#FF006E'}; transition: color 0.3s ease;">❤️${s.heart !== undefined ? s.heart : 50}</span>
-          </div>
-
-          <!-- Wallet Balance -->
-          <div id="hud-wallet-box" style="
-            background: #F8F9FA;
-            border: 2px solid #264653;
-            border-radius: 8px;
-            padding: 4px 6px;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            white-space: nowrap;
-            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
-          ">
-            <span style="font-size: 12px;">💶</span>
-            <div id="stat-val-wallet" style="font-size: 11.5px; font-weight: 900; color: #E76F51; font-family: monospace;">
-              ${window.FFH.round2(s.wallet)}€
-            </div>
-          </div>
-        </div>
-
-        <!-- Row 2: Objective Tracker & Personality Archetype Badge -->
-        <div style="display: flex; gap: 6px; align-items: stretch; width: 100%;">
-          <div id="city-quest-tracker" style="
-            box-sizing: border-box;
-            flex: 1;
-            background: #F0F4F8;
-            border-left: 4px solid #2EC4B6;
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 11.5px;
-            color: #1D3557;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            opacity: ${s.activeObjective ? 1 : 0};
-            transition: opacity 0.3s ease;
-          ">
-            <span style="font-size: 13px; flex-shrink: 0;">🎯</span>
-            <span id="city-quest-text" style="line-height: 1.3;">${(s.firstObjectiveRevealed && !s.isTypingObjective) ? objectiveText : ''}</span>
-          </div>
-
-          <!-- Cumulative Archetype Badge & Pause / Profile Menu Button -->
-          <div id="archetype-badge" style="
-            background: #2B2D42;
-            color: #E9C46A;
-            border: 1.5px solid #264653;
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            white-space: nowrap;
-            cursor: pointer;
-            pointer-events: auto;
-            opacity: ${s.firstObjectiveRevealed ? 1 : 0};
-          " title="Click to Pause Game & Open Menu">
-            ${(() => {
-              const d = s.disposition || { hustler: 0, bureaucrat: 0, diplomat: 0 };
-              if (d.hustler >= d.bureaucrat && d.hustler >= d.diplomat && d.hustler > 0) return '⚡ Hustler';
-              if (d.bureaucrat >= d.hustler && d.bureaucrat >= d.diplomat && d.bureaucrat > 0) return '📑 Bureaucrat';
-              if (d.diplomat >= d.hustler && d.diplomat >= d.bureaucrat && d.diplomat > 0) return '🤝 Diplomat';
-              return '⏸️ Menu';
-            })()}
-          </div>
+          <div style="display:none"></div>
         </div>
 
         <div id="delivery-distance-indicator" style="display: none; align-items: center; justify-content: flex-end; gap: 6px; background: #E8F5E9; padding: 4px 8px; border-radius: 4px; border: 1px solid #2A9D8F;">
@@ -1071,13 +1249,6 @@ Object.assign(window.FFH.UI.prototype, {
 
     this.container.appendChild(explorerDiv);
 
-    // Wire Skills button
-    const skillsBtn = document.getElementById('btn-open-skills');
-    if (skillsBtn) {
-      skillsBtn.addEventListener('click', () => {
-        this.showSkillTreeModal();
-      });
-    }
 
     // Wire Profile / Pause Menu Badge button
     const profileBadge = document.getElementById('archetype-badge');
@@ -1241,20 +1412,34 @@ Object.assign(window.FFH.UI.prototype, {
     });
   },
 
+  // Range and heading to the current objective. This is the deliberate
+  // alternative to a minimap, so it lives inside the objective pill in the
+  // persistent strip: what you are doing and how far away it is, together.
+  // The legacy #delivery-distance-indicator is still updated for any caller
+  // that looks for it, but it stays hidden so the two cannot disagree.
   updateCityExplorerHUD(distance, angleRad, isActive) {
-    const indicator = document.getElementById('delivery-distance-indicator');
-    if (!indicator) return;
-    if (!isActive) {
-      indicator.style.display = 'none';
-      return;
-    }
-    indicator.style.display = 'flex';
-    document.getElementById('delivery-distance-val').textContent = Math.max(0, Math.round(distance)) + 'm';
-    
-    // Convert radians to degrees for CSS rotation
-    // Note: In 3D space, rotation might need offset depending on camera forward.
+    const metres = Math.max(0, Math.round(distance)) + 'm';
     const deg = (angleRad * 180 / Math.PI);
-    document.getElementById('delivery-distance-arrow').style.transform = `rotate(${deg}deg)`;
+
+    this._objRange = { active: !!isActive, metres: metres, deg: deg };
+
+    const range = document.getElementById('ffh-objective-range');
+    if (range) {
+      range.style.display = isActive ? 'inline-flex' : 'none';
+      const d = document.getElementById('ffh-objective-dist');
+      const a = document.getElementById('ffh-objective-arrow');
+      if (d) d.textContent = metres;
+      if (a) a.style.transform = `rotate(${deg}deg)`;
+    }
+
+    const indicator = document.getElementById('delivery-distance-indicator');
+    if (indicator) {
+      indicator.style.display = 'none';
+      const v = document.getElementById('delivery-distance-val');
+      const ar = document.getElementById('delivery-distance-arrow');
+      if (v) v.textContent = metres;
+      if (ar) ar.style.transform = `rotate(${deg}deg)`;
+    }
   }
 });
 

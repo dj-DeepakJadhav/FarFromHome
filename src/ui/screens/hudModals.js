@@ -90,12 +90,6 @@ Object.assign(window.FFH.UI.prototype, {
             ${slotsHtml}
           </div>
 
-          <!-- Action Buttons -->
-          <button id="btn-open-skills-pause" style="
-            width: 100%; background: #E9C46A; color: #1D3557; border: 2px solid #264653; border-radius: 8px;
-            padding: 10px; font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: 0 3px 0 #264653;
-          ">🌳 View Expat Skill Tree & Progression</button>
-
           <div style="display: flex; gap: 8px; margin-top: 2px;">
             <button id="btn-toggle-music" style="
               flex: 1; background: #3A86FF; color: #FFFFFF; border: 2px solid #264653; border-radius: 8px;
@@ -124,16 +118,6 @@ Object.assign(window.FFH.UI.prototype, {
     `;
 
     parent.appendChild(modal);
-
-    const btnSkillTree = document.getElementById('btn-open-skills-pause');
-    if (btnSkillTree) {
-      btnSkillTree.onclick = () => {
-        modal.remove();
-        if (typeof this.showSkillTreeModal === 'function') {
-          this.showSkillTreeModal();
-        }
-      };
-    }
 
     const btnMusic = document.getElementById('btn-toggle-music');
     if (btnMusic) {
@@ -385,7 +369,8 @@ Object.assign(window.FFH.UI.prototype, {
       btn.onclick = item.onClick;
       containerEl.appendChild(btn);
     });
-  },
+  }
+,
 
   showMuelltrennungModal(onCompleteCallback) {
     const parent = document.getElementById('ui-container') || document.body;
@@ -557,7 +542,8 @@ Object.assign(window.FFH.UI.prototype, {
     modal.querySelector('#bin-black').onclick = () => {
       handleChoice(false, '❌ Nico snatches the pot: <em>"Wrong! Gelber Sack! You almost caused a diplomatic crisis!"</em>', '#FFE3E3', '#C92A2A');
     };
-  },
+  }
+,
 
   showTuitionLetterModal(onAcknowledgeCallback) {
     const parent = document.getElementById('ui-container') || document.body;
@@ -655,7 +641,8 @@ Object.assign(window.FFH.UI.prototype, {
       modal.remove();
       if (onAcknowledgeCallback) onAcknowledgeCallback();
     };
-  },
+  }
+,
 
   showLockedUniModal(onLeaveCallback) {
     const parent = document.getElementById('ui-container') || document.body;
@@ -759,7 +746,8 @@ Object.assign(window.FFH.UI.prototype, {
       modal.remove();
       if (onLeaveCallback) onLeaveCallback();
     };
-  },
+  }
+,
 
   showDayRecapModal(onSleepCallback) {
     const parent = document.getElementById('ui-container') || document.body;
@@ -873,7 +861,8 @@ Object.assign(window.FFH.UI.prototype, {
       }
       if (onSleepCallback) onSleepCallback();
     };
-  },
+  }
+,
 
   showPizzeriaJobModal(onAcknowledgeCallback) {
     const parent = document.getElementById('ui-container') || document.body;
@@ -951,7 +940,8 @@ Object.assign(window.FFH.UI.prototype, {
       modal.remove();
       if (onAcknowledgeCallback) onAcknowledgeCallback();
     };
-  },
+  }
+,
 
   showBakeryJobModal(onAcknowledgeCallback) {
     const parent = document.getElementById('ui-container') || document.body;

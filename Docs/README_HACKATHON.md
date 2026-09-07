@@ -12,7 +12,8 @@
 > **This is not a language-learning game.** It makes no pedagogical claim and teaches
 > nothing. German appears as *comedy texture* — signage, Beamtendeutsch, the absurd
 > filing logic of the warehouse. The player never needs to understand a word of it.
-> **There is no recorded audio in this build.** Every sound is synthesised at runtime
+> **There is no voice acting in this build.** One background music track ships
+> (`assets/Music/bgMusic.mp3`, 939 KB, inlined); every other sound is synthesised at runtime
 > from oscillators. See §5.
 > **Code-Data Architecture**: `assets/narrative/story.json` is the authoritative narrative asset and is automatically inlined into `window.FFH.storyData` during release assembly for 100% offline compliance.
 > **Canonical Numbers**: All economic tunables, build sizes, and prices are strictly governed by [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
@@ -198,21 +199,17 @@ thirds.
 
 ## 5. Text Generation & Audio Architecture
 
-### 5.1 Offline Symbolic Morphology Engine (`src/core/grammarEngine.js`)
-Deterministically constructs grammatically correct German request lines for NPC
-flavour text, so that signage and dialogue read as real German rather than as
-mangled placeholder:
-  - Accusative: *"Ich brauche **den** Käse für die Pizza."*
-  - Polite/Formal: *"Könnten Sie mir bitte **das** Mehl bringen?"*
+### 5.1 Text
+All player-facing text is authored in `assets/narrative/story.json`. There is no
+runtime text generation.
 
-It resolves noun case (*Nominativ*, *Akkusativ*, *Dativ*) and gender agreement from
-lookup tables with zero runtime latency and zero network use. **It is a text
-generator, not a teaching tool** — nothing in the game asks the player to produce,
-parse or recall German.
+> A symbolic German morphology engine (`src/core/grammarEngine.js`) used to ship
+> here. It had **zero callers** and was deleted on 2026-09-07 along with
+> `src/data/audioTriggers.js`. The game generates no German at runtime.
 
-### 5.2 Audio: 100% procedural, zero recorded assets
-**This build ships no audio files.** Nothing is streamed, nothing is inlined, and the
-audio budget is effectively 0 KB. Every sound is synthesised at runtime by
+### 5.2 Audio: background music plus procedural SFX, no voice acting
+**This build ships one audio file:** `bgMusic.mp3` (939 KB), inlined as a data URI,
+so there is still zero network use. Every other sound is synthesised at runtime by
 `src/audio/speech.js` and the SFX layer:
 
 - **Character talk-blips** — each speaker has a pitch/filter/waveform profile
@@ -293,7 +290,6 @@ The narrative design is structured around **Jamie Antonisse's GDC Narrative Prot
 > **Removed 2026-09-06.** Earlier drafts advertised a spaced-repetition vocabulary
 > system (Leitner boxes) and a vocabulary dictionary with a self-quiz. Both are gone
 > from the build: the quiz UI was never reachable from any menu, and the scheduler
-> never fed the pick loop. A three-branch skill tree also exists in `src/data/skillTree.js`
 > but is **not** advertised as a headline system, because most of its effects are not
 > yet read by gameplay code. Do not re-add any of these to the pitch.
 

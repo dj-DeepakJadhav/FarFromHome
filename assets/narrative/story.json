@@ -53,7 +53,7 @@
    "gameplay": "a minigame owns the screen; narration is incidental"
   },
   "note": "The 90s budget is the time to the Aha, not the length of Act I. The critical path as authored reaches shift_3_test well past 90s, so the shipping build needs a fast-start that drops the player at shift_1_teach. Tracked in Docs/TASKS.md. Do not silently retune durations to make this pass.",
-  "aha_cumulative_s": 127
+  "aha_cumulative_s": 167
  },
  "economy_ref": "src/core/economy.js is authoritative; Docs/CANONICAL_NUMBERS.md mirrors it",
  "state": {
@@ -158,7 +158,7 @@
     "time": "15:25",
     "light": "afternoon_clear",
     "camera": "doorway_two_shot",
-    "space": "exterior"
+    "space": "threshold"
    },
    "effects": [
     {
@@ -186,7 +186,7 @@
     "time": "15:20",
     "light": "afternoon_clear",
     "camera": "doorway_two_shot",
-    "space": "exterior"
+    "space": "threshold"
    },
    "effects": [
     {
@@ -861,7 +861,7 @@
     {
      "label": "[Take the flyer.]",
      "gate": null,
-     "to": "day1_sleep",
+     "to": "kruma_door",
      "effects": [
       {
        "var": "heart",
@@ -876,7 +876,7 @@
     {
      "label": "[Photograph it and leave it up.]",
      "gate": null,
-     "to": "day1_sleep",
+     "to": "kruma_door",
      "effects": [
       {
        "var": "heart",
@@ -905,40 +905,126 @@
    "critical_path_index": 10
   },
   {
-   "id": "day1_sleep",
    "act": "I",
    "threads": 1,
+   "cast": [
+    "NPC_NINA"
+   ],
+   "props": [
+    "flyer",
+    "shutter"
+   ],
+   "audio": [
+    "espresso_hiss"
+   ],
+   "effects": [],
+   "origin": "story.ink",
+   "duration_source": "authored",
+   "unlocks": {},
+   "id": "kruma_door",
+   "beat": "DAY 1 ENDS: the depot is shutting. The job is not given tonight.",
    "stage": {
-    "loc": "B_WG",
-    "time": "22:00",
-    "light": "night_interior",
-    "camera": "single_close",
-    "space": "interior"
+    "loc": "B_DARKSTORE",
+    "time": "19:10",
+    "light": "night_exterior",
+    "camera": "door_panel_close",
+    "space": "threshold"
    },
-   "cast": [],
-   "props": [],
-   "audio": [],
+   "mode": "blocking",
+   "duration_s": 8,
    "prose": [
-    "You walk back to Room 4. Exhausted.",
-    "Tomorrow, Kruma Express. It opens at 07:00."
+    "The shutter is coming down. It stops at knee height and stays there.",
+    "A card taped to the frame says Keine Bewerbungen. No applications.",
+    "Nina: We're closed.",
+    "You: The flyer said riders wanted."
    ],
    "choices": [
     {
-     "label": "[Go to sleep]",
-     "to": "shift_1_teach",
-     "effects": [
-      {
-       "var": "day",
-       "expr": "2"
-      }
+     "label": "\"When should I come?\"",
+     "gate": null,
+     "to": "night_one",
+     "effects": [],
+     "prose": [
+      "Nina: Six.",
+      "Nina: Not five to six. Not ten past.",
+      "She lets the shutter down the rest of the way."
+     ]
+    },
+    {
+     "label": "\"I can start right now.\"",
+     "gate": null,
+     "to": "night_one",
+     "effects": [],
+     "prose": [
+      "Nina: You cannot, because I am going home.",
+      "Nina: Six. Tomorrow."
      ]
     }
    ],
-   "unlocks": {
-    "mechanic": "day1_recap"
-   },
-   "cumulative_s": 83,
+   "cumulative_s": 91,
    "critical_path_index": 11
+  },
+  {
+   "act": "I",
+   "threads": 1,
+   "cast": [
+    "NPC_NINA"
+   ],
+   "props": [
+    "espresso",
+    "clipboard"
+   ],
+   "audio": [],
+   "effects": [],
+   "origin": "story.ink",
+   "duration_source": "authored",
+   "unlocks": {},
+   "id": "nina_trial",
+   "beat": "DAY 2 OPENS: the trial. One shift decides it.",
+   "stage": {
+    "loc": "B_DARKSTORE",
+    "time": "06:00",
+    "light": "dawn_grey",
+    "camera": "counter_low_across",
+    "space": "interior"
+   },
+   "mode": "blocking",
+   "duration_s": 12,
+   "prose": [
+    "Five to six. The shutter is already up.",
+    "Nina: You're early.",
+    "You: You said six.",
+    "Nina: I did."
+   ],
+   "choices": [
+    {
+     "label": "\"I can start tonight.\"",
+     "gate": null,
+     "to": "shift_1_teach",
+     "effects": [
+      {
+       "var": "r_nina",
+       "expr": "r_nina + 1"
+      }
+     ],
+     "prose": [
+      "Nina: One shift. Trial rate.",
+      "Nina: Fast, and you have a job. Slow, and you had a morning."
+     ]
+    },
+    {
+     "label": "\"What does the trial involve?\"",
+     "gate": null,
+     "to": "shift_1_teach",
+     "effects": [],
+     "prose": [
+      "Nina: Klaus will explain the shelves. He explains them to everyone.",
+      "Nina: Fast, and you have a job. Slow, and you had a morning."
+     ]
+    }
+   ],
+   "cumulative_s": 123,
+   "critical_path_index": 14
   },
   {
    "id": "shift_1_teach",
@@ -946,7 +1032,7 @@
    "threads": 1,
    "stage": {
     "loc": "B_DARKSTORE",
-    "time": "20:05",
+    "time": "06:20",
     "light": "interior_fluorescent_cold",
     "camera": "first_person_pick",
     "space": "interior"
@@ -1014,9 +1100,9 @@
      "icon_delay_s": 0
     }
    },
-   "cumulative_s": 101,
-   "critical_path_index": 12,
-   "sets_note": "shift_no +1, r_klaus +1"
+   "sets_note": "shift_no +1, r_klaus +1",
+   "cumulative_s": 141,
+   "critical_path_index": 15
   },
   {
    "id": "shift_2_anticipate",
@@ -1024,7 +1110,7 @@
    "threads": 1,
    "stage": {
     "loc": "B_DARKSTORE",
-    "time": "20:35",
+    "time": "06:45",
     "light": "interior_fluorescent_cold",
     "camera": "first_person_pick",
     "space": "interior"
@@ -1081,8 +1167,8 @@
      "icon_delay_s": 1.5
     }
    },
-   "cumulative_s": 115,
-   "critical_path_index": 13
+   "cumulative_s": 155,
+   "critical_path_index": 16
   },
   {
    "id": "shift_3_test",
@@ -1090,7 +1176,7 @@
    "threads": 1,
    "stage": {
     "loc": "B_DARKSTORE",
-    "time": "21:10",
+    "time": "07:10",
     "light": "interior_fluorescent_cold",
     "camera": "first_person_pick",
     "space": "interior"
@@ -1155,9 +1241,345 @@
      "icon_delay_s": 2.5
     }
    },
-   "cumulative_s": 127,
-   "critical_path_index": 14,
-   "sets_note": "shift_no +1, heart +6, r_klaus +1"
+   "sets_note": "shift_no +1, heart +6, r_klaus +1",
+   "conditional_edges": [
+    {
+     "if": "trialPassed == false",
+     "to": "trial_failed"
+    }
+   ],
+   "cumulative_s": 167,
+   "critical_path_index": 17
+  },
+  {
+   "act": "II",
+   "threads": 1,
+   "cast": [
+    "NPC_NINA"
+   ],
+   "props": [],
+   "audio": [],
+   "effects": [
+    {
+     "var": "r_nina",
+     "expr": "r_nina - 1"
+    }
+   ],
+   "origin": "authored",
+   "duration_source": "authored",
+   "unlocks": {},
+   "id": "trial_failed",
+   "beat": "FAIL BRANCH: the trial does not go well. Not cruel, just factual.",
+   "stage": {
+    "loc": "B_DARKSTORE",
+    "time": "08:20",
+    "light": "interior_fluorescent_cold",
+    "camera": "counter_low_across",
+    "space": "interior"
+   },
+   "mode": "blocking",
+   "duration_s": 10,
+   "prose": [
+    "Nina looks at the terminal for longer than it needs.",
+    "Nina: Not today.",
+    "You: I can go again.",
+    "Nina: You can. Not today."
+   ],
+   "choices": [
+    {
+     "label": "\"When, then?\"",
+     "gate": null,
+     "to": "nico_setback",
+     "effects": [],
+     "prose": [
+      "Nina: When you have done it somewhere else first.",
+      "She is already looking at the next thing."
+     ]
+    },
+    {
+     "label": "[Say nothing. Leave.]",
+     "gate": null,
+     "to": "nico_setback",
+     "effects": [],
+     "prose": [
+      "The shutter is still only halfway up.",
+      "You duck under it going out, too."
+     ]
+    }
+   ]
+  },
+  {
+   "act": "II",
+   "threads": 1,
+   "cast": [
+    "NPC_NICO"
+   ],
+   "props": [],
+   "audio": [],
+   "effects": [],
+   "origin": "authored",
+   "duration_source": "authored",
+   "unlocks": {},
+   "id": "nico_setback",
+   "beat": "the room, the sad beat. Nico does not fix it. He makes tea.",
+   "stage": {
+    "loc": "B_WG",
+    "time": "09:30",
+    "light": "day_interior",
+    "camera": "kitchen_two_shot",
+    "space": "interior"
+   },
+   "mode": "blocking",
+   "duration_s": 12,
+   "prose": [
+    "You sit on the edge of the bed with your coat still on.",
+    "Nico: You're back early.",
+    "You: I didn't get it.",
+    "Nico does not say it will be fine. He puts the kettle on."
+   ],
+   "choices": [
+    {
+     "label": "\"I have {wallet}€ and a landlord.\"",
+     "gate": null,
+     "to": "nico_tour",
+     "effects": [],
+     "prose": [
+      "Nico: Right.",
+      "Nico: Put your shoes back on.",
+      "You: Why?",
+      "Nico: Because sitting here is worse."
+     ]
+    },
+    {
+     "label": "\"I need to find something else today.\"",
+     "gate": null,
+     "to": "nico_tour",
+     "effects": [],
+     "prose": [
+      "Nico: You do.",
+      "Nico: But not from in here. Put your shoes back on."
+     ]
+    }
+   ]
+  },
+  {
+   "act": "II",
+   "threads": 1,
+   "cast": [
+    "NPC_NICO"
+   ],
+   "props": [],
+   "audio": [],
+   "effects": [],
+   "origin": "authored",
+   "duration_source": "authored",
+   "unlocks": {
+    "mechanic": "companion_walk",
+    "tour_stops": [
+     "B_HOLSTEN",
+     "B_DOM",
+     "B_MARIEN",
+     "LM_MARKTPLATZ"
+    ]
+   },
+   "id": "nico_tour",
+   "beat": "THE WALK: Nico shows the city. The only scene that visits the Dom and St Marys.",
+   "stage": {
+    "loc": "LM_ALTSTADT",
+    "time": "11:00",
+    "light": "afternoon_clear",
+    "camera": "tracking_run_low",
+    "space": "exterior"
+   },
+   "mode": "blocking",
+   "duration_s": 16,
+   "prose": [
+    "Nico walks like he is not going anywhere in particular, which is a lie.",
+    "The Holstentor first. Two fat brick towers leaning slightly at each other.",
+    "Nico: Fourteen sixty four. It has been sinking ever since.",
+    "Then the Dom, and then St Marys, which is taller and knows it.",
+    "You have been in this city two days and you have not once looked up."
+   ],
+   "choices": [
+    {
+     "label": "\"You do this with everyone?\"",
+     "gate": null,
+     "to": "post_flyer",
+     "effects": [
+      {
+       "var": "r_nico",
+       "expr": "r_nico + 2"
+      }
+     ],
+     "prose": [
+      "Nico: No.",
+      "Nico: Somebody did it with me."
+     ]
+    },
+    {
+     "label": "[Walk. Say nothing for a while.]",
+     "gate": null,
+     "to": "post_flyer",
+     "effects": [
+      {
+       "var": "r_nico",
+       "expr": "r_nico + 1"
+      }
+     ],
+     "prose": [
+      "It is the first hour since you landed that is not about money.",
+      "It helps more than it should."
+     ]
+    }
+   ]
+  },
+  {
+   "act": "II",
+   "threads": 1,
+   "cast": [
+    "NPC_NICO"
+   ],
+   "props": [],
+   "audio": [],
+   "effects": [],
+   "origin": "authored",
+   "duration_source": "authored",
+   "unlocks": {
+    "mechanic": "inspect_prop"
+   },
+   "id": "post_flyer",
+   "beat": "the second flyer, rhyming with the Kruma one. Found, not handed over.",
+   "stage": {
+    "loc": "LM_MARKTPLATZ",
+    "time": "12:20",
+    "light": "afternoon_clear",
+    "camera": "lamppost_inspect",
+    "space": "exterior"
+   },
+   "mode": "blocking",
+   "duration_s": 10,
+   "prose": [
+    "There is a board outside the post office with three notices on it.",
+    "Two are about a choir.",
+    "DEUTSCHE POST. Zusteller gesucht. Letter carriers wanted.",
+    "Nico: That one is not a career.",
+    "You: It is a Tuesday."
+   ],
+   "choices": [
+    {
+     "label": "[Take the notice.]",
+     "gate": null,
+     "to": "night_two_home",
+     "effects": [],
+     "prose": [
+      "Nico: Tomorrow, then.",
+      "You: Tomorrow.",
+      "It is a long walk back."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "night_two_home",
+   "act": "II",
+   "threads": 1,
+   "stage": {
+    "loc": "B_WG",
+    "time": "22:00",
+    "light": "night_interior",
+    "camera": "ceiling_lie_back",
+    "space": "interior"
+   },
+   "cast": [
+    "NPC_NICO"
+   ],
+   "props": [],
+   "audio": [],
+   "effects": [],
+   "origin": "authored",
+   "mode": "blocking",
+   "duration_s": 10,
+   "duration_source": "authored",
+   "unlocks": {
+    "mechanic": "day_end"
+   },
+   "beat": "DAY 2 ENDS (fail path): home, counted, and no job yet.",
+   "prose": [
+    "Room 4. The notice is on the table where you can see it.",
+    "Nico: You'll go in the morning.",
+    "You: I'll go in the morning."
+   ],
+   "choices": [
+    {
+     "label": "[Sleep.]",
+     "gate": null,
+     "to": {
+      "tunnel": "night_tick",
+      "then": "post_office"
+     },
+     "effects": [],
+     "prose": []
+    }
+   ]
+  },
+  {
+   "act": "II",
+   "threads": 1,
+   "cast": [
+    "NPC_VOGEL"
+   ],
+   "props": [],
+   "audio": [],
+   "effects": [
+    {
+     "var": "hasJob",
+     "expr": "true"
+    }
+   ],
+   "origin": "authored",
+   "duration_source": "authored",
+   "unlocks": {
+    "mechanic": "letter_round"
+   },
+   "id": "post_office",
+   "beat": "DAY 3 FAIL PATH: no test, no ceremony. Here are the letters.",
+   "stage": {
+    "loc": "B_RATHAUS",
+    "time": "07:30",
+    "light": "dawn_clear",
+    "camera": "counter_two_shot_warm",
+    "space": "interior"
+   },
+   "mode": "blocking",
+   "duration_s": 12,
+   "prose": [
+    "No interview. No terminal. A man puts a bag on the counter.",
+    "Postmeister: You can read numbers?",
+    "You: Yes.",
+    "Postmeister: Then you can do this."
+   ],
+   "choices": [
+    {
+     "label": "\"What does it pay?\"",
+     "gate": null,
+     "to": "act_two",
+     "effects": [],
+     "prose": [
+      "Postmeister: Per letter. Delivered, not carried.",
+      "Postmeister: Slow is not illegal. It is just not paid."
+     ]
+    },
+    {
+     "label": "[Take the bag.]",
+     "gate": null,
+     "to": "act_two",
+     "effects": [],
+     "prose": [
+      "It is heavier than it looks.",
+      "Nobody says welcome. Nobody says good luck."
+     ]
+    }
+   ]
   },
   {
    "id": "shift_receipt",
@@ -1165,7 +1587,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_DARKSTORE",
-    "time": "21:40",
+    "time": "07:40",
     "light": "interior_fluorescent_cold",
     "camera": "first_person_pick",
     "space": "interior"
@@ -1188,13 +1610,16 @@
     "rail_pulse_hum"
    ],
    "prose": [
-    "Klaus der Blitz: Good shift! Here is your pay slip. Real rate starts tomorrow!"
+    "Nina: Eleven euros. Trial rate.",
+    "Nina: You have a job.",
+    "You: That's it?",
+    "Nina: You were fast. I don't need a speech about it."
    ],
    "choices": [
     {
      "label": "[Fold the receipt into your passport.]",
-     "to": "rita_first",
      "gate": null,
+     "to": "rita_first",
      "effects": [],
      "prose": [
       "Eleven quid. It is not nothing, which is the surprising part.",
@@ -1206,6 +1631,14 @@
     {
      "var": "wallet",
      "expr": "wallet + 11.25"
+    },
+    {
+     "var": "hasJob",
+     "expr": "true"
+    },
+    {
+     "var": "r_nina",
+     "expr": "r_nina + 1"
     }
    ],
    "beat": "THE RECEIPT: names the money so the tuition bar means something. The deduction is the gag.",
@@ -1222,13 +1655,13 @@
     ],
     "mechanic": "shift_receipt"
    },
-   "cumulative_s": 139,
-   "critical_path_index": 15,
    "payout": {
     "formula": "trial rate: baseWage 13.00 + accuracy 7.50 - trial deduction 9.25 = 11.25 net",
     "wallet": 11.25,
     "note": "Act I is ONE evening shift shown in three ramp stages, so it pays ONCE, here. The trial deduction is the joke and it is also what keeps the player near 30 EUR for the Act II Kaution fork. Later shifts use the real engine payout (wallet + pay)."
-   }
+   },
+   "cumulative_s": 179,
+   "critical_path_index": 18
   },
   {
    "id": "rita_first",
@@ -1236,8 +1669,8 @@
    "threads": 1,
    "stage": {
     "loc": "B_UNI",
-    "time": "21:50",
-    "light": "night_lantern",
+    "time": "08:40",
+    "light": "afternoon_clear",
     "weather": "cold_clear",
     "camera": "single_close",
     "space": "interior"
@@ -1257,7 +1690,7 @@
     {
      "label": "Walk back the slow way.",
      "gate": null,
-     "to": "night_one",
+     "to": "act_two",
      "effects": [],
      "prose": []
     }
@@ -1270,8 +1703,8 @@
    "duration_s": 6,
    "duration_source": "authored",
    "unlocks": {},
-   "cumulative_s": 145,
-   "critical_path_index": 16
+   "cumulative_s": 185,
+   "critical_path_index": 19
   },
   {
    "id": "night_one",
@@ -1344,8 +1777,8 @@
    "duration_s": 14,
    "duration_source": "authored",
    "unlocks": {},
-   "cumulative_s": 159,
-   "critical_path_index": 17
+   "cumulative_s": 105,
+   "critical_path_index": 12
   },
   {
    "id": "night_one_end",
@@ -1379,7 +1812,7 @@
      "gate": null,
      "to": {
       "tunnel": "night_tick",
-      "then": "act_two"
+      "then": "nina_trial"
      },
      "effects": [],
      "prose": []
@@ -1391,9 +1824,11 @@
    "mode": "overlay",
    "duration_s": 6,
    "duration_source": "authored",
-   "unlocks": {},
-   "cumulative_s": 165,
-   "critical_path_index": 18
+   "unlocks": {
+    "mechanic": "day_end"
+   },
+   "cumulative_s": 111,
+   "critical_path_index": 13
   },
   {
    "id": "act_two",
@@ -1401,7 +1836,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_WG",
-    "time": "08:10",
+    "time": "09:10",
     "light": "dawn_grey",
     "weather": "overcast",
     "camera": "low_angle_authority",
@@ -1418,8 +1853,8 @@
     "footsteps_stair"
    ],
    "prose": [
-    "There is a man in the stairwell holding a clipboard like a weapon.",
-    "Herr Hans Lokker: Room 4. You arrived last night at eighteen forty."
+    "There is a man in the stairwell with a clipboard.",
+    "Lokker: Room 4. You arrived last night at eighteen forty."
    ],
    "choices": [
     {
@@ -1428,7 +1863,7 @@
      "to": "lokker_kaution",
      "effects": [],
      "prose": [
-      "Herr Hans Lokker: I was awake."
+      "Lokker: I was awake."
      ]
     },
     {
@@ -1443,7 +1878,7 @@
      ],
      "prose": [
       "A nod. Very small.",
-      "Herr Hans Lokker: Morgen."
+      "Lokker: Morgen."
      ]
     }
    ],
@@ -1462,7 +1897,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_WG",
-    "time": "08:12",
+    "time": "09:15",
     "light": "dawn_grey",
     "weather": "overcast",
     "camera": "two_shot_stairwell",
@@ -1477,7 +1912,8 @@
    ],
    "audio": [],
    "prose": [
-    "Herr Lokker: I need thirty euros deposit for your lease. You have three days!"
+    "Lokker: Thirty euros deposit for the lease.",
+    "Lokker: Three days."
    ],
    "choices": [
     {
@@ -1486,8 +1922,9 @@
      "to": "act_two_fork",
      "effects": [],
      "prose": [
-      "Herr Hans Lokker: Then you have a problem, and three days in which to have had it.",
-      "At the stairs, without turning: Kruma Express. Behind the Holstentor. They are always short of somebody."
+      "Lokker: Then you have a problem.",
+      "Lokker: And three days in which to have had it.",
+      "At the stairs, without turning: Kruma Express. They are always short of somebody."
      ]
     },
     {
@@ -1501,7 +1938,8 @@
       }
      ],
      "prose": [
-      "Herr Hans Lokker: Good. I prefer that answer. It is usually not true, but I prefer it."
+      "Lokker: Good. I prefer that answer.",
+      "Lokker: It is usually not true, but I prefer it."
      ]
     }
    ],
@@ -1520,7 +1958,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_WG",
-    "time": "08:30",
+    "time": "09:40",
     "light": "dawn_grey",
     "weather": "overcast",
     "camera": "fork_two_doors_wide",
@@ -1537,18 +1975,22 @@
     "city_morning_loop"
    ],
    "prose": [
-    "You have {wallet}€ and Lokker wants thirty of it.",
-    "Which is fine. Which is exactly fine, and leaves you the change and a two hundred and fifty euro tuition bill.",
-    "Two streets over there is a pizzeria with the shutter half up, and a man inside with a bicycle upside down on a table."
+    "You have {wallet}€. Lokker wants thirty of it.",
+    "Which leaves the change, and a two hundred and fifty euro tuition bill.",
+    "Two streets over, a pizzeria with the shutter half up.",
+    "A man inside, with a bicycle upside down on a table."
    ],
    "choices": [
     {
      "label": "[Pay Lokker the thirty. Be broke and owe nobody.]",
-     "to": "kaution_pay",
+     "to": {
+      "tunnel": "night_tick",
+      "then": "kaution_pay"
+     },
      "gate": null,
      "effects": [],
      "prose": [
-      "You count it twice on the stairs before you knock, which does not change the number."
+      "You count it twice on the stairs. It does not change the number."
      ]
     },
     {
@@ -1557,7 +1999,8 @@
      "gate": null,
      "effects": [],
      "prose": [
-      "The shutter is half up. You duck under it, which feels like the wrong way to enter a business."
+      "The shutter is half up. You duck under it.",
+      "It feels like the wrong way to enter a business."
      ]
     }
    ],
@@ -1576,7 +2019,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_WG",
-    "time": "13:00",
+    "time": "09:00",
     "light": "overcast_noon",
     "weather": "overcast",
     "camera": "insert_hands_form",
@@ -1595,7 +2038,8 @@
     "pen_scratch"
    ],
    "prose": [
-    "Herr Lokker: Here is your landlord confirmation form. Take it to the Bürgeramt for registration!"
+    "Lokker: Wohnungsgeberbestätigung.",
+    "Lokker: Landlord confirmation. You take it to the Bürgeramt."
    ],
    "choices": [
     {
@@ -1610,11 +2054,11 @@
      ],
      "prose": [
       "He is already inspecting the bins.",
-      "Herr Hans Lokker: Blue is paper."
+      "Lokker: Blue is paper."
      ]
     },
     {
-     "label": "Take the form and go.",
+     "label": "[Take the form and go.]",
      "gate": null,
      "to": "act_two_end",
      "effects": [],
@@ -1639,7 +2083,7 @@
      "expr": "r_lokker + 1"
     }
    ],
-   "beat": "FIRST PAPER WON / both threads converge here",
+   "beat": "DAY 3: the deposit is paid and the first document exists.",
    "origin": "story.ink",
    "econ_note": "wallet -30.00",
    "sets_note": "paid_kaution, has_lease, r_lokker +1",
@@ -1659,7 +2103,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_WG",
-    "time": "21:00",
+    "time": "20:30",
     "light": "interior_warm_lamp",
     "camera": "kitchen_two_shot",
     "space": "interior"
@@ -1673,11 +2117,12 @@
    ],
    "audio": [],
    "prose": [
-    "One piece of paper. It weighs nothing. You keep checking that it is still in your pocket.",
+    "One piece of paper. It weighs nothing.",
+    "You keep checking it is still in your pocket.",
     "Nico is in the kitchen with three books open and none of them being read.",
     "Nico: You got the lease? On day two?",
-    "He puts a hand up for a high five, converts it to a handshake halfway, and the result is a mess.",
-    "Nico: Okay. Don't get comfortable. Tomorrow it stops being one thing at a time."
+    "He goes for a high five, converts it to a handshake halfway. It is a mess.",
+    "Nico: Don't get comfortable. Tomorrow it stops being one thing at a time."
    ],
    "choices": [
     {
@@ -1697,7 +2142,9 @@
    "mode": "blocking",
    "duration_s": 8,
    "duration_source": "authored",
-   "unlocks": {}
+   "unlocks": {
+    "mechanic": "day_end"
+   }
   },
   {
    "id": "act_three_open",
@@ -2105,8 +2552,10 @@
     "oven_roar_low"
    ],
    "prose": [
-    "The bicycle on the table has no back wheel. The man has one hand inside the frame and flour on his forearm.",
-    "Herr Mathias Becker: We open at eleven. Unless you're here about the bike, in which case sit down."
+    "The bicycle on the table has no back wheel.",
+    "The man has one hand inside the frame and flour on his forearm.",
+    "Mathias: We open at eleven.",
+    "Mathias: Unless you're here about the bike. Then sit down."
    ],
    "choices": [
     {
@@ -2120,8 +2569,9 @@
       }
      ],
      "prose": [
-      "He stops. Wipes his hands. Looks at you properly, which nobody has done since you arrived.",
-      "Herr Mathias Becker: Ah. Kaution. Lokker."
+      "He stops. Wipes his hands.",
+      "He looks at you properly, which nobody has done since you arrived.",
+      "Mathias: Ah. Kaution. Lokker."
      ]
     },
     {
@@ -2135,9 +2585,10 @@
       }
      ],
      "prose": [
-      "Herr Mathias Becker: Everything. It's forty years old and I am not throwing it out.",
-      "You hold the frame while he seats the wheel. It takes eleven minutes. He talks the whole time and none of it is about you, which is a relief.",
-      "Herr Mathias Becker: Now. What did you actually come in here for."
+      "Mathias: Everything. It is forty years old and I am not throwing it out.",
+      "You hold the frame while he seats the wheel. It takes eleven minutes.",
+      "He talks the whole time and none of it is about you, which is a relief.",
+      "Mathias: Now. What did you actually come in here for."
      ]
     }
    ],
@@ -2176,13 +2627,18 @@
     "oven_roar_low"
    ],
    "prose": [
-    "Mathias: Here is thirty euros to help you out. Pay me back whenever you can!"
+    "Mathias: Thirty.",
+    "He puts it on the table without counting it.",
+    "Mathias: Pay it back when you can. Not to me, necessarily."
    ],
    "choices": [
     {
      "label": "\"I'll pay you back.\"",
      "gate": null,
-     "to": "kaution_pay",
+     "to": {
+      "tunnel": "night_tick",
+      "then": "kaution_pay"
+     },
      "effects": [
       {
        "var": "wallet",
@@ -2202,13 +2658,17 @@
       }
      ],
      "prose": [
-      "Herr Mathias Becker: Yes, yes. Go. Lokker's awake. Lokker is always awake."
+      "Mathias: Yes, yes. Go.",
+      "Mathias: Lokker is awake. Lokker is always awake."
      ]
     },
     {
      "label": "\"I can't take this. I don't know you.\"",
      "gate": null,
-     "to": "kaution_pay",
+     "to": {
+      "tunnel": "night_tick",
+      "then": "kaution_pay"
+     },
      "effects": [
       {
        "var": "heart",
@@ -2229,7 +2689,8 @@
      ],
      "prose": [
       "He pushes it two centimetres further.",
-      "Herr Mathias Becker: That is the correct answer and it is also stupid. Take the money."
+      "Mathias: That is the correct answer and it is also stupid.",
+      "Mathias: Somebody did it for me in Naples. Do it for the next one."
      ]
     }
    ],
@@ -3629,8 +4090,7 @@
     "ui": [
      "btn-close-skills",
      "skills-tree-scroll"
-    ],
-    "mechanic": "skill_tree"
+    ]
    }
   },
   {
@@ -3881,8 +4341,6 @@
    "duration_s": 3,
    "duration_source": "authored",
    "unlocks": {},
-   "cumulative_s": 168,
-   "critical_path_index": 19,
    "tunnel": true
   },
   {

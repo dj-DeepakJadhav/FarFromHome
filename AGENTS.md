@@ -182,3 +182,27 @@ node build/check-story.js
 
 It fails the build on reintroduced audio/vocabulary claims, dangling scene targets,
 dead UI unlocks, backwards Act I timestamps and terminal scenes with no outcome.
+
+## Code Discovery Protocol (STRICT — applies to every agent)
+
+**Project name for all MCP calls:** `Users-gestigon-Documents-DJ-FarFromHome`
+
+1. **Use `codebase-memory-mcp` FIRST for any code exploration.** Not grep, not find.
+   - `search_graph(query=...)` to locate functions, classes, routes
+   - `trace_path(function_name, mode=calls|data_flow)` for call chains
+   - `get_code_snippet(qualified_name)` for exact source
+   - `query_graph(cypher)` for structural questions
+   - `get_architecture(aspects)` for project shape
+   - `search_code(pattern)` for graph-augmented text search
+2. **Grep/Glob/Read are for what the graph does not model:** Markdown, JSON
+   (`story.json`), build scripts, configs. And always `Read` a file before editing it.
+3. **Re-index after every commit.** `index_repository(repo_path=".")`. The graph
+   pins to a commit SHA, so it goes stale the moment work lands. A stale graph is
+   worse than no graph: it answers confidently about code that has changed.
+4. **`detect_changes` before trusting the graph** if you are unsure how old it is.
+
+### Why this is strict here
+This codebase has repeatedly hidden bugs that text search reports as fine:
+`hideDialogueBox` was *called* in two places and *defined* in none; `playSfx('wrong')`
+had six call sites and no implementation; `grammarEngine.js` had zero callers and
+still shipped. Grep finds strings. The graph finds the missing edge.

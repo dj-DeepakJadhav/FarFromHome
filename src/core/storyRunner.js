@@ -62,11 +62,14 @@ window.FFH.StoryRunner = class {
         return;
       }
       const line = lines[i++];
-      const lineTime = (line.length * 16) + Math.max(1200, line.length * 22);
+      // ~52ms/char with a 1.8s floor. 72ms/char was unreadably slow and
+      // unskippable; 38ms/char overshot and outran the reader. Bubbles are
+      // tap-to-advance, so this is a ceiling for anyone who wants to linger.
+      const lineTime = (line.length * 22) + Math.max(1800, line.length * 30);
       if (this.game.ui && this.game.ui.showThoughtBubble) {
         this.game.ui.showThoughtBubble(line, lineTime);
       }
-      this._proseTimer = setTimeout(step, lineTime + 250);
+      this._proseTimer = setTimeout(step, lineTime + 350);
     };
     // Tapping a bubble skips its remaining dwell and shows the next line.
     window.FFH.advanceProse = () => {
@@ -89,6 +92,32 @@ window.FFH.StoryRunner = class {
 
   npcKeyFor(scene) {
     return (scene && scene.cast && scene.cast.length) ? scene.cast[0] : null;
+  }
+
+  // A scene with no cast has nobody in it. Ten scenes are authored that way on
+  // purpose (reading a flyer alone, the canal at night, the final beat), and
+  // every one of them was building an NPC diorama and defaulting it to
+  // NPC_NICO, so Nico stood in for the narrator at the ending.
+  // stage.loc -> the interior room to build. Used when a scene is declared
+  // interior but has no cast: it still happens indoors, so the room has to be
+  // built explicitly. Before this, such a scene simply played in whatever phase
+  // the player happened to be in, so an office beat could run in the street.
+  roomTypeFor(loc) {
+    return ({
+      B_WG: 'WG_ROOM',
+      B_UNI: 'UNI',
+      B_PIZZA: 'PIZZERIA',
+      B_BAKERY: 'BAKERY',
+      B_DARKSTORE: 'DARKSTORE',
+      B_RATHAUS: 'RATHAUS',
+      B_BANK: 'BANK',
+      B_AUSLAENDER: 'AUSLAENDER',
+      B_BIKESHOP: 'BIKESHOP'
+    })[loc] || null;
+  }
+
+  hasSpeaker(scene) {
+    return !!this.npcKeyFor(scene);
   }
 
   resolveSceneId(sceneId) {
@@ -200,6 +229,22 @@ window.FFH.StoryRunner = class {
 
   interpolate(text) {
     return window.FFH.interpolateStoryText(text, this.game.state);
+  }
+
+  // An objective that has been reached should leave the HUD immediately, not
+  // linger until something happens to overwrite it. Called when a pending
+  // travel target resolves and whenever a scene begins.
+  clearObjective() {
+    const st = this.game.state;
+    if (!st || !st.activeObjective) return;
+    st.activeObjective = null;
+    st.isTypingObjective = false;
+    if (this.game.ui && this.game.ui.updatePersistentHUD) {
+      this.game.ui.updatePersistentHUD(st);
+    }
+    if (this.game.ui && this.game.ui.updateCityExplorerHUD) {
+      this.game.ui.updateCityExplorerHUD(0, 0, false);   // drop the range readout too
+    }
   }
 
   startScene(sceneId) {
@@ -341,6 +386,15 @@ window.FFH.StoryRunner = class {
       return;
     }
 
+    // Mechanics are dispatched before the presentation mode is considered.
+    // These used to live inside handleBlockingScene, which meant an overlay
+    // scene declaring a mechanic (night_one_end is mode:overlay) silently
+    // skipped it.
+    const mech = (scene.unlocks || {}).mechanic;
+    if (mech === 'companion_walk' && this.startCompanionWalk(scene, validChoices)) return;
+    if (mech === 'letter_round' && this.startLetterRound(scene, validChoices)) return;
+    if (mech === 'day_end' && this.runDayEnd(scene, validChoices)) return;
+
     if (mode === 'gameplay') {
       this.handleGameplayScene(scene, validChoices);
     } else if (mode === 'blocking') {
@@ -348,6 +402,73 @@ window.FFH.StoryRunner = class {
     } else {
       this.handleOverlayScene(scene, validChoices);
     }
+  }
+
+  // Put the player where the scene says it happens. `stage.space` is the
+  // authority; this is the only function that acts on it.
+  //
+  //   exterior  -> the city. A speaker is spawned in the world, not in a room.
+  //   interior  -> a room diorama, built from stage.loc when there is no cast.
+  //   threshold -> a doorway two-shot: at the door, not admitted.
+  //
+  // Previously 22 of 92 scenes rendered in the wrong space: exterior scenes
+  // with a cast opened a room diorama (Frau Klein on the university steps
+  // appeared indoors), and interior scenes without a cast simply stayed in
+  // whatever phase the player was in (an office beat could play in the street).
+  placeScene(scene, space) {
+    const loc = (scene.stage && scene.stage.loc) || '';
+    const npcKey = this.npcKeyFor(scene);
+
+    if (space === 'exterior') {
+      if (!this.phaseIs('CITY_EXPLORATION')) {
+        this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.phaseIs('DIALOGUE') });
+      }
+      // A speaker outdoors stands in the street beside you.
+      if (npcKey) this.spawnWorldSpeaker(npcKey, loc);
+      return;
+    }
+
+    if (space === 'threshold') {
+      if (!this.phaseIs('DIALOGUE', 'SHOP')) {
+        this.game.transitionTo('DIALOGUE', {
+          npcKey: npcKey || 'NPC_NICO', isStory: true, atThreshold: true, loc
+        });
+      }
+      return;
+    }
+
+    // interior
+    if (npcKey) {
+      if (!this.phaseIs('DIALOGUE', 'SHOP')) {
+        this.game.transitionTo('DIALOGUE', { npcKey, isStory: true, atThreshold: false, loc });
+      }
+      return;
+    }
+    const roomType = this.roomTypeFor(loc);
+    if (roomType && !this.phaseIs('INTERIOR', 'SHOP', 'PICK')) {
+      this.game.transitionTo('INTERIOR', { roomType, npcKey: null, loc });
+    }
+  }
+
+  // An outdoor speaker is placed in the world rather than in a diorama, using
+  // the same mesh factory the companion walk uses.
+  spawnWorldSpeaker(npcKey, loc) {
+    const city = this.game.phases && this.game.phases.CITY_EXPLORATION;
+    if (!city || !window.FFH.createNPCMesh) return;
+    if (city.worldSpeaker) {
+      this.game.scene.remove(city.worldSpeaker);
+      city.worldSpeaker = null;
+    }
+    const mesh = window.FFH.createNPCMesh(npcKey);
+    if (!mesh) return;
+    const anchorMesh = (city.interactiveMeshes || []).find(m => m.userData && m.userData.type === loc);
+    const base = anchorMesh ? anchorMesh.position : city.playerPos;
+    mesh.position.set(base.x + 1.4, 0.12, base.z + 1.4);
+    if (city.playerPos) {
+      mesh.rotation.y = Math.atan2(city.playerPos.x - mesh.position.x, city.playerPos.z - mesh.position.z);
+    }
+    this.game.scene.add(mesh);
+    city.worldSpeaker = mesh;
   }
 
   handleOverlayScene(scene, choices) {
@@ -361,20 +482,7 @@ window.FFH.StoryRunner = class {
       this.game.ui.hideDialogueBox();
     }
 
-    if (wantPhase === 'DIALOGUE') {
-      // Interior and threshold scenes both play as a two-shot, but a threshold
-      // scene keeps the city behind the speaker: you are at the door, not in.
-      if (!this.phaseIs('DIALOGUE', 'SHOP')) {
-        this.game.transitionTo('DIALOGUE', {
-          npcKey: this.npcKeyFor(scene) || 'NPC_NICO',
-          isStory: true,
-          atThreshold: space === 'threshold',
-          loc: scene.stage && scene.stage.loc
-        });
-      }
-    } else if (!this.phaseIs('CITY_EXPLORATION')) {
-      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.phaseIs('DIALOGUE') });
-    }
+    this.placeScene(scene, space);
 
     const rawProse = scene.prose || [];
     const processedProse = rawProse.map(p => this.interpolate(p));
@@ -447,6 +555,13 @@ window.FFH.StoryRunner = class {
   }
 
   handleBlockingScene(scene, choices) {
+    // No speaker means no conversation: render it over the live scene rather
+    // than opening a two-shot with a stand-in.
+    if (!this.hasSpeaker(scene)) {
+      this.handleOverlayScene(scene, choices);
+      return;
+    }
+
     const rawProse = scene.prose || [];
     const processedProse = rawProse.map(p => this.interpolate(p));
 
@@ -491,18 +606,7 @@ window.FFH.StoryRunner = class {
     };
 
     if (this.game.phases.DIALOGUE) {
-      // 66 of 85 scenes are `blocking`, so this is the routing that matters.
-      // It used to force a room diorama for every one of them, which put
-      // outdoor beats (the Kruma flyer, the locked Admissions door, Frau Klein
-      // on the steps) inside a room. Interior scenes commit to the diorama;
-      // threshold and exterior scenes keep the city visible behind the speaker.
-      const space = this.spaceOf(scene);
-      this.game.transitionTo('DIALOGUE', {
-        npcKey: npcKey,
-        isStory: true,
-        atThreshold: space !== 'interior',
-        loc: scene.stage && scene.stage.loc
-      });
+      this.placeScene(scene, this.spaceOf(scene));
 
       // Apply camera adjustments inside the diorama room
       const cam = this.game.cameras && this.game.cameras.mainCamera;
@@ -532,6 +636,140 @@ window.FFH.StoryRunner = class {
     }
   }
 
+  // `companion_walk`: an NPC leads the player between POIs, speaking on arrival.
+  // Returns false if the city phase or the companion module is unavailable, so
+  // the caller can fall back to playing the scene as an ordinary conversation.
+  startCompanionWalk(scene, choices) {
+    const city = this.game.phases && this.game.phases.CITY_EXPLORATION;
+    if (!city || !city.companion) return false;
+
+    if (!this.phaseIs('CITY_EXPLORATION')) {
+      this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: this.phaseIs('DIALOGUE') });
+    }
+    if (this.game.ui && this.game.ui.hideDialogueBox) this.game.ui.hideDialogueBox();
+
+    const stops = (scene.unlocks && scene.unlocks.tour_stops) || [];
+    const npcKey = this.npcKeyFor(scene) || 'NPC_NICO';
+    const lines = (scene.prose || []).map(p => this.interpolate(p));
+
+    const started = city.companion.start(npcKey, stops, {
+      // One line per stop, so the walk paces itself off the player's own speed
+      // rather than a timer they cannot influence.
+      onArrive: (poiKey, i) => {
+        const line = lines[Math.min(i + 1, lines.length - 1)];
+        if (line && this.game.ui && this.game.ui.showThoughtBubble) {
+          this.game.ui.showThoughtBubble(line, 4200);
+        }
+        this.game.state.activeObjective = (i + 1 < stops.length)
+          ? 'Keep up with Nico'
+          : 'Follow Nico back';
+        if (this.game.ui && this.game.ui.updatePersistentHUD) {
+          this.game.ui.updatePersistentHUD(this.game.state);
+        }
+      },
+      onFinish: () => {
+        city.companion.stop();
+        if (choices && choices.length) {
+          this.game.ui.showStoryOverlay(
+            {
+              sceneId: scene.id,
+              beat: scene.beat,
+              stage: scene.stage,
+              prose: [],
+              choices: choices.map((ch, idx) => ({
+                idx, label: this.interpolate(ch.label), original: ch
+              }))
+            },
+            (i) => this.selectChoice(choices[i])
+          );
+        }
+      }
+    });
+
+    if (!started) return false;
+
+    if (lines.length && this.game.ui && this.game.ui.showThoughtBubble) {
+      this.game.ui.showThoughtBubble(lines[0], 4200);
+    }
+    this.game.state.activeObjective = 'Keep up with Nico';
+    if (this.game.ui && this.game.ui.updatePersistentHUD) {
+      this.game.ui.updatePersistentHUD(this.game.state);
+    }
+    return true;
+  }
+
+  // `letter_round`: the post job. Plays in the city against a clock, paying per
+  // letter delivered. Returns false if the city phase is unavailable so the
+  // caller can fall back to an ordinary scene.
+  startLetterRound(scene, choices) {
+    const city = this.game.phases && this.game.phases.CITY_EXPLORATION;
+    if (!city || !city.letterRound) return false;
+
+    // The briefing is a conversation; the round itself is not. Play the scene's
+    // prose first, then hand the player the bag.
+    const lines = (scene.prose || []).map(p => this.interpolate(p));
+    const begin = () => {
+      if (!this.phaseIs('CITY_EXPLORATION')) {
+        this.game.transitionTo('CITY_EXPLORATION', { fromBuildingExit: true });
+      }
+      if (this.game.ui && this.game.ui.hideDialogueBox) this.game.ui.hideDialogueBox();
+
+      city.letterRound.start({
+        onFinish: (result) => {
+          const line = result.undelivered > 0
+            ? `${result.delivered} delivered, ${result.undelivered} not. ${result.pay.toFixed(2)}€.`
+            : `All ${result.delivered} delivered. ${result.pay.toFixed(2)}€.`;
+          if (this.game.ui && this.game.ui.showThoughtBubble) {
+            this.game.ui.showThoughtBubble(line, 5000);
+          }
+          if (choices && choices.length) {
+            setTimeout(() => this.selectChoice(choices[0]), 2600);
+          }
+        }
+      });
+    };
+
+    if (lines.length) this.playProseQueue(lines, begin);
+    else begin();
+    return true;
+  }
+
+  // `day_end`: the day is counted where the player sleeps, not where they
+  // worked. Shows the payslip first (the only place on the story path it is
+  // ever seen: DEBRIEF_RECEIPT has a single caller buried in a side dialogue),
+  // then plays the room scene, then Sleep crosses the night tunnel.
+  //
+  // Returns false when there is nothing to count, so the scene plays normally.
+  runDayEnd(scene, choices) {
+    const state = this.game.state;
+    // Gate on evidence that work actually happened today. `shiftEarnings` is
+    // only ever written by finishShift, which does not run on the story path,
+    // so it was always 0 here and the day summary never appeared. `lastPayout`
+    // is set by pickPhase the moment a shift completes, which is the real signal.
+    const workedToday = !!this.game.lastPayout || !!state.lastLetterRound;
+    if (!workedToday || !this.game.ui || !this.game.ui.showShiftSummaryUI) return false;
+    if (this._dayEndShownFor === scene.id) return false;   // do not re-show on re-entry
+    this._dayEndShownFor = scene.id;
+
+    this.game.lastPayout = this.game.lastPayout || window.FFH.calculatePayout(state);
+    this.game.ui.showShiftSummaryUI();
+
+    // The payslip owns the screen; the room scene resumes when it is dismissed.
+    this._resumeAfterReceipt = () => {
+      this._resumeAfterReceipt = null;
+      // Consumed: do not count the same day's work twice.
+      state.shiftEarnings = 0;
+      state.lastLetterRound = null;
+      this.game.lastPayout = null;
+      const plain = Object.assign({}, scene, {
+        unlocks: Object.assign({}, scene.unlocks, { mechanic: null })
+      });
+      if (scene.mode === 'blocking') this.handleBlockingScene(plain, choices);
+      else this.handleOverlayScene(plain, choices);
+    };
+    return true;
+  }
+
   handleGameplayScene(scene, choices) {
     // Ramp data lives at unlocks.ramp.icon_delay_s. This used to read a top-level
     // `scene.teaches` that no scene has ever had, so it always resolved to 0 and
@@ -540,11 +778,6 @@ window.FFH.StoryRunner = class {
     const ramp = (scene.unlocks && scene.unlocks.ramp) || {};
     const iconDelay = ramp.icon_delay_s;
 
-    // The prologue is over once a minigame owns the screen; the skip affordance
-    // has nothing left to skip.
-    if (this.game.ui && this.game.ui.hideSkipIntro) {
-      this.game.ui.hideSkipIntro();
-    }
 
     this.game.transitionTo('PICK', {
       storyScene: scene,
@@ -557,6 +790,20 @@ window.FFH.StoryRunner = class {
         }
       }
     });
+
+    // Gameplay scenes carry prose too (Klaus explaining the shelf, for one) and
+    // it was being dropped entirely: this handler transitioned straight to PICK
+    // and nothing else ever read scene.prose. Play it over the live shelf, which
+    // is also the only place the lines make sense, and hold the shift clock so
+    // the briefing does not eat the player's time.
+    const briefing = (scene.prose || []).map(p => this.interpolate(p));
+    if (briefing.length) {
+      const pick = this.game.phases && this.game.phases.PICK;
+      if (pick) pick.briefingHold = true;
+      this.playProseQueue(briefing, () => {
+        if (pick) pick.briefingHold = false;
+      });
+    }
   }
 
   selectChoice(choice) {
@@ -567,7 +814,23 @@ window.FFH.StoryRunner = class {
     }
 
     let target = choice.to || choice.next;
+
+    // Tunnels. A choice may target { tunnel: 'scene_id', then: 'scene_id' },
+    // meaning "run that scene's effects, then continue". This used to take
+    // `.then` and drop the tunnel on the floor, so `night_tick` never ran once
+    // in the whole game: the day counter never advanced past 1, the nightly
+    // rent was never charged, and body never reset. Both night boundaries in
+    // Acts I and II go through a tunnel, so neither day boundary existed.
     if (typeof target === 'object' && target !== null) {
+      const tunnelId = target.tunnel;
+      if (tunnelId) {
+        const tunnelScene = this.scenesById ? this.scenesById[tunnelId] : null;
+        if (tunnelScene && tunnelScene.effects && tunnelScene.effects.length) {
+          this.applyEffects(tunnelScene.effects);
+        } else if (!tunnelScene) {
+          console.warn(`StoryRunner: tunnel '${tunnelId}' has no scene; effects skipped.`);
+        }
+      }
       target = target.then || target.to || target.next;
     }
 
@@ -602,7 +865,11 @@ window.FFH.StoryRunner = class {
 
       if (TRAVEL_REQUIRED) {
         const prettyLoc = (window.FFH.STORY_LOC_NAMES && window.FFH.STORY_LOC_NAMES[targetLoc]) || 'Town';
-        const objective = (window.FFH.STORY_OBJECTIVE_MAP && window.FFH.STORY_OBJECTIVE_MAP[target]) || `Head towards ${prettyLoc}`;
+        const targetScene = this.scenesById ? this.scenesById[target] : null;
+        const isDayEnd = !!(targetScene && (targetScene.unlocks || {}).mechanic === 'day_end');
+        const objective = isDayEnd
+          ? "Go home. It's late."
+          : ((window.FFH.STORY_OBJECTIVE_MAP && window.FFH.STORY_OBJECTIVE_MAP[target]) || `Head towards ${prettyLoc}`);
         console.log(`[StoryRunner] TRAVEL_REQUIRED to scene '${target}' at '${targetLoc}'. Setting objective: ${objective}`);
 
         this.pendingStoryTarget = { sceneId: target, poi: targetLoc, objective };

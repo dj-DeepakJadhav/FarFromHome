@@ -41,7 +41,9 @@ Object.assign(window.FFH.UI.prototype, {
       bottom: 0;
       left: 0;
       right: 0;
-      height: 48vh;
+      /* Kept in sync with DIORAMA_VIEW_TEMPLATE.uiHeight in dialoguePhase.js.
+         48vh left the isometric room no space to read in. */
+      height: 36vh;
       box-sizing: border-box;
       background: #FFFFFF;
       border-top: 4px solid #2EC4B6;

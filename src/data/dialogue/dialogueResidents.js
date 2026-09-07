@@ -192,10 +192,8 @@ Object.assign(window.FFH.NPC_DATABASE, {
               action: (game) => {
                 addKlausMemory('introduced_klaus');
                 addKlausMemory('learned_drift');
-                game.state.skillPoints = (game.state.skillPoints || 0) + 1;
                 game.state.npcRelationships['NPC_KLAUS'] = Math.min(100, (game.state.npcRelationships['NPC_KLAUS'] || 50) + 20);
                 game.sfx.playSfx('success');
-                game.ui.spawnFloatingText('⚡ Learned Corner Drift! +1 Skill Point!', window.innerWidth / 2, window.innerHeight / 2, '#FF5400');
                 game.ui.updatePersistentHUD(game.state);
 
                 window.FFH.NPC_DATABASE['NPC_KLAUS'].currentResponse = {
@@ -234,11 +232,9 @@ Object.assign(window.FFH.NPC_DATABASE, {
         options.push({
           label: '⚡ "Klaus, teach me how you take sharp cobblestone turns without skidding!"',
           action: (game) => {
-            game.state.skillPoints = (game.state.skillPoints || 0) + 1;
             addKlausMemory('learned_drift');
             game.state.npcRelationships['NPC_KLAUS'] = Math.min(100, game.state.npcRelationships['NPC_KLAUS'] + 20);
             game.sfx.playSfx('success');
-            game.ui.spawnFloatingText('⚡ Learned Corner Drift! +1 Skill Point!', window.innerWidth / 2, window.innerHeight / 2, '#FF5400');
             game.ui.updatePersistentHUD(game.state);
 
             window.FFH.NPC_DATABASE['NPC_KLAUS'].currentResponse = {
@@ -320,10 +316,8 @@ Object.assign(window.FFH.NPC_DATABASE, {
                 addAnkeMemory('introduced_anke');
                 addAnkeMemory('consulted_rights');
                 game.state.storyFlags.receivedAstaGrant = true;
-                game.state.skillPoints = (game.state.skillPoints || 0) + 1;
                 game.state.npcRelationships['NPC_ANKE'] = 100;
                 game.sfx.playSfx('success');
-                game.ui.spawnFloatingText('📑 Legal Rights Learned! +1 Skill Point!', window.innerWidth / 2, window.innerHeight / 2, '#4CC9F0');
                 game.ui.updatePersistentHUD(game.state);
 
                 window.FFH.NPC_DATABASE['NPC_ANKE'].currentResponse = {
@@ -360,14 +354,12 @@ Object.assign(window.FFH.NPC_DATABASE, {
       // Emergency Student Hardship Bursary
       if (!state.storyFlags.receivedAstaGrant) {
         options.push({
-          label: '📑 "Dr. Schmidt, I need advice on student rights and emergency visa funds!" (+1 Skill Point)',
+          label: '📑 "Dr. Schmidt, I need advice on student rights and emergency visa funds!"',
           action: (game) => {
             game.state.storyFlags.receivedAstaGrant = true;
-            game.state.skillPoints = (game.state.skillPoints || 0) + 1;
             addAnkeMemory('consulted_rights');
             game.state.npcRelationships['NPC_ANKE'] = 100;
             game.sfx.playSfx('success');
-            game.ui.spawnFloatingText('📑 Legal Rights Learned! +1 Skill Point!', window.innerWidth / 2, window.innerHeight / 2, '#4CC9F0');
             game.ui.updatePersistentHUD(game.state);
 
             window.FFH.NPC_DATABASE['NPC_ANKE'].currentResponse = {

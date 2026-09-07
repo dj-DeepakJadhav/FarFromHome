@@ -43,6 +43,23 @@ function targets(s) {
   return out.filter(Boolean);
 }
 
+// Narrative continuation, as distinct from targets().
+// targets() lists everything a scene can reach, tunnel scenes included, which is
+// what reachability needs. Path-walking needs the scene the story actually
+// continues to: a tunnel is crossed, not visited, so it resolves to `.then`.
+// Without this the critical-path walk stepped into night_tick and dead-ended,
+// which is why the Aha readout came out as "undefineds".
+function continuations(s) {
+  const out = [];
+  for (const k of ['next', 'divert']) if (typeof s[k] === 'string') out.push(s[k]);
+  for (const c of s.choices || []) {
+    if (typeof c.to === 'string') out.push(c.to);
+    else if (c.to && typeof c.to === 'object') out.push(c.to.then || c.to.to || c.to.next);
+  }
+  for (const ce of s.conditional_edges || []) if (ce.to) out.push(ce.to);
+  return out.filter(Boolean);
+}
+
 // ---------- per-scene ----------
 const seenIds = new Set();
 for (const s of scenes) {
@@ -109,12 +126,28 @@ function daySetBy(effects) {
   }
   return null;
 }
+// A choice may cross a night via a tunnel: { tunnel: 'night_tick', then: '...' }.
+// The day effect lives on the TUNNEL SCENE, not on the choice, so this used to
+// look like the clock running backwards (22:40 -> 06:00) and, worse, it let a
+// genuinely broken branch through unnoticed. Returns true if the tunnel scene
+// advances the day by any expression.
+function tunnelAdvancesDay(to) {
+  if (!to || typeof to !== 'object' || !to.tunnel) return false;
+  const t = scenes.find(s => s.id === to.tunnel);
+  return !!(t && (t.effects || []).some(e => e && e.var === 'day'));
+}
 function firstExit(s) {
   if (typeof s.next === 'string') return { to: s.next, setDay: null };
   if (typeof s.divert === 'string') return { to: s.divert, setDay: null };
   for (const c of s.choices || []) {
     if (typeof c.to === 'string') return { to: c.to, setDay: daySetBy(c.effects) };
-    if (c.to && typeof c.to === 'object') return { to: c.to.then, setDay: daySetBy(c.effects) };
+    if (c.to && typeof c.to === 'object') {
+      return {
+        to: c.to.then,
+        setDay: daySetBy(c.effects),
+        nextDay: tunnelAdvancesDay(c.to)
+      };
+    }
   }
   for (const ce of s.conditional_edges || []) if (ce.to) return { to: ce.to, setDay: null };
   return null;
@@ -132,6 +165,7 @@ const actOnePath = [];
     if (s.act === 'I') actOnePath.push({ scene: s, day });
     const exit = firstExit(s);
     if (exit && exit.setDay != null) day = exit.setDay;
+    else if (exit && exit.nextDay) day += 1;   // crossed a night via a tunnel
     cur = exit && exit.to;
   }
 }
@@ -147,7 +181,7 @@ const path0 = [];
 {
   let cur = 'act_one';
   const seen = new Set();
-  while (cur && byId.has(cur) && !seen.has(cur)) { seen.add(cur); path0.push(byId.get(cur)); cur = targets(byId.get(cur))[0]; }
+  while (cur && byId.has(cur) && !seen.has(cur)) { seen.add(cur); path0.push(byId.get(cur)); cur = continuations(byId.get(cur))[0]; }
 }
 let total = 0;
 const expected = new Map();

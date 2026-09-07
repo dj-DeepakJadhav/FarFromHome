@@ -234,11 +234,27 @@ class GameEngine {
       // counter, wallet and objective vanished for the rest of the session on
       // the first conversation. Do not reintroduce per-phase display toggles.
       this.syncHudVisibility(phaseKey);
+      this.syncBackdrop(phaseKey);
 
       // Update the HUD after transitioning, so it shows the correct state
       if (this.ui && this.ui.updatePersistentHUD) {
         this.ui.updatePersistentHUD(this.state);
       }
+    }
+  }
+
+  // The state machine owns the scene backdrop for the same reason it owns HUD
+  // visibility: only the city phase used to set scene.background, so every room
+  // phase inherited the last sky the city painted. Leave the city alone, it
+  // drives its own sky from the time of day.
+  syncBackdrop(phaseKey) {
+    if (!this.scene || !window.FFH.getBackdrop) return;
+    if (phaseKey === 'CITY_EXPLORATION' || phaseKey === 'BOOT') return;
+
+    if (phaseKey === 'PICK') {
+      this.scene.background = window.FFH.getBackdrop('warehouse', '#1B2440', '#0D1424');
+    } else if (phaseKey === 'DIALOGUE' || phaseKey === 'INTERIOR' || phaseKey === 'SHOP') {
+      this.scene.background = window.FFH.getBackdrop('room', '#3E4A63', '#222C42');
     }
   }
 
@@ -248,14 +264,14 @@ class GameEngine {
     const hidden = (phaseKey === 'BOOT' || phaseKey === 'WIN' || phaseKey === 'LOSE');
     const hud = document.getElementById('hud');
     if (hud) hud.style.display = hidden ? 'none' : '';
-    const persistent = document.getElementById('persistent-hud');
-    if (persistent) persistent.style.display = hidden ? 'none' : '';
+    const persistent = document.getElementById('ffh-persistent-hud');
+    if (persistent) persistent.style.display = hidden ? 'none' : 'flex';
   }
 
   // Begin a fresh run at Shift 1, bypassing Act I. Reached two ways, neither of
-  // which puts a bypass on the main menu: the "Skip intro" affordance that
-  // appears while the prologue is playing, and the ?quickstart=1 URL parameter
-  // (used for the submission link, invisible to a normal player).
+  // Reached only by ?quickstart=1, which exists for development and for a
+  // reviewer who wants the loop immediately. There is deliberately no in-game
+  // skip: the three-day structure is the game, so every player plays it.
   startFirstShift() {
     this.state = window.FFH.createRunState();
     window.FFH.state = this.state;
@@ -265,7 +281,6 @@ class GameEngine {
       window.FFH.resetShiftState(this.state);
     }
     if (this.ui) {
-      this.ui.hideSkipIntro && this.ui.hideSkipIntro();
       this.ui.clear();
     }
     this.clearTitleDiorama();

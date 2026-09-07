@@ -62,12 +62,10 @@ function loadFoodModel(key) {
 window.FFH.createItemMesh = function(itemType, genderColorHex) {
   const group = new THREE.Group();
   
-  // Highlight ring/base representing grammatical gender color
-  const ringGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.05, 16);
-  const ringMat = new THREE.MeshBasicMaterial({ color: genderColorHex });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.position.y = -0.5;
-  group.add(ring);
+  // No gender base disc. The shelf rails now carry DER / DIE / DAS with their
+  // symbol, so a coloured disc under every item was redundant reinforcement,
+  // and the shallow camera stretched each circle into a wide ellipse that
+  // crowded the groceries standing on it.
   
   const contentMat = window.FFH.createCelMaterial(0xFFAA44); // Fallback color
   let geometry;
@@ -159,7 +157,22 @@ window.FFH.createItemMesh = function(itemType, genderColorHex) {
     curve: { key: 'banana.obj', scale: 1.1, y: -0.1 },
     wedge: { key: 'cheese.obj', scale: 1.15, y: -0.1 },
     egg: { key: 'egg.obj', scale: 1.2, y: -0.1 },
-    cone: { key: 'carrot.obj', scale: 1.1, y: -0.1 }
+    cone: { key: 'carrot.obj', scale: 1.1, y: -0.1 },
+    cup: { key: 'cup-coffee.obj', scale: 1.1, y: -0.1 },
+    disc: { key: 'pizza.obj', scale: 1.1, y: -0.1 },
+    salad: { key: 'salad.obj', scale: 1.1, y: -0.1 },
+    fish: { key: 'fish.obj', scale: 1.1, y: -0.1 },
+    corn: { key: 'corn.obj', scale: 1.1, y: -0.1 },
+    mushroom: { key: 'mushroom.obj', scale: 1.1, y: -0.1 },
+    cake: { key: 'cake.obj', scale: 1.1, y: -0.1 },
+    tomato: { key: 'tomato.obj', scale: 1.1, y: -0.1 },
+    onion: { key: 'onion.obj', scale: 1.1, y: -0.1 },
+    lemon: { key: 'lemon.obj', scale: 1.1, y: -0.1 },
+    pear: { key: 'pear.obj', scale: 1.1, y: -0.1 },
+    grapes: { key: 'grapes.obj', scale: 1.1, y: -0.1 },
+    croissant: { key: 'croissant.obj', scale: 1.1, y: -0.1 },
+    meat: { key: 'meat-cooked.obj', scale: 1.1, y: -0.1 },
+    oil: { key: 'bottle-oil.obj', scale: 1.1, y: -0.1 },
   };
 
   const modelInfo = modelMap[itemType];

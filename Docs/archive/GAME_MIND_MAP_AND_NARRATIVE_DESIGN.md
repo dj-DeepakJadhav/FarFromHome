@@ -36,8 +36,6 @@ graph TD
     Doc4 --> Finale[🏛️ Final Immigration Hearing: Permanent Residence Permit with Dr. Lindemann]:::quest
     Finale --> Win([🏆 VICTORY: Visa Secured & Degree Commences!])
 
-    %% Expat Adaptation Skill Tree
-    Hub --> Skills[⭐ Expat Adaptation Skill Tree]:::skill
     Skills --> HustlerBranch[🚴 The Hustler: Cobblestone Drift ➔ Quick-Pack ➔ VIP Legend]:::skill
     Skills --> BureaucratBranch[📜 The Bureaucrat: Beamtendeutsch ➔ Tax ID ➔ Stempel Master]:::skill
     Skills --> DiplomatBranch[☕ The Diplomat: Moin Charm ➔ Pfand Baron ➔ Stoßlüften Zen]:::skill
@@ -57,23 +55,19 @@ graph TD
 | Character | Location | Voice & Tone | Alignment & Role | "Who Speaks What, When & What You Do" | Tangible Reward |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Rita Schneider** | University (`B_UNI`) | Sine (310Hz)<br>*Maternal & Orderly* | University Registrar | • **Day 1**: Explains the 250€ *Semesterbeitrag* & prompts Strategy Choice (Hustler / Diplomat / Scholar).<br>• **Deep Story**: Shares her daughter studying abroad in Tokyo.<br>• **Goal**: Accept 250€ fee and grant official *Immatrikulationsbescheinigung*. | 🎓 **Matriculation Certificate** (Unlocks Bank & Visa steps) |
-| **Klaus "Der Blitz"** | Dark Store (`B_DARKSTORE`) | Triangle (355Hz)<br>*Competitive Speedster* | Veteran Courier Rival | • **Day 1+**: Challenges your bike handling on wet cobblestones.<br>• **Mentorship**: Teaches corner drifting and aerodynamic drafting.<br>• **Lore**: Friendly rivalry with Nina over safety vs. pure speed. | ⚡ **+1 Skill Point** (The Hustler Branch) |
 | **Nina Lindemann** | Dark Store (`B_DARKSTORE`) | Triangle (340Hz)<br>*Pragmatic & Street-Smart* | Kruma Dispatch Lead | • **Shift Start**: Choose between **Standard Shift** or **🔥 High-Stakes VIP Express Rush**.<br>• **Lore**: Explains her 80 km/day backstory to pay tuition and fight for fair rider treatment.<br>• **Shortcuts**: Reveals alley behind St. Mary’s Church. | 🚴 **Shift Dispatch** & 2.5×–3.0× Tips |
 | **Hans Lokker** | WG Dorm (`B_WG`) | Sawtooth (160Hz)<br>*Gruff Caretaker* | Landlord & Caretaker | • **Encounter**: Enforces 22:00 *Ruhezeit* and no shoes in hallways.<br>• **Emotional Moment**: Talks about his late wife Anna and church bells.<br>• **Quest Action**: Accept warm Butter Croissant bribe from Bakery Hansa. | 📜 **Landlord Confirmation** (*Wohnungsgeberbestätigung*) |
 | **Nico** | Hostel (`B_HOSTEL`) | Triangle (265Hz)<br>*Helpful Expat Senior* | Student Roommate | • **Survival Lore**: Shares the 3 golden rules of surviving your first month.<br>• **Interactive Action 1**: Return empty Club-Mate *Pfand* bottles.<br>• **Interactive Action 2**: Practice 5-minute *Stoßlüften* in dorm room.<br>• **Emotional Beat**: Sunday 2-hour phone calls home to family. | 🍾 **+0.75€ to +1.50€ Cash**<br>🌬️ **+20 to +40 Freshness** |
 | **Martha Webber (Oma)** | Bakery Hansa (`B_BAKERY`) | Sine (215Hz)<br>*Warm Grandmother* | District Heart | • **Food Purchase**: Sourdough bread (+10 Freshness) & Franzbrötchen.<br>• **Sidequest**: Sells warm butter croissant for 2.00€ to soften Hans Lokker.<br>• **Emotional Moment**: Story of rebuilding Lübeck post-war through mutual aid. | 🥐 **Butter Croissant Item** & Morale Boost |
 | **Mathias Becker** | Pizzeria (`B_PIZZA`) | Sawtooth (175Hz)<br>*Passionate Artisan* | Chef & Bike Mechanic | • **Food Purchase**: 8.00€ stone-baked Pizza Margherita (+20 Freshness).<br>• **Immigrant Story**: Arrived from Naples in 1994 with 50 Marks.<br>• **Diplomacy**: Form a truce over outdoor terrace bike parking. | 🍕 **20% Food Discount** & +25 Relationship |
-| **Dr. Anke Schmidt** | University (`B_UNI`) | Sine (300Hz)<br>*Tenacious Advocate* | AStA Student Legal Aid | • **Legal Guidance**: Advises international students on tenant rights and university bylaws.<br>• **Emergency Aid**: Grants legal orientation bursary.<br>• **Lore**: Empowering students to resist landlord overreach. | 📑 **+1 Skill Point** (The Bureaucrat Branch) |
 | **Herr Vogel** | Bürgeramt (`B_RATHAUS`) | Square (200Hz)<br>*Pedantic Official* | Municipal Registrar | • **Requirement**: Demands Passport + signed *Wohnungsgeberbestätigung* from Lokker.<br>• **Philosophy**: Explains why stamped forms protect democratic rights against arbitrary power.<br>• **Action**: Double-stamps municipal registration certificate. | 📑 **Meldebescheinigung** (City Registration Certificate) |
 | **Frau Weber** | Sparkasse (`B_BANK`) | Sine (290Hz)<br>*Methodical Banker* | Bank Advisor | • **Requirement**: Demands Matriculation Certificate + Meldebescheinigung.<br>• **Action**: Unlocks German Girokonto & activates blocked account (*Sperrkonto*).<br>• **Wisdom**: Reinvest wages early into tools that save courier time. | 💳 **Sperrkonto Activated** (+50€ Monthly Disbursement) |
 | **Dr. Lindemann** | Ausländerbehörde (`B_AUSLAENDER`)| Sine (250Hz)<br>*Stern & Fair Director* | Immigration Director | • **Check**: Audits complete 4-document dossier.<br>• **Verdict**: Validates resilience and grants permanent *Aufenthaltstitel* (Game Win). | 🏆 **VICTORY**: Residence Permit Granted |
 
 ---
 
-## 3. The Expat Adaptation Skill Tree Deep Dive
 
 ```
-                             [START: 1 Skill Point on Arrival]
                                              │
       ┌──────────────────────────────────────┼──────────────────────────────────────┐
       ▼                                      ▼                                      ▼

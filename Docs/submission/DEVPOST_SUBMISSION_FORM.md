@@ -53,4 +53,4 @@ Grounded in narrative design principles from industry leaders (Jamie Antonisse, 
 - A genuinely satisfying progression loop: the €20 ➔ €250 tuition meter filling alongside your 4-document dossier stamps.
 - A mechanic that is simultaneously the joke, the theme and the skill ceiling — arbitrary bureaucratic filing that turns out to be a search accelerator once you stop resisting it.
 - Character writing that finds the comedy in the immigrant paperwork grind without losing the warmth underneath it.
-- Single-thumb portrait ergonomics (390×844) at 60 FPS, fully offline, in a single ~11 MB `index.html` with zero network requests and zero recorded assets.
+- Single-thumb portrait ergonomics (390×844) at 60 FPS, fully offline, in a single ~13 MB `index.html` with zero network requests, one inlined music track, and no voice acting.

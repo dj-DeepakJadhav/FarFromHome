@@ -3,15 +3,19 @@ window.FFH = window.FFH || {};
 
 // Reusable 50/50 Split View Template for Diorama & Modal UI phases
 window.FFH.DIORAMA_VIEW_TEMPLATE = {
-  // Center of the upper 50% visual viewport in world coordinates
-  // Moving the camera lookAt down along the projection plane positions the 3D room cleanly in the top 50% (51.5% to 94.1% viewport height)
-  target: new THREE.Vector3(0, -2.4, 0),
-  // Camera offset preserving true 45-degree isometric projection angle
+  // The diorama and the conversation drawer are framed together, so both live
+  // here. The drawer used to take 48vh, which left the room squeezed into a
+  // narrow band between it and the persistent HUD strip: the character read as
+  // a speck and there was dead space under the floor.
+  //
+  // Raising the lookAt target moves the room DOWN the screen, away from the HUD.
+  target: new THREE.Vector3(0, -1.02, 0),
+  // Camera offset preserving a true 45-degree isometric projection angle
   zoomOffset: new THREE.Vector3(10.0, 13.5, 10.0),
-  // Balanced zoom factor keeping the entire room, floor edges, and character neatly framed in upper half with zero UI overlap
-  zoom: 2.1,
-  // Standard CSS bottom modal height (exactly 48vh)
-  uiHeight: '48vh'
+  // More room to work with now the drawer is shorter, so the diorama can breathe
+  zoom: 2.45,
+  // Conversation drawer height. Kept in sync with the CSS in hudDialogue.js.
+  uiHeight: '36vh'
 };
 
 window.FFH.DialoguePhase = class {
