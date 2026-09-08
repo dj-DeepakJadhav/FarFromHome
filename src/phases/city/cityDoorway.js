@@ -159,8 +159,14 @@ window.FFH.CityDoorway = class {
         }
       }
 
-      // Auto-trigger if walked into active door zone (< 1.6m) and cooldown is clear
-      if (this.doorInteractionCooldown <= 0 && !this.phase.isEnteringBuilding && !this.phase.isExitingBuilding && !this.phase.inputDisabled) {
+      // Auto-trigger if walked into active door zone (< 1.6m) and cooldown is clear.
+      //
+      // Suppressed during a post round. The round's verb is knock and move on,
+      // and CityLetterRound scores the delivery itself at ARRIVE_RADIUS 2.2,
+      // so auto-entry would drag the player inside the building instead and
+      // interrupt the round at every address.
+      const inLetterRound = !!(this.phase.letterRound && this.phase.letterRound.active);
+      if (!inLetterRound && this.doorInteractionCooldown <= 0 && !this.phase.isEnteringBuilding && !this.phase.isExitingBuilding && !this.phase.inputDisabled) {
         const distToDoor = Math.hypot(this.phase.playerPos.x - doorPos.x, this.phase.playerPos.z - doorPos.z);
         if (distToDoor < 1.6) {
           this.doorInteractionCooldown = 2.5;

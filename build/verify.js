@@ -652,6 +652,44 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
         /id="ffh-hud-day"/.test(hudSrc) && /id="ffh-doc-\$\{i\}"/.test(hudSrc));
 }
 
+// ---------- 18. the post round tells the player where to go ----------
+// The round set an objective string and nothing else usable: the street beacon
+// aimed at a door while the round scored against the building centre, the
+// range readout was overwritten to inactive every frame by the block that runs
+// after letterRound.update(), addresses could be map-border scenery, and their
+// names were raw grid coordinates.
+{
+  const lrSrc = fs.readFileSync(path.join(ROOT, 'src/phases/city/cityLetterRound.js'), 'utf8');
+  const citySrc = fs.readFileSync(path.join(ROOT, 'src/phases/cityExplorationPhase.js'), 'utf8');
+  const doorSrc = fs.readFileSync(path.join(ROOT, 'src/phases/city/cityDoorway.js'), 'utf8');
+
+  check('the round scores against the same door the beacon marks',
+        /getDoorPosition\(m\.userData\.type, m\.position\)/.test(lrSrc),
+        'otherwise the ring the player walks to is not the point that counts');
+
+  check('the range readout survives a post round',
+        /inLetterRound/.test(citySrc) && /isDelivery \|\| hasStoryTarget \|\| inLetterRound/.test(citySrc),
+        'the else branch set it inactive after letterRound.update published it');
+
+  check('the beacon aims at the round address',
+        /targetMesh = curLetter\.mesh/.test(citySrc));
+
+  check('walking to a letter address does not pull the player indoors',
+        /inLetterRound/.test(doorSrc),
+        'auto-entry at 1.6m would interrupt the round at every door');
+
+  check('map-border scenery cannot be a delivery address',
+        /onBorder/.test(lrSrc), 'a round could target the corner of the world');
+
+  check('addresses are named, not grid coordinates',
+        /_nearestLandmark/.test(lrSrc) && !/Altbau \$\{gx\}/.test(lrSrc),
+        '"Altbau 10-14" is a grid reference, not a destination');
+
+  check('the objective line is released when the round ends',
+        /activeObjective = null/.test(lrSrc),
+        '"Round complete." otherwise stays as the objective for later scenes');
+}
+
 // ---------- report ----------
 console.log('');
 notes.forEach(n => console.log('  · ' + n));

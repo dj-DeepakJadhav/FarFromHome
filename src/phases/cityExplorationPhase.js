@@ -1279,7 +1279,11 @@ window.FFH.CityExplorationPhase = class {
       // --- Target navigation marker resolves using pendingStoryTarget OR canonical act1Stage ---
       if (this.letterRound && this.letterRound.active && this.letterRound.current) {
         const curLetter = this.letterRound.current;
-        targetMesh = this.interactiveMeshes.find(m => m.position.distanceTo(curLetter.pos) < 0.1) || { position: curLetter.pos, userData: { type: curLetter.key } };
+        // Aim the marker at the SAME point the round scores against, so the
+        // ring the player walks to is the ring that counts.
+        targetMesh = curLetter.mesh
+          || this.interactiveMeshes.find(m => m.position.distanceTo(curLetter.pos) < 0.1)
+          || { position: curLetter.pos, userData: { type: curLetter.key } };
       } else if (sr && sr.pendingStoryTarget) {
         targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
       } else if (curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
@@ -1301,6 +1305,12 @@ window.FFH.CityExplorationPhase = class {
 
       // --- Update Street Doorway Beacon at Active Target Door ---
       if (this.letterRound && this.letterRound.active && this.letterRound.current) {
+        // The beacon only draws when it has BOTH a key and a target mesh, and
+        // it resolves the door from targetMesh.position. Setting just the key
+        // here left targetMesh pointing at whatever the previous branch had
+        // found, so during a post round the marker was either hidden outright
+        // or planted on an unrelated building: the player was told "deliver to
+        // Altbau 10-14" with nothing on screen saying where that was.
         activePoiKey = this.letterRound.current.key || 'LETTER_TARGET';
       } else if (sr && sr.pendingStoryTarget) {
         activePoiKey = sr.pendingStoryTarget.poi;
@@ -1469,7 +1479,13 @@ window.FFH.CityExplorationPhase = class {
     // 7. Update Distance Indicator and Freshness Decay
     const isDelivery = !!this.game.state.activeDelivery;
     const hasStoryTarget = !!(sr && sr.pendingStoryTarget);
-    if ((isDelivery || hasStoryTarget) && targetMesh) {
+    // A post round is a navigation objective too. Without it here, the else
+    // branch below set the range readout inactive every frame, and because
+    // this block runs AFTER letterRound.update() it overwrote the distance and
+    // bearing the round had just published. The player got an address with no
+    // indication of how far away it was or which way to walk.
+    const inLetterRound = !!(this.letterRound && this.letterRound.active && this.letterRound.current);
+    if ((isDelivery || hasStoryTarget || inLetterRound) && targetMesh) {
       const dx = targetMesh.position.x - this.playerPos.x;
       const dz = targetMesh.position.z - this.playerPos.z;
       const dist = Math.sqrt(dx*dx + dz*dz);
