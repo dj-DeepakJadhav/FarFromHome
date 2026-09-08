@@ -28332,7 +28332,14 @@ class GameEngine {
     }
     this.state = window.FFH.createRunState();
     window.FFH.state = this.state;
-    this.state.currentShift = startSceneId === 'shift_3_test' ? 3 : 1;
+    // Act I is ONE economic shift shown in three ramp stages, so currentShift
+    // stays 1 for shift_1_teach, shift_2_anticipate and shift_3_test alike; it
+    // pays once at shift_receipt. Difficulty comes from the scene's authored
+    // unlocks.ramp.icon_delay_s (0 / 1.5 / 2.5), never from this counter.
+    // Deriving it from the scene id made the quickstart receipt pay from shift
+    // 3's wage table (19.00 base instead of 13.00) and label the opening frame
+    // "WG Flat Party Surge", contradicting every published number.
+    this.state.currentShift = 1;
     this.state.day = 1;
     if (window.FFH.resetShiftState) {
       window.FFH.resetShiftState(this.state);
@@ -28461,14 +28468,20 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.game = game;
   game.init();
 
-  // ?quickstart=1 opens directly on the Shift 3 rail-pulse Aha. This gives a
-  // reviewer a 90-second proof path without putting a bypass button on the
-  // main menu or rushing the normal, cozy Day 1 opening.
+  // ?quickstart=1 opens directly on Shift 1. This exists so the submission link
+  // can land a reviewer in the core loop without putting a bypass button on the
+  // main menu, where it would confuse a first-time player.
+  //
+  // It deliberately does NOT skip to shift_3_test. The Shift 3 Aha is that
+  // purple means das, which the player learns across stages 1 and 2; dropped
+  // cold onto the hardest stage a reviewer sees a rail pulse whose meaning was
+  // never taught. P0.4 asks for Shift 3 to be REACHED inside 90 seconds, which
+  // is a pacing job, not a teleport.
   try {
     if (new URLSearchParams(window.location.search).get('quickstart') === '1') {
       setTimeout(() => {
         game.unlockAudio();
-        game.startFirstShift('shift_3_test');
+        game.startFirstShift('shift_1_teach');
       }, 300);
     }
   } catch (e) { /* no URLSearchParams support: fall through to the title screen */ }

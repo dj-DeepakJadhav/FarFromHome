@@ -246,6 +246,48 @@ check('story nights use canonical living costs', byId.night_tick.effects.some(e 
 const assembler = fs.readFileSync(path.join(ROOT, 'build/assemble.js'), 'utf8');
 check('vendor source is not embedded by assembler', !assembler.includes('vendorContents'));
 
+// ---------- 12. Act I keeps ONE shift across its three ramp stages ----------
+// The quickstart path once set currentShift from the scene id, so landing on
+// shift_3_test paid from shift 3's wage table (19.00 base instead of 13.00) and
+// titled the reviewer's opening frame "WG Flat Party Surge". The economy test
+// above builds its own state and therefore could not see it. These are source
+// assertions because the bug lived in the entry point, not in the data.
+{
+  const mainSrc = fs.readFileSync(path.join(ROOT, 'src/main.js'), 'utf8');
+
+  check('startFirstShift does not derive currentShift from the scene id',
+        !/currentShift\s*=\s*startSceneId/.test(mainSrc),
+        'Act I is one shift in three ramp stages; difficulty comes from ' +
+        'unlocks.ramp.icon_delay_s, never from currentShift');
+
+  check('startFirstShift pins currentShift to 1',
+        /this\.state\.currentShift\s*=\s*1\s*;/.test(mainSrc));
+
+  check('quickstart lands on the teach stage, not the test stage',
+        /startFirstShift\('shift_1_teach'\)/.test(mainSrc) &&
+        !/startFirstShift\('shift_3_test'\)/.test(mainSrc),
+        'the Shift 3 Aha depends on stages 1 and 2 having been played');
+
+  // The real difficulty source must stay distinct per stage, or the ramp that
+  // replaces currentShift is itself flat.
+  const stages = ['shift_1_teach', 'shift_2_anticipate', 'shift_3_test'];
+  const delays = stages.map(id => ((byId[id] || {}).unlocks || {}).ramp || {})
+                       .map(r => r.icon_delay_s);
+  check('each Act I stage declares its own icon reveal delay',
+        delays.length === 3 && new Set(delays).size === 3 &&
+        delays.every(d => typeof d === 'number'),
+        'delays: ' + JSON.stringify(delays));
+  check('the Act I ramp increases',
+        delays[0] < delays[1] && delays[1] < delays[2],
+        'delays: ' + JSON.stringify(delays));
+
+  // Every Act I stage must resolve to the same wage table.
+  const s1 = F.getShift(1);
+  check('Act I pays from the shift 1 wage table',
+        s1.baseWage === 13 && s1.quota === 23,
+        'baseWage ' + s1.baseWage + ', quota ' + s1.quota);
+}
+
 // ---------- report ----------
 console.log('');
 notes.forEach(n => console.log('  · ' + n));
