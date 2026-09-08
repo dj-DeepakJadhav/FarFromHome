@@ -340,7 +340,15 @@ window.FFH.createRunState = function () {
     },
 
     // German Academic Semester Intake (Randomized WiSe vs SoSe)
-    semester: Math.random() < 0.5 ? 'WINTER' : 'SUMMER',
+    // Deterministic. This was `Math.random() < 0.5 ? 'WINTER' : 'SUMMER'`,
+    // which chose the game's entire colour palette on a coin flip at run
+    // start: winter is cold blue-grey, summer is warm pink/teal/orange. Half
+    // of all runs looked like a different game, a recorded video was not
+    // reproducible, and a SUMMER roll contradicted the semesterName and emoji
+    // below, which are hardcoded to Wintersemester. WINTER matches the
+    // authored label. To switch the whole game to the warm palette, change
+    // this one value to 'SUMMER' and update semesterName/semesterEmoji.
+    semester: 'WINTER',
     semesterName: 'Wintersemester (WiSe)',
     semesterEmoji: '❄️',
 

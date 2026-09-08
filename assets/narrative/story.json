@@ -2019,7 +2019,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_WG",
-    "time": "09:00",
+    "time": "10:05",
     "light": "overcast_noon",
     "weather": "overcast",
     "camera": "insert_hands_form",
@@ -2532,7 +2532,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_PIZZA",
-    "time": "09:00",
+    "time": "09:45",
     "light": "interior_warm_oven",
     "camera": "workbench_two_shot",
     "space": "interior"
@@ -2608,7 +2608,7 @@
    "threads": 2,
    "stage": {
     "loc": "B_PIZZA",
-    "time": "09:10",
+    "time": "09:55",
     "light": "interior_warm_oven",
     "camera": "workbench_two_shot",
     "space": "interior"

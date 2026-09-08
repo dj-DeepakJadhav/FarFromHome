@@ -341,9 +341,13 @@ window.FFH.ShopPhase = class {
         this.game.sfx.playSfx('success');
         this.game.ui.spawnFloatingText(`☀️ Tag ${state.day}: Guten Morgen! Stamina & Pfand Bottles Restored.`, window.innerWidth / 2, window.innerHeight / 2, '#FFB703');
         
-        // Reset daylight cycle to morning
+        // A new day starts in the morning. Persist it as the story clock so a
+        // later city rebuild resumes here instead of guessing, and so the sky
+        // agrees with the first scene of the new day.
+        const MORNING = 7 / 24;   // 07:00
+        state.storyTimeProgress = MORNING;
         if (this.game.phases.CITY_EXPLORATION && this.game.phases.CITY_EXPLORATION.updateAtmosphericTime) {
-          this.game.phases.CITY_EXPLORATION.updateAtmosphericTime(0.35);
+          this.game.phases.CITY_EXPLORATION.updateAtmosphericTime(MORNING);
         }
         this.game.ui.updatePersistentHUD(state);
         this.game.transitionTo('CITY_EXPLORATION');

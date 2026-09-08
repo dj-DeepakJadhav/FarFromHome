@@ -477,6 +477,81 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
 
 }
 
+// ---------- 15. day/night follows the story clock ----------
+// The cycle used to look random because a table of stage.light values replaced
+// the computed clock: interior_fluorescent_cold forced 0.90 (night), so the
+// Kruma warehouse scenes at 06:20-07:40 rendered under a midnight sky, and
+// dawn_grey forced 0.22 onto three 09:xx scenes, sending the morning backwards
+// after 08:40 had already shown full day.
+{
+  const runnerSrc = fs.readFileSync(path.join(ROOT, 'src/core/storyRunner.js'), 'utf8');
+  const envSrc = fs.readFileSync(path.join(ROOT, 'src/phases/city/cityEnvironment.js'), 'utf8');
+
+  const noTime = scenes.filter(sc => !((sc.stage || {}).time));
+  check('every scene declares a clock time', noTime.length === 0,
+        noTime.map(sc => sc.id).join(', '));
+
+  check('stage.light no longer overrides the story clock',
+        !/timeProgress\s*=\s*0\.(75|88|22|90)\b/.test(runnerSrc),
+        'stage.light describes the local set treatment, not what time it is');
+
+  check('the story clock is persisted for phase rebuilds',
+        /storyTimeProgress/.test(runnerSrc) && /storyTimeProgress/.test(envSrc),
+        'the city phase is rebuilt on every shop/interior/sleep transition');
+
+  check('lighting interpolates between keyframes',
+        /TIME_STOPS/.test(envSrc) && /lerp/.test(envSrc),
+        'four hard buckets made 19:40 and 22:05 render identically');
+
+  check('keyframes span a full day',
+        /t:\s*0\.00/.test(envSrc) && /t:\s*1\.00/.test(envSrc));
+
+  // The palette must not be random. It used to be a coin flip between the
+  // cold winter and warm summer keyframes, so two runs of the same build
+  // looked like different games and a recording could not be reproduced.
+  const econSrc = fs.readFileSync(path.join(ROOT, 'src/core/economy.js'), 'utf8');
+  check('the seasonal palette is deterministic',
+        !/semester:\s*Math\.random/.test(econSrc),
+        'a coin flip chose the whole colour scheme at run start');
+  const st1 = F.createRunState(), st2 = F.createRunState();
+  check('two fresh runs share the same palette', st1.semester === st2.semester,
+        st1.semester + ' vs ' + st2.semester);
+  check('the palette agrees with the semester label',
+        (st1.semester === 'WINTER') === /Wintersemester/.test(st1.semesterName || ''),
+        st1.semester + ' but label is "' + st1.semesterName + '"');
+
+  // Chronology per authored route. A day must read as one continuous day.
+  const toMinutes = (id) => {
+    const t = ((byId[id] || {}).stage || {}).time || '00:00';
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + (m || 0);
+  };
+  const routes = {
+    'day 1': ['act_one', 'wg_door_scenic', 'wg_buzzer', 'nico_kitchen', 'golden_hour',
+              'uni_closed', 'pizzeria_job', 'bakery_job', 'kruma_flyer', 'kruma_door',
+              'night_one', 'night_one_end'],
+    'Kruma day 2': ['nina_trial', 'shift_1_teach', 'shift_2_anticipate', 'shift_3_test',
+                    'shift_receipt', 'rita_first'],
+    'Kruma day 3 via Kaution': ['act_two', 'lokker_kaution', 'act_two_fork',
+                                'kaution_pay', 'act_two_end'],
+    'Kruma day 3 via loan': ['act_two', 'lokker_kaution', 'act_two_fork',
+                             'mathias_loan', 'mathias_loan_2', 'act_two_end'],
+    'post day 2': ['trial_failed', 'nico_setback', 'nico_tour', 'post_flyer', 'night_two_home']
+  };
+  Object.entries(routes).forEach(([name, ids]) => {
+    const missing = ids.filter(id => !byId[id]);
+    const back = [];
+    for (let i = 0; i < ids.length - 1; i++) {
+      if (toMinutes(ids[i + 1]) < toMinutes(ids[i])) {
+        back.push(ids[i] + ' -> ' + ids[i + 1]);
+      }
+    }
+    check('the clock never runs backwards on ' + name,
+          missing.length === 0 && back.length === 0,
+          missing.length ? 'missing scenes: ' + missing.join(', ') : back.join('; '));
+  });
+}
+
 // ---------- report ----------
 console.log('');
 notes.forEach(n => console.log('  · ' + n));

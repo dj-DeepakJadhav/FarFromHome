@@ -322,21 +322,37 @@ window.FFH.StoryRunner = class {
     // 2. Adjust City Atmosphere / Lighting based on stage.time and stage.light
     const cityPhase = g.phases && g.phases.CITY_EXPLORATION;
     if (cityPhase) {
-      let timeProgress = 0.4; // default day
+      // stage.time is the ONLY source for the sky. Every one of the 92 scenes
+      // declares a clock time and both routes are authored chronologically, so
+      // the day reads as one continuous day.
+      //
+      // A table of stage.light overrides used to replace this value, and it is
+      // what made the cycle look random. `interior_fluorescent_cold` forced
+      // 0.90 (night), so the four Kruma warehouse scenes at 06:20 to 07:40 all
+      // rendered under a midnight sky and stepping outside at 7am was dark.
+      // `dawn_grey` forced 0.22 onto act_two, lokker_kaution and act_two_fork
+      // at 09:10 to 09:40, which sent the morning backwards after rita_first
+      // had already shown 08:40 as full day. The Kruma route ran
+      // dawn -> night -> night -> night -> night -> day -> dawn -> dawn -> day.
+      //
+      // stage.light still describes the LOCAL treatment of a scene (a warm
+      // lamp, cold strip lights, lantern light on water). That is a lighting
+      // mood for the set, not a claim about what time it is, so it no longer
+      // repaints the city sky.
+      let timeProgress = 0.4; // default day, for a scene with no declared time
       if (stage.time) {
         const [h, m] = stage.time.split(':').map(Number);
         if (!isNaN(h)) {
           timeProgress = (h * 60 + (m || 0)) / (24 * 60);
         }
       }
-      if (stage.light === 'dusk_cold') timeProgress = 0.75;
-      else if (stage.light === 'night_lantern' || stage.light === 'night_lantern_water') timeProgress = 0.88;
-      else if (stage.light === 'dawn_grey' || stage.light === 'dawn_clear') timeProgress = 0.22;
-      else if (stage.light === 'interior_fluorescent_cold') timeProgress = 0.90;
 
       if (cityPhase.updateAtmosphericTime) {
         cityPhase.updateAtmosphericTime(timeProgress);
       }
+      // Remember the story clock so a later phase change (shop, sleep, a
+      // mechanic beat) can restore the correct time instead of guessing.
+      if (this.game.state) this.game.state.storyTimeProgress = timeProgress;
     }
 
     // 3. Move Player and Position Camera to stage.loc when in city
