@@ -1,4 +1,5 @@
-﻿from playwright.sync_api import sync_playwright
+import os
+from playwright.sync_api import sync_playwright
 import time
 
 with sync_playwright() as p:
@@ -6,7 +7,7 @@ with sync_playwright() as p:
     page = b.new_page()
     page.on('console', lambda msg: print('CONSOLE:', msg.text))
     page.on('pageerror', lambda err: print('ERROR:', err))
-    page.goto('file:///C:/DJ/Hackathon/FarFromHome/index.html')
+    page.goto('file://' + os.path.abspath('index.html'))
     time.sleep(2)
     page.evaluate("document.getElementById('btn-new-game')?.click()")
     time.sleep(6)

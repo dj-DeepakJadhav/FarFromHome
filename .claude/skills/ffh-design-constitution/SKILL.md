@@ -15,7 +15,7 @@ Before modifying ANY game mechanic, UI layout, audio pipeline, or data model, ve
    - Is the player ever *required* to know German to proceed? $\rightarrow$ **REJECT**. Items are English-first; tiers are read by colour and symbol.
    - Is German text used as comedy flavour (Beamtendeutsch, *Ruhezeit*, *Sie*/*Du*)? $\rightarrow$ **ALLOWED**.
 2. **Procedural Audio Only**:
-   - Does the change add a recorded audio asset, voice clip, sprite sheet of speech, or `window.speechSynthesis` call? $\rightarrow$ **REJECT**. All sound is synthesised at runtime from oscillators (`src/audio/sfx.js`, `src/audio/speech.js`).
+   - Does the change add a voice clip, sprite sheet of speech, `window.speechSynthesis` call, or a *second* recorded audio asset? $\rightarrow$ **REJECT**. One music track ships; every sound effect is synthesised at runtime from oscillators (`src/audio/sfx.js`, `src/audio/speech.js`).
    - Is audio ever the *informative* cue for a mechanic? $\rightarrow$ **REJECT**. The anticipation cue is the **visual gender-rail pulse**.
 3. **Room is the Progress Bar**:
    - Is a separate verbless location being created? $\rightarrow$ **REJECT**.

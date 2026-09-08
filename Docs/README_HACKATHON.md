@@ -1,23 +1,23 @@
 # Far From Home: Kruma Express
-## Master Game Design Document — MHCP Game Prototype Submission
+## Master Game Design Document. MHCP Game Prototype Submission
 
-> **Genre**: Narrative Life & Courier Management Simulation  
-> **Inspiration**: *Peep Show* / *The Inbetweeners* deadpan × *Messenger by Abeto* × *Coffee Talk / Good Pizza, Great Pizza*  
-> **Platform**: Mobile-first WebGL, fixed portrait 390×844  
-> **Packaging**: Single `index.html` (game source unminified), zero CDNs, 100% offline, ≤ 35 MB  
-> **Engine**: Three.js r128 (vendored), plain ES6 — zero external build dependencies  
+> **Genre**: Narrative Life & Courier Management Simulation
+> **Inspiration**: *Peep Show* / *The Inbetweeners* deadpan × *Messenger by Abeto* × *Coffee Talk / Good Pizza, Great Pizza*
+> **Platform**: Mobile-first WebGL, fixed portrait 390×844
+> **Packaging**: Single `index.html` (game source unminified), zero CDNs, 100% offline, ≤ 35 MB
+> **Engine**: Three.js r128 (vendored), plain ES6, zero external build dependencies
 
 > **Master Game Design Authority**: Single Master Blueprint for Far From Home: Kruma Express.
 > **Narrative Dynamic**: Relatable British deadpan comedy (*Peep Show*, *Inbetweeners*, *Hitchhiker's Guide*) meets unyielding German municipal precision. Simple vocabulary, instant laughs, zero highbrow pretension.
 > **This is not a language-learning game.** It makes no pedagogical claim and teaches
-> nothing. German appears as *comedy texture* — signage, Beamtendeutsch, the absurd
+> nothing. German appears as *comedy texture*, signage, Beamtendeutsch, the absurd
 > filing logic of the warehouse. The player never needs to understand a word of it.
 > **There is no voice acting in this build.** One background music track ships
 > (`assets/Music/bgMusic.mp3`, 939 KB, inlined); every other sound is synthesised at runtime
 > from oscillators. See §5.
 > **Code-Data Architecture**: `assets/narrative/story.json` is the authoritative narrative asset and is automatically inlined into `window.FFH.storyData` during release assembly for 100% offline compliance.
 > **Canonical Numbers**: All economic tunables, build sizes, and prices are strictly governed by [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
-> **Tasks**: Tracked in [`TASKS.md`](TASKS.md). Submission deliverables live in [`submission/`](submission/).
+> **Open items**: [`submission/SUBMISSION_CHECKLIST.md`](submission/SUBMISSION_CHECKLIST.md) §4. Submission deliverables live in [`submission/`](submission/). How the project got here: [`THE_MAKING_OF.md`](THE_MAKING_OF.md).
 
 ---
 
@@ -33,7 +33,7 @@ To matriculate and secure your permanent residence permit (*Aufenthaltstitel*), 
 5. **Unlock Blocked Account (*Sperrkonto*)**: Present your enrollment certificate and *Meldebescheinigung* to Banker **Frau Weber** to unlock your monthly living funds.
 6. **Foreigners' Registration Office (*Ausländerbehörde*)**: Present all stamped documents to Case Worker **Frau Dr. Lindemann** before Day 28 to receive your Residence Permit (*Aufenthaltstitel*).
 
-**The Signature Charm**: To succeed, you explore a charming, living isometric diorama of Lübeck (*Messenger*), fulfill high-speed grocery orders, ride through cobblestone streets to deliver parcels directly on the city map, and observe cultural etiquette (*Sie* vs. *Du*, *Ruhezeit*, tipping) at customer doorways. **Gameplay and dialogue are 100% English-first**, and the warehouse is filed by grammatical gender into three colour-coded tiers (Blue/Pink/Purple) — an arbitrary bureaucratic sorting rule you must obey at speed, which is exactly the joke.
+**The Signature Charm**: To succeed, you explore a charming, living isometric diorama of Lübeck (*Messenger*), fulfill high-speed grocery orders, ride through cobblestone streets to deliver parcels directly on the city map, and observe cultural etiquette (*Sie* vs. *Du*, *Ruhezeit*, tipping) at customer doorways. **Gameplay and dialogue are 100% English-first**, and the warehouse is filed by grammatical gender into three colour-coded tiers (Blue/Pink/Purple), an arbitrary bureaucratic sorting rule you must obey at speed, which is exactly the joke.
 
 ---
 
@@ -43,30 +43,30 @@ To make every interaction memorable, characters have distinct, exaggerated perso
 
 ```mermaid
 graph TD
-    A[🛫 ARRIVAL: Temporary Hostel] -->|28-Day Visa Countdown Starts| B[🏛️ University Registry: Rita]
-    B -->|Catch: Must pay €250 Semesterbeitrag| C[⚡ Kruma Express: Nina Voss Dispatch]
-    
-    subgraph "THE CORE ECONOMIC ENGINE (Invest ➔ Harvest ➔ Upgrade)"
-        C -->|Audio Packing Shift: der/die/das Filter| D[📦 Warehouse Picking Minigame]
-        D -->|Ride cobblestones & Doorway Etiquette| E[💶 Shift Payout + Customer Tips]
-        E -->|Reinvest in Bike Shop| F[🚴 Hansa Rad: Mathias]
+    A[ ARRIVAL: Temporary Hostel] -->|28-Day Visa Countdown Starts| B[ University Registry: Rita]
+    B -->|Catch: Must pay €250 Semesterbeitrag| C[ Kruma Express: Nina Voss Dispatch]
+
+    subgraph "THE CORE ECONOMIC ENGINE (Invest to Harvest to Upgrade)"
+        C -->|Audio Packing Shift: der/die/das Filter| D[ Warehouse Picking Minigame]
+        D -->|Ride cobblestones & Doorway Etiquette| E[ Shift Payout + Customer Tips]
+        E -->|Reinvest in Bike Shop| F[ Hansa Rad: Mathias]
         F -->|E-Bike +50% Speed / Thermal Bag| C
     end
 
     E -->|Save €250| B
-    B -->|Issues Immatrikulationsbescheinigung| G[📜 University Enrollment Certificate]
+    B -->|Issues Immatrikulationsbescheinigung| G[ University Enrollment Certificate]
 
-    E -->|Save €30 Kaution| H[🏠 WG Sublet: Hans Lokker]
-    H -->|Sign Mietvertrag & Obey Ruhezeit| I[📄 Wohnungsgeberbestätigung]
+    E -->|Save €30 Kaution| H[ WG Sublet: Hans Lokker]
+    H -->|Sign Mietvertrag & Obey Ruhezeit| I[ Wohnungsgeberbestätigung]
 
-    I -->|Take lease & passport| J[🏛️ Rathaus Bürgeramt: Herr Vogel]
-    J -->|Pass Beamtendeutsch Dialogue| K[📑 Meldebescheinigung Stamped]
+    I -->|Take lease & passport| J[ Rathaus Bürgeramt: Herr Vogel]
+    J -->|Pass Beamtendeutsch Dialogue| K[ Meldebescheinigung Stamped]
 
-    K & G -->|Present Address + Uni Certificate| L[🏦 Sparkasse Bank: Frau Weber]
-    L -->|Unlock Blocked Account| M[💳 Active Girokonto & Sperrkonto Payout]
+    K & G -->|Present Address + Uni Certificate| L[ Sparkasse Bank: Frau Weber]
+    L -->|Unlock Blocked Account| M[ Active Girokonto & Sperrkonto Payout]
 
-    G & I & K & M -->|Complete 4-Document Dossier before Day 28| N[⚖️ Ausländerbehörde: Dr. Lindemann]
-    N -->|VICTORY!| O[🎉 Aufenthaltstitel Stamped: Permanent Residence Permit!]
+    G & I & K & M -->|Complete 4-Document Dossier before Day 28| N[ Ausländerbehörde: Dr. Lindemann]
+    N -->|VICTORY!| O[ Aufenthaltstitel Stamped: Permanent Residence Permit!]
 ```
 
 ### The Roster of Quirky Characters:
@@ -98,9 +98,9 @@ window.FFH.npcMemory = {
 };
 ```
 - **Consequences**:
-  - Sort trash wrong with Nico? He covers his mug next time: *"Careful! Don't throw that spoon in the paper bin!"*
-  - Pay Oma Martha with exact physical coins? She beams: *"Ah, the boy with real coins. Not like those phone-tapping heathens."*
-  - Late to the University? Frau Klein dryly teases: *"Look, it’s Mr. 17:01! Still looking for civil servants after teatime?"*
+  -Sort trash wrong with Nico? He covers his mug next time: *"Careful! Don't throw that spoon in the paper bin!"*
+  -Pay Oma Martha with exact physical coins? She beams: *"Ah, the boy with real coins. Not like those phone-tapping heathens."*
+  -Late to the University? Frau Klein dryly teases: *"Look, it’s Mr. 17:01! Still looking for civil servants after teatime?"*
 
 ### 2.2 Day-to-Night Dynamic Environmental Progression
 The 3D Altstadt atmosphere dynamically advances as the Day 1 visa clock ticks:
@@ -117,27 +117,27 @@ The 3D Altstadt atmosphere dynamically advances as the Day 1 visa clock ticks:
 ```text
  ┌─────────────────────────────────────────────────────────────────────────────┐
  │                                                                             │
- │  1. [CITY_EXPLORATION] — Living Lübeck Island Diorama (Messenger Style)     │
+ │  1. [CITY_EXPLORATION]. Living Lübeck Island Diorama (Messenger Style)     │
  │     • Explore the continuous 3D Altstadt on your bicycle with tap-to-move.  │
  │     • Talk to NPCs directly in the city. English-first, German for laughs.  │
  │     • Discover local needs, story quests, and clock in at Kruma Dispatch.   │
  │                                                                             │
- │  2. [PICK] — Warehouse Packing Shift (The Absurd Filing System)             │
+ │  2. [PICK]. Warehouse Packing Shift (The Absurd Filing System)             │
  │     • Orders arrive as a manifest; the gender rail pulses before the icon.  │
  │     • 3-tier shelves colour-coded by gender (der=Blue ▲, die=Pink ●, das=Purple ■). │
- │     • Gender filing cuts the shelf you must scan by 66% — huge streaks!     │
+ │     • Gender filing cuts the shelf you must scan by 66%, huge streaks!     │
  │                                                                             │
- │  3. [CITY_DELIVERY] — In-Map Courier Run (Real City Navigation)             │
+ │  3. [CITY_DELIVERY]. In-Map Courier Run (Real City Navigation)             │
  │     • Step out of the warehouse with the packed order on your bike.         │
  │     • Glowing destination beacon highlights the customer's house on map.    │
  │     • Ride across cobblestones; E-Bike upgrade provides +50% speed boost!   │
  │                                                                             │
- │  4. [DIALOGUE] — Customer Doorway Handoff (Front-Facing 2.5D Diorama)       │
+ │  4. [DIALOGUE]. Customer Doorway Handoff (Front-Facing 2.5D Diorama)       │
  │     • Deliver package at the warm customer doorway diorama.                 │
  │     • Etiquette choices that land or misfire (*Sie* vs. *Du*, *Ruhezeit*).  │
  │     • Earn customer satisfaction tip bonuses (+€3 to +€15).                 │
  │                                                                             │
- │  5. [DEBRIEF & SHOP] — Shift Receipt & Visible Economic Upgrades            │
+ │  5. [DEBRIEF & SHOP]. Shift Receipt & Visible Economic Upgrades            │
  │     • Itemized payout: Base wage + Early Streak + Tips - Deductions.        │
  │     • Visit the Bike Shop: Invest in visible E-Bikes, Thermal Bags,         │
  │       Shelf Labels, Pocket Notepad and Shift Rota Cards.                    │
@@ -154,7 +154,7 @@ The packing minigame is designed for **instant arcade flow and tactile rhythm**.
 also the game's central gag.
 
 German nouns carry an arbitrary grammatical gender. Kruma Express, being a German
-warehouse, therefore files its stock by that gender — not by temperature, not by
+warehouse, therefore files its stock by that gender, not by temperature, not by
 aisle, not by anything a courier would find useful. An apple is a boy. A banana is a
 girl. Bread is neither. You are not asked to understand this. You are asked to obey
 it, quickly, before your shift clock runs out.
@@ -173,23 +173,23 @@ grammatical gender**, each colour-coded with high visual contrast:
 
 > **Do not relabel these rows as food categories.** Earlier drafts called them
 > "Chilled & Drinks", "Fresh & Snacks" and "Bakery & Dry". Those labels were never
-> in the code and they contradict the data — milk is not in the chilled row, and
+> in the code and they contradict the data, milk is not in the chilled row, and
 > apple, cheese and coffee share the bottom row only because all three are *der*.
 > The mechanic is coherent as gender filing. The category names broke it.
 
 **Zero language burden.** The manifest lists items **English first** with the German
 in small grey parentheses: `Milk (die Milch)`. The shelf itself carries no German text
-at all — just 3D grocery models on coloured rails. A player who has never seen German
+at all, just 3D grocery models on coloured rails. A player who has never seen German
 reads "Milk", sees pink, taps the middle tier. The German is scenery.
 
-### 4.2 The Rhythm Ramp — a *visual* anticipation cue
+### 4.2 The Rhythm Ramp, a *visual* anticipation cue
 When a new item is called, its **gender rail pulses** before the item icon resolves on
 the manifest. That pulse is the whole tell: it names the shelf without naming the item.
 Tapping the correct tier during that window is the **2.0× Early Pick** bonus.
 
-- **Shift 1 (Immediate — delay 0.0s)**: rail and icon arrive together. Pure arcade sorting.
-- **Shift 2 (Anticipation — delay 1.5s)**: rail pulses first. Commit early, get 2.0×.
-- **Shift 3+ (Expert Flow — delay 2.5s)**: a long window for couriers who trust the colour.
+- **Shift 1 (Immediate, delay 0.0s)**: rail and icon arrive together. Pure arcade sorting.
+- **Shift 2 (Anticipation, delay 1.5s)**: rail pulses first. Commit early, get 2.0×.
+- **Shift 3+ (Expert Flow, delay 2.5s)**: a long window for couriers who trust the colour.
 
 This is the "Aha!" beat: the moment a player realises the daft filing system is
 actually a *search accelerator*, because it cuts the shelf they have to scan by two
@@ -212,40 +212,39 @@ runtime text generation.
 so there is still zero network use. Every other sound is synthesised at runtime by
 `src/audio/speech.js` and the SFX layer:
 
-- **Character talk-blips** — each speaker has a pitch/filter/waveform profile
+- **Character talk-blips**, each speaker has a pitch/filter/waveform profile
   (Nina bright triangle, Lokker low sawtooth, Vogel square, and so on), so dialogue
   reads as characterised chatter in the *Animal Crossing* / *Celeste* tradition.
-- **Interface and economy SFX** — taps, mispicks, cash, stamps.
+- **Interface and economy SFX**, taps, mispicks, cash, stamps.
 
 There is deliberately **no voice acting and no spoken German**. The pick loop's
-anticipation cue is visual (the rail pulse, §4.2), not auditory — which also means the
+anticipation cue is visual (the rail pulse, §4.2), not auditory, which also means the
 core mechanic is fully playable muted, on a silent phone, and in a noisy judging room.
 
 ---
 
 ## 6. Economic Tunables & Upgrades
 
-> **Numbers live in [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md), not here.**
-> That file is generated from `src/core/economy.js` and `src/data/shop.js`. Quoting
+> **Numbers live in [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md), not here.**> That file is generated from `src/core/economy.js` and `src/data/shop.js`. Quoting
 > tunables in prose is what let four different build sizes and a non-existent
 > `FRESHNESS_DECAY_RATE` circulate across the docs for weeks.
 
 ### The Upgrades Catalog (`src/data/shop.js`):
 1. **E-Bike Conversion Kit (€45)**:
-   - *Visual*: Mounts a sleek battery pack to the bicycle frame.
-   - *Mechanical*: Increases courier movement speed across the city map by +50%.
+   -*Visual*: Mounts a sleek battery pack to the bicycle frame.
+   -*Mechanical*: Increases courier movement speed across the city map by +50%.
 2. **Thermal Delivery Bag (€50)**:
-   - *Visual*: Equips an insulated orange delivery backpack.
-   - *Mechanical*: Halves food freshness decay during city delivery.
+   -*Visual*: Equips an insulated orange delivery backpack.
+   -*Mechanical*: Halves food freshness decay during city delivery.
 3. **Warehouse Shelf Labels (€25)**:
-   - *Visual*: Permanently mounts metallic `DER`, `DIE`, and `DAS` plaques on shelf rails.
-   - *Mechanical*: Stamps the tier symbol (▲●■) on every item, not just the rail.
+   -*Visual*: Permanently mounts metallic `DER`, `DIE`, and `DAS` plaques on shelf rails.
+   -*Mechanical*: Stamps the tier symbol (▲●■) on every item, not just the rail.
 4. **Pocket Notepad (€20)**:
-   - *Visual*: Adds a study desk and lamp to the student room; a 📋 button appears in the shift HUD.
-   - *Mechanical*: One free rail re-pulse per shift, for when you lose the thread mid-order.
+   -*Visual*: Adds a study desk and lamp to the student room; a  button appears in the shift HUD.
+   -*Mechanical*: One free rail re-pulse per shift, for when you lose the thread mid-order.
 5. **Shift Rota Cards (€35)**:
-   - *Visual*: Pinned card deck on the student room corkboard.
-   - *Mechanical*: -0.8s icon delay, +25% early-pick bonus.
+   -*Visual*: Pinned card deck on the student room corkboard.
+   -*Mechanical*: -0.8s icon delay, +25% early-pick bonus.
 
 ---
 
@@ -269,22 +268,22 @@ core mechanic is fully playable muted, on a silent phone, and in a noisy judging
 
 The narrative design is structured around **Jamie Antonisse's GDC Narrative Prototyping Principles**:
 
-1. **The Player as the True Hero**: The narrative stakes are directly tied to player agency—immigrant survival, economic freedom, and mastery of a foreign language.
-2. **The Mountain on the Horizon**: The €250 Semesterbeitrag goal, 28-day visa countdown, and 4-document dossier `[Uni 📜] [Lease 📄] [Anmeldung 📑] [Bank 💳]` remain persistently visible on the HUD, giving every shift high-stakes emotional weight.
+1. **The Player as the True Hero**: The narrative stakes are directly tied to player agency, immigrant survival, economic freedom, and mastery of a foreign language.
+2. **The Mountain on the Horizon**: The €250 Semesterbeitrag goal, 28-day visa countdown, and 4-document dossier `[Uni ] [Lease ] [Anmeldung ] [Bank ]` remain persistently visible on the HUD, giving every shift high-stakes emotional weight.
 3. **Strict Narrative Economy (Rule of 4 Story Functions)**: Every dialogue beat strictly serves one of four functions:
-   - *Showcase the Goal* (Visa countdown & tuition pressure)
-   - *Call to Action* (Immediate warehouse picking or courier dispatch)
-   - *Direct Feedback* (Reactions to picking speed, grammar accuracy, and etiquette)
-   - *Emotional Respite & Reward* (Warm doorstep banter, fresh Franzbrötchen, and debrief receipt satisfaction)
+   -*Showcase the Goal* (Visa countdown & tuition pressure)
+   -*Call to Action* (Immediate warehouse picking or courier dispatch)
+   -*Direct Feedback* (Reactions to picking speed, grammar accuracy, and etiquette)
+   -*Emotional Respite & Reward* (Warm doorstep banter, fresh Franzbrötchen, and debrief receipt satisfaction)
 4. **Contextual Story Shifts**: Grocery packing shifts are grounded in community narratives (Oma Martha's emergency baking order, WG party supplies, Rathaus breakfast rush).
 
 ---
 
 ## 9. Progression Systems Beyond the Core Loop
 
-- **Shop upgrades** (`src/data/shop.js`) — five purchases, every one of which changes
+- **Shop upgrades** (`src/data/shop.js`), five purchases, every one of which changes
   both a number and something you can see, in the warehouse or in your room. See §6.
-- **The 4-document dossier** — the persistent HUD readout that turns bureaucratic
+- **The 4-document dossier**, the persistent HUD readout that turns bureaucratic
   errands into a progress bar (§8, *The Mountain on the Horizon*).
 
 > **Removed 2026-09-06.** Earlier drafts advertised a spaced-repetition vocabulary

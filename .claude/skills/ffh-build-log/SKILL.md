@@ -1,6 +1,6 @@
 ---
 name: ffh-build-log
-description: Automatically appends architectural changes, completed milestones, and design iterations to Docs/DEVELOPMENT_ARCHIVE.md.
+description: Automatically appends architectural changes, completed milestones, and design iterations to Docs/submission/BUILD_LOG.md.
 ---
 
 # FFH Build Log Enforcement Skill
@@ -8,7 +8,7 @@ description: Automatically appends architectural changes, completed milestones, 
 After every meaningful session or feature implementation:
 
 ## Rules:
-1. Append an entry to `Docs/DEVELOPMENT_ARCHIVE.md` (Section 6: Complete Chronological Build Log) formatted by date (`YYYY-MM-DD`).
+1. Append an entry to `Docs/submission/BUILD_LOG.md` (under `## Sessions`) formatted by date (`YYYY-MM-DD`). This file is a required competition deliverable, so keep it honest: name what the AI agent did versus what was hand-tuned, and record reversals rather than quietly dropping them.
 2. Clearly describe:
    - What changed
    - Why it changed

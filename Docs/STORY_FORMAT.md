@@ -1,7 +1,7 @@
-# `story.json` — Developer Guide
+# `story.json`. Developer Guide
 
 > **File**: `assets/narrative/story.json` · **Runner**: `src/core/storyRunner.js`
-> **Validate**: `node build/check-story.js` — run it before every commit that touches the story.
+> **Validate**: `node build/check-story.js`, run it before every commit that touches the story.
 >
 > This file owns the prose, the branching, the economy deltas, the UI/mechanic unlocks
 > and the pacing. It is inlined into `window.FFH.storyData` at release assembly, so it
@@ -11,14 +11,15 @@
 
 ## 1. Read this before you write a line
 
-Three rules. They are not stylistic preferences — breaking them re-introduces claims
+Three rules. They are not stylistic preferences, breaking them re-introduces claims
 we removed from the build on 2026-09-06.
 
 1. **This is not a language-learning game.** No scene teaches German. No scene may
    claim to. There is no vocabulary system, no quiz, no flashcards, no spaced
    repetition. German is *scenery and punchline*, never homework.
-2. **There is no recorded audio.** None. The `audio[]` arrays are advisory ambience
-   slots for the procedural oscillator layer — they are **not asset filenames** and
+2. **There is no recorded audio in the story layer.** The one music track ships
+   separately via `build/assemble.js`. The `audio[]` arrays are advisory ambience
+   slots for the procedural oscillator layer, they are **not asset filenames** and
    nothing loads them. Never write prose about hearing a word, picking "by ear", or a
    voice calling an item. The pick loop's cue is **visual**: the gender rail pulses.
 3. **Never hardcode money.** Write `{wallet}€`, not `31.50€`. Four separate money
@@ -36,7 +37,7 @@ A diamond. Threads open, then close.
 | :-- | :--- | :-----: | :----- |
 | I | One thread | 1 | Arrival, one conversation, the der/die/das ramp. Ends on the Aha. |
 | II | Two threads | 2 | The Kaution fork: pay it and be broke, or borrow and keep a runway. |
-| III | Four to six | 4–6 | Every remaining system arrives. Peak chaos. The hub. |
+| III | Four to six | 4 to 6 | Every remaining system arrives. Peak chaos. The hub. |
 | IV | Threads close | ↓ | Nothing new is introduced. Mastery and untangling only. |
 | V | One thread | 1 | One desk, one stamp, three shadings of the same ending. |
 
@@ -53,7 +54,7 @@ that renders needs `prose` and a way out.
 ```jsonc
 {
   "id": "wg_buzzer",              // unique, snake_case. This is the address.
-  "act": "I",                     // "I".."V" — documentation, not logic
+  "act": "I",                     // "I"."V", documentation, not logic
   "threads": 1,                   // how many problems the player is holding
 
   "stage": {                      // drives camera, lighting and location
@@ -66,7 +67,7 @@ that renders needs `prose` and a way out.
 
   "cast":  ["NPC_NICO"],          // presence of cast defaults mode to "blocking"
   "props": ["buzzer_panel"],      // set dressing; advisory
-  "audio": ["intercom_click"],    // ADVISORY ambience slots — never asset filenames
+  "audio": ["intercom_click"],    // ADVISORY ambience slots, never asset filenames
 
   "prose": [ "One line per paragraph.", "Speaker: dialogue goes inline." ],
 
@@ -98,12 +99,12 @@ Exactly one route out. In resolution order:
 | `choices[].to` | Player picks. The normal case. |
 | `next` | Unconditional single successor (used by the two `wg_door_*` variants). |
 | `divert` | Fallback when a scene's choices all fall through. |
-| `conditional_edges` | `[{ "if": "knots <= 1", "to": "act_four" }]` — evaluated before choices. |
+| `conditional_edges` | `[{ "if": "knots <= 1", "to": "act_four" }]`, evaluated before choices. |
 | `terminal: true` | **Ends the run.** Requires `outcome: "WIN" \| "LOSE"`. |
 
 A `to` may be a **tunnel**: `{ "tunnel": "night_tick", "then": "act_two" }` runs
 `night_tick` (the nightly rent tick) and then continues to `act_two`. A tunnel scene
-has no outgoing edge by design — the runner returns to `then`. `night_tick` is marked
+has no outgoing edge by design, the runner returns to `then`. `night_tick` is marked
 `"tunnel": true` so the validator does not flag it as a dead end.
 
 ---
@@ -112,7 +113,7 @@ has no outgoing edge by design — the runner returns to `then`. `night_tick` is
 
 ```jsonc
 {
-  "label":   "[WG 3B — the one that isn't a surname]",
+  "label":   "[WG 3B, the one that isn't a surname]",
   "gate":    "day >= 6 && not met_anke",   // null or omitted = always shown
   "to":      "wg_door",
   "effects": [ { "var": "r_nico", "expr": "r_nico + 1" } ],
@@ -120,16 +121,16 @@ has no outgoing edge by design — the runner returns to `then`. `night_tick` is
 }
 ```
 
-- **Square brackets** = an action the player takes. **Quotation marks** = something the
+- **Square brackets**= an action the player takes. **Quotation marks**= something the
   player says. Keep that distinction; it is the only signal of who is speaking.
 - `gate` uses the mini expression language in §7. A choice whose gate fails is not
-  rendered — so **never gate every choice in a scene** unless `divert` is set.
+  rendered, so **never gate every choice in a scene** unless `divert` is set.
 - Choice `effects` apply on selection; scene `effects` apply on entry. Do not put the
   same delta in both.
 
 ---
 
-## 5. `mode` — who owns the screen
+## 5. `mode`, who owns the screen
 
 | Mode | Meaning | Rule |
 | :--- | :------ | :--- |
@@ -139,7 +140,7 @@ has no outgoing edge by design — the runner returns to `then`. `night_tick` is
 
 ---
 
-## 6. `unlocks` — first-time reveals
+## 6. `unlocks`, first-time reveals
 
 ```jsonc
 "unlocks": {
@@ -181,9 +182,8 @@ Used by `gate`, `effects[].expr` and `conditional_edges[].if`. Deliberately tiny
 ```
 
 ### Prose interpolation
-- `{wallet}` — substitutes a state value. **Use this for all money.**
-- `{ has_lease:Lease: yes.|Lease: no.}` — inline conditional.
-- `{day > 12:The days have started to look the same.}` — conditional with no else.
+- `{wallet}`, substitutes a state value. **Use this for all money.**-`{ has_lease:Lease: yes.|Lease: no.}`, inline conditional.
+- `{day > 12:The days have started to look the same.}`, conditional with no else.
 
 ---
 
@@ -194,7 +194,7 @@ Used by `gate`, `effects[].expr` and `conditional_edges[].if`. Deliberately tiny
 
 | Scene money comes from | How |
 | :--------------------- | :-- |
-| A **real engine payout** | `{ "var": "wallet", "expr": "wallet + pay" }` — `pay` is injected by the shift result. Use this for every shift from Act III on. |
+| A **real engine payout** | `{ "var": "wallet", "expr": "wallet + pay" }`, `pay` is injected by the shift result. Use this for every shift from Act III on. |
 | An **authored beat** | An explicit literal, e.g. `wallet - 30.0` for the Kaution. Must be justified in `econ_note`. |
 
 ### Act I is one shift, paid once
@@ -203,8 +203,7 @@ single evening**, not three shifts. They pay nothing individually. The whole eve
 pays once, at `shift_receipt`: **+11.25** (base 13.00 + accuracy 7.50 − trial deduction
 9.25).
 
-That deduction is a joke *and* a tuning device: it lands the player at roughly **€31.50**
-entering Act II, which is what makes Lokker's €30 Kaution hurt. If you change the Act I
+That deduction is a joke *and* a tuning device: it lands the player at roughly **€31.50** entering Act II, which is what makes Lokker's €30 Kaution hurt. If you change the Act I
 payout, you break the Act II fork. Check `act_two_fork` before touching it.
 
 > Previously these three scenes each paid a literal (15 / 17.5 / 20 = 52.50) while
@@ -216,16 +215,22 @@ payout, you break the Act II fork. Check `act_two_fork` before touching it.
 
 ## 9. Pacing
 
-`pacing.budget_s` is **90 seconds to the Aha** (`shift_3_test`) — CLAUDE.md rule 4. It is
-the time to the "Aha", not the length of Act I.
+`pacing.budget_s` is **90 seconds to the Aha** (`shift_3_test`). It measures the time to
+the "Aha", not the length of Act I.
+
+**The budget is retained as an instrument, not as a target.** The authored path reaches
+`shift_3_test` at **167 s**, deliberately, see `Docs/THE_MAKING_OF.md` §10. The field
+stays at 90 so the number keeps being measured and printed honestly; it is not a bar the
+build is trying to clear.
 
 `cumulative_s` and `critical_path_index` are **generated**, not authored. They are
 recomputed along the first-exit path from `act_one` by the validator. Do not hand-edit
 them, and do not retune `duration_s` values just to make the budget pass.
 
-> **Known open**: the authored critical path reaches `shift_3_test` at ~127 s, so the
-> shipping build needs a fast-start that drops a cold player at `shift_1_teach`.
-> Tracked in `Docs/TASKS.md`. The honest number is in `pacing.aha_cumulative_s`.
+> **Not an open item.** The authored critical path reaches `shift_3_test` at **167 s**> (`pacing.aha_cumulative_s`), and that is the intended pace for a slow-burn narrative
+> sim. Do **not** add a fast-start that skips to the Aha, that was built, it made the
+> experience worse, it was reverted, and `build/verify.js` now pins `?quickstart=1` to
+> `shift_1_teach`. Reasoning: [`THE_MAKING_OF.md`](THE_MAKING_OF.md) §10.
 
 ---
 
@@ -234,19 +239,17 @@ them, and do not retune `duration_s` values just to make the budget pass.
 British deadpan against German municipal precision. The comedy comes from the collision,
 never from a character being stupid.
 
-**What works:**
-- Understatement over exclamation. *"It is quarter to four in the afternoon. You decide
+**What works:**-Understatement over exclamation. *"It is quarter to four in the afternoon. You decide
   not to argue the point through a metal grille."*
 - The bureaucracy is always **correct and immovable**. Vogel is not a villain; he is a
   man with a stamp and a queue and he loves exactly one of those things.
 - Specificity is funnier than exaggeration. "A padlock the size of a teacup saucer"
   beats "a huge padlock".
 - Let the player be wry, tired and polite. They are not a comedian; they are knackered.
-- Kindness lands harder than jokes when it arrives unannounced — Mathias's thirty euros,
+- Kindness lands harder than jokes when it arrives unannounced. Mathias's thirty euros,
   Martha's Franzbrötchen. Do not undercut those with a gag.
 
-**What doesn't:**
-- Explaining the joke. Klaus states the gender rule once. Nobody mentions it again.
+**What doesn't:**-Explaining the joke. Klaus states the gender rule once. Nobody mentions it again.
 - Germans as punchlines. The system is absurd; the people are just doing their jobs.
 - Wall-of-text prose. Three to six short lines per scene. If it needs more, it is two
   scenes.
@@ -254,55 +257,49 @@ never from a character being stupid.
 
 ---
 
-## 11. Adding a scene — checklist
+## 11. Adding a scene, checklist
 
 1. Unique snake_case `id`. Add it to `scenes[]` near its act neighbours.
 2. `stage.time` moves **forward** relative to the scene before it. An overnight cut
    must advance the clock via a `day` effect (e.g. `day1_sleep`'s choice sets
-   `{ "var": "day", "expr": "2" }`) — the validator is day-aware and honours it.
-3. `prose` in the voice above. 3–6 lines.
+   `{ "var": "day", "expr": "2" }`), the validator is day-aware and honours it.
+3. `prose` in the voice above. 3 to 6 lines.
 4. A route out: `choices[].to`, `next`, `divert`, or `terminal` + `outcome`.
 5. Money as `{wallet}€`, never a literal.
 6. Fill `beat`, and `econ_note` / `sets_note` if anything changes.
 7. Every `unlocks.ui` id exists in the DOM.
-8. `node build/check-story.js` — must pass clean.
+8. `node build/check-story.js`, must pass clean.
 9. `node build/assemble.js && node build/check-size.js`, then boot and play it.
 
 ---
 
-## 12. Known wiring gap — read this before trusting Act I
+## 12. Every scene renders from this file
 
-`story.json`'s Act I is currently a **storyboard the shipped Act I only loosely follows.**
+This used to be the section warning you that Act One was a storyboard the game only
+loosely followed. That is no longer true, and the warning is withdrawn.
 
-`storyRunner.startScene()` first calls `handleBritishSpecialBeats()`
-(`src/core/storyActions.js:119`). For any id in `BRITISH_BEAT_MAP` the runner **returns
-early** and hands off to a city-exploration building interaction instead of rendering the
-scene's prose. Currently mapped:
+`storyRunner.startScene()` still calls `handleBritishSpecialBeats()` first, but as of
+now that function is:
 
+```js
+window.FFH.BRITISH_BEAT_MAP = {};
+window.FFH.handleBritishSpecialBeats = function (resolvedId, game) {
+  return false;
+};
 ```
-act_one, wg_door, wg_door_scenic, wg_door_fast, nico_kitchen,
-nico_sends_kruma, uni_closed, pizzeria_job, bakery_job, shift_1_teach
-```
 
-So editing the prose of those scenes changes the storyboard, **not** what a player sees.
-Scenes *not* in the map (`wg_buzzer`, `golden_hour`, `kruma_flyer`, `nico_bins_choice`,
-`shift_receipt`, `rita_first`, `night_one`, `night_one_end`, and all of Acts II–V) render
-from this file normally.
+The map is empty and the handler always returns false, so nothing is intercepted.
+Editing a scene's prose in this file changes what the player reads.
 
-The three scenes added on 2026-09-06 from `ACT_ONE_BRITISH_COMEDY.md` — `wg_buzzer`
-(the 3-button intercom), `golden_hour` (the 16:45 run) and `kruma_flyer` (the lamp-post
-flyer) — are **authored, valid and reachable in the graph, but not yet triggered during
-normal play**. They need either a `BRITISH_BEAT_MAP` entry or a city-exploration trigger.
-Tracked in `Docs/TASKS.md`.
+If you ever refill that map, come back and rewrite this section, because a scene
+listed there stops rendering from this file and there is no error to tell you.
 
-Verify a scene actually renders before claiming it ships:
+To confirm a scene rendered:
 
 ```js
 game.storyRunner.startScene('wg_buzzer');
-game.storyRunner.currentScene.id   // === 'wg_buzzer' means it rendered
+game.storyRunner.currentScene.id;   // 'wg_buzzer' means it rendered
 ```
-
-If `currentScene.id` is unchanged, the beat map swallowed it.
 
 ---
 
@@ -319,8 +316,17 @@ If `currentScene.id` is unchanged, the beat map swallowed it.
 | `NPC_VOGEL` | Herr Vogel | Bürgeramt. Peak Amtsschimmel. Half of the Circle. |
 | `NPC_WEBER` | Frau Weber | Sparkasse. The other half of the Circle. |
 | `NPC_RITA` | Rita Schneider | University registrar. Stamps the matriculation. |
+| `NPC_LINDEMANN` | Dr. Lindemann | Immigration office. The last desk, and the one that decides. |
+| `NPC_PIZZERIA_OWNER` | Pizzeria Owner | The first job that says no. |
+| `NPC_ANKE` | Anke | Neighbour. Appears in three scenes. |
+| `NPC_YUSRA` | Yusra | Neighbour. Appears in three scenes. |
 
-> Klaus teaches Shift 1 (per `Docs/archive/ACT_ONE_BRITISH_COMEDY.md` and the README
+The names players see come from `NPC_SPEAKER_MAP` in `src/core/storyActions.js`. If you
+add a cast id here, add it there too, or the character speaks under their raw id.
+
+Counts as of now: 92 scenes, and the ids above are the only ones the data uses.
+
+> Klaus teaches Shift 1 (per the archived Act One draft and the README
 > roster). Nina handles dispatch, the receipt and the shop. They were briefly conflated;
 > they are not the same person and the Act III night-route beat only works if the man who
 > taught you the rules is the one bending them.

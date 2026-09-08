@@ -514,28 +514,63 @@ Object.assign(window.FFH.UI.prototype, {
     }
     
     if (btnSound) {
+      // The button must describe what the player can actually hear right now.
+      //
+      // This used to keep its own `soundEnabled` flag, seeded once while the boot
+      // screen was being built. At that moment the track has not started yet, so
+      // the flag stayed false and the icon rendered crossed out. When autoplay
+      // then succeeded a moment later nothing re-rendered the button, so the
+      // title screen sat there playing music while the control said "Tap to
+      // enable sound", and the first press did nothing audible because sound was
+      // already on. Muting took two presses.
+      //
+      // So the state is now derived from the audio itself, never remembered.
+      const soundIsOn = () => {
+        const cfg = (window.FFH.CONFIG && window.FFH.CONFIG.audio) || {};
+        if (cfg.bgMusicMuted || cfg.sfxMuted) return false;
+        // Unmuted but not playing means the browser has not granted audio yet.
+        return !!(this.game && this.game.sfx
+          && typeof this.game.sfx.isMusicPlaying === 'function'
+          && this.game.sfx.isMusicPlaying());
+      };
+
       // Inline SVG rather than an emoji, so it inherits colour and stays crisp.
-      let soundEnabled = false;
       const updateBtnSoundText = () => {
-        const isMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted || window.FFH.CONFIG?.audio?.sfxMuted);
-        const musicPlaying = !!(this.game?.sfx?.isMusicPlaying && this.game.sfx.isMusicPlaying());
-        if (isMuted) soundEnabled = false;
-        if (!isMuted && musicPlaying) soundEnabled = true;
+        const on = soundIsOn();
         const speaker = '<path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor"/>';
         const waves = '<path d="M16 8.5a4 4 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
         const slash = '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
         btnSound.innerHTML =
           '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">'
-          + speaker + (soundEnabled ? waves : slash) + '</svg>';
-        btnSound.style.opacity = soundEnabled ? '1' : '0.55';
-        btnSound.setAttribute('aria-label', soundEnabled ? 'Sound on' : 'Tap to enable sound');
-        btnSound.title = soundEnabled ? 'Sound on' : 'Tap to enable sound';
+          + speaker + (on ? waves : slash) + '</svg>';
+        btnSound.style.opacity = on ? '1' : '0.55';
+        const label = on ? 'Sound on' : 'Tap to enable sound';
+        btnSound.setAttribute('aria-label', label);
+        btnSound.title = label;
       };
-      updateBtnSoundText();
+
+      // The music element is created lazily by startMusic() and can be replaced,
+      // so bind whenever one is available and mark it so we never double bind.
+      const bindMusicEvents = () => {
+        const el = this.game && this.game.sfx && this.game.sfx.musicEl;
+        if (!el || el._ffhSoundBtnBound) return;
+        el._ffhSoundBtnBound = true;
+        ['play', 'pause', 'ended', 'volumechange'].forEach((ev) => {
+          el.addEventListener(ev, updateBtnSoundText);
+        });
+      };
+
+      // Autoplay can start the track slightly after boot. A few bounded re-checks
+      // catch that without leaving a timer running for the life of the page.
+      const resync = () => { bindMusicEvents(); updateBtnSoundText(); };
+      resync();
+      [250, 750, 1500, 3000].forEach((ms) => setTimeout(resync, ms));
+
       btnSound.addEventListener('click', () => {
-        // Browsers require a direct gesture before they allow music. The first
-        // press therefore enables sound; only later presses toggle it off.
-        const nextMuted = soundEnabled;
+        // One press, one meaning: if you can hear it, turn it off, otherwise turn
+        // it on. Unmuted-but-silent (autoplay blocked) counts as off, so the first
+        // press on a fresh load starts the music.
+        const nextMuted = soundIsOn();
         if (this.game) {
           if (this.game.sfx) {
             if (typeof this.game.sfx.setMusicMuted === 'function') {
@@ -549,9 +584,11 @@ Object.assign(window.FFH.UI.prototype, {
             this.game.speech.muted = nextMuted;
           }
         }
-        soundEnabled = !nextMuted;
         if (!nextMuted) ensureMusicStarted();
-        updateBtnSoundText();
+        resync();
+        // startMusic() resolves a play() promise, so the element may not report
+        // itself as playing until the next tick.
+        setTimeout(resync, 120);
       });
     }
 

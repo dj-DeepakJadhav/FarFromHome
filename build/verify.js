@@ -66,7 +66,7 @@ const walk = (o, sid) => {
 scenes.forEach(s => { walk(s.prose, s.id); (s.choices||[]).forEach(c => { walk(c.prose, s.id); walk(c.label, s.id); }); });
 
 // Style rules are enforced on the committed scope, Acts I and II. Acts III to V
-// are explicitly out of scope for this build (see TASKS.md, NOT DOING).
+// are explicitly out of scope for this build.
 const IN_SCOPE = new Set(scenes.filter(s => ['I','II'].includes(s.act)).map(s => s.id));
 const scoped = strings.filter(([sid]) => IN_SCOPE.has(sid));
 const tooLong = scoped.filter(([, t]) => t.length > 140);
@@ -190,13 +190,54 @@ check('every shop upgrade is sold at some POI',
   if (fs.existsSync(idx)) {
     const mb = fs.statSync(idx).size / (1024 * 1024);
     const canon = fs.readFileSync(path.join(ROOT, 'Docs/CANONICAL_NUMBERS.md'), 'utf8');
-    const quoted = (canon.match(/\*\*([\d.]+) MB\*\*/) || [])[1];
+    // Anchor on the row label, not on "the first **N MB** in the file". The old
+    // positional regex silently retargeted itself when a row was added above it.
+    const rowMB = (label) => {
+      const row = canon.split('\n').find((l) => l.includes(label) && l.startsWith('|'));
+      return row ? (row.match(/\*\*([\d.]+) MB\*\*/) || [])[1] : undefined;
+    };
+    const quoted = rowMB('Release `index.html`');
     check('CANONICAL_NUMBERS build size matches index.html',
           quoted && Math.abs(parseFloat(quoted) - mb) < 0.3,
           `doc says ${quoted} MB, build is ${mb.toFixed(2)} MB`);
+
+    // The zipped size is the figure the competition actually limits, so pin it too.
+    const zip = path.join(ROOT, 'dist/far-from-home-kruma-express.zip');
+    const quotedZip = rowMB('Submission zip');
+    if (fs.existsSync(zip)) {
+      const zipMB = fs.statSync(zip).size / 1e6;
+      check('CANONICAL_NUMBERS zip size matches dist/ zip',
+            quotedZip && Math.abs(parseFloat(quotedZip) - zipMB) < 0.3,
+            `doc says ${quotedZip} MB, zip is ${zipMB.toFixed(2)} MB`);
+      check('submission zip is under the 35 MB limit', zipMB < 35, `${zipMB.toFixed(2)} MB`);
+      notes.push(`submission zip: ${zipMB.toFixed(2)} MB`);
+    } else {
+      check('CANONICAL_NUMBERS quotes a submission zip size', !!quotedZip,
+            'no **N MB** on the "Submission zip" row');
+    }
     check('build is under the 35 MB limit', mb < 35, `${mb.toFixed(2)} MB`);
     notes.push(`index.html: ${mb.toFixed(2)} MB`);
   }
+  // A generated manifest once claimed "Actual: 87s -- PASS" long after the real
+  // figure had moved to 167s, because its generator reads a retired Ink source and
+  // silently stopped regenerating. No judge-facing doc may claim a pacing pass while
+  // story.json's own measured Aha exceeds the budget.
+  {
+    const story = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/narrative/story.json'), 'utf8'));
+    const { aha_cumulative_s: aha, budget_s: budget } = story.pacing;
+    if (typeof aha === 'number' && typeof budget === 'number' && aha > budget) {
+      const docFiles = ['Docs/generated/GAMEPLAY_MANIFEST.md', 'Docs/CANONICAL_NUMBERS.md',
+                        'Docs/STORY_FORMAT.md', 'Docs/submission/SUBMISSION_CHECKLIST.md'];
+      const liars = docFiles.filter((rel) => {
+        const f = path.join(ROOT, rel);
+        if (!fs.existsSync(f)) return false;
+        return /Actual:\s*\*\*\d+s\*\*\s*--\s*PASS/.test(fs.readFileSync(f, 'utf8'));
+      });
+      check('no doc claims a pacing PASS while the Aha is over budget',
+            liars.length === 0, liars.join(', '));
+    }
+  }
+
   const hasMusic = fs.existsSync(path.join(ROOT, 'assets/Music/bgMusic.mp3'));
   const readme = fs.readFileSync(path.join(ROOT, 'Docs/README_HACKATHON.md'), 'utf8');
   check('docs do not claim zero audio while shipping music',
@@ -262,6 +303,32 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
 
   check('startFirstShift pins currentShift to 1',
         /this\.state\.currentShift\s*=\s*1\s*;/.test(mainSrc));
+
+  // The title screen sound button used to keep its own remembered flag, seeded
+  // once while the boot screen was built. The track had not started yet at that
+  // point, so the button rendered crossed out and then never re-rendered when
+  // autoplay succeeded: music played while the control said "Tap to enable
+  // sound", and muting took two presses. It must read the audio, not a memory.
+  {
+    const hudSrc = fs.readFileSync(path.join(ROOT, 'src/ui/screens/hudScreens.js'), 'utf8');
+
+    check('the sound button derives its state from the audio',
+          /const\s+soundIsOn\s*=/.test(hudSrc),
+          'expected a soundIsOn() helper reading isMusicPlaying() and the mute flags');
+
+    check('the sound button keeps no remembered on/off flag',
+          !/let\s+soundEnabled\b/.test(hudSrc),
+          'a cached flag goes stale the moment autoplay starts the track');
+
+    check('the sound button re-renders when the track starts or stops',
+          /addEventListener\(ev,\s*updateBtnSoundText\)/.test(hudSrc)
+          && /'play',\s*'pause'/.test(hudSrc),
+          'bind play/pause on the music element, or the icon lies after autoplay');
+
+    check('the sound button decides from the live state, not a flag',
+          /const\s+nextMuted\s*=\s*soundIsOn\(\)/.test(hudSrc),
+          'one press must mean one change');
+  }
 
   check('quickstart lands on the teach stage, not the test stage',
         /startFirstShift\('shift_1_teach'/.test(mainSrc) &&

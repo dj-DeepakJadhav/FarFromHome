@@ -1,31 +1,58 @@
-# Far From Home: Kruma Express — Design Intent Document
-*Recount with `sed '1,3d' DESIGN_INTENT_DOC.md | wc -w` (strict limit: ≤ 500 words)*
+# Far From Home: Kruma Express, Design Intent Document
+*Recount with `sed '1,3d' DESIGN_INTENT_DOC.md | wc -w` (limit: 500 words)*
 
-## 1. Game Title and Genre
-**Far From Home: Kruma Express** — Narrative Life & Courier Management Simulation (Fixed Portrait Mobile WebGL, 390×844).
+## 1. Genre
+Narrative courier management simulation. Mobile, portrait, 390x844.
 
-## 2. Target Player and Pitch
-For players who like tactile management sims (*Good Pizza, Great Pizza*) and character-led narrative games (*Coffee Talk*, *Messenger by Abeto*).
+## 2. Player and pitch
+For players who like hands-on management games (*Good Pizza, Great Pizza*) and
+character-led games (*Coffee Talk*).
 
-You are an international student who has just landed in Lübeck with **€20, one suitcase, and 28 days** before your visa expires. To stay, you must beat the German bureaucracy gauntlet: earn courier wages at Kruma Express, pay the **€250 Semesterbeitrag**, sign a lease with Hans Lokker, complete your **Anmeldung** with Herr Vogel at the Bürgeramt, and unlock your **Sperrkonto** with Frau Weber — then put the whole stamped dossier in front of Dr. Lindemann.
+You arrive in Lübeck with **20 euros, one suitcase and 28 days** before your visa runs
+out. To stay you need four stamped documents, each locked behind the one before it. So
+you take courier shifts at Kruma Express, pay the 250 euro semester fee, sign a lease,
+register your address, unlock a bank account, and put the finished paperwork in front
+of the immigration officer.
 
-The tone is the point: **British deadpan comedy colliding with German municipal precision.** Every office is immovable, every rule real, none of it on your side.
+The tone is the point: **British deadpan humour meeting German municipal precision.**
+Every office is immovable, every rule real, none of it on your side.
 
-**This is not a language-learning game.** It teaches nothing and asks you to recall nothing. Play is 100% English-first. German is scenery — signage, officialese, and the punchline below.
+**This is not a language learning game.** It teaches nothing and tests nothing. Play
+is in English. German is scenery: signs, officialese, and the joke below.
 
-## 3. How to Play & Core Controls
-Designed for **single-thumb portrait** touch and pointer play:
-- **City Exploration**: Cycle a 3D Lübeck with tap-to-move. Visit the University, Bürgeramt, Bank and shops to advance your paperwork.
-- **Warehouse Packing**: Fast grocery picking against a shift clock. Items are labelled English-first, with the German small and grey: `Milk (die Milch)`.
-- **The Absurd Filing System**: German nouns have arbitrary genders, so of course the warehouse is filed by them. An apple is a boy. A banana is a girl. Bread is neither. Bottom = **der** (Blue ▲), Middle = **die** (Pink ●), Top = **das** (Purple ■). You needn't understand it — you must obey it, fast. Before each icon resolves, its **gender rail pulses**; commit to that tier early for a **2.0× Early Pick** bonus. The joke is also a search accelerator: it cuts the shelf you scan by two thirds.
-- **Doorstep Etiquette**: Hand-offs where *Sie* vs. *Du* and *Ruhezeit* either land or misfire, moving your tip.
-- **Room Upgrades**: Reinvest wages into upgrades that visibly furnish your room and change your numbers.
+## 3. How you play
+Portrait, one thumb, tap or click.
 
-## 4. Core Progression & Economic Engine
-1. **The Management Engine (Invest ➔ Harvest ➔ Upgrade ➔ Observe Growth)**: Shifts generate wages, streaks and tips; five shop upgrades (E-Bike, Thermal Bag, Shelf Labels, Pocket Notepad, Shift Rota Cards) each change both a stat and something you can see.
-2. **The 4-Document Dossier**: A persistent HUD readout ticking off Matriculation ➔ Lease ➔ Anmeldung ➔ Sperrkonto ➔ Residence Permit — the mountain on the horizon behind every shift.
+- **The city.** Cycle a 3D Lübeck by tapping where you want to go. Visit the
+  university, town hall, bank and shops to move your paperwork along.
+- **Packing shifts.** Fill grocery orders against a clock. Items are labelled in
+  English, German small and grey: `Milk (die Milch)`.
+- **The absurd filing system.** German nouns have genders, and there is no rule to work
+  them out. An apple is a boy. A banana is a girl. Bread is neither. So the warehouse
+  files by gender: bottom `der` (blue triangle), middle `die` (pink circle), top `das`
+  (purple square). You need not understand it, only obey it, fast. The tier flashes
+  before the item picture appears, and committing early pays **double**. The joke is
+  also a shortcut: it cuts the shelf you search by two thirds.
+- **Doorsteps.** Being too formal or too familiar moves your tip.
 
-## 5. Prototype Scope & Technical Feasibility
-- 100% offline, airgapped, single self-contained `index.html` (~11 MB; limit 35 MB).
-- Parametric 3D city generation, stepped-gable Altbau, Sobel ink outlines, diorama rooms.
-- **No audio assets ship.** All sound is synthesised at runtime from oscillators, so the game is fully playable muted.
+## 4. Progression
+**Spend, earn, upgrade, watch it grow.** Shifts pay a wage plus accuracy, streak and
+tips. Five upgrades each change a number *and* something visible, so your room fills up
+as you earn: e-bike, thermal bag, shelf labels, notepad, rota cards.
+
+**The paperwork** stays on screen throughout: matriculation, lease, registration, bank
+account, permit. It is the mountain behind every shift.
+
+## 5. What the prototype has
+A complete Act One: arriving, the first day, three shifts that get harder, doorstep
+deliveries, the day end receipt, buying upgrades, the first documents stamped. Win,
+lose and reset all resolve.
+
+One self contained HTML file, 3.45 MB zipped against a 35 MB limit, with no network
+requests. The city is generated by code. One music track ships inside the file and
+every sound effect is made while the game runs, so it plays fine muted.
+
+## 6. Future
+All 28 days across four semesters, each with its own office. A deeper economy: rent
+tiers, flatmates, a bike that breaks. The filing joke extends into plural and dative
+shelves. Same idea, longer curve.

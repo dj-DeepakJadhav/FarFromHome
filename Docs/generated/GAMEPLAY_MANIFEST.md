@@ -1,40 +1,55 @@
 # Gameplay, Progression & Economy Manifest
 
+> ##  FROZEN, generated from a retired source
+>
+> This file was generated on **2026-09-05** by `build/narrative_manifest.js`, which
+> reads `assets/narrative/story.ink`. That Ink source was **retired**, the shipped
+> narrative is `assets/narrative/story.json`, so the generator now exits early with
+> `CRITICAL: assets/narrative/story.ink not found` and **this file no longer
+> regenerates.**>
+> Treat every figure below as a 2026-09-05 snapshot, not as current. The live,
+> authoritative check is:
+>
+> ```bash
+> node build/check-story.js
+> ```
+>
+> To make this file trustworthy again, `narrative_manifest.js` needs repointing at
+> `story.json` (see `Docs/STORY_FORMAT.md`).
+
 > Generated from `assets/narrative/story.json` by `build/storyboard_check.js`.
 > Do not edit by hand -- change the storyboard and regenerate.
 
-## Pacing: the 90-second runway
+## Pacing (snapshot, see the frozen notice above)
 
-Rule source: Docs/CANONICAL_NUMBERS.md section 5; CLAUDE.md rule 4
+Rule source: Docs/THE_MAKING_OF.md section 10 (the 90s target is withdrawn)
 
-Budget **90s** to `shift_3_test`. Actual: **87s** -- PASS
+Budget **90s** to `shift_3_test`. **This line's "Actual: 87s -- PASS" was stale and wrong.** Measured against the shipped `story.json`, the Aha is at **167s**, and that is a deliberate design choice for a slow-burn narrative sim, not a pass, and not a failure. First interactive scene: **10s**. See `Docs/THE_MAKING_OF.md` §10.
 
-| at | scene | act | mode | dur | source |  |
-| --- | --- | --- | --- | --- | --- | --- |
-| 10s | `act_one` | I | overlay | 10s | authored |  |
-| 17s | `wg_door` | I | blocking | 7s | authored |  |
-| 23s | `nico_kitchen` | I | blocking | 6s | authored |  |
-| 30s | `nico_bins_choice` | I | blocking | 7s | authored |  |
-| 36s | `nico_sends_kruma` | I | overlay | 6s | authored |  |
-| 43s | `uni_closed` | I | blocking | 7s | authored |  |
-| 61s | `shift_1_teach` | I | gameplay | 18s | authored |  |
-| 75s | `shift_2_anticipate` | I | gameplay | 14s | authored |  |
-| 87s | `shift_3_test` | I | gameplay | 12s | authored | **AHA** |
-| 99s | `shift_receipt` | I | blocking | 12s | authored |  |
-| 105s | `rita_first` | I | overlay | 6s | authored |  |
-| 119s | `night_one` | I | blocking | 14s | authored |  |
-| 125s | `night_one_end` | I | overlay | 6s | authored |  |
-| 133s | `act_two` | II | blocking | 8s | authored |  |
-| 143s | `lokker_kaution` | II | blocking | 10s | authored |  |
-| 151s | `act_two_fork` | II | overlay | 8s | authored |  |
-| 161s | `kaution_pay` | II | blocking | 10s | authored |  |
-| 169s | `act_two_end` | II | blocking | 8s | authored |  |
-| 177s | `act_three_open` | III | overlay | 8s | authored |  |
-| 183s | `hub` | III | blocking | 6s | authored |  |
-| 191s | `knot_paper` | III | blocking | 8s | authored |  |
-| 195s | `the_circle` | III | blocking | 4s | estimated |  |
-| 212s | `the_circle_2` | III | blocking | 17s | estimated |  |
-| 224s | `the_circle_3` | III | blocking | 12s | authored |  |
+| at | scene | act | mode | dur | source | |
+| --- | --- | --- | --- | --- | --- | --- | | 10s | `act_one` | I | overlay | 10s | authored | |
+| 17s | `wg_door` | I | blocking | 7s | authored | |
+| 23s | `nico_kitchen` | I | blocking | 6s | authored | |
+| 30s | `nico_bins_choice` | I | blocking | 7s | authored | |
+| 36s | `nico_sends_kruma` | I | overlay | 6s | authored | |
+| 43s | `uni_closed` | I | blocking | 7s | authored | |
+| 61s | `shift_1_teach` | I | gameplay | 18s | authored | |
+| 75s | `shift_2_anticipate` | I | gameplay | 14s | authored | |
+| 87s | `shift_3_test` | I | gameplay | 12s | authored | **AHA** | | 99s | `shift_receipt` | I | blocking | 12s | authored | |
+| 105s | `rita_first` | I | overlay | 6s | authored | |
+| 119s | `night_one` | I | blocking | 14s | authored | |
+| 125s | `night_one_end` | I | overlay | 6s | authored | |
+| 133s | `act_two` | II | blocking | 8s | authored | |
+| 143s | `lokker_kaution` | II | blocking | 10s | authored | |
+| 151s | `act_two_fork` | II | overlay | 8s | authored | |
+| 161s | `kaution_pay` | II | blocking | 10s | authored | |
+| 169s | `act_two_end` | II | blocking | 8s | authored | |
+| 177s | `act_three_open` | III | overlay | 8s | authored | |
+| 183s | `hub` | III | blocking | 6s | authored | |
+| 191s | `knot_paper` | III | blocking | 8s | authored | |
+| 195s | `the_circle` | III | blocking | 4s | estimated | |
+| 212s | `the_circle_2` | III | blocking | 17s | estimated | |
+| 224s | `the_circle_3` | III | blocking | 12s | authored | |
 
 Durations marked `estimated` are derived from word count at ~170 wpm,
 not measured. Replace them with real timings after a playtest.
@@ -49,25 +64,18 @@ not measured. Replace them with real timings after a playtest.
 
 ## Progression ladder
 
-The rule: **Introduce mechanics on the widening half. Master them on the narrowing half.**
-
-When the player first meets each system.
+The rule: **Introduce mechanics on the widening half. Master them on the narrowing half.** When the player first meets each system.
 
 | at | scene | act | phase | mechanic | ui | teaches |
 | --- | --- | --- | --- | --- | --- | --- |
-| 10s | `act_one` | I | CITY_EXPLORATION | walk_city | btn-roam-city delivery-distance-indicator |  |
-| 17s | `wg_door` | I | DIALOGUE | converse | dialogue-speaker dialogue-text dialogue-options-container |  |
-| 30s | `nico_bins_choice` | I |  | vocab_notebook | btn-vocab-notebook vocab-modal vocab-list | {"subject":"muelltrennung","mode":"TEACH"} |
-| 36s | `nico_sends_kruma` | I |  | quest_tracking | city-quest-tracker city-quest-text city-poi-card |  |
-| 61s | `shift_1_teach` | I | PICK | gender_shelf_sort | pick-timer-text tuition-text tuition-bar | {"subject":"der_die_das","mode":"TEACH","icon_delay_s":0} |
-| 75s | `shift_2_anticipate` | I |  | freshness | hud-freshness-bar | {"subject":"der_die_das","mode":"ANTICIPATE","icon_delay_s":1.5} |
-| 87s | `shift_3_test` | I |  | bag_integrity | hud-integrity-bar | {"subject":"der_die_das","mode":"TEST","icon_delay_s":2.5} |
-| 99s | `shift_receipt` | I | DEBRIEF_RECEIPT | shift_receipt | btn-finish-shift |  |
-| 161s | `kaution_pay` | II |  | document_dossier | stamp-seal |  |
-| - | `shop` | III | SHOP | invest_upgrade | btn-close-shop |  |
-| - | `night_route` | III |  | night_ride_hazards |  |  |
-| - | `martha` | III |  | etiquette_tip |  |  |
-| - | `anke` | III |  | skill_tree | btn-close-skills skills-tree-scroll |  |
+| 10s | `act_one` | I | CITY_EXPLORATION | walk_city | btn-roam-city delivery-distance-indicator |
+|
+| 17s | `wg_door` | I | DIALOGUE | converse | dialogue-speaker dialogue-text dialogue-options-container | |
+| 30s | `nico_bins_choice` | I | | vocab_notebook | btn-vocab-notebook vocab-modal vocab-list | {"subject":"muelltrennung","mode":"TEACH"} | | 36s | `nico_sends_kruma` | I | | quest_tracking | city-quest-tracker city-quest-text city-poi-card | |
+| 61s | `shift_1_teach` | I | PICK | gender_shelf_sort | pick-timer-text tuition-text tuition-bar | {"subject":"der_die_das","mode":"TEACH","icon_delay_s":0} | | 75s | `shift_2_anticipate` | I | | freshness | hud-freshness-bar | {"subject":"der_die_das","mode":"ANTICIPATE","icon_delay_s":1.5} | | 87s | `shift_3_test` | I | | bag_integrity | hud-integrity-bar | {"subject":"der_die_das","mode":"TEST","icon_delay_s":2.5} | | 99s | `shift_receipt` | I | DEBRIEF_RECEIPT | shift_receipt | btn-finish-shift | |
+| 161s | `kaution_pay` | II | | document_dossier | stamp-seal | |
+| - | `shop` | III | SHOP | invest_upgrade | btn-close-shop | |
+| - | `night_route` | III | | night_ride_hazards | |  | | - | `martha` | III | | etiquette_tip | |  | | - | `anke` | III | | skill_tree | btn-close-skills skills-tree-scroll | |
 
 ### Systems introduced per act
 
@@ -135,59 +143,28 @@ they are always-on chrome:
 | scene | act | effects | note |
 | --- | --- | --- | --- |
 | `act_one` | I | wallet = wallet - 2.9; body = body - 6 | wallet -2.90 (bus) \\| body -6 (walk) |
-| `wg_door` | I | r_nico = r_nico + 1 |  |
-| `nico_kitchen` | I | heart = heart - 2 | heart -2 (brush off) |
-| `nico_bins_choice` | I | knows_trennung = true; r_nico = r_nico + 1 |  |
-| `nico_sends_kruma` | I | r_nico = r_nico + 1 |  |
-| `uni_closed` | I | heart = heart + 3; heart = heart - 3 | heart +3 / -3 |
-| `shift_1_teach` | I | wallet = wallet + 9.5; shift_no = shift_no + 1; wallet = +9.5 |  |
-| `shift_2_anticipate` | I | wallet = wallet + 10.5; shift_no = shift_no + 1; wallet = +10.5 |  |
-| `shift_3_test` | I | wallet = wallet + 11.5; shift_no = shift_no + 1; heart = heart + 6; wallet = +11.5 |  |
-| `shift_receipt` | I |  | no wallet change here: the three shift scenes already paid 9.50 + 10.50 + 11.50 = 31.50 |
-| `night_one` | I | heart = heart + 6; told_truth_home = true; heart = heart - 4 | heart +6 (lie) \\| heart -4 (truth) |
-| `act_two` | II | r_lokker = r_lokker + 1 |  |
-| `lokker_kaution` | II | r_lokker = r_lokker + 1 |  |
-| `kaution_pay` | II | wallet = wallet - 30.0; paid_kaution = true; has_lease = true; r_lokker = r_lokker + 1; r_lokker = r_lokker + 1 | wallet -30.00 |
-| `act_three_open` | III | knots = 4 |  |
-| `hub` | III |  | readout: wallet, body, day |
-| `the_circle` | III | knows_the_circle = true; knots = knots + 1 |  |
-| `the_circle_3` | III | heart = heart - 6; heart = heart - 2 | heart -6 (sit) \\| heart -2 (ask) |
-| `mathias_loan` | II | r_mathias = r_mathias + 1; r_mathias = r_mathias + 2 | wallet +30.00, owes_mathias 30.00 |
-| `mathias_loan_2` | II | wallet = wallet + 30.0; owes_mathias = 30.0; r_mathias = r_mathias + 1; heart = heart + 5; heart = heart + 2; wallet = wallet + 30.0; owes_mathias = 30.0; r_mathias = r_mathias + 2 | wallet +30.00, owes_mathias 30.00 |
-| `knot_money` | III | shift_no = shift_no + 1; wallet = wallet + pay; body = body - 7 | wallet + (10 + 3n + 12.5) +upgrades -11 if body<50; body -7 |
-| `nina_sister_2` | III | r_nina = r_nina + 1 |  |
-| `nina_sister_3` | III | r_nina = r_nina + 1 |  |
-| `shop` | III | wallet = wallet - 45.0; has_ebike = true; body = body + 8; wallet = wallet - 50.0; has_thermalbag = true; wallet = wallet - 35.0; has_vocabcards = true; wallet = wallet - 25.0; has_labels = true; wallet = wallet - 20.0; has_notepad = true | wallet -45 \\| -50 \\| -35 \\| -25 \\| -20; body +8 (ebike) |
-| `knot_body` | III | r_klaus = r_klaus + 1 |  |
-| `klaus_offer` | III | r_klaus = r_klaus + 2; heart = heart + 4 |  |
-| `klaus_offer_repeat` | III | r_klaus = r_klaus + 1 |  |
-| `night_route` | III | night_route_taken = night_route_taken + 1; wallet = wallet + 60.0; body = body - 22; heart = heart - 5; knots = knots + 1 | wallet +60.00, body -22, heart -5 |
-| `knot_heart` | III | r_nico = r_nico + 1 |  |
-| `nico_money` | III | wallet = wallet - 120.0; helped_nico = true; r_nico = r_nico + 3; heart = heart + 12; knots = knots - 1 | wallet -120.00, heart +12 |
-| `nico_work` | III | helped_nico = true; r_nico = r_nico + 2; r_nina = r_nina + 1; heart = heart + 8; knots = knots - 1 | heart +8 |
-| `nico_no` | III | heart = heart - 8; knots = knots - 1 | heart -8 |
-| `knot_heart_after` | III | heart = heart - 4; heart = heart + 3 | heart +3 \\| heart -4 |
-| `martha` | III | r_martha = r_martha + 1; body = body + 5; heart = heart + 5; wallet = wallet - 2.0; r_martha = r_martha + 1; body = body + 3; heart = heart + 3; body = body + 4; heart = heart + 2 | wallet -2.00 (buy); body +3..5; heart +2..5 |
-| `martha_weber` | III | r_martha = r_martha + 2; r_martha = r_martha + 1 |  |
-| `anke` | III | met_anke = true |  |
-| `anke_cut` | III | circle_cut = true; knots = knots - 1; heart = heart + 8 | heart +8 |
-| `end_of_day` | III | fined_trennung = true; wallet = wallet - 25.0; knots = knots + 1; strikes = strikes + 1; nico_gone = true; heart = heart - 10; knots = knots - 1; wallet = 0.0 | wallet -25.00 (day 11 fine, if !knows_trennung); strikes +1 (day 14) |
-| `night_tick` | III | day = day + 1; wallet = wallet - 8.0; body = body + 5; body = 100 | day +1, wallet -8.00 rent, body +5 (cap 100) |
-| `four_bank` | IV | heart = heart - 3; wallet = wallet - 25.0; has_konto = true; wallet = wallet + 50.0 | wallet -25.00 unless r_martha>=3; wallet +50.00 disbursement |
-| `four_amt_stamp` | IV | has_anmeldung = true; r_vogel = r_vogel + 1 |  |
-| `four_uni` | IV |  | readout: shortfall vs 250 |
-| `four_grind` | IV | shift_no = shift_no + 1; wallet = wallet + pay; body = body - 6 | wallet + (10 + 3n + 14) +upgrades -10 if body<50; body -6 |
-| `four_mathias` | IV | owes_mathias = 0.0; wallet = wallet + 60.0; heart = heart + 8 | wallet +60.00, owes_mathias 0, heart +8 |
-| `four_nico_repay` | IV | wallet = wallet + 120.0; heart = heart + 10 | wallet +120.00, heart +10 |
-| `four_nina_advance` | IV | wallet = wallet + 70.0; body = body - 12; r_nina = r_nina + 1 | wallet +70.00, body -12 |
-| `four_uni_pay` | IV | wallet = wallet - 250.0; matriculated = true; knots = 0; heart = heart + 6; heart = heart + 3 | wallet -250.00 |
-| `four_klaus` | IV | r_klaus = r_klaus + 1 |  |
-| `four_klaus_3` | IV | klaus_quit = true; heart = heart + 6 | heart +6 |
-| `four_phone` | IV | told_truth_home = true; heart = heart + 10; heart = heart + 2 | heart +2 \\| heart +10 |
-| `four_door` | IV | r_nico = r_nico + 1; heart = heart + 12; heart = heart + 12 | heart +12 |
-| `five_read` | V | heart = heart + 4 | heart +4 |
-| `five_verdict` | V | heart = heart - 2; heart = heart + 4 | heart -2 (night route >=3) \\| heart +4 (ask for time) |
-| `five_out` | V |  | readout: wallet, body, heart |
+| `wg_door` | I | r_nico = r_nico + 1 |
+|
+| `nico_kitchen` | I | heart = heart - 2 | heart -2 (brush off) | | `nico_bins_choice` | I | knows_trennung = true; r_nico = r_nico + 1 | |
+| `nico_sends_kruma` | I | r_nico = r_nico + 1 | |
+| `uni_closed` | I | heart = heart + 3; heart = heart - 3 | heart +3 / -3 | | `shift_1_teach` | I | wallet = wallet + 9.5; shift_no = shift_no + 1; wallet = +9.5 | |
+| `shift_2_anticipate` | I | wallet = wallet + 10.5; shift_no = shift_no + 1; wallet = +10.5 | |
+| `shift_3_test` | I | wallet = wallet + 11.5; shift_no = shift_no + 1; heart = heart + 6; wallet = +11.5 | |
+| `shift_receipt` | I | | no wallet change here: the three shift scenes already paid 9.50 + 10.50 + 11.50 = 31.50 | | `night_one` | I | heart = heart + 6; told_truth_home = true; heart = heart - 4 | heart +6 (lie) \\| heart -4 (truth) | | `act_two` | II | r_lokker = r_lokker + 1 | |
+| `lokker_kaution` | II | r_lokker = r_lokker + 1 | |
+| `kaution_pay` | II | wallet = wallet - 30.0; paid_kaution = true; has_lease = true; r_lokker = r_lokker + 1; r_lokker = r_lokker + 1 | wallet -30.00 | | `act_three_open` | III | knots = 4 | |
+| `hub` | III | | readout: wallet, body, day | | `the_circle` | III | knows_the_circle = true; knots = knots + 1 | |
+| `the_circle_3` | III | heart = heart - 6; heart = heart - 2 | heart -6 (sit) \\| heart -2 (ask) | | `mathias_loan` | II | r_mathias = r_mathias + 1; r_mathias = r_mathias + 2 | wallet +30.00, owes_mathias 30.00 | | `mathias_loan_2` | II | wallet = wallet + 30.0; owes_mathias = 30.0; r_mathias = r_mathias + 1; heart = heart + 5; heart = heart + 2; wallet = wallet + 30.0; owes_mathias = 30.0; r_mathias = r_mathias + 2 | wallet +30.00, owes_mathias 30.00 | | `knot_money` | III | shift_no = shift_no + 1; wallet = wallet + pay; body = body - 7 | wallet + (10 + 3n + 12.5) +upgrades -11 if body<50; body -7 | | `nina_sister_2` | III | r_nina = r_nina + 1 | |
+| `nina_sister_3` | III | r_nina = r_nina + 1 | |
+| `shop` | III | wallet = wallet - 45.0; has_ebike = true; body = body + 8; wallet = wallet - 50.0; has_thermalbag = true; wallet = wallet - 35.0; has_vocabcards = true; wallet = wallet - 25.0; has_labels = true; wallet = wallet - 20.0; has_notepad = true | wallet -45 \\| -50 \\| -35 \\| -25 \\| -20; body +8 (ebike) | | `knot_body` | III | r_klaus = r_klaus + 1 | |
+| `klaus_offer` | III | r_klaus = r_klaus + 2; heart = heart + 4 | |
+| `klaus_offer_repeat` | III | r_klaus = r_klaus + 1 | |
+| `night_route` | III | night_route_taken = night_route_taken + 1; wallet = wallet + 60.0; body = body - 22; heart = heart - 5; knots = knots + 1 | wallet +60.00, body -22, heart -5 | | `knot_heart` | III | r_nico = r_nico + 1 | |
+| `nico_money` | III | wallet = wallet - 120.0; helped_nico = true; r_nico = r_nico + 3; heart = heart + 12; knots = knots - 1 | wallet -120.00, heart +12 | | `nico_work` | III | helped_nico = true; r_nico = r_nico + 2; r_nina = r_nina + 1; heart = heart + 8; knots = knots - 1 | heart +8 | | `nico_no` | III | heart = heart - 8; knots = knots - 1 | heart -8 | | `knot_heart_after` | III | heart = heart - 4; heart = heart + 3 | heart +3 \\| heart -4 | | `martha` | III | r_martha = r_martha + 1; body = body + 5; heart = heart + 5; wallet = wallet - 2.0; r_martha = r_martha + 1; body = body + 3; heart = heart + 3; body = body + 4; heart = heart + 2 | wallet -2.00 (buy); body +3.5; heart +2.5 | | `martha_weber` | III | r_martha = r_martha + 2; r_martha = r_martha + 1 | |
+| `anke` | III | met_anke = true | |
+| `anke_cut` | III | circle_cut = true; knots = knots - 1; heart = heart + 8 | heart +8 | | `end_of_day` | III | fined_trennung = true; wallet = wallet - 25.0; knots = knots + 1; strikes = strikes + 1; nico_gone = true; heart = heart - 10; knots = knots - 1; wallet = 0.0 | wallet -25.00 (day 11 fine, if !knows_trennung); strikes +1 (day 14) | | `night_tick` | III | day = day + 1; wallet = wallet - 8.0; body = body + 5; body = 100 | day +1, wallet -8.00 rent, body +5 (cap 100) | | `four_bank` | IV | heart = heart - 3; wallet = wallet - 25.0; has_konto = true; wallet = wallet + 50.0 | wallet -25.00 unless r_martha>=3; wallet +50.00 disbursement | | `four_amt_stamp` | IV | has_anmeldung = true; r_vogel = r_vogel + 1 | |
+| `four_uni` | IV | | readout: shortfall vs 250 | | `four_grind` | IV | shift_no = shift_no + 1; wallet = wallet + pay; body = body - 6 | wallet + (10 + 3n + 14) +upgrades -10 if body<50; body -6 | | `four_mathias` | IV | owes_mathias = 0.0; wallet = wallet + 60.0; heart = heart + 8 | wallet +60.00, owes_mathias 0, heart +8 | | `four_nico_repay` | IV | wallet = wallet + 120.0; heart = heart + 10 | wallet +120.00, heart +10 | | `four_nina_advance` | IV | wallet = wallet + 70.0; body = body - 12; r_nina = r_nina + 1 | wallet +70.00, body -12 | | `four_uni_pay` | IV | wallet = wallet - 250.0; matriculated = true; knots = 0; heart = heart + 6; heart = heart + 3 | wallet -250.00 | | `four_klaus` | IV | r_klaus = r_klaus + 1 | |
+| `four_klaus_3` | IV | klaus_quit = true; heart = heart + 6 | heart +6 | | `four_phone` | IV | told_truth_home = true; heart = heart + 10; heart = heart + 2 | heart +2 \\| heart +10 | | `four_door` | IV | r_nico = r_nico + 1; heart = heart + 12; heart = heart + 12 | heart +12 | | `five_read` | V | heart = heart + 4 | heart +4 | | `five_verdict` | V | heart = heart - 2; heart = heart + 4 | heart -2 (night route >=3) \\| heart +4 (ask for time) | | `five_out` | V | | readout: wallet, body, heart |
 
 ## Beat sheet
 

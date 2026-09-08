@@ -1,8 +1,0 @@
-{
-  "entries": [
-    { "path": ".agents/skills" },
-    { "path": "c:/DeepakJadhav/Personal/Tools/threejs-game-skills/skills" },
-    { "path": "c:/DeepakJadhav/Personal/Tools/Threejs-Awesome-Graphics-Agent-Skills/skills" },
-    { "path": "c:/DeepakJadhav/Personal/Tools/webgpu-claude-skill/skills" }
-  ]
-}

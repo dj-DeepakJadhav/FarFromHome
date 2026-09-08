@@ -1,138 +1,140 @@
-# ONE-PAGE GAME DESIGN DOCUMENT
-# Far From Home: Kruma Express
-*Authored in the Stone Librande One-Page Design Methodology (GDC) | Single-Page Master Reference*
+# One Page Design Document
 
-![One-Page Master Game Design Document Poster](./ONE_PAGE_DESIGN_DOCUMENT.jpg)
+*Far From Home: Kruma Express*. A courier management game with a story, for phones,
+played in portrait.
 
-```
-═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  HIGH CONCEPT:  A narrative courier-management sim: British deadpan comedy colliding with German municipal precision.
-                 Work shifts, file groceries by colour, ride cobblestones, endure quirky locals, and conquer the
-                 4-document dossier before your visa runs out.
-  PLATFORM:      Mobile-First WebGL (390×844 Portrait) | PACKAGING: 100% Offline Single-File HTML5 (≤ 35 MB)
-  CORE PILLARS:  ① 60-Second Addictive Loop   ② British Deadpan vs. German Precision   ③ Invest ➔ Harvest ➔ Upgrade Economy
-═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-```
+Every number here comes from [CANONICAL_NUMBERS.md](CANONICAL_NUMBERS.md). If they
+disagree, that file is right.
 
----
+## The pitch
 
-## 1. THE 60-SECOND CORE GAMEPLAY LOOP
+You arrive in Lübeck with **20 euros, one suitcase, and 28 days** before your visa
+runs out. To stay you need four stamped documents, and each one is locked behind the
+one before it. So you take a job at Kruma Express, sort groceries, ride across the
+city, and try to get the paperwork done in time.
 
-```text
- ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
- │                                                                                                             │
- │    ┌────────────────────────┐         ┌────────────────────────┐         ┌────────────────────────┐         │
- │    │ 1. EXPLORE & CLOCK IN  │ ──────> │ 2. WAREHOUSE PICKING   │ ──────> │ 3. 3D COURIER RIDE     │         │
- │    │ Continuous 3D Altstadt │         │ Color-tier shelf sort  │         │ Steer bike on map      │         │
- │    │ Meet deadpan locals    │         │ Rail-pulse timing ramp │         │ E-Bike turbo boost     │         │
- │    └────────────────────────┘         └────────────────────────┘         └────────────────────────┘         │
- │                ▲                                                                     │                      │
- │                │                                                                     ▼                      │
- │    ┌────────────────────────┐         ┌────────────────────────┐         ┌────────────────────────┐         │
- │    │ 6. GROW & FURNISH      │ <────── │ 5. DEBRIEF & UPGRADE   │ <────── │ 4. DOORWAY HANDOFF     │         │
- │    │ Unlock 4-Doc Dossier   │         │ Shift receipt payout   │         │ Beamtendeutsch banter  │         │
- │    │ Furnish 3D Dorm Room   │         │ Buy bike/gear upgrades │         │ Sie vs Du etiquette tip│         │
- │    └────────────────────────┘         └────────────────────────┘         └────────────────────────┘         │
- │                                                                                                             │
- └─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+The tone is the point: **British deadpan humour meeting German municipal precision.**
+Every office is immovable. Every rule is real. None of it is on your side.
+
+This is not a language learning game. It teaches nothing.
+
+## The loop
+
+```mermaid
+flowchart LR
+    A["Explore the city<br/>tap to move"] --> B["Pack a shift<br/>sort by colour, beat the clock"]
+    B --> C["Ride and deliver<br/>keep the bag intact"]
+    C --> D["Hand over at the door<br/>polite or too familiar"]
+    D --> E["Day end receipt<br/>see exactly what you earned"]
+    E --> F["Spend on upgrades<br/>see them appear in your room"]
+    F --> A
 ```
 
----
+One shift takes about a minute. You always know how you did, because the receipt
+itemises it.
 
-## 2. SIGNATURE MECHANIC: 3-TIER SPATIAL SEARCH ENGINE
+## The signature mechanic: the three tier shelf
 
-The player fills grocery manifests in real time. German nouns have arbitrary genders — so of course the warehouse is filed by them. **`der/die/das` doubles as a 3-tier spatial filter**, cutting search time by 66%. The player never needs a word of German: items are labelled **English-first** and the tiers are read by **colour and symbol**.
+German nouns have genders and there is no rule to work them out. An apple is
+masculine, a banana is feminine, bread is neuter. So of course the warehouse files its
+stock by gender.
 
-> Klaus sets the tone: *"An apple is a boy, a banana is a girl. Pick them right."*
-
-```
- ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
- │  TOP SHELF: PURPLE [■]       das Brot / das Wasser / das Ei             NEUTER  das       (+2.0x Early) │
- ├─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
- │  MIDDLE SHELF: PINK [●]      die Milch / die Banane / die Pizza         FEMININE die      (+2.0x Early) │
- ├─────────────────────────────────────────────────────────────────────────────────────────────────────────┤
- │  BOTTOM SHELF: BLUE [▲]      der Apfel / der Käse / der Kaffee          MASCULINE der     (+2.0x Early) │
- └─────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-> Rows are filed by **grammatical gender only** — a joke about German filing, not a
-> lesson. Do not label them with food categories: milk would not sit in a "chilled"
-> row, and the bottom row groups apple, cheese and coffee purely because all three
-> are *der*.
-
-### The 90-Second Rail-Pulse Ramp (Pacing Curve)
-The anticipation cue is **visual**: the gender rail pulses before the item icon resolves.
-- **Shift 1 (0.0s Delay)**: Rail pulse and icon land together — the pink rail glows as the Milk icon appears.
-- **Shift 2 (1.5s Delay)**: The rail pulses *before* the icon. Tapping the right tier in that window earns the **2.0× Early Pick Bonus**.
-- **Shift 3+ (2.5s Delay)**: Pure pattern recognition on the pulse alone, for maximum streak multipliers.
-
----
-
-## 3. ECONOMIC ENGINE: €20 ➔ €250 TUITION GAUNTLET
-
-```
-  [START: €20] ──> [Courier Shifts: +€15-45] ──> [Bike Shop: Upgrades] ──> [Save €250] ──> [WIN: University Paid]
-```
-
-### Shift Payout Formula
-$$\text{Total Payout} = \text{Base Wage (€15)} + (\text{Speed Streak} \times 2.0) + \text{Doorstep Tip (€3–€15)} - \text{Damage Deductions}$$
-
-### Equipment Upgrades (Mathias' Hansa Rad Bike Shop)
-| Upgrade Item | Cost | Gameplay Effect | Visual 3D Impact |
-| :--- | :---: | :--- | :--- |
-| **E-Bike Conversion** | €45 | **-40% transit time** across city | Motor & battery pack mounted on bike |
-| **Insulated Thermal Bag** | €50 | **Halves freshness decay** while riding | Bright orange Kruma branded backpack |
-| **Shelf Labeling Kit** | €25 | **Stamps the tier symbol (▲●■)** on every item | Colour markers on warehouse shelves |
-| **Pocket Notepad** | €20 | **1 free rail re-pulse** per shift | Open notepad on handlebars |
-| **Shift Rota Cards** | €35 | **-0.8s icon delay, +25% early pick bonus** | Rota cards pinned in student room |
-
----
-
-## 4. THE 4-DOCUMENT DOSSIER (BUREAUCRACY VICTORY PATH)
-
-| Step | Milestone Document | Official NPC & Location | Required Condition |
+| Tier | Article | Colour | Shape |
 | :--- | :--- | :--- | :--- |
-| **1** | **Immatrikulation** (Enrollment) | Rita Schneider *(Universität)* | Pay **€250 Semesterbeitrag** |
-| **2** | **Wohnungsgeberbestätigung** (Lease) | Hans Lokker *(WG Dorm)* | Pay **€30 Kaution downpayment** + Obey *Ruhezeit* |
-| **3** | **Meldebescheinigung** (Address Reg.) | Herr Vogel *(Bürgeramt)* | Present signed lease & pass formal *Sie* dialogue |
-| **4** | **Sperrkonto Freigabe** (Bank Unlocked) | Frau Weber *(Sparkasse)* | Present Address Reg. + Matriculation Certificate |
-| 🏆 | **AUFENTHALTSTITEL (Residence Permit)** | Dr. Lindemann *(Ausländerbehörde)* | **Deliver 4-doc dossier before Day 28 visa deadline!** |
+| Top | `das` | Purple | Square (■) |
+| Middle | `die` | Pink | Circle (●) |
+| Bottom | `der` | Blue | Triangle (▲) |
 
----
+![The shelf](screenshots/02_gender_shelf.jpg)
 
-## 5. ONE-THUMB MOBILE INTERFACE LAYOUT (390 × 844 Portrait)
+Three things make this work as a game mechanic and not just a joke:
 
-```text
- ┌────────────────────────────────────────┐ ── 0px
- │ [HUD] Day 1/28 | 💶 €20 | 📜 Docs: 0/4 │  Upper HUD: Vital status & dossier tracker
- ├────────────────────────────────────────┤ ── 70px
- │                                        │
- │        3D ISOMETRIC DIORAMA            │
- │     • Historic Lübeck Altstadt         │  Primary Game View:
- │     • Warehouse Interior / Shelves     │  Three.js Canvas with stepped-gable buildings,
- │     • 2.5D Doorstep Customer Handoff   │  ambient weather, dynamic lighting & ink outline
- │                                        │
- ├────────────────────────────────────────┤ ── 640px
- │  [DIALOGUE] "NEIN! Ruhezeit!"          │  Contextual Dialogue Bar (Beamtendeutsch comedy flavour)
- ├────────────────────────────────────────┤ ── 710px
- │  [ ACTION / INTERACTION / DOCK AREA ]  │  Thumb Action Zone (Bottom 25%):
- │   [BLUE: Der ▲] [PINK: Die ●] [PUR: Das ■]  Large touch-target buttons (min 48px),
- │   or [Steer D-Pad / Dialogue Responses] │  single-hand thumb reachable.
- └────────────────────────────────────────┘ ── 844px
+**You never need German.** Items are labelled in English with the German small and
+grey, like `Milk (die Milch)`. You read the tiers by colour and shape.
+
+**It makes you faster, not slower.** Filing by gender cuts the shelf you have to
+search by two thirds. The silly rule genuinely helps, which is the second layer of the
+joke.
+
+**It is a real gamble.** The tier rail flashes before the item picture appears. Commit
+early and guess right and you get **double pay**. Wait for certainty and you get base
+pay. That choice is what makes you want another shift.
+
+The picture gets slower across the three stages of Act One: it appears straight away,
+then after 1.5 seconds, then after 2.5 seconds. By the third stage the flashing colour
+is all you have, and that is when it clicks that purple means `das`.
+
+## The economy
+
+You start on 20 euros and need 250 for the semester fee.
+
+**Pay per shift** is `base + accuracy + streak + tip - damage`. Base pay is
+`10 + 3 x shift number`, so the first shift pays 13 euros. Each correct item adds 2.50.
+A damaged bag deducts.
+
+**Costs grind at you.** Food is 5 euros a day from day 2. A hostel bed is 8 euros a day
+from day 3 until you sign a lease, and signing one costs a 30 euro deposit.
+
+**Five upgrades**, and each one changes a number *and* something you can see:
+
+| Upgrade | Cost | What it does |
+| :--- | :--- | :--- |
+| E-Bike | 45 | Cuts travel time by 40 per cent |
+| Thermal bag | 50 | Halves how fast food goes off while riding |
+| Shelf labels | 25 | Stamps the tier shape on every item |
+| Pocket notepad | 20 | One free rail re-flash per shift |
+| Shift rota cards | 35 | Item pictures arrive 0.8 seconds sooner, bigger early bonus |
+
+## The four documents
+
+This is the real German paperwork chain, in the real order. You cannot skip a step.
+
+```mermaid
+flowchart TD
+    S["Arrive: 28 day visa"] --> M["Matriculation<br/>Rita Schneider, University<br/>needs 250 euros"]
+    M --> L["Lease<br/>Hans Lokker, the flat<br/>needs a 30 euro deposit"]
+    L --> A["Address registration<br/>Herr Vogel, Bürgeramt<br/>needs the signed lease"]
+    A --> B["Blocked account<br/>Frau Weber, Sparkasse<br/>needs the registration"]
+    B --> V["Residence permit<br/>Dr. Lindemann<br/>needs all of the above, before day 28"]
 ```
 
----
+The trap is the address registration. You cannot register without your landlord's
+signature, and you cannot get a bank account, insurance, enrolment or legal work
+without being registered. That is a real catch, not a game invention.
 
-## 6. TECHNICAL & AIRGAP CONSTRAINTS (MHCP Hard Rules)
+## Win, lose, reset
 
-- **Zero External Requests**: 100% offline airgap. No CDNs, no remote fonts, no remote audio.
-- **Single-File Deliverable**: Builds via `node build/assemble.js` to a self-contained root `index.html`.
-- **Bundle Size**: ≤ 35 MB budget. Actual size: see [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
-- **Audio Engine**: 100% runtime synthesis. No recorded audio ships — every sound is built from Web Audio oscillators: SFX plus pitched per-character talk-blips (`src/audio/speech.js`).
-- **Rendering**: Three.js r128 (vendored), Sobel edge outlines, baked shadows, 60 FPS mobile performance.
+**Win:** hand the complete set of documents over before day 28.
 
-```
-═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
- "A good one-page design document is a map of the entire game that anyone can read at a glance." — Stone Librande
-═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-```
+**Lose:** three strikes, or the visa expires.
+
+**Reset:** start again from the title screen. A session always resolves one way or the
+other.
+
+## The screen
+
+Portrait, 390 by 844, fixed. Everything you tap is in the lower part of the screen so
+it works with one thumb.
+
+The top strip carries the day count, your money, the tuition bar and the document
+tracker. The middle is the 3D view. The bottom is whatever you are doing right now:
+the packing list, a dialogue card, the receipt, or the shop.
+
+## How it is built
+
+One HTML file, 3.45 MB zipped, against a 35 MB limit. No network requests at all.
+Three.js is kept in a local `vendor` folder.
+
+One music track ships inside the file. Every sound effect is generated while the game
+runs. Nobody speaks, so the game plays fine with the sound off.
+
+## Pacing
+
+The first thing you can interact with arrives at **10 seconds**. No menu wall, no
+cutscene you cannot skip.
+
+The shelf joke lands properly at about 167 seconds, which is later than the
+competition's 90 second guideline suggests. That is deliberate. This is a slow burn
+story game, closer to a walking simulator than an arcade game, and the arrival in
+Lübeck is what gives the shifts their meaning. See
+[THE_MAKING_OF.md](THE_MAKING_OF.md) section 10 for the full reasoning.

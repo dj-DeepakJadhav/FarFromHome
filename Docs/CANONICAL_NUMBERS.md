@@ -1,10 +1,9 @@
 # Canonical Numbers
 
-> **This file is the single source of truth for every number quoted in any document.**
-> No other doc may hard-code a build size, tunable, or word count. Link here instead.
+> **This file is the single source of truth for every number quoted in any document.**> No other doc may hard-code a build size, tunable, or word count. Link here instead.
 >
 > Every value below is read from code or measured from the build. If a number here
-> disagrees with the code, **the code wins** — fix this file, not the code.
+> disagrees with the code, **the code wins**, fix this file, not the code.
 
 Last verified: 2026-09-06
 
@@ -14,17 +13,27 @@ Last verified: 2026-09-06
 
 | Fact | Value | Source of truth |
 | :--- | :--- | :--- |
-| Release `index.html` (uncompressed) | **11.78 MB** | `node build/check-size.js` |
+| **Submission zip** | **3.45 MB** | `node build/package.js` |
+| Release `index.html` (uncompressed) | **11.80 MB** | `node build/check-size.js` |
+| Uncompressed package incl. `vendor/` | 12.79 MB | `node build/check-size.js` |
 | Competition hard limit | 35 MB | MHCP rules |
-| Headroom | ~63 % unused | — |
+| Headroom (zipped) | ~90 % unused | |
+| Vendored libraries in `vendor/` | 11 | `node build/package.js` |
 | Viewport | 390 × 844 fixed portrait | `index.dev.html` |
 | Three.js | r128, vendored | `vendor/three.min.js` |
-| Runtime network requests | **0** (document only) | DevTools Network tab |
+| Runtime network requests | **0** | verified against the *extracted zip*, served over HTTP: only `localhost` and `blob:` entries |
+| Recorded audio assets shipped | **1** (`assets/Music/bgMusic.mp3`, 939 KB, inlined as a `data:` URI) | `build/assemble.js` |
 
 **Never quote a build size from memory.** Run:
 
 ```bash
 node build/check-size.js
+```
+
+For the figure that actually matters to the competition, the zipped submission, run the packager, which also verifies the zip it produced:
+
+```bash
+node build/package.js
 ```
 
 ### Minification status (be precise when claiming this)
@@ -37,21 +46,22 @@ State it that way. Do not claim the whole file is unminified.
 
 ## 2. Economy (`src/core/economy.js`)
 
-| Constant | Value |
-| :--- | :--- |
-| `STARTING_WALLET` | €20 |
-| `TUITION_GOAL` | €250 |
-| `KAUTION_DEPOSIT` | €30 |
+| Constant | Value | Notes |
+| :--- | :--- | :--- |
+| `STARTING_WALLET` | €20 | |
+| `TUITION_GOAL` | €250 | |
+| `KAUTION_DEPOSIT` | €30 | |
 | `HOSTEL_DAILY_RENT` | €8 | charged from day 3 while no lease |
 | `DAILY_FOOD_COST` | €5 | charged every day from day 2 |
-| `VISA_DAYS` | 28 |
-| `MAX_STRIKES` | 3 |
-| `ACCURACY_BONUS_PER_ITEM` | €2.50 |
-| `EARLY_PICK_MULTIPLIER` | 2.0× |
-| `STREAK_STEP` | 0.14 |
-| `STREAK_MAX` | 2.5× |
-| `MISPICK_INTEGRITY_COST` | 8 |
-| `POTHOLE_INTEGRITY_COST` | 15 |
+| `VISA_DAYS` | 28 | |
+| `MAX_STRIKES` | 3 | |
+| `baseWage` | **€10 + €3 × shift number** | `src/data/shifts.js:73`, so shift 1 = €13.00, shift 2 = €16.00, shift 3 = €19.00. **Every published figure is derived from shift 1.** |
+| `ACCURACY_BONUS_PER_ITEM` | €2.50 | |
+| `EARLY_PICK_MULTIPLIER` | 2.0× | |
+| `STREAK_STEP` | 0.14 | |
+| `STREAK_MAX` | 2.5× | |
+| `MISPICK_INTEGRITY_COST` | 8 | |
+| `POTHOLE_INTEGRITY_COST` | 15 | |
 
 > There is **no** `FRESHNESS_DECAY_RATE` constant in `economy.js`. Earlier drafts of
 > `README_HACKATHON.md` quoted one. Do not reintroduce it without adding the constant.
@@ -78,9 +88,9 @@ State it that way. Do not claim the whole file is unminified.
 
 ## 4. Shelf Tiers (`src/phases/pickPhase.js`, `src/data/items.js`)
 
-Shelves are filed **purely by grammatical gender** — the joke being that a German
+Shelves are filed **purely by grammatical gender**, the joke being that a German
 warehouse would of course be organised by an arbitrary property of the noun. They
-are stacked **bottom → top**, not left → right. The player never needs to know
+are stacked **bottom to top**, not left to right. The player never needs to know
 German: items are labelled English-first and the tiers are read by colour and symbol.
 
 | Row | Position | Article | Colour | Hex | Symbol |
@@ -106,16 +116,18 @@ and is unrelated to shelf placement.
 ## 5. Pacing Ramp (visual rail pulse)
 
 The gender rail **pulses** before the item icon resolves. Tapping the correct tier
-during that window earns the 2.0× Early Pick bonus. The cue is **visual** — there
-is no recorded audio anywhere in the build.
+during that window earns the 2.0× Early Pick bonus. The cue is **visual**, there
+is exactly one recorded audio asset in the build: `assets/Music/bgMusic.mp3`
+(939 KB), inlined as a `data:audio/mpeg` URI by `build/assemble.js`. Every other
+sound is synthesised at runtime from oscillators.
 
-| Shift | Icon delay |
-| :--- | :--- |
-| 1 | 0.0 s |
-| 2 | 1.5 s |
-| 3+ | 2.5 s |
+| Shift | Icon delay | | :--- | :--- | | 1 | 0.0 s | | 2 | 1.5 s | | 3+ | 2.5 s |
 
-Judges must reach Shift 3 within **90 seconds**.
+`pacing.budget_s` in `story.json` is **90 s** and the measured Aha is **167 s**. The gap
+is deliberate, this is a slow-burn narrative sim, and the budget is kept as a measuring
+instrument rather than a target. The figure this build is accountable to is **time to
+first action: 10 s** (`act_one`). Do not retune durations to close the gap. See
+[`THE_MAKING_OF.md`](THE_MAKING_OF.md) §10.
 
 ---
 
@@ -125,7 +137,7 @@ Judges must reach Shift 3 within **90 seconds**.
 | :--- | :--- |
 | Kenney Food models bundled | **8** (`apple`, `banana`, `bread`, `carrot`, `carton`, `cheese`, `egg`, `soda-bottle`) |
 | Colour atlas | one 512×512 PNG, inlined as a `data:` URI |
-| Files in `assets/` | ~730 (source library — **not** all shipped) |
+| Files in `assets/` | ~730 (source library, **not** all shipped) |
 | Bundled payload | `src/data/objAssets.js`, ~226 KB |
 
 The whitelist lives in `build/bundle_obj.js` (`USED_MODELS`) and must stay in sync
@@ -137,7 +149,10 @@ with `modelMap` in `src/render/geometryFactory.js`. See `assets/README.md`.
 
 | Fact | Value |
 | :--- | :--- |
-| `Docs/submission/DESIGN_INTENT_DOC.md` | 445 words (limit 500) |
+| `Docs/submission/DESIGN_INTENT_DOC.docx` | **497 words** incl. heading (limit 500), the required format is `.docx` |
+| `Docs/submission/DESIGN_INTENT_DOC.md` | 496 words in the body (source for the `.docx`) |
+| `Docs/submission/BUILD_LOG.md` | Required, not scored |
+| `build/verify.js` assertions | **109**, all passing |
 | Deadline | 8 September 2026, 1:00 PM PDT |
 
 Recount words with:

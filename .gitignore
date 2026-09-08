@@ -1,59 +1,61 @@
-# Operating System & Editor Files
+# What this file is for
+#
+# The repo should contain the game source, the assets it needs, the documents we
+# hand in, and nothing else. Everything below is either machine specific, easy to
+# regenerate, or was moved out of the project on 8 September 2026.
+#
+# Every rule here was checked with `git check-ignore -v` rather than assumed.
+
+# Operating system and editor leftovers
 .DS_Store
 Thumbs.db
 *.log
 .vscode/
 .idea/
 
-# Environment & Dependencies
+# Installed dependencies and secrets
 node_modules/
 .env
 .env.local
 
-# Executables, Binaries & Temporary Network/Deploy Artifacts
-*.exe
+# Build output
+#
+# dist/ holds the submission zip. Rebuild it any time with:
+#   node build/package.js
+dist/
 *.zip
-tunnel_url.txt
-.deploy/
+*.exe
 
-# Per-tool local state. Project skills under .claude/skills/ and .agents/ ARE
-# tracked on purpose: they encode the Code Discovery Protocol and the design
-# guardrails, and a fresh clone needs them. Only local, regenerable state is
-# ignored here.
+# Local tool state
+#
+# Project skills under .claude/skills/ ARE tracked on purpose. They hold the code
+# discovery rules and the design guardrails, and a fresh clone needs them. Only
+# throwaway local state is ignored.
 .claude/cache/
 .claude/settings.local.json
 .context/
 .gemini/
 
-# Generated audio scratch. 81 unused NPC voice takes were tracked here until
-# 2026-09-08 and contradicted the "no voice acting" submission claim. The build
-# synthesises all SFX at runtime; nothing reads these files. See TASKS.md P2.4.
-build/tmp_audio/
+# Python bytecode from tests/
+__pycache__/
+*.pyc
 
-# One-off migration scripts and debug captures. Not needed to build, play or
-# judge the game.
+# Scratch work
+#
+# One off scripts and debug captures. Not needed to build, play or judge the game.
 scratch/
 tools/
 tests/screenshot_*.png
 refactor.py
 track-costs.js
+tunnel_url.txt
 
-# Working Draft Reference Media (User Request)
+# Reference images dropped loose into Docs/
+#
+# This only matches files directly inside Docs/, not subfolders, so the real
+# screenshots in Docs/screenshots/ stay tracked. That is deliberate: they are
+# referenced by the design documents.
 Docs/*.jpg
 Docs/*.jpeg
 Docs/*.png
 Docs/*.html
-Docs/archive/*.html
-
-# Note: ONE_PAGE_DESIGN_DOCUMENT.md is deliberately NOT ignored. It is an
-# authoritative design document (see Docs/README.md) and must be versioned.
-# THE_IMMIGRANT_ODYSSEY_COMPLETE_STORY.md now lives in Docs/archive/ and is
-# tracked there for history.
-
-# graft's local graph cache — regenerable, not committed (run `graft build`).
-/graft/
-
-# Orphaned generator for the deleted voiceSprites.js language-learning
-# pronunciation feature. Points at a dead hardcoded Windows path and fed
-# build/tmp_audio/. Live audio is bgMusic.mp3 plus runtime oscillator SFX.
-build/generate_voice_sprites.py

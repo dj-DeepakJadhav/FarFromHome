@@ -1,11 +1,26 @@
 # Art Manifest
 
+> ##  FROZEN, generated from a retired source
+>
+> This file was generated on **2026-09-05** by `build/narrative_manifest.js`, which
+> reads `assets/narrative/story.ink`. That Ink source was **retired**, the shipped
+> narrative is `assets/narrative/story.json`, so the generator now exits early with
+> `CRITICAL: assets/narrative/story.ink not found` and **this file no longer
+> regenerates.**>
+> Treat every figure below as a 2026-09-05 snapshot, not as current. The live,
+> authoritative check is:
+>
+> ```bash
+> node build/check-story.js
+> ```
+>
+> To make this file trustworthy again, `narrative_manifest.js` needs repointing at
+> `story.json` (see `Docs/STORY_FORMAT.md`).
+
 > Generated from `assets/narrative/story.json` by `build/storyboard_check.js`.
 > Do not edit by hand -- change the storyboard and regenerate.
 
-Scenes: **76**
-
-## Not in the codebase yet
+Scenes: **76**## Not in the codebase yet
 
 The storyboard requires these and `src/` does not define them.
 
@@ -349,7 +364,8 @@ The storyboard requires these and `src/` does not define them.
 
 | scene | act | mode | loc | time | light | cast | props |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `act_one` | I | overlay | `B_ZOB` | 18:00 | dusk_cold |  | coach_bus timetable_board suitcase_heavy jacket_thin |
+| `act_one` | I | overlay | `B_ZOB` | 18:00 | dusk_cold |
+| coach_bus timetable_board suitcase_heavy jacket_thin |
 | `wg_door` | I | blocking | `B_WG` | 18:40 | interior_warm_lamp | NPC_NICO | kitchen_counter mug_instant_coffee radiator suitcase_heavy |
 | `nico_kitchen` | I | blocking | `B_WG` | 18:50 | interior_warm_lamp | NPC_NICO | kitchen_table window_black bin_blue bin_yellow bin_black |
 | `nico_bins_choice` | I | blocking | `B_WG` | 18:52 | interior_warm_lamp | NPC_NICO | bin_blue bin_yellow bin_black |
@@ -359,69 +375,32 @@ The storyboard requires these and `src/` does not define them.
 | `shift_2_anticipate` | I | gameplay | `B_DARKSTORE` | 19:20 | interior_fluorescent_cold | NPC_NINA | shelf_der shelf_die shelf_das crate thermal_bag |
 | `shift_3_test` | I | gameplay | `B_DARKSTORE` | 19:50 | interior_fluorescent_cold | NPC_NINA | shelf_der shelf_die shelf_das crate manifest_long |
 | `shift_receipt` | I | blocking | `B_DARKSTORE` | 09:30 | interior_fluorescent_cold | NPC_NINA | shelf_der shelf_die shelf_das crate apple cheese bread carton |
-| `rita_first` | I | overlay | `B_UNI` | 19:25 | night_lantern |  | paper_slip |
-| `night_one` | I | blocking | `LM_CANAL` | 20:10 | night_lantern_water |  | canal_water_still lantern_row phone |
-| `night_one_end` | I | overlay | `B_WG` | 21:30 | interior_dim_single |  | bed desk window radiator suitcase_unopened |
+| `rita_first` | I | overlay | `B_UNI` | 19:25 | night_lantern |
+| paper_slip |
+| `night_one` | I | blocking | `LM_CANAL` | 20:10 | night_lantern_water |
+| canal_water_still lantern_row phone |
+| `night_one_end` | I | overlay | `B_WG` | 21:30 | interior_dim_single |
+| bed desk window radiator suitcase_unopened |
 | `act_two` | II | blocking | `B_WG` | 08:10 | dawn_grey | NPC_LOKKER | clipboard stairwell |
 | `lokker_kaution` | II | blocking | `B_WG` | 08:12 | dawn_grey | NPC_LOKKER | clipboard lease_form_blank |
-| `act_two_fork` | II | overlay | `LM_MARKTPLATZ` | 08:30 | dawn_grey |  | holstentor loading_bay_lit pizzeria_shutter bicycle_upturned |
+| `act_two_fork` | II | overlay | `LM_MARKTPLATZ` | 08:30 | dawn_grey |
+| holstentor loading_bay_lit pizzeria_shutter bicycle_upturned |
 | `kaution_pay` | II | blocking | `B_WG` | 13:00 | overcast_noon | NPC_LOKKER | lease_form_signed fountain_pen bin_blue |
 | `act_two_end` | II | blocking | `B_WG` | 21:00 | interior_warm_lamp | NPC_NICO | lease_form_signed books_three_open |
-| `act_three_open` | III | overlay | `B_WG` | 07:00 | dawn_grey |  | bed calendar_marked |
-| `hub` | III | blocking | `LM_MARKTPLATZ` | 09:00 | overcast_noon |  | cobbles tram_rail notice_board |
+| `act_three_open` | III | overlay | `B_WG` | 07:00 | dawn_grey |
+| bed calendar_marked |
+| `hub` | III | blocking | `LM_MARKTPLATZ` | 09:00 | overcast_noon |
+| cobbles tram_rail notice_board |
 | `knot_paper` | III | blocking | `B_RATHAUS` | 10:00 | interior_office_strip | NPC_VOGEL | desk_counter rubber_stamp queue_rope passport lease_form_signed |
 | `the_circle` | III | blocking | `B_RATHAUS` | 10:20 | interior_office_strip | NPC_VOGEL | passport lease_form_signed |
 | `the_circle_2` | III | blocking | `B_BANK` | 10:40 | interior_bank_bright | NPC_WEBER | desk_third monitor form_meldebescheinigung |
-| `the_circle_3` | III | blocking | `LM_BANK_STEP` | 11:00 | overcast_noon |  | bank_step two_buildings_400m |
+| `the_circle_3` | III | blocking | `LM_BANK_STEP` | 11:00 | overcast_noon |
+| bank_step two_buildings_400m |
 | `mathias_loan` | II | blocking | `B_PIZZA` | 09:00 | interior_warm_oven | NPC_MATHIAS | bicycle_upturned rear_wheel flour_dusting till three_ten_notes |
 | `mathias_loan_2` | II | blocking | `B_PIZZA` | 09:10 | interior_warm_oven | NPC_MATHIAS | till three_ten_notes flour_dusting bicycle_upturned |
 | `knot_money` | III | gameplay | `B_DARKSTORE` | 06:00 | interior_fluorescent_cold | NPC_NINA | shelf_der shelf_die shelf_das manifest_long crate thermal_bag |
 | `nina_sister` | III | blocking | `B_DARKSTORE` | 14:00 | interior_fluorescent_cold | NPC_NINA | tablet_set_down |
 | `nina_sister_2` | III | blocking | `B_DARKSTORE` | 14:02 | interior_fluorescent_cold | NPC_NINA | tablet_set_down |
-| `nina_sister_3` | III | blocking | `B_DARKSTORE` | 14:05 | interior_fluorescent_cold | NPC_NINA |  |
-| `shop` | III | blocking | `B_DARKSTORE` | 15:00 | interior_fluorescent_cold | NPC_NINA NPC_KLAUS | laminated_price_sheet clockout_terminal ebike thermal_bag vocab_cards shelf_labels notepad |
-| `knot_body` | III | blocking | `B_DARKSTORE_YARD` | 16:00 | overcast_late | NPC_KLAUS | crate_upturned knee_bandage bicycle_old |
-| `klaus_revisit` | III | blocking | `B_DARKSTORE_YARD` | 16:00 | overcast_late | NPC_KLAUS | crate_upturned knee_bandage |
-| `klaus_offer` | III | blocking | `B_DARKSTORE_YARD` | 16:10 | overcast_late | NPC_KLAUS | crate_upturned route_map_harbour |
-| `klaus_offer_repeat` | III | blocking | `B_DARKSTORE_YARD` | 16:10 | overcast_late | NPC_KLAUS | crate_upturned |
-| `night_route` | III | gameplay | `LM_HARBOUR_ROAD` | 22:00 | night_unlit_road |  | bicycle_or_ebike pothole_field cargo_bag harbour_crane |
-| `knot_heart` | III | blocking | `B_WG` | 03:00 | interior_laptop_blue | NPC_NICO | kitchen_table laptop_shut hands_flat |
-| `nico_crisis` | III | blocking | `B_WG` | 03:10 | interior_laptop_blue | NPC_NICO | laptop_shut enrollment_letter |
-| `nico_money` | III | blocking | `B_WG` | 03:20 | interior_laptop_blue | NPC_NICO | notes_counted biro hand_written_date |
-| `nico_work` | III | blocking | `B_DARKSTORE` | 06:00 | interior_fluorescent_cold | NPC_NICO NPC_NINA | shelf_der shelf_die shelf_das crate |
-| `nico_no` | III | blocking | `B_WG` | 03:20 | interior_laptop_blue | NPC_NICO | laptop_open_blue_glow |
-| `knot_heart_after` | III | blocking | `B_WG` | 23:00 | interior_dim_single | NPC_NICO | blanket highlighter poster_tape_empty |
-| `martha` | III | blocking | `B_BAKERY` | 11:00 | interior_warm_oven | NPC_MARTHA | oven_1971 franzbroetchen croissant tray window_steamed |
-| `martha_2` | III | blocking | `B_BAKERY` | 11:10 | interior_warm_oven | NPC_MARTHA | oven_1971 |
-| `martha_weber` | III | blocking | `B_BAKERY` | 11:12 | interior_warm_oven | NPC_MARTHA | bread_yesterday |
-| `martha_weber_2` | III | blocking | `B_BAKERY` | 11:15 | interior_warm_oven | NPC_MARTHA | bread_yesterday paper_bag |
-| `anke` | III | blocking | `B_UNI` | 13:00 | interior_office_strip | NPC_ANKE | broom_cupboard_office four_chairs dead_plant filing_drawer |
-| `anke_cut` | III | blocking | `B_UNI` | 13:05 | interior_office_strip | NPC_ANKE | single_sheet_a4 filing_drawer |
-| `anke_2` | III | blocking | `B_UNI` | 13:10 | interior_office_strip | NPC_ANKE | single_sheet_a4 |
-| `end_of_day` | III | overlay | `B_WG` | 23:00 | interior_dim_single | NPC_LOKKER | yellow_fine_slip door_room4 bin_yellow bag_broken |
-| `night_tick` | III | overlay | `B_WG` | 06:30 | dawn_grey |  | bed calendar_marked |
-| `act_four` | IV | overlay | `B_WG` | 07:00 | dawn_clear |  | calendar_marked plastic_folder |
-| `four_bank` | IV | blocking | `B_BANK` | 09:00 | interior_bank_bright | NPC_WEBER | desk_third single_sheet_a4 monitor account_card |
-| `four_amt` | IV | blocking | `B_RATHAUS` | 11:00 | interior_office_strip | NPC_VOGEL | desk_counter rubber_stamp passport lease_form_signed account_number |
-| `four_amt_stamp` | IV | blocking | `B_RATHAUS` | 11:05 | interior_office_strip | NPC_VOGEL | rubber_stamp meldebescheinigung |
-| `four_uni` | IV | blocking | `B_UNI` | 09:00 | overcast_noon |  | fee_notice_250 |
-| `four_grind` | IV | gameplay | `B_DARKSTORE` | 06:00 | interior_fluorescent_cold | NPC_NINA NPC_NICO | shelf_der shelf_die shelf_das manifest_long ebike thermal_bag |
-| `four_shortfall` | IV | blocking | `LM_MARKTPLATZ` | 18:00 | dusk_cold |  |  |
-| `four_mathias` | IV | blocking | `B_PIZZA` | 18:30 | interior_warm_oven | NPC_MATHIAS | till notes_sixty oven |
-| `four_nico_repay` | IV | blocking | `B_WG` | 18:30 | interior_warm_lamp | NPC_NICO | envelope notes_120 |
-| `four_nina_advance` | IV | blocking | `B_DARKSTORE` | 18:30 | interior_fluorescent_cold | NPC_NINA | roster_board clock |
-| `four_uni_pay` | IV | blocking | `B_UNI` | 09:00 | bright_cold_clear | NPC_RITA | notes_250 receipt student_card_handwritten |
-| `four_evening` | IV | blocking | `B_WG` | 18:00 | interior_warm_lamp |  | plastic_folder_80c four_documents |
-| `four_klaus` | IV | blocking | `B_DARKSTORE_YARD` | 17:00 | dusk_cold | NPC_KLAUS | crate_upturned knee_bandage |
-| `four_klaus_2` | IV | blocking | `B_DARKSTORE_YARD` | 17:05 | dusk_cold | NPC_KLAUS | crate_upturned |
-| `four_klaus_3` | IV | blocking | `B_DARKSTORE_YARD` | 17:10 | dusk_cold | NPC_KLAUS | knee_bandage_rewound dispatch_desk_empty |
-| `four_last_night` | IV | blocking | `B_WG` | 20:00 | interior_warm_lamp |  | suitcase_open_finally empty_evening |
-| `four_phone` | IV | blocking | `B_WG` | 21:00 | interior_dim_single |  | phone window |
-| `four_door` | IV | blocking | `B_WG` | 22:00 | interior_warm_lamp | NPC_YUSRA | suitcase_heavy paper_slip kettle mug_instant_coffee radiator |
-| `yusra_bins` | IV | blocking | `B_WG` | 22:10 | interior_warm_lamp | NPC_YUSRA | kitchen_counter mug_instant_coffee |
-| `yusra_bins_2` | IV | blocking | `B_WG` | 22:20 | interior_warm_lamp | NPC_YUSRA | bin_blue bin_yellow bin_black |
-| `act_five` | V | blocking | `B_AUSLAENDER` | 09:40 | interior_waiting_room_flat | NPC_LINDEMANN | forty_chairs number_display_B114 plastic_folder_80c |
-| `five_read` | V | blocking | `B_AUSLAENDER` | 09:46 | interior_waiting_room_flat | NPC_LINDEMANN | four_documents date_stamps |
-| `five_verdict` | V | blocking | `B_AUSLAENDER` | 09:50 | interior_waiting_room_flat | NPC_LINDEMANN | dossier harbour_depot_log nina_reference_letter |
-| `five_stamp` | V | blocking | `B_AUSLAENDER` | 09:55 | interior_waiting_room_flat | NPC_LINDEMANN | rubber_stamp residence_permit_16b number_display_B115 |
-| `five_out` | V | blocking | `LM_MARKTPLATZ` | 10:30 | bright_cold_clear | NPC_MARTHA | plastic_folder_80c bakery_window oven_1971 |
+| `nina_sister_3` | III | blocking | `B_DARKSTORE` | 14:05 | interior_fluorescent_cold | NPC_NINA |
+|
+| `shop` | III | blocking | `B_DARKSTORE` | 15:00 | interior_fluorescent_cold | NPC_NINA NPC_KLAUS | laminated_price_sheet clockout_terminal ebike thermal_bag vocab_cards shelf_labels notepad | | `knot_body` | III | blocking | `B_DARKSTORE_YARD` | 16:00 | overcast_late | NPC_KLAUS | crate_upturned knee_bandage bicycle_old | | `klaus_revisit` | III | blocking | `B_DARKSTORE_YARD` | 16:00 | overcast_late | NPC_KLAUS | crate_upturned knee_bandage | | `klaus_offer` | III | blocking | `B_DARKSTORE_YARD` | 16:10 | overcast_late | NPC_KLAUS | crate_upturned route_map_harbour | | `klaus_offer_repeat` | III | blocking | `B_DARKSTORE_YARD` | 16:10 | overcast_late | NPC_KLAUS | crate_upturned | | `night_route` | III | gameplay | `LM_HARBOUR_ROAD` | 22:00 | night_unlit_road | | bicycle_or_ebike pothole_field cargo_bag harbour_crane | | `knot_heart` | III | blocking | `B_WG` | 03:00 | interior_laptop_blue | NPC_NICO | kitchen_table laptop_shut hands_flat | | `nico_crisis` | III | blocking | `B_WG` | 03:10 | interior_laptop_blue | NPC_NICO | laptop_shut enrollment_letter | | `nico_money` | III | blocking | `B_WG` | 03:20 | interior_laptop_blue | NPC_NICO | notes_counted biro hand_written_date | | `nico_work` | III | blocking | `B_DARKSTORE` | 06:00 | interior_fluorescent_cold | NPC_NICO NPC_NINA | shelf_der shelf_die shelf_das crate | | `nico_no` | III | blocking | `B_WG` | 03:20 | interior_laptop_blue | NPC_NICO | laptop_open_blue_glow | | `knot_heart_after` | III | blocking | `B_WG` | 23:00 | interior_dim_single | NPC_NICO | blanket highlighter poster_tape_empty | | `martha` | III | blocking | `B_BAKERY` | 11:00 | interior_warm_oven | NPC_MARTHA | oven_1971 franzbroetchen croissant tray window_steamed | | `martha_2` | III | blocking | `B_BAKERY` | 11:10 | interior_warm_oven | NPC_MARTHA | oven_1971 | | `martha_weber` | III | blocking | `B_BAKERY` | 11:12 | interior_warm_oven | NPC_MARTHA | bread_yesterday | | `martha_weber_2` | III | blocking | `B_BAKERY` | 11:15 | interior_warm_oven | NPC_MARTHA | bread_yesterday paper_bag | | `anke` | III | blocking | `B_UNI` | 13:00 | interior_office_strip | NPC_ANKE | broom_cupboard_office four_chairs dead_plant filing_drawer | | `anke_cut` | III | blocking | `B_UNI` | 13:05 | interior_office_strip | NPC_ANKE | single_sheet_a4 filing_drawer | | `anke_2` | III | blocking | `B_UNI` | 13:10 | interior_office_strip | NPC_ANKE | single_sheet_a4 | | `end_of_day` | III | overlay | `B_WG` | 23:00 | interior_dim_single | NPC_LOKKER | yellow_fine_slip door_room4 bin_yellow bag_broken | | `night_tick` | III | overlay | `B_WG` | 06:30 | dawn_grey | | bed calendar_marked | | `act_four` | IV | overlay | `B_WG` | 07:00 | dawn_clear | | calendar_marked plastic_folder | | `four_bank` | IV | blocking | `B_BANK` | 09:00 | interior_bank_bright | NPC_WEBER | desk_third single_sheet_a4 monitor account_card | | `four_amt` | IV | blocking | `B_RATHAUS` | 11:00 | interior_office_strip | NPC_VOGEL | desk_counter rubber_stamp passport lease_form_signed account_number | | `four_amt_stamp` | IV | blocking | `B_RATHAUS` | 11:05 | interior_office_strip | NPC_VOGEL | rubber_stamp meldebescheinigung | | `four_uni` | IV | blocking | `B_UNI` | 09:00 | overcast_noon | | fee_notice_250 | | `four_grind` | IV | gameplay | `B_DARKSTORE` | 06:00 | interior_fluorescent_cold | NPC_NINA NPC_NICO | shelf_der shelf_die shelf_das manifest_long ebike thermal_bag | | `four_shortfall` | IV | blocking | `LM_MARKTPLATZ` | 18:00 | dusk_cold | |  | | `four_mathias` | IV | blocking | `B_PIZZA` | 18:30 | interior_warm_oven | NPC_MATHIAS | till notes_sixty oven | | `four_nico_repay` | IV | blocking | `B_WG` | 18:30 | interior_warm_lamp | NPC_NICO | envelope notes_120 | | `four_nina_advance` | IV | blocking | `B_DARKSTORE` | 18:30 | interior_fluorescent_cold | NPC_NINA | roster_board clock | | `four_uni_pay` | IV | blocking | `B_UNI` | 09:00 | bright_cold_clear | NPC_RITA | notes_250 receipt student_card_handwritten | | `four_evening` | IV | blocking | `B_WG` | 18:00 | interior_warm_lamp | | plastic_folder_80c four_documents | | `four_klaus` | IV | blocking | `B_DARKSTORE_YARD` | 17:00 | dusk_cold | NPC_KLAUS | crate_upturned knee_bandage | | `four_klaus_2` | IV | blocking | `B_DARKSTORE_YARD` | 17:05 | dusk_cold | NPC_KLAUS | crate_upturned | | `four_klaus_3` | IV | blocking | `B_DARKSTORE_YARD` | 17:10 | dusk_cold | NPC_KLAUS | knee_bandage_rewound dispatch_desk_empty | | `four_last_night` | IV | blocking | `B_WG` | 20:00 | interior_warm_lamp | | suitcase_open_finally empty_evening | | `four_phone` | IV | blocking | `B_WG` | 21:00 | interior_dim_single | | phone window | | `four_door` | IV | blocking | `B_WG` | 22:00 | interior_warm_lamp | NPC_YUSRA | suitcase_heavy paper_slip kettle mug_instant_coffee radiator | | `yusra_bins` | IV | blocking | `B_WG` | 22:10 | interior_warm_lamp | NPC_YUSRA | kitchen_counter mug_instant_coffee | | `yusra_bins_2` | IV | blocking | `B_WG` | 22:20 | interior_warm_lamp | NPC_YUSRA | bin_blue bin_yellow bin_black | | `act_five` | V | blocking | `B_AUSLAENDER` | 09:40 | interior_waiting_room_flat | NPC_LINDEMANN | forty_chairs number_display_B114 plastic_folder_80c | | `five_read` | V | blocking | `B_AUSLAENDER` | 09:46 | interior_waiting_room_flat | NPC_LINDEMANN | four_documents date_stamps | | `five_verdict` | V | blocking | `B_AUSLAENDER` | 09:50 | interior_waiting_room_flat | NPC_LINDEMANN | dossier harbour_depot_log nina_reference_letter | | `five_stamp` | V | blocking | `B_AUSLAENDER` | 09:55 | interior_waiting_room_flat | NPC_LINDEMANN | rubber_stamp residence_permit_16b number_display_B115 | | `five_out` | V | blocking | `LM_MARKTPLATZ` | 10:30 | bright_cold_clear | NPC_MARTHA | plastic_folder_80c bakery_window oven_1971 |
