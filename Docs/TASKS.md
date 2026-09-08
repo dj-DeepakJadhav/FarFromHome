@@ -41,7 +41,7 @@ before/after portrait capture and must preserve the 35 MB/offline limits.
 
 | Agent | Owns | Must not edit while the other agent works |
 | :--- | :--- | :--- |
-| **Agent 1 — reliability lead** | P0.1, P0.2, P0.3 and P2.1. `src/core/economy.js`, `src/core/storyRunner.js`, receipt-only `src/ui/screens/hudShifts.js`, `src/ui/screens/hudModals.js`, test/build scripts, `Docs/submission/`. | Pick feedback, upgrade presentation, HUD feel, and showcase-art files. |
+| **Agent 1 — reliability lead** | P0.1, P0.2, P0.3, P2.1 and P2.4. `src/core/economy.js`, `src/core/storyRunner.js`, receipt-only `src/ui/screens/hudShifts.js`, `src/ui/screens/hudModals.js`, test/build scripts, `Docs/submission/`. | Pick feedback, upgrade presentation, HUD feel, and showcase-art files. |
 | **Agent 2 — experience lead** | P0.4, P1.1–P1.4, P2.2 and P2.3. `src/phases/pick/**`, pick UI, upgrade-only `src/ui/screens/hudShifts.js`, `src/ui/hud.js`, scene-time presentation and targeted 3D/camera fixes. | Economy, story payout settlement, receipt-only UI, test/build scripts and submission prose. |
 
 **Coordination rule:** Agent 1 owns the receipt section of `hudShifts.js`; Agent 2
@@ -192,6 +192,53 @@ and phone/laptop smoke tests against the exact release artifact.
 
 ---
 
+### P2.4 Repository and kit hygiene — Agent 1
+
+The judge-facing kit and the repository are two different deliverables, and both
+are currently wrong. Ship only what the game needs to run plus what a judge is
+meant to read. Everything else is either untracked or deleted.
+
+**Confirmed defects (measured 2026-09-08, not suspected):**
+
+- `build/tmp_audio/` holds **81 tracked `.wav` files, 13.4 MB**, named
+  `npc_nico_tips.wav`, `npc_lokker_rules.wav` and so on. Nothing in `src/`,
+  `build/` or `tests/` references them. This directly contradicts the
+  "no recorded audio, no voice acting" correction claimed as done in the
+  Verified-done section. The *build* is clean; the *repository* is not, and a
+  judge who opens the tree sees per-character voice files. **Highest-priority
+  hygiene item.** Delete them from tracking.
+- `.deploy/`, `.claude/` and `.gemini/` are listed in `.gitignore` but were
+  committed before the rule existed, so they are still tracked (10 files,
+  including a stale 7.8 MB `.deploy/index.html`). `.gitignore` does not untrack.
+  Use `git rm --cached`.
+- The last two `.gitignore` entries (`.context/`, `.claude/cache/`) are written
+  in UTF-16 with interleaved null bytes and therefore match nothing. Rewrite the
+  file as UTF-8.
+- Dev cruft tracked at root or near it: `refactor.py`, `track-costs.js`,
+  `scratch/`, `tools/`, `tests/screenshot_*.png`. None are needed to build,
+  play or judge the game.
+
+**Rules going forward:**
+
+- The release kit contains **`index.html` + `vendor/` only**. No `Docs/`, no
+  `src/`, no `build/`, no `tests/`, no `assets/` (art is already inlined).
+- The repository keeps source, build scripts, `assets/`, and the judge-facing
+  `Docs/submission/`. Internal working notes stay only if they cost nothing;
+  anything contradicting a submission claim gets fixed or deleted, not kept.
+- No generated, temporary or per-tool directory is ever tracked. If a build step
+  writes it, it belongs in `.gitignore` before the step is committed.
+
+**Done when:** `git ls-files` contains no `tmp_audio`, no `.deploy`, no
+`.claude`, no `.gemini` and no root-level dev script; `.gitignore` is valid UTF-8
+and each entry is verified with `git check-ignore -v`; the release zip is
+byte-inspected and contains exactly `index.html` plus `vendor/`; `node
+build/verify.js`, `check-story.js`, `assemble.js` and `check-size.js` still pass
+after the deletions.
+
+**Blocks:** P2.3. Do not cut a release zip before this lands.
+
+---
+
 ## Work order and stop rules
 
 ```text
@@ -202,6 +249,7 @@ Parallel start:
 Integration sequence:
   Agent 1 P0.1 + P0.3 evidence → Agent 2 P1.2
   All P1 evidence → Agent 1 P2.1
+  Agent 1 P2.4 repo/kit hygiene → gates P2.3
   Agent 1 P2.1 truth pass → Agent 2 P2.2 → P2.3
 ```
 
@@ -682,7 +730,9 @@ correct already; they need to feel like something.*
   Day/Docs/€ HUD. Capture from the same session as the video.
 - [ ] **Generate the final release zip** and confirm it contains only
   `index.html` + `vendor/` — not `cloudflared.exe`, `node_modules/`, `*.log`,
-  or the stale `far-from-home-release.zip`.
+  or the stale `far-from-home-release.zip`. **Blocked on P2.4**, which removes
+  the tracked `build/tmp_audio/` voice files and the ignored-but-tracked
+  `.deploy/`, `.claude/` and `.gemini/` directories.
 
 ---
 
@@ -760,8 +810,11 @@ Checked against source, not claimed from memory.
       The dictionary UI was already unreachable dead code.
 - [x] **Vocab Notebook HUD button deleted (2026-09-06)** — removed from
       `src/ui/hud.js`; it was gated on an upgrade id that never existed.
-- [x] **Audio claims corrected (2026-09-06)** — the build never contained recorded
-      audio or voice acting. Every sound is synthesised at runtime from oscillators:
+- [x] **Audio claims corrected (2026-09-06)** — the shipped build contains no
+      recorded voice acting; it ships `bgMusic.mp3` plus procedural SFX.
+      **Caveat found 2026-09-08:** the *repository* still tracks 81 unused NPC
+      voice `.wav` files in `build/tmp_audio/` (13.4 MB), which reads as a
+      contradiction of this claim. See P2.4. Every sound is synthesised at runtime from oscillators:
       SFX plus pitched per-character talk-blips (`src/audio/speech.js`).
       `src/data/voiceSprites.js`, `speakKey()` and `speakGermanText()` are deleted.
       The pick-phase anticipation cue is the **visual** gender-rail pulse.
