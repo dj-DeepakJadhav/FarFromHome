@@ -593,6 +593,7 @@ Object.assign(window.FFH.UI.prototype, {
       settled: !!options.settled
     });
     const { dailyCosts, explorationIncome, income: receiptIncome, netChange: takeHome } = ledger;
+    const dailyTotalForBalance = ledger.dailyTotal || 0;
 
     const headerSub = isDayEnd
       ? `TAGESABRECHNUNG • DAY #${dayNum} • EXPENSES & EARNINGS`
@@ -647,6 +648,21 @@ Object.assign(window.FFH.UI.prototype, {
         <div style="border-top: 2px solid #222; padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; font-family: sans-serif;">
           <span>NET CHANGE</span>
           <span id="receipt-take-home" style="color: ${takeHome >= 0 ? '#2A9D8F' : '#E63946'};">${takeHome >= 0 ? '+' : ''}${takeHome.toFixed(2)}€</span>
+        </div>
+
+        <!-- The balance itself. The receipt used to show earnings, costs and
+             net change but never "how much have I actually got", so the player
+             had to do the arithmetic to find out what they were left with.
+             projectedWallet is what the sleep tunnel really leaves behind, so
+             the bottom line here is the number they wake up with. -->
+        <div style="border-top: 2px dashed #999; margin-top: 10px; padding-top: 8px;">
+          ${line('Balance now', state.wallet.toFixed(2) + '\u20AC', '#264653')}
+          ${ledger.pendingIncome > 0 ? line('  Pay still to come', '+' + ledger.pendingIncome.toFixed(2) + '\u20AC', '#2A9D8F') : ''}
+          ${dailyTotalForBalance > 0 ? line('  ' + (isDayEnd ? "Tomorrow's costs" : 'Next-day costs'), '-' + dailyTotalForBalance.toFixed(2) + '\u20AC', '#E63946') : ''}
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 900; font-family: sans-serif; margin-top: 6px;">
+          <span>${isDayEnd ? 'BALANCE AFTER SLEEP' : 'BALANCE AFTER COSTS'}</span>
+          <span style="color: ${ledger.projectedWallet >= 0 ? '#264653' : '#E63946'};">${ledger.projectedWallet.toFixed(2)}€</span>
         </div>
       </div>
 

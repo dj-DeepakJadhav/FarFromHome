@@ -1787,7 +1787,18 @@ window.FFH.buildLubeckCityWorld = function() {
   worldGroup.add(waterMesh);
 
   const platformDepth = 1.0; // 1.0 unit downward solid thickness so water interacts with ground
-  const tileGeo = new THREE.BoxGeometry(S, platformDepth, S);
+  // Land tiles used to be exactly S wide at exactly S pitch, so neighbours met
+  // on a shared edge. Two coplanar boxes meeting exactly leave sub-pixel
+  // rasterization seams, and because the 300x300 water plane sits underneath
+  // everything at y=-0.22, those seams showed through as bright blue cracks
+  // between the buildings. Most visible on a phone, where the device pixel
+  // ratio makes the gap land on a whole pixel.
+  //
+  // A 0.6% overlap closes the seam. The overlap region is 0.016 units on a
+  // 2.6 unit tile, far below a pixel at this camera scale, so the coplanar
+  // top faces do not produce visible z-fighting.
+  const TILE_SEAM_OVERLAP = 1.006;
+  const tileGeo = new THREE.BoxGeometry(S * TILE_SEAM_OVERLAP, platformDepth, S * TILE_SEAM_OVERLAP);
   const curbMat = new THREE.MeshLambertMaterial({ color: 0x7D8A9D });
   // Hanseatic weathered quayside masonry for the vertical platform sides dipping into water
   const quayMat = new THREE.MeshLambertMaterial({ color: 0x685D54 });

@@ -6468,6 +6468,11 @@ window.FFH.buildReceiptLedger = function (state, payout, options = {}) {
     dailyTotal,
     explorationIncome,
     income,
+    // Money not yet in the wallet. Kruma pay is applied by the following story
+    // scene, so it is pending here; Pfand and post-round income are already
+    // banked and must not be added again. The receipt shows this as "pay still
+    // to come" so the balance arithmetic on screen is followable.
+    pendingIncome: window.FFH.round2(pendingIncome),
     netChange: window.FFH.round2(income - dailyTotal),
     projectedWallet: window.FFH.round2(state.wallet + pendingIncome - dailyTotal)
   };
@@ -16677,7 +16682,18 @@ window.FFH.buildLubeckCityWorld = function() {
   worldGroup.add(waterMesh);
 
   const platformDepth = 1.0; // 1.0 unit downward solid thickness so water interacts with ground
-  const tileGeo = new THREE.BoxGeometry(S, platformDepth, S);
+  // Land tiles used to be exactly S wide at exactly S pitch, so neighbours met
+  // on a shared edge. Two coplanar boxes meeting exactly leave sub-pixel
+  // rasterization seams, and because the 300x300 water plane sits underneath
+  // everything at y=-0.22, those seams showed through as bright blue cracks
+  // between the buildings. Most visible on a phone, where the device pixel
+  // ratio makes the gap land on a whole pixel.
+  //
+  // A 0.6% overlap closes the seam. The overlap region is 0.016 units on a
+  // 2.6 unit tile, far below a pixel at this camera scale, so the coplanar
+  // top faces do not produce visible z-fighting.
+  const TILE_SEAM_OVERLAP = 1.006;
+  const tileGeo = new THREE.BoxGeometry(S * TILE_SEAM_OVERLAP, platformDepth, S * TILE_SEAM_OVERLAP);
   const curbMat = new THREE.MeshLambertMaterial({ color: 0x7D8A9D });
   // Hanseatic weathered quayside masonry for the vertical platform sides dipping into water
   const quayMat = new THREE.MeshLambertMaterial({ color: 0x685D54 });
@@ -22329,6 +22345,7 @@ Object.assign(window.FFH.UI.prototype, {
       settled: !!options.settled
     });
     const { dailyCosts, explorationIncome, income: receiptIncome, netChange: takeHome } = ledger;
+    const dailyTotalForBalance = ledger.dailyTotal || 0;
 
     const headerSub = isDayEnd
       ? `TAGESABRECHNUNG • DAY #${dayNum} • EXPENSES & EARNINGS`
@@ -22383,6 +22400,21 @@ Object.assign(window.FFH.UI.prototype, {
         <div style="border-top: 2px solid #222; padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; font-family: sans-serif;">
           <span>NET CHANGE</span>
           <span id="receipt-take-home" style="color: ${takeHome >= 0 ? '#2A9D8F' : '#E63946'};">${takeHome >= 0 ? '+' : ''}${takeHome.toFixed(2)}€</span>
+        </div>
+
+        <!-- The balance itself. The receipt used to show earnings, costs and
+             net change but never "how much have I actually got", so the player
+             had to do the arithmetic to find out what they were left with.
+             projectedWallet is what the sleep tunnel really leaves behind, so
+             the bottom line here is the number they wake up with. -->
+        <div style="border-top: 2px dashed #999; margin-top: 10px; padding-top: 8px;">
+          ${line('Balance now', state.wallet.toFixed(2) + '\u20AC', '#264653')}
+          ${ledger.pendingIncome > 0 ? line('  Pay still to come', '+' + ledger.pendingIncome.toFixed(2) + '\u20AC', '#2A9D8F') : ''}
+          ${dailyTotalForBalance > 0 ? line('  ' + (isDayEnd ? "Tomorrow's costs" : 'Next-day costs'), '-' + dailyTotalForBalance.toFixed(2) + '\u20AC', '#E63946') : ''}
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 900; font-family: sans-serif; margin-top: 6px;">
+          <span>${isDayEnd ? 'BALANCE AFTER SLEEP' : 'BALANCE AFTER COSTS'}</span>
+          <span style="color: ${ledger.projectedWallet >= 0 ? '#264653' : '#E63946'};">${ledger.projectedWallet.toFixed(2)}€</span>
         </div>
       </div>
 
@@ -28313,17 +28345,29 @@ class GameEngine {
 
     // Ink-outline post-processing (optional, see inkOutline.js)
     // Defaults to Clean Diorama Mode (hardware MSAA antialiased rendering matching 3D isometric mockup)
-    // Ink outline ON by default. The pass is a normal+depth Sobel edge detect
-    // (see inkOutline.js) and it is what makes the diorama read as an
-    // illustrated city rather than untextured primitives. It shipped disabled
-    // for a long time, so the whole post-processing pipeline was loading and
-    // drawing nothing. Cost is about 25% of frame time on desktop and DJ
-    // confirmed it holds up on a low-end phone. `?ink=0` disables it.
+    // Ink outline is OPT-IN via `?ink=1`, not the default.
+    //
+    // The pass itself (inkOutline.js, a normal+depth Sobel edge detect) looks
+    // very good on architecture and holds frame rate even on a low-end phone,
+    // about 25% of frame time. It is off because it also draws hard outlines
+    // around the canal water plane and around thin props such as bridge
+    // railings and quay edges, which read as stray glass panels and white
+    // slivers floating in the street.
+    //
+    // Ruled out: the occlusion fade marks every building material
+    // `transparent = true` up front, which looked like the obvious cause of
+    // bad depth in the pass. Forcing all 1378 building materials opaque with
+    // the outline on did NOT remove the artifacts, so the problem is the
+    // water plane and thin geometry, not building transparency.
+    //
+    // The real fix is to exclude the water plane and sub-voxel props from the
+    // edge pass, most simply with a layer the outline pass ignores. Not
+    // attempted under deadline. `?ink=1` turns it on for comparison shots.
     if (window.FFH.useInkOutline === undefined) {
-      let want = true;
+      let want = false;
       try {
         const q = new URLSearchParams(window.location.search).get('ink');
-        if (q === '0' || q === 'off' || q === 'false') want = false;
+        if (q === '1' || q === 'on' || q === 'true') want = true;
       } catch (e) { /* no URLSearchParams: keep the default */ }
       window.FFH.useInkOutline = want;
     }

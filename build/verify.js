@@ -361,6 +361,8 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
     const st = baseState({ day: 2, wallet: 12.00, trialPassed: true });
     const l = F.buildReceiptLedger(st, { netPayout: 37.85 }, { day: 2 });
     check('day 2 Kruma receipt counts the pending payout once', l.income === 37.85);
+    check('day 2 Kruma pay is reported as still to come', l.pendingIncome === 37.85,
+          'the receipt shows this row so the balance arithmetic is followable');
     check('day 2 Kruma projects wallet + pay - tomorrow costs',
           l.projectedWallet === F.round2(12.00 + 37.85 - 13.00),
           'projected ' + l.projectedWallet);
@@ -393,6 +395,8 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
     const st = baseState({ day: 3, wallet: F.round2(12.00 + full) });
     const l = F.buildReceiptLedger(st, { netPayout: full, isLetterRound: true }, { day: 3 });
     check('post round reports the full round', l.income === full);
+    check('post round pay is not pending, it is already banked',
+          l.pendingIncome === 0, 'pendingIncome ' + l.pendingIncome);
     check('post round pay is not banked twice',
           l.projectedWallet === F.round2(12.00 + full - 13.00),
           'projected ' + l.projectedWallet);

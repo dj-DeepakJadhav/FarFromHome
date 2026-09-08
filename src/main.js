@@ -49,17 +49,29 @@ class GameEngine {
 
     // Ink-outline post-processing (optional, see inkOutline.js)
     // Defaults to Clean Diorama Mode (hardware MSAA antialiased rendering matching 3D isometric mockup)
-    // Ink outline ON by default. The pass is a normal+depth Sobel edge detect
-    // (see inkOutline.js) and it is what makes the diorama read as an
-    // illustrated city rather than untextured primitives. It shipped disabled
-    // for a long time, so the whole post-processing pipeline was loading and
-    // drawing nothing. Cost is about 25% of frame time on desktop and DJ
-    // confirmed it holds up on a low-end phone. `?ink=0` disables it.
+    // Ink outline is OPT-IN via `?ink=1`, not the default.
+    //
+    // The pass itself (inkOutline.js, a normal+depth Sobel edge detect) looks
+    // very good on architecture and holds frame rate even on a low-end phone,
+    // about 25% of frame time. It is off because it also draws hard outlines
+    // around the canal water plane and around thin props such as bridge
+    // railings and quay edges, which read as stray glass panels and white
+    // slivers floating in the street.
+    //
+    // Ruled out: the occlusion fade marks every building material
+    // `transparent = true` up front, which looked like the obvious cause of
+    // bad depth in the pass. Forcing all 1378 building materials opaque with
+    // the outline on did NOT remove the artifacts, so the problem is the
+    // water plane and thin geometry, not building transparency.
+    //
+    // The real fix is to exclude the water plane and sub-voxel props from the
+    // edge pass, most simply with a layer the outline pass ignores. Not
+    // attempted under deadline. `?ink=1` turns it on for comparison shots.
     if (window.FFH.useInkOutline === undefined) {
-      let want = true;
+      let want = false;
       try {
         const q = new URLSearchParams(window.location.search).get('ink');
-        if (q === '0' || q === 'off' || q === 'false') want = false;
+        if (q === '1' || q === 'on' || q === 'true') want = true;
       } catch (e) { /* no URLSearchParams: keep the default */ }
       window.FFH.useInkOutline = want;
     }

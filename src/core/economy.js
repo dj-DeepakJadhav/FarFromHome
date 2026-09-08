@@ -83,6 +83,11 @@ window.FFH.buildReceiptLedger = function (state, payout, options = {}) {
     dailyTotal,
     explorationIncome,
     income,
+    // Money not yet in the wallet. Kruma pay is applied by the following story
+    // scene, so it is pending here; Pfand and post-round income are already
+    // banked and must not be added again. The receipt shows this as "pay still
+    // to come" so the balance arithmetic on screen is followable.
+    pendingIncome: window.FFH.round2(pendingIncome),
     netChange: window.FFH.round2(income - dailyTotal),
     projectedWallet: window.FFH.round2(state.wallet + pendingIncome - dailyTotal)
   };
