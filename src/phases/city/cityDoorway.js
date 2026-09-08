@@ -81,19 +81,19 @@ window.FFH.CityDoorway = class {
     const locPositions = {
       'B_ZOB':        { x:  5.2, z:  1.2 },  // Front entrance facing North (-Z)
       'B_BANK':       { x: 41.6, z:  4.0 },  // Front entrance facing South (+Z)
-      'B_UNI':        { x: 26.0, z: 16.8 },  // University Courtyard front archway facing South (+Z) towards boulevard
-      'B_BAKERY':     { x:  6.6, z: 15.6 },  // Front entrance facing East (+X)
-      'B_BURGTOR':    { x: 37.8, z: 15.6 },  // Archway gate facing East (+X)
-      'B_RATHAUS':    { x: 24.8, z: 20.8 },  // Town Hall front steps facing East (+X)
-      'B_PIZZA':      { x: 28.6, z: 22.2 },  // Pizzeria awning & front door facing South (+Z)
-      'B_WG':         { x:  6.6, z: 23.4 },  // WG Altbau front porch facing East (+X)
-      'B_AUSLAENDER': { x: 37.8, z: 23.4 },  // Civic office front door facing East (+X)
-      'B_BIKESHOP':   { x:  5.2, z: 30.0 },  // Bike shop front door facing South (+Z)
-      'B_KINO':       { x: 26.0, z: 30.0 },  // Cinema grand marquee entrance facing South (+Z)
-      'B_HOLSTEN':    { x: 16.8, z: 31.2 },  // Holstentor gate portal facing West (-X)
-      'B_MARIEN':     { x: 53.2, z: 31.2 },  // St. Mary's Cathedral portal facing West (-X)
-      'B_DOM':        { x: 26.0, z: 43.0 },  // Dom Cathedral entrance facing South (+Z)
-      'B_DARKSTORE':  { x:  6.6, z: 44.2 }   // Kruma Darkstore roll-up dispatch door facing East (+X)
+      'B_UNI':        { x: 36.4, z: 14.2 },  // University Courtyard front archway facing North (-Z) towards boulevard
+      'B_BAKERY':     { x:  6.6, z: 18.2 },  // Front entrance facing North/East towards street
+      'B_BURGTOR':    { x: 37.8, z: 18.2 },  // Archway gate facing East (+X)
+      'B_WG':         { x: 26.0, z: 22.2 },  // WG Altbau front porch facing South (+Z)
+      'B_RATHAUS':    { x: 37.8, z: 23.4 },  // Town Hall front steps facing East (+X)
+      'B_PIZZA':      { x:  5.2, z: 24.6 },  // Pizzeria awning & front door facing North (-Z)
+      'B_AUSLAENDER': { x: 36.4, z: 27.4 },  // Civic office front door facing South (+Z)
+      'B_BIKESHOP':   { x:  6.6, z: 31.2 },  // Bike shop front door facing East (+X)
+      'B_KINO':       { x: 26.0, z: 32.6 },  // Cinema grand marquee entrance facing South (+Z)
+      'B_HOLSTEN':    { x: 19.6, z: 33.8 },  // Holstentor gate portal facing East (+X)
+      'B_MARIEN':     { x: 53.2, z: 33.8 },  // St. Mary's Cathedral portal facing West (-X)
+      'B_DOM':        { x: 26.0, z: 45.6 },  // Dom Cathedral entrance facing South (+Z)
+      'B_DARKSTORE':  { x:  5.2, z: 45.4 }   // Kruma Darkstore roll-up dispatch door facing North (-Z)
     };
 
     if (locPositions[poiType]) {
@@ -120,11 +120,11 @@ window.FFH.CityDoorway = class {
   getExitPosition(poiType, fallbackPos) {
     const doorPos = this.getDoorPosition(poiType, fallbackPos);
     // Step out ~1.2m further into the sidewalk/street from the doorway
-    if (poiType === 'B_WG' || poiType === 'B_BAKERY' || poiType === 'B_DARKSTORE' || poiType === 'B_RATHAUS' || poiType === 'B_BURGTOR') {
+    if (poiType === 'B_BAKERY' || poiType === 'B_BIKESHOP' || poiType === 'B_RATHAUS' || poiType === 'B_BURGTOR' || poiType === 'B_HOLSTEN') {
       return new THREE.Vector3(doorPos.x + 1.2, 0.05, doorPos.z);
-    } else if (poiType === 'B_HOLSTEN' || poiType === 'B_MARIEN') {
+    } else if (poiType === 'B_MARIEN') {
       return new THREE.Vector3(doorPos.x - 1.2, 0.05, doorPos.z);
-    } else if (poiType === 'B_ZOB') {
+    } else if (poiType === 'B_ZOB' || poiType === 'B_UNI' || poiType === 'B_PIZZA' || poiType === 'B_DARKSTORE') {
       return new THREE.Vector3(doorPos.x, 0.05, doorPos.z - 1.2);
     }
     return new THREE.Vector3(doorPos.x, 0.05, doorPos.z + 1.2);

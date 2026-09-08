@@ -22,6 +22,17 @@ window.FFH.MUSIC = {
 window.FFH.CONFIG = {
 
   // ----------------------------------------------------------
+  //  CHARACTER MODEL SCALING (XYZ Multipliers)
+  // ----------------------------------------------------------
+  characters: {
+    // Open-world roaming citizen scale (Blocky assets: character-a .. character-r)
+    blockyScale: { x: 0.5, y: 0.5, z: 0.5 },
+
+    // Isometric room / diorama NPC scale (Mini assets: character-female-a..f, character-male-a..f)
+    miniScale: { x: 1.0, y: 1.7, z: 1.7 }
+  },
+
+  // ----------------------------------------------------------
   //  AUDIO & BACKGROUND MUSIC CONFIGURATION
   // ----------------------------------------------------------
   audio: {
@@ -85,12 +96,12 @@ window.FFH.CONFIG = {
     positionDamp: 10.0,
     focalDampRate: 8.0,
 
-    // Idle drift: 0 for stable tabletop diorama
-    idleDriftDelay:  10.0,
-    idleDriftAmplitude: 0.0,
+    // Idle roaming drone: triggers after 5.0s of inactivity, smoothly rotating around city diorama
+    idleDriftDelay:  5.0,
+    idleDroneSpeed: 0.08,
 
-    // When the camera looks through a building, it fades out.
-    occlusionOpacity: 0.05,
+    // When the camera looks through a building, it fades out to reveal the character.
+    occlusionOpacity: 0.08,
 
     // Lookahead: set to 0.0 for rock-solid centered miniature framing
     lookaheadFar: 0.0,
@@ -100,7 +111,7 @@ window.FFH.CONFIG = {
     wheelZoomSensitivity: 0.001,
 
     // Desktop pointer drag: radians of camera rotation per pixel of drag.
-    orbitSensitivity: 0.01,
+    orbitSensitivity: 0.012,
   },
 
   // ----------------------------------------------------------
@@ -176,26 +187,28 @@ window.FFH.CONFIG = {
 
     // ── Thought Bubble / Inner Monologue Popups ──────────────────────
     thoughtBubble: {
+      // Dynamic Reading Speed Settings (Comfortable Human Reading Pace)
+      // Base perception delay (ms) for eye focus & initial recognition before reading starts
+      baseBufferMs: 1500,
+
+      // Milliseconds granted per character (65ms = ~15 chars/sec / ~180 WPM reading pace)
+      msPerChar: 65,
+
+      // Minimum & maximum display duration bounds (ms)
+      minDurationMs: 2500,
+      maxDurationMs: 12000,
+
       // true  = characters appear one-by-one (typewriter effect).
       // false = full text appears instantly (default (faster to read)).
       typewriterEnabled: false,
-
-      // Characters revealed per second when typewriterEnabled = true.
-      // 31  = original "comfortable reading pace"
-      // 60  = fast typist feel
-      // 120 = nearly instant, but still animated
       typewriterCharsPerSec: 31,
-
-      // Blip sound every N characters while typing (0 = silent).
-      // Original value was every 3rd character.
       blipEveryNChars: 3,
 
-      // How long the bubble stays visible AFTER the full text has appeared (ms).
-      // Total on-screen time = typewriting time + readingTimeMs.
+      // Fallback base reading time (ms)
       readingTimeMs: 2800,
 
       // Fade-in / fade-out animation duration (ms).
-      fadeMs: 200,
+      fadeMs: 300,
     },
   },
 
@@ -238,39 +251,33 @@ window.FFH.CONFIG = {
 // ============================================================
 window.FFH.ROOM_NPC_PRESETS = {
   // B_PIZZA / PIZZERIA (Mathias Becker behind pizza service counter)
-  // Counter is at x: -0.5, y: -0.21, z: -0.6 with height 0.85
-  'PIZZERIA': { x: -0.50, y: -0.21, z: -1.05, rotY: 0.15, scale: 1 },
-  'B_PIZZA': { x: -0.50, y: -0.21, z: -1.05, rotY: 0.15, scale: 1 },
+  'PIZZERIA': { x: -0.50, y: -0.21, z: -1.25, rotY: 0.15, scale: 1.0 },
+  'B_PIZZA': { x: -0.50, y: -0.21, z: -1.25, rotY: 0.15, scale: 1.0 },
   
   // B_BAKERY / BAKERY (Martha Beck behind pastry display showcase)
-  // Showcase is at x: -0.4, y: -0.21, z: -0.6 with height 0.85
-  'BAKERY': { x: -0.40, y: -0.21, z: -1.05, rotY: 0.15, scale: 1 },
-  'B_BAKERY': { x: -0.40, y: -0.21, z: -1.05, rotY: 0.15, scale: 1 },
+  'BAKERY': { x: -0.40, y: -0.21, z: -1.25, rotY: 0.15, scale: 1.0 },
+  'B_BAKERY': { x: -0.40, y: -0.21, z: -1.25, rotY: 0.15, scale: 1.0 },
 
   // B_UNI / UNI / UNI_LOBBY (Rita Schneider behind admissions counter)
-  'UNI': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 1 },
-  'UNI_LOBBY': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 1 },
-  'B_UNI': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 1 },
+  'UNI': { x: -0.20, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 },
+  'UNI_LOBBY': { x: -0.20, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 },
+  'B_UNI': { x: -0.20, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 },
 
   // B_AUSLAENDER / AUSLAENDER (Dr. Lindemann behind immigration desk)
-  'AUSLAENDER': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
-  'B_AUSLAENDER': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
+  'AUSLAENDER': { x: -0.30, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 },
+  'B_AUSLAENDER': { x: -0.30, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 },
 
-  // B_WG / WG_ROOM / WG_KITCHEN (Nico standing on the rug in dorm room)
-  // No counter in front (stands at floor)/rug level (y: -0.21, scale: 1.8 fits room height)
-  'WG_ROOM': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
-  'WG_KITCHEN': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
-  'B_WG': { x: 0.25, y: -0.18, z: -0.15, rotY: 0.85, scale: 1.8 },
+  // B_WG / WG_ROOM / WG_KITCHEN (Nico standing beside bed facing camera)
+  'WG_ROOM': { x: 0.10, y: -0.18, z: -0.05, rotY: 0.85, scale: 1.0 },
+  'WG_KITCHEN': { x: 0.10, y: -0.18, z: -0.05, rotY: 0.85, scale: 1.0 },
+  'B_WG': { x: 0.10, y: -0.18, z: -0.05, rotY: 0.85, scale: 1.0 },
 
   // OTHERS
-  // DARKSTORE (Nina/Klaus on the staff side of the dispatch desk: desk back
-  // edge is z=-0.2, rack front is z=-1.05; y=0 puts feet on the floor since
-  // npcFactory offsets the waist-origin rig; scale 1.2 clears the 0.8 counter)
-  'DARKSTORE': { x: -0.60, y: 0.0, z: -0.55, rotY: 0.35, scale: 1.2 },
-  'B_DARKSTORE': { x: -0.60, y: 0.0, z: -0.55, rotY: 0.35, scale: 1.2 },
-  'RATHAUS': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
-  'B_RATHAUS': { x: -0.20, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
-  'BANK': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 },
-  'B_BANK': { x: -0.30, y: -0.21, z: -1.10, rotY: 0.20, scale: 2.2 }
+  'DARKSTORE': { x: -0.60, y: 0.0, z: -0.85, rotY: 0.35, scale: 1.0 },
+  'B_DARKSTORE': { x: -0.60, y: 0.0, z: -0.85, rotY: 0.35, scale: 1.0 },
+  'RATHAUS': { x: -0.20, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 },
+  'B_RATHAUS': { x: -0.20, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 },
+  'BANK': { x: -0.30, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 },
+  'B_BANK': { x: -0.30, y: -0.21, z: -1.25, rotY: 0.20, scale: 1.0 }
 };
 

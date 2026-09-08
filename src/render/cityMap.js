@@ -1526,21 +1526,21 @@ window.FFH.LUBECK_CITY_GRID = [
   // Row 4: NORTH CANAL (Water flows in at x:23 from right, flows out at x:0 to left!)
   ['W','W','BR','W','W','W','W','W','W','W','BR','W','W','W','W','W','W','W','W','W','BR','W','W','W'],
   // Row 5: Island North Apex & North Mainland Connection
-  ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','G','G','G','W','A1','G','R_C','T','G','G'],
-  // Row 6: Island North (University Registry)
-  ['A5','G','R_C','G','G','W','G','G','R_C','G','B_UNI','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
-  // Row 7: West-North Bridge (Bakery x:5) & East BurgTor Bridge (x:17)
+  ['G','T','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','R_C','R_C','R_C','G','W','A1','G','R_C','T','G','G'],
+  // Row 6: Island North (University Registry relocated to East Island at x:14)
+  ['A5','G','R_C','G','G','W','G','G','R_C','G','A1','G','R_C','G','B_UNI','R_C','G','W','G','G','R_C','G','G','G'],
+  // Row 7: West-North Bridge & East BurgTor Bridge (x:14)
   ['G','G','B_BAKERY','R_C','R_B','BR','R_C','R_B','R_C','R_C','R_C','R_C','R_C','R_B','B_BURGTOR','R_B','R_C','BR','R_B','R_C','R_C','G','T','G'],
-  // Row 8: West Mainland & Upper Island Core
-  ['G','T','R_C','G','G','W','A2','G','R_C','G','A1','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
-  // Row 9: West Mainland & Island Market Center (Rathaus & Pizza)
-  ['G','G','R_C','G','G','W','G','G','R_C','B_RATHAUS','R_C','B_PIZZA','R_C','G','G','G','G','W','G','G','R_C','T','G','G'],
-  // Row 10: West Mainland (Student WG Room) & East Civic District (Ausländerbehörde)
-  ['A1','G','B_WG','R_C','R_C','W','G','G','R_C','R_C','R_C','R_C','R_C','G','B_AUSLAENDER','G','R_C','W','G','G','R_C','G','A1','G'],
+  // Row 8: West Mainland & Upper Island Core (Student WG Room at Center Island x:10)
+  ['G','T','R_C','G','G','W','A2','G','R_C','G','B_WG','G','R_C','G','R_C','G','G','W','G','G','R_C','G','G','G'],
+  // Row 9: West Mainland & Island Market Center (Rathaus relocated to East Island x:14)
+  ['G','G','R_C','G','G','W','G','G','R_C','R_C','R_C','R_C','R_C','G','B_RATHAUS','R_C','G','W','G','G','R_C','T','G','G'],
+  // Row 10: West Mainland (Pizzeria relocated to West Mainland x:2) & East Civic District
+  ['A1','G','B_PIZZA','R_C','R_C','W','G','G','R_C','R_C','R_C','R_C','R_C','G','B_AUSLAENDER','R_C','R_C','W','G','G','R_C','G','A1','G'],
   // Row 11: West Mainland & Island Kino Avenue
-  ['G','T','R_C','G','G','W','G','G','R_C','G','A2','G','R_C','G','G','G','G','W','G','G','R_C','G','T','G'],
+  ['G','T','R_C','G','G','W','G','G','R_C','G','A2','G','R_C','G','R_C','G','G','W','G','G','R_C','G','T','G'],
   // Row 12: West Mainland (Bike Shop) & Island Kino
-  ['G','G','B_BIKESHOP','R_C','G','W','G','G','R_C','G','B_KINO','G','R_C','G','G','G','G','W','G','G','R_C','G','G','G'],
+  ['G','G','B_BIKESHOP','R_C','G','W','G','G','R_C','G','B_KINO','G','R_C','G','R_C','G','G','W','G','G','R_C','G','G','G'],
   // Row 13: West-South HolstenTor Bridge (x:5) & East Church Bridge (x:17)
   ['G','T','R_C','G','R_B','BR','R_C','B_HOLSTEN','R_B','R_C','R_C','R_C','R_C','R_B','R_B','R_B','R_C','BR','R_B','R_C','R_C','B_MARIEN','G','G'],
   // Row 14: West Mainland & Lower Island Core

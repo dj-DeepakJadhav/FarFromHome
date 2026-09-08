@@ -98,8 +98,14 @@ window.FFH.CityInput = class {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       this.initialPinchDist = Math.hypot(dx, dy);
+      this.lastTouchMidX = (e.touches[0].clientX + e.touches[1].clientX) * 0.5;
       if (this.phase.cameraController) {
         this.phase.cameraController.initialCamZoom = this.phase.cameraController.targetCamZoom;
+        if (this.phase.cameraController.manualCameraAngle === undefined) {
+          this.phase.cameraController.manualCameraAngle = this.phase.cameraController.camCurrentAngle !== undefined 
+            ? this.phase.cameraController.camCurrentAngle 
+            : (Math.PI / 4 + Math.PI);
+        }
       }
       this.isTouchDragging = false;
       this.hideTouchJoystick();
@@ -232,6 +238,18 @@ window.FFH.CityInput = class {
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
       const factor = dist / this.initialPinchDist;
+      
+      const curMidX = (e.touches[0].clientX + e.touches[1].clientX) * 0.5;
+      if (this.lastTouchMidX !== undefined && this.phase.cameraController) {
+        const midDeltaX = curMidX - this.lastTouchMidX;
+        const orbitSens = (window.FFH.CONFIG?.camera?.orbitSensitivity ?? 0.01) * 1.5;
+        if (this.phase.cameraController.manualCameraAngle === undefined) {
+          this.phase.cameraController.manualCameraAngle = this.phase.cameraController.camCurrentAngle || 0;
+        }
+        this.phase.cameraController.manualCameraAngle -= midDeltaX * orbitSens;
+      }
+      this.lastTouchMidX = curMidX;
+
       if (this.phase.cameraController) {
         this.phase.cameraController.setZoom(this.phase.cameraController.initialCamZoom * factor);
       }
@@ -246,6 +264,7 @@ window.FFH.CityInput = class {
   onTouchEnd(e) {
     if (e.touches.length < 2) {
       this.initialPinchDist = null;
+      this.lastTouchMidX = undefined;
     }
     if (this.isTouchDragging) {
       const elapsed = Date.now() - (this.touchStartTime || 0);
@@ -341,7 +360,19 @@ window.FFH.CityInput = class {
     this.lastPointerY = e.clientY;
     this.pointerDownTime = Date.now();
 
-    if (e.button === 2 || e.button === 1 || e.shiftKey) {
+    if (e.button === 2 || e.button === 1) {
+      // Right or middle click: camera orbit drag
+      this.isDraggingCamera = true;
+      this.isPointerDown = true;
+      if (this.phase.cameraController && this.phase.cameraController.manualCameraAngle === undefined) {
+        this.phase.cameraController.manualCameraAngle = this.phase.cameraController.camCurrentAngle !== undefined 
+          ? this.phase.cameraController.camCurrentAngle 
+          : (Math.PI / 4 + Math.PI);
+      }
+      return;
+    }
+
+    if (e.shiftKey) {
       if (this.phase.cameraController) {
         this.phase.cameraController.isPanningCamera = true;
         this.phase.cameraController.initialPanOffset.copy(this.phase.cameraController.cameraPanOffset);
@@ -386,10 +417,23 @@ window.FFH.CityInput = class {
       return;
     }
 
-    if (!this.isPointerDown) return;
+    // Right-click drag (or middle-click drag) orbits camera on desktop even in messenger mode
+    if (this.isDraggingCamera && this.phase.cameraController) {
+      const dx = e.clientX - this.lastPointerX;
+      if (this.phase.cameraController.manualCameraAngle === undefined) {
+        this.phase.cameraController.manualCameraAngle = this.phase.cameraController.camCurrentAngle !== undefined 
+          ? this.phase.cameraController.camCurrentAngle 
+          : (Math.PI / 4 + Math.PI);
+      }
+      const orbitSens = window.FFH.CONFIG?.camera?.orbitSensitivity ?? 0.01;
+      this.phase.cameraController.manualCameraAngle -= dx * orbitSens;
+      this.lastPointerX = e.clientX;
+      this.lastPointerY = e.clientY;
+      return;
+    }
 
     if (window.FFH.CONFIG?.touch?.messengerStyleInput) {
-      // Messenger style: drag steers character, does not orbit camera
+      // Messenger style: left-click drag steers character
       if (this.isTouchDragging) {
         this.updateDragVector(e.clientX, e.clientY);
       }
@@ -421,6 +465,7 @@ window.FFH.CityInput = class {
     }
     if (!this.isPointerDown) return;
     this.isPointerDown = false;
+    this.isDraggingCamera = false;
     
     if (window.FFH.CONFIG?.touch?.messengerStyleInput) {
       if (this.isTouchDragging) {

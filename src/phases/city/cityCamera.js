@@ -98,17 +98,18 @@ window.FFH.CityCamera = class {
 
     if (!isMiniature && this.manualCameraAngle !== undefined) {
       targetAngle = this.manualCameraAngle;
-    } else if (!isMiniature && this.idleTimer > 10.0) {
-      targetAngle += this.idleDriftAngle;
     }
 
     if (isMoving) {
       this.resetIdle();
     } else if (!isMiniature) {
       this.idleTimer += dt;
-      if (this.idleTimer > (CAM.idleDriftDelay !== undefined ? CAM.idleDriftDelay : 10.0)) {
-        this.idleDriftAngle = Math.sin((this.idleTimer - (CAM.idleDriftDelay ?? 10.0)) * 0.3)
-          * (CAM.idleDriftAmplitude !== undefined ? CAM.idleDriftAmplitude : 0.25);
+      const idleDelay = CAM.idleDriftDelay !== undefined ? CAM.idleDriftDelay : 5.0;
+      if (this.idleTimer > idleDelay) {
+        // Continuous scenic drone camera orbit around city diorama
+        const droneSpeed = CAM.idleDroneSpeed !== undefined ? CAM.idleDroneSpeed : 0.08;
+        this.idleDriftAngle += dt * droneSpeed;
+        targetAngle += this.idleDriftAngle;
       }
     }
 
@@ -254,16 +255,20 @@ window.FFH.CityCamera = class {
 
     const currentlyHitMeshes = new Set();
 
+    const targets = (this.phase.buildingMeshes && this.phase.buildingMeshes.length > 0)
+      ? this.phase.buildingMeshes
+      : this.phase.interactiveMeshes;
+
     offsets.forEach(offset => {
       const rayStart = charPos.clone().add(offset);
       this.occlusionRaycaster.set(rayStart, rayDir);
       this.occlusionRaycaster.near = 0.1;
       this.occlusionRaycaster.far = rayDist;
 
-      const hits = this.occlusionRaycaster.intersectObjects(this.phase.interactiveMeshes, true);
+      const hits = this.occlusionRaycaster.intersectObjects(targets, true);
       hits.forEach(hit => {
         let root = hit.object;
-        while (root.parent && !this.phase.interactiveMeshes.includes(root)) {
+        while (root.parent && root.parent !== this.phase.worldGroup && root.parent !== this.game.scene) {
           root = root.parent;
         }
         currentlyHitMeshes.add(root);

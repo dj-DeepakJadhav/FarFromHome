@@ -23,6 +23,9 @@ window.FFH.PickPhase = class {
   enter(params = {}) {
     const state = this.game.state;
     this.currentStoryParams = params;
+    this.briefingHold = false;
+    this.finishing = false;
+    this.promptElapsed = 0;
 
     // Every per-shift meter resets here.
     window.FFH.resetShiftState(state);
@@ -70,22 +73,8 @@ window.FFH.PickPhase = class {
     this.bagMesh.position.set(1.0, 0.1, 1.0);
     this.game.scene.add(this.bagMesh);
 
-    // Rail-leads-manifest: the gender rail pulses before the icon resolves.
-    const firstUnpacked = state.activeOrder[0];
-    if (firstUnpacked) {
-      firstUnpacked.promptStarted = true;
-      const delaySec = (this.currentStoryParams && this.currentStoryParams.iconDelay !== undefined)
-        ? this.currentStoryParams.iconDelay
-        : window.FFH.iconRevealDelay(state.currentShift, state.upgrades);
-      firstUnpacked.revealAt = Date.now() + delaySec * 1000;
-      // Dispatcher call-out blip. The *informative* cue is the rail pulse below:
-      // the gender rail flashes before the item icon resolves, which is what
-      // opens the early-pick window.
-      this.game.speech.playTalkBlip('NPC_NINA');
-      setTimeout(() => {
-        this.pulseRailForGender(firstUnpacked.gender);
-      }, 200);
-    }
+    // Start the first cue in update, after the briefing and camera settle.
+    // Otherwise the early-pick window expires while the player reads Klaus.
 
     this.game.ui.showWarehouseManifest();
     window.addEventListener('pointerdown', this.onTap);
@@ -94,15 +83,15 @@ window.FFH.PickPhase = class {
       const sceneId = this.currentStoryParams.storyScene.id;
       if (sceneId === 'shift_1_teach') {
         setTimeout(() => {
-          this.game.ui.showTutorialBanner("Nina: Bottom is der (Blue). Middle is die (Pink). Top is das (Purple). The word tells you the shelf!", '#2EC4B6', 9000);
+          this.game.ui.showTutorialBanner("Tap the groceries on your list. Blue bottom. Pink middle. Purple top.", '#2EC4B6', 9000);
         }, 300);
       } else if (sceneId === 'shift_2_anticipate') {
         setTimeout(() => {
-          this.game.ui.showTutorialBanner("Nina: 1.5s delay. Watch the rail! Tap that shelf early for 2.0x Early Bonus!", '#FF9F1C', 8000);
+          this.game.ui.showTutorialBanner("Rail first: tap any grocery on the lit shelf before the name appears for an Early Pick.", '#FF9F1C', 8000);
         }, 300);
       } else if (sceneId === 'shift_3_test') {
         setTimeout(() => {
-          this.game.ui.showTutorialBanner("Nina: Pure listening test. Full speed. Pick by audio alone!", '#E76F51', 8000);
+          this.game.ui.showTutorialBanner("Before the name: tap the lit shelf. After the name: find that grocery.", '#E76F51', 8000);
         }, 300);
       }
     } else if (state.isVipRush) {
@@ -172,7 +161,7 @@ window.FFH.PickPhase = class {
     // The shift clock is held while the briefing prose plays over the shelf.
     // It used to run during the briefing, so the player lost seconds reading
     // text they could not skip past.
-    if (this.timeRemaining > 0 && !this.briefingHold) {
+    if (this.timeRemaining > 0 && !this.briefingHold && !this.isTransitioning && !this.finishing) {
       this.timeRemaining = Math.max(0, this.timeRemaining - delta);
       
       // Decay freshness off elapsed pick time
@@ -190,18 +179,27 @@ window.FFH.PickPhase = class {
       if (currentPrompt) {
         if (!currentPrompt.promptStarted) {
           currentPrompt.promptStarted = true;
-          currentPrompt.revealAt = Date.now() + window.FFH.iconRevealDelay(state.currentShift, state.upgrades) * 1000;
+          this.promptElapsed = 0;
+          const delay = this.currentStoryParams && this.currentStoryParams.iconDelay !== undefined
+            ? this.currentStoryParams.iconDelay
+            : window.FFH.iconRevealDelay(state.currentShift, state.upgrades);
+          currentPrompt.revealDelay = delay;
+          currentPrompt.revealed = delay === 0;
           this.game.speech.playTalkBlip('NPC_NINA');
           this.pulseRailForGender(currentPrompt.gender);
           this.game.ui.showWarehouseManifest();
-        } else if (!currentPrompt.revealed && Date.now() >= currentPrompt.revealAt) {
-          currentPrompt.revealed = true;
-          this.game.ui.showWarehouseManifest();
+        } else if (!currentPrompt.revealed) {
+          this.promptElapsed += delta;
+          if (this.promptElapsed >= currentPrompt.revealDelay) {
+            currentPrompt.revealed = true;
+            this.game.ui.showWarehouseManifest();
+          }
         }
       }
 
       // Time expired: end shift with whatever was packed
       if (this.timeRemaining <= 0) {
+        this.finishing = true;
         this.exit();
         // Pre-compute last payout in case time runs out
         this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
@@ -308,6 +306,8 @@ window.FFH.PickPhase = class {
   }
 
   onTap(e) {
+    if (this.briefingHold || this.isTransitioning || this.finishing
+        || document.hidden || document.getElementById('ffh-pause-modal')) return;
     // Only handle tap if not clicking on HTML UI
     if (e.target && e.target.closest('#ui-container')) {
       return;
@@ -331,6 +331,18 @@ window.FFH.PickPhase = class {
 
     const state = this.game.state;
     const itemDef = target.userData.def;
+    const prompt = state.activeOrder.find(it => !it.packed);
+    if (prompt && prompt.promptStarted && !prompt.revealed && prompt.revealDelay > 0) {
+      // Before the item is revealed, colour is the only information available.
+      // Accept any grocery on that tier and pack the actual prompted item.
+      if (itemDef.gender === prompt.gender) {
+        const promptedMesh = this.shelvedMeshes.find(m => m.userData.id === prompt.id);
+        if (promptedMesh) this.onCorrectPick(prompt, prompt, promptedMesh, e.clientX, e.clientY);
+      } else {
+        this.onMispick(target, e.clientX, e.clientY);
+      }
+      return;
+    }
     const neededItem = state.activeOrder.find(it => it.id === target.userData.id && !it.packed);
 
     if (neededItem) {
@@ -341,10 +353,10 @@ window.FFH.PickPhase = class {
   }
 
   onCorrectPick(orderLine, itemDef, mesh, eClientX, eClientY) {
+    if (this.finishing || orderLine.packed) return;
     const state = this.game.state;
-    const now = Date.now();
 
-    const isEarly = now < orderLine.revealAt;
+    const isEarly = !!orderLine.promptStarted && !orderLine.revealed && orderLine.revealDelay > 0;
     orderLine.packed = true;
     orderLine.pickedEarly = isEarly;
     
@@ -382,7 +394,9 @@ window.FFH.PickPhase = class {
     this.game.ui.showWarehouseManifest();
 
     if (this.activePicksCount >= state.activeOrder.length) {
-      setTimeout(() => {
+      this.finishing = true;
+      this.completionTimer = setTimeout(() => {
+        this.completionTimer = null;
         this.exit();
         // Pre-compute last payout
         this.game.lastPayout = window.FFH.calculatePayout(this.game.state);
@@ -456,6 +470,9 @@ window.FFH.PickPhase = class {
   }
 
   exit() {
+    if (this.completionTimer) clearTimeout(this.completionTimer);
+    this.completionTimer = null;
+    this.finishing = true;
     window.removeEventListener('pointerdown', this.onTap);
     const cam = this.game.cameras.mainCamera;
     if (cam && cam.isOrthographicCamera) {

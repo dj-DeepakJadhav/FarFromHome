@@ -86,7 +86,15 @@ window.FFH.handleCityBuildingInteraction = function(phase, poiType) {
 
     // UNIVERSITY ADMISSIONS (B_UNI)
     if (poiType === 'B_UNI') {
+      if ((s.day || 1) > 1 || s.hasVisitedLockedUni || s.isMatriculated) {
+        if (this.game.ui && this.game.ui.spawnWandererThought) {
+          this.game.ui.spawnWandererThought("Admissions office is closed. Need 250€ tuition fee first.");
+        }
+        cancelAndExit();
+        return;
+      }
       if (sr && typeof sr.startScene === 'function') {
+        s.hasVisitedLockedUni = true;
         console.log(`CityExploration: Player entered B_UNI. Launching scene "uni_closed".`);
         sr.startScene('uni_closed');
         return;

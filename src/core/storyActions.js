@@ -62,24 +62,24 @@ window.FFH.interpolateStoryText = function(text, state) {
 
 window.FFH.STORY_LOC_POSITIONS = {
   // TILE_SCALE = 2.6; grid reference: LUBECK_CITY_GRID
-  'B_ZOB':        { x: 10.4, z:  5.2 },
+  'B_ZOB':        { x:  5.2, z:  5.2 },
   'B_BANK':       { x: 41.6, z:  5.2 },
-  'B_UNI':        { x: 20.8, z: 15.6 },
-  'B_BAKERY':     { x:  7.8, z: 18.2 },
+  'B_UNI':        { x: 36.4, z: 15.6 },
+  'B_BAKERY':     { x:  5.2, z: 18.2 },
   'B_BURGTOR':    { x: 36.4, z: 18.2 },
-  'B_RATHAUS':    { x: 23.4, z: 23.4 },
-  'B_PIZZA':      { x: 28.6, z: 23.4 },
-  'B_WG':         { x:  7.8, z: 26.0 },
+  'B_WG':         { x: 26.0, z: 20.8 },
+  'B_RATHAUS':    { x: 36.4, z: 23.4 },
+  'B_PIZZA':      { x:  5.2, z: 26.0 },
   'B_AUSLAENDER': { x: 36.4, z: 26.0 },
-  'B_BIKESHOP':   { x:  7.8, z: 31.2 },
+  'B_BIKESHOP':   { x:  5.2, z: 31.2 },
   'B_KINO':       { x: 26.0, z: 31.2 },
   'B_HOLSTEN':    { x: 18.2, z: 33.8 },
-  'B_MARIEN':     { x: 57.2, z: 33.8 },
+  'B_MARIEN':     { x: 54.6, z: 33.8 },
   'B_DOM':        { x: 26.0, z: 44.2 },
-  'B_DARKSTORE':  { x:  7.8, z: 46.8 },
-  'LM_ALTSTADT':  { x: 20.8, z: 18.2 },
-  'LM_CANAL':     { x: 20.8, z: 31.2 },
-  'LM_MARKTPLATZ':{ x: 26.0, z: 23.4 }
+  'B_DARKSTORE':  { x:  5.2, z: 46.8 },
+  'LM_ALTSTADT':  { x: 26.0, z: 18.2 },
+  'LM_CANAL':     { x: 26.0, z: 31.2 },
+  'LM_MARKTPLATZ':{ x: 31.2, z: 23.4 }
 };
 
 // Objectives and Scene Routing Table

@@ -14,7 +14,7 @@ Last verified: 2026-09-06
 
 | Fact | Value | Source of truth |
 | :--- | :--- | :--- |
-| Release `index.html` (uncompressed) | **12.91 MB** | `node build/check-size.js` |
+| Release `index.html` (uncompressed) | **11.78 MB** | `node build/check-size.js` |
 | Competition hard limit | 35 MB | MHCP rules |
 | Headroom | ~63 % unused | — |
 | Viewport | 390 × 844 fixed portrait | `index.dev.html` |

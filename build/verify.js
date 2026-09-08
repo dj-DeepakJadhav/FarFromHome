@@ -204,6 +204,48 @@ check('every shop upgrade is sold at some POI',
         'README_HACKATHON claims no audio but bgMusic.mp3 exists');
 }
 
+// ---------- gameplay regressions caught in the mobile playtest ----------
+load('src/ui/hud.js');
+load('src/ui/screens/hudShifts.js');
+check('pick feedback API exists', typeof F.UI.prototype.spawnFloatingText === 'function',
+      'Correct picks used to throw before removing the grocery.');
+check('no obsolete audio-only picking instruction',
+      !/listening test|pick by audio alone/i.test(pickSrc), 'Visual cues must be described accurately.');
+load('src/phases/pickPhase.js');
+{
+  const pick = Object.create(F.PickPhase.prototype);
+  const cam = { position: { copy() {} }, lookAt() {} };
+  const state = { currentShift: 1, upgrades: {}, freshness: 100,
+    activeOrder: [{ id: 'milch', gender: 'die', packed: false }] };
+  let pulses = 0;
+  pick.game = { state, cameras: { mainCamera: cam }, speech: { playTalkBlip() {} },
+    ui: { updatePickHUD() {}, showWarehouseManifest() {} } };
+  Object.assign(pick, { timeRemaining: 13, pickDuration: 13, isTransitioning: false,
+    finishing: false, briefingHold: true, shelvedMeshes: [], currentStoryParams: { iconDelay: 1.5 } });
+  pick.pulseRailForGender = () => pulses++;
+  pick.update(1);
+  check('briefing preserves timer and early cue', pick.timeRemaining === 13 && pulses === 0);
+  pick.briefingHold = false;
+  pick.update(0.1);
+  check('story ramp applies to first prompt', state.activeOrder[0].revealDelay === 1.5 && pulses === 1);
+  pick.update(1);
+  check('icon stays hidden within early window', !state.activeOrder[0].revealed);
+  pick.update(0.5);
+  check('icon reveals after active play delay', state.activeOrder[0].revealed);
+  state.activeOrder[0].packed = true;
+  state.activeOrder.push({ id: 'kaese', gender: 'der', packed: false });
+  pick.update(0.1);
+  check('later prompt retains story ramp', state.activeOrder[1].revealDelay === 1.5 && pulses === 2);
+  pick.finishing = true;
+  const time = pick.timeRemaining;
+  pick.update(1);
+  check('completed order cannot also time out', pick.timeRemaining === time);
+}
+check('trial pays actual performance', byId.shift_receipt.effects.some(e => e.var === 'wallet' && e.expr === 'wallet + pay'));
+check('story nights use canonical living costs', byId.night_tick.effects.some(e => e.var === 'wallet' && e.expr.includes('daily_cost')));
+const assembler = fs.readFileSync(path.join(ROOT, 'build/assemble.js'), 'utf8');
+check('vendor source is not embedded by assembler', !assembler.includes('vendorContents'));
+
 // ---------- report ----------
 console.log('');
 notes.forEach(n => console.log('  · ' + n));

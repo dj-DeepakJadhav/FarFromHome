@@ -54,6 +54,33 @@ window.FFH.dailyCostsFor = function (state, day) {
   return costs;
 };
 
+// Every end-of-day receipt uses this ledger. Kruma earnings are applied by the
+// following story scene, whereas post-round and Pfand income are already in the
+// wallet. Keeping that distinction here prevents the receipt from double-counting
+// one path or omitting the other.
+window.FFH.buildReceiptLedger = function (state, payout, options = {}) {
+  const dayNum = options.day || state.day || 1;
+  const dailyCosts = options.settled
+    ? []
+    : window.FFH.dailyCostsFor(state, dayNum + 1);
+  const dailyTotal = dailyCosts.reduce((sum, cost) => sum + cost.amount, 0);
+  const explorationIncome = payout.isExplorationDay
+    ? Math.max(0, window.FFH.round2(state.wallet - window.FFH.ECONOMY.STARTING_WALLET))
+    : 0;
+  const income = window.FFH.round2((payout.netPayout || 0) + explorationIncome);
+  const incomeAlreadyInWallet = !!(payout.isExplorationDay || payout.isLetterRound);
+  const pendingIncome = incomeAlreadyInWallet ? 0 : income;
+
+  return {
+    dailyCosts,
+    dailyTotal,
+    explorationIncome,
+    income,
+    netChange: window.FFH.round2(income - dailyTotal),
+    projectedWallet: window.FFH.round2(state.wallet + pendingIncome - dailyTotal)
+  };
+};
+
 window.FFH.calculatePayout = function(state) {
   const E = window.FFH.ECONOMY;
   const shift = window.FFH.getShift(state.currentShift);

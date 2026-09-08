@@ -62,14 +62,17 @@ window.FFH.InteriorPhase = class {
         this.npcMesh.position.set(charX, charY, charZ);
         this.npcMesh.rotation.y = charRotY;
         
-        // Prevent giant NPCs by capping multiplier for the default generic model
-        const finalScale = charScale > 1.5 && this.npcMesh.userData.glbKey === 'character-a' ? 1.0 : charScale;
-        this.npcMesh.scale.multiplyScalar(finalScale);
-        
+        // The named/mini meshes are already scaled inside createNPCMesh (miniScale).
         scene.add(this.npcMesh);
 
       }
     }
+
+    // Add bright diorama lighting for interior phase
+    this.interiorAmbientLight = new THREE.AmbientLight(0xffffff, 0.95);
+    this.interiorDirLight = new THREE.DirectionalLight(0xfffaed, 1.25);
+    this.interiorDirLight.position.set(6, 12, 8);
+    scene.add(this.interiorAmbientLight, this.interiorDirLight);
 
     // 5. Setup Camera Framing to Reusable 50/50 Template
     const template = window.FFH.DIORAMA_VIEW_TEMPLATE || {
@@ -301,6 +304,14 @@ window.FFH.InteriorPhase = class {
     if (this.npcMesh) {
       scene.remove(this.npcMesh);
       this.npcMesh = null;
+    }
+    if (this.interiorAmbientLight) {
+      scene.remove(this.interiorAmbientLight);
+      this.interiorAmbientLight = null;
+    }
+    if (this.interiorDirLight) {
+      scene.remove(this.interiorDirLight);
+      this.interiorDirLight = null;
     }
     const drawer = document.getElementById('interior-conversation-drawer');
     if (drawer) drawer.remove();

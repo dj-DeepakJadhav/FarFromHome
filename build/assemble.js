@@ -29,14 +29,12 @@ function assemble() {
     'MTLLoader.js',
     'OBJLoader.js'
   ];
-  const vendorContents = {};
   for (const vf of vendorFiles) {
     const p = path.join(root, 'vendor', vf);
     if (!fs.existsSync(p)) {
       console.error(`CRITICAL: vendor/${vf} not found!`);
       process.exit(1);
     }
-    vendorContents[vf] = fs.readFileSync(p, 'utf-8');
   }
 
     const srcFiles = [
@@ -136,16 +134,14 @@ function assemble() {
   // Strip old dev script tags and replace with inlined modules
   let outputHtml = devHtml;
   
-  // 1. Replace each vendor script tag with its inlined contents. A tag that
-  //    fails to match means the release build would silently ship without that
-  //    library, so treat a miss as fatal rather than letting it through.
+  // Competition rules require third-party libraries in vendor/, referenced
+  // relatively. Validate their tags but never inline third-party source.
   for (const vf of vendorFiles) {
     const tagPattern = new RegExp('<script src="vendor/' + vf.replace(/\./g, '\\.') + '"></script>');
     if (!tagPattern.test(outputHtml)) {
       console.error(`CRITICAL: no <script src="vendor/${vf}"> tag found in index.dev.html before the "Game Source Code" marker.`);
       process.exit(1);
     }
-    outputHtml = outputHtml.replace(tagPattern, `<script>\n${vendorContents[vf]}\n</script>`);
   }
 
   // 2. Inline assets/narrative/story.json as window.FFH.storyData for 100% offline compliance

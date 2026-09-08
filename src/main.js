@@ -268,11 +268,13 @@ class GameEngine {
     if (persistent) persistent.style.display = hidden ? 'none' : 'flex';
   }
 
-  // Begin a fresh run at Shift 1, bypassing Act I. Reached two ways, neither of
-  // Reached only by ?quickstart=1, which exists for development and for a
-  // reviewer who wants the loop immediately. There is deliberately no in-game
-  // skip: the three-day structure is the game, so every player plays it.
+  // The prologue's Skip intro action and ?quickstart=1 share one clean entry.
   startFirstShift() {
+    if (this.storyRunner) {
+      this.storyRunner.cancelProseQueue();
+      this.storyRunner.pendingStoryTarget = null;
+      this.storyRunner.history = [];
+    }
     this.state = window.FFH.createRunState();
     window.FFH.state = this.state;
     this.state.currentShift = 1;
@@ -332,7 +334,8 @@ class GameEngine {
     }
 
     // Update phase
-    if (this.currentPhase && this.currentPhase.update) {
+    if (this.currentPhase && this.currentPhase.update
+        && !document.hidden && !document.getElementById('ffh-pause-modal')) {
       this.currentPhase.update(delta);
     }
 

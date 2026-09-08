@@ -119,13 +119,16 @@ window.FFH.DialoguePhase = class {
       this.npcGroup.position.set(preset.x, preset.y, preset.z);
       this.npcGroup.rotation.y = preset.rotY;
       
-      // The generic/named meshes come back pre-scaled to 0.55 from createNPCMesh.
-      // If we are spawning the Wanderer (NPC_CHAR_A) due to missing npcKey, we do not want to 
-      // blow them up to scale 2.6 if the preset expects it. Let's cap the final scale to prevent giants.
-      const finalScale = preset.scale > 1.5 && this.npcGroup.userData.glbKey === 'character-a' ? 1.0 : preset.scale;
-      this.npcGroup.scale.multiplyScalar(finalScale);
-      
+      // The named/mini meshes are already scaled inside createNPCMesh (miniScale).
       this.game.scene.add(this.npcGroup);
+    }
+
+    // Add bright diorama lighting for interior dialogue phase
+    if (!this.interiorAmbientLight) {
+      this.interiorAmbientLight = new THREE.AmbientLight(0xffffff, 0.95);
+      this.interiorDirLight = new THREE.DirectionalLight(0xfffaed, 1.25);
+      this.interiorDirLight.position.set(6, 12, 8);
+      this.game.scene.add(this.interiorAmbientLight, this.interiorDirLight);
     }
 
     // 3. Setup Cinematic Isometric View using Reusable 50/50 Template
@@ -201,6 +204,14 @@ window.FFH.DialoguePhase = class {
     if (this.dioramaRoom) {
       this.game.scene.remove(this.dioramaRoom);
       this.dioramaRoom = null;
+    }
+    if (this.interiorAmbientLight) {
+      this.game.scene.remove(this.interiorAmbientLight);
+      this.interiorAmbientLight = null;
+    }
+    if (this.interiorDirLight) {
+      this.game.scene.remove(this.interiorDirLight);
+      this.interiorDirLight = null;
     }
 
     // Restore the city exploration world meshes visibility

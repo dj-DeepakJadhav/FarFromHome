@@ -464,21 +464,26 @@ window.FFH.CityExplorationPhase = class {
       }
     }
 
-    // Enable transparency on building meshes so they fade when blocking camera
-    this.interactiveMeshes.forEach(group => {
-      group.traverse(child => {
-        if (child.isMesh && child.material) {
-          if (Array.isArray(child.material)) {
-            child.material = child.material.map(m => m.clone());
-            child.material.forEach(m => { m.transparent = true; m.opacity = 1.0; });
-          } else {
-            child.material = child.material.clone();
-            child.material.transparent = true;
-            child.material.opacity = 1.0;
+    // Collect all building and landmark meshes for reliable occlusion fading
+    this.buildingMeshes = [];
+    if (this.worldGroup) {
+      this.worldGroup.traverse(child => {
+        if (child.isMesh && child.material && !child.userData.isOuterScenery && !child.userData.isPfand) {
+          // Check if mesh belongs to a building, landmark, or tree above ground level
+          if (child.position.y > 0.2 || (child.parent && child.parent.position.y > 0.2) || child.geometry?.boundingBox?.max?.y > 0.5) {
+            this.buildingMeshes.push(child);
+            if (Array.isArray(child.material)) {
+              child.material = child.material.map(m => m.clone());
+              child.material.forEach(m => { m.transparent = true; m.opacity = 1.0; });
+            } else {
+              child.material = child.material.clone();
+              child.material.transparent = true;
+              child.material.opacity = 1.0;
+            }
           }
         }
       });
-    });
+    }
   }
 
   setupAtmosphere() {
@@ -566,6 +571,8 @@ window.FFH.CityExplorationPhase = class {
     
     this.courier.position.copy(this.playerPos);
     this.game.scene.add(this.courier);
+
+
 
     // Nav Path: High-contrast translucent ribbon highlighter & animated pulsing chevrons
     this.navPathGroup = new THREE.Group();
@@ -655,12 +662,7 @@ window.FFH.CityExplorationPhase = class {
     const isDoubleTap = (now - this.lastTapTime < 350);
     this.lastTapTime = now;
 
-    // --- Dismiss POI card on any canvas tap ---
-    const poiCard = document.getElementById('city-poi-card');
-    if (poiCard && poiCard.style.display !== 'none') {
-      poiCard.style.display = 'none';
-      if (this.game.ui) this.game.ui.currentActivePOI = null;
-    }
+
 
     const rect = this.game.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -862,7 +864,6 @@ window.FFH.CityExplorationPhase = class {
        npc = window.FFH.createNPCMesh(npcModelKey);
        npc.position.set(-0.45, 0.05, -1.10);
        npc.rotation.y = 0.85;
-       npc.scale.multiplyScalar(2.6);
        scene.add(npc);
     }
 
@@ -1229,11 +1230,7 @@ window.FFH.CityExplorationPhase = class {
       }
       if (this.game.state.upgrades?.ebike) this.game.sfx.setMotorIntensity(0);
       
-      // Accumulate idle time for camera drift
       this.idleTimer += delta;
-      if (this.idleTimer > 8.0) {
-        this.idleDriftAngle += delta * 0.15;
-      }
     }
 
     // Auto doorway proximity check: only trigger if player walks right up to the active story door (< 1.6m) and cooldown is clear
@@ -1270,7 +1267,10 @@ window.FFH.CityExplorationPhase = class {
 
     if (!isDialogueOpen) {
       // --- Target navigation marker resolves using pendingStoryTarget OR canonical act1Stage ---
-      if (sr && sr.pendingStoryTarget) {
+      if (this.letterRound && this.letterRound.active && this.letterRound.current) {
+        const curLetter = this.letterRound.current;
+        targetMesh = this.interactiveMeshes.find(m => m.position.distanceTo(curLetter.pos) < 0.1) || { position: curLetter.pos, userData: { type: curLetter.key } };
+      } else if (sr && sr.pendingStoryTarget) {
         targetMesh = this.interactiveMeshes.find(m => m.userData.type === sr.pendingStoryTarget.poi);
       } else if (curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
         targetMesh = this.interactiveMeshes.find(m => m.userData.type === 'B_WG');
@@ -1290,7 +1290,9 @@ window.FFH.CityExplorationPhase = class {
       }
 
       // --- Update Street Doorway Beacon at Active Target Door ---
-      if (sr && sr.pendingStoryTarget) {
+      if (this.letterRound && this.letterRound.active && this.letterRound.current) {
+        activePoiKey = this.letterRound.current.key || 'LETTER_TARGET';
+      } else if (sr && sr.pendingStoryTarget) {
         activePoiKey = sr.pendingStoryTarget.poi;
       } else if (curStage === Stages.TRANSIT_TO_WG || curStage === Stages.WG_DOOR) {
         activePoiKey = 'B_WG';

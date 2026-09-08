@@ -627,7 +627,7 @@
     "light": "golden_hour",
     "weather": "cold_clear",
     "camera": "through_glass_two_shot",
-    "space": "exterior"
+    "space": "threshold"
    },
    "cast": [
     "NPC_RITA"
@@ -1630,7 +1630,7 @@
    "effects": [
     {
      "var": "wallet",
-     "expr": "wallet + 11.25"
+     "expr": "wallet + pay"
     },
     {
      "var": "hasJob",
@@ -4322,7 +4322,7 @@
     },
     {
      "var": "wallet",
-     "expr": "wallet - 8.0"
+     "expr": "wallet - daily_cost"
     },
     {
      "var": "body",

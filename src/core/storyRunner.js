@@ -55,6 +55,10 @@ window.FFH.StoryRunner = class {
     this.cancelProseQueue();
     let i = 0;
     const step = () => {
+      if (document.hidden || document.getElementById('ffh-pause-modal')) {
+        this._proseTimer = setTimeout(step, 100);
+        return;
+      }
       if (i >= lines.length) {
         this._proseTimer = null;
         window.FFH.advanceProse = null;
@@ -248,6 +252,7 @@ window.FFH.StoryRunner = class {
   }
 
   startScene(sceneId) {
+    this.cancelProseQueue();
     if (!this.scenesById) {
       this.initSceneMap();
     }
@@ -284,6 +289,9 @@ window.FFH.StoryRunner = class {
     
     if (!intercepted) {
       this.renderScene(scene);
+    }
+    if (this.game.ui && this.game.ui.updatePersistentHUD) {
+      this.game.ui.updatePersistentHUD(this.game.state);
     }
   }
 
@@ -362,6 +370,10 @@ window.FFH.StoryRunner = class {
     const mode = scene.mode || (hasCast ? 'blocking' : 'overlay');
     const s = this.game.state;
 
+    s.deposit_due = window.FFH.ECONOMY.KAUTION_DEPOSIT;
+    s.next_day_cost = window.FFH.dailyCostsFor(s, (s.day || 1) + 1)
+      .reduce((sum, cost) => sum + cost.amount, 0);
+
     // Direct stage, camera, and environmental audio
     this.applyStage(scene.stage, scene.audio);
 
@@ -391,6 +403,15 @@ window.FFH.StoryRunner = class {
     // scene declaring a mechanic (night_one_end is mode:overlay) silently
     // skipped it.
     const mech = (scene.unlocks || {}).mechanic;
+    if (mech === 'shift_receipt' && this.game.lastPayout) {
+      this.game.ui.showShiftSummaryUI({ settled: true });
+      this._resumeAfterReceipt = () => {
+        this._resumeAfterReceipt = null;
+        this.game.lastPayout = null;
+        this.handleBlockingScene(scene, validChoices);
+      };
+      return;
+    }
     if (mech === 'companion_walk' && this.startCompanionWalk(scene, validChoices)) return;
     if (mech === 'letter_round' && this.startLetterRound(scene, validChoices)) return;
     if (mech === 'day_end' && this.runDayEnd(scene, validChoices)) return;
@@ -742,17 +763,13 @@ window.FFH.StoryRunner = class {
   // Returns false when there is nothing to count, so the scene plays normally.
   runDayEnd(scene, choices) {
     const state = this.game.state;
-    // Gate on evidence that work actually happened today. `shiftEarnings` is
-    // only ever written by finishShift, which does not run on the story path,
-    // so it was always 0 here and the day summary never appeared. `lastPayout`
-    // is set by pickPhase the moment a shift completes, which is the real signal.
-    const workedToday = !!this.game.lastPayout || !!state.lastLetterRound;
-    if (!workedToday || !this.game.ui || !this.game.ui.showShiftSummaryUI) return false;
+    if (!this.game.ui || !this.game.ui.showShiftSummaryUI) return false;
     if (this._dayEndShownFor === scene.id) return false;   // do not re-show on re-entry
     this._dayEndShownFor = scene.id;
 
-    this.game.lastPayout = this.game.lastPayout || window.FFH.calculatePayout(state);
-    this.game.ui.showShiftSummaryUI();
+    this.placeScene(scene, this.spaceOf(scene));
+    const dayNum = state.day || 1;
+    this.game.ui.showShiftSummaryUI({ isDayEnd: true, day: dayNum, settled: false });
 
     // The payslip owns the screen; the room scene resumes when it is dismissed.
     this._resumeAfterReceipt = () => {
@@ -783,6 +800,7 @@ window.FFH.StoryRunner = class {
       storyScene: scene,
       iconDelay: iconDelay,
       onComplete: () => {
+        if (this.game.lastPayout) this.game.state.pay = this.game.lastPayout.netPayout;
         if (choices && choices.length) {
           this.selectChoice(choices[0]);
         } else if (scene.divert) {
@@ -826,16 +844,17 @@ window.FFH.StoryRunner = class {
       if (tunnelId) {
         const tunnelScene = this.scenesById ? this.scenesById[tunnelId] : null;
         if (tunnelScene && tunnelScene.effects && tunnelScene.effects.length) {
+          if (tunnelId === 'night_tick') {
+            const state = this.game.state;
+            state.lastDailyCosts = window.FFH.dailyCostsFor(state, (state.day || 1) + 1);
+            state.daily_cost = state.lastDailyCosts.reduce((sum, cost) => sum + cost.amount, 0);
+          }
           this.applyEffects(tunnelScene.effects);
         } else if (!tunnelScene) {
           console.warn(`StoryRunner: tunnel '${tunnelId}' has no scene; effects skipped.`);
         }
       }
       target = target.then || target.to || target.next;
-    }
-
-    if (!target && this.currentScene && this.currentScene.divert) {
-      target = this.currentScene.divert;
     }
 
     if (this.currentScene && this.currentScene.conditional_edges) {
@@ -846,6 +865,10 @@ window.FFH.StoryRunner = class {
           break;
         }
       }
+    }
+
+    if (!target && this.currentScene && this.currentScene.divert) {
+      target = this.currentScene.divert;
     }
 
     if (this.currentSceneId === 'act_one') {

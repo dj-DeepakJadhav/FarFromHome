@@ -9,6 +9,27 @@ if (!window.FFH.UI) {
 }
 
 Object.assign(window.FFH.UI.prototype, {
+  spawnFloatingText(text, clientX, clientY, color = '#2A9D8F') {
+    const parent = document.getElementById('game-container') || document.body;
+    const rect = parent.getBoundingClientRect();
+    const label = document.createElement('div');
+    label.textContent = text;
+    label.setAttribute('role', 'status');
+    label.style.cssText = `position:absolute;z-index:10001;pointer-events:none;
+      max-width:90%;padding:6px 10px;border:2px solid #14213D;border-radius:8px;
+      background:#fff;font:800 14px sans-serif;text-align:center;`;
+    label.style.color = color;
+    label.style.left = Math.max(rect.width * 0.25, Math.min(rect.width * 0.75, clientX - rect.left)) + 'px';
+    label.style.top = Math.max(24, Math.min(rect.height - 48, clientY - rect.top)) + 'px';
+    label.style.transform = 'translate(-50%, -100%)';
+    parent.appendChild(label);
+    const animation = label.animate([
+      { opacity: 1, transform: 'translate(-50%, -100%)' },
+      { opacity: 0, transform: 'translate(-50%, -180%)' }
+    ], { duration: 1000, easing: 'ease-out' });
+    animation.onfinish = () => label.remove();
+  },
+
   clear() {
     if (this.container) this.container.innerHTML = '';
   },
@@ -254,6 +275,8 @@ Object.assign(window.FFH.UI.prototype, {
       "></span>`).join('');
 
     const objective = s.activeObjective ? String(s.activeObjective) : '';
+    const storyScene = this.game.storyRunner && this.game.storyRunner.currentScene;
+    const showSkip = storyScene && storyScene.act === 'I' && !s.gender_shelf_sort;
 
     // Range to the objective is stored on the UI, not read out of the DOM.
     // updatePersistentHUD rebuilds its innerHTML on every call, so anything
@@ -312,7 +335,6 @@ Object.assign(window.FFH.UI.prototype, {
             "></div>
           </div>
         </div>
-
         <div id="ffh-objective-row" style="
           display: ${objective ? 'flex' : 'none'};
           align-items: center;
@@ -448,6 +470,8 @@ Object.assign(window.FFH.UI.prototype, {
       "></span>`).join('');
 
     const objective = s.activeObjective ? String(s.activeObjective) : '';
+    const storyScene = this.game.storyRunner && this.game.storyRunner.currentScene;
+    const showSkip = storyScene && storyScene.act === 'I' && !s.gender_shelf_sort;
 
     // Range to the objective is stored on the UI, not read out of the DOM.
     // updatePersistentHUD rebuilds its innerHTML on every call, so anything
@@ -506,7 +530,6 @@ Object.assign(window.FFH.UI.prototype, {
             "></div>
           </div>
         </div>
-
         <div id="ffh-objective-row" style="
           display: ${objective ? 'flex' : 'none'};
           align-items: center;
@@ -539,7 +562,7 @@ Object.assign(window.FFH.UI.prototype, {
     `;
   },
 
-  showTutorialBanner(text, color = '#E76F51', duration = 4000) {
+  showTutorialBanner(text, color = '#E76F51', duration = null) {
     // Used to hijack #city-quest-text when it existed, which also meant a
     // tutorial line silently overwrote the player's objective. That element is
     // gone and the objective is owned by the persistent strip, so this always
@@ -589,6 +612,12 @@ Object.assign(window.FFH.UI.prototype, {
       el.style.transform = 'translateY(0)';
     });
 
+    // Dynamic character-length reading speed for banners:
+    const charCount = (text || '').length;
+    const bannerDuration = (duration !== null && typeof duration === 'number')
+      ? duration
+      : Math.min(10000, Math.max(3000, 1500 + charCount * 65));
+
     // Fade out after duration
     setTimeout(() => {
       if (el.parentNode) {
@@ -596,42 +625,15 @@ Object.assign(window.FFH.UI.prototype, {
         el.style.transform = 'translateY(-10px)';
         setTimeout(() => el.remove(), 250);
       }
-    }, duration);
+    }, bannerDuration);
   },
 
-  spawnFloatingText(text, clientX, clientY, color = '#2A9D8F') {
-    const el = document.createElement('div');
-    el.innerText = text;
-    el.style.cssText = `
-      position: fixed;
-      left: ${clientX}px;
-      top: ${clientY}px;
-      transform: translate(-50%, -50%) scale(0.6);
-      color: ${color};
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-weight: 900;
-      font-size: 18px;
-      text-shadow: 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff, 0 4px 8px rgba(0,0,0,0.3);
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0;
-      transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    `;
-    document.body.appendChild(el);
-
-    requestAnimationFrame(() => {
-      el.style.opacity = '1';
-      el.style.transform = 'translate(-50%, -120px) scale(1.15)';
-    });
-
-    setTimeout(() => {
-      el.style.opacity = '0';
-      setTimeout(() => el.remove(), 300);
-    }, 550);
+  showDialogProgress(currentStep, totalSteps) {
+    // Intentionally un-implemented.
   },
 
   spawnWandererThought(text) {
-    this.showThoughtBubble(text, 3800);
+    this.showThoughtBubble(text);
   },
 
   showThoughtBubble(text, duration = null) {
@@ -733,9 +735,18 @@ Object.assign(window.FFH.UI.prototype, {
     const typewriterEnabled   = TB.typewriterEnabled   !== undefined ? TB.typewriterEnabled   : false;
     const charsPerSec         = TB.typewriterCharsPerSec !== undefined ? TB.typewriterCharsPerSec : 31;
     const blipEveryN          = TB.blipEveryNChars     !== undefined ? TB.blipEveryNChars     : 3;
-    const readingTimeMs       = TB.readingTimeMs       !== undefined ? TB.readingTimeMs       : 2800;
     const fadeMs              = TB.fadeMs              !== undefined ? TB.fadeMs              : 300;
     const charDelay           = Math.round(1000 / Math.max(1, charsPerSec));
+
+    // Dynamic Reading Speed calculation based on character count:
+    // Base reaction/perception delay (1.5s) + 65ms per character (~15 chars/sec / ~180 WPM), bounded between 2.5s and 12.0s
+    const baseBufferMs  = TB.baseBufferMs  !== undefined ? TB.baseBufferMs  : 1500;
+    const msPerChar     = TB.msPerChar     !== undefined ? TB.msPerChar     : 65;
+    const minDurationMs = TB.minDurationMs !== undefined ? TB.minDurationMs : 2500;
+    const maxDurationMs = TB.maxDurationMs !== undefined ? TB.maxDurationMs : 12000;
+
+    const charCount = (text || '').length;
+    const calculatedReadingMs = Math.min(maxDurationMs, Math.max(minDurationMs, baseBufferMs + (charCount * msPerChar)));
 
     // Transition uses configured fade duration
     el.style.transition = `opacity ${fadeMs}ms ease-out, transform ${fadeMs}ms ease-out`;
@@ -764,8 +775,10 @@ Object.assign(window.FFH.UI.prototype, {
       typingDuration = 0;
     }
 
-    // Total visible time: typing time + configured reading time
-    const totalDuration = duration || (typingDuration + readingTimeMs);
+    // Total visible time: use dynamic calculated reading time, or larger if explicit duration passed
+    const totalDuration = (duration && typeof duration === 'number')
+      ? Math.max(duration, typingDuration + calculatedReadingMs)
+      : (typingDuration + calculatedReadingMs);
 
     // Dismiss on tap/click
     el.style.pointerEvents = 'auto';
@@ -1199,56 +1212,9 @@ Object.assign(window.FFH.UI.prototype, {
         </div>
       </div>
 
-      <!-- Slide-over POI Card (Hidden permanently) -->
-      <div id="city-poi-card" style="
-        display: none !important;
-        box-sizing: border-box;
-        width: calc(100% - 24px);
-        background: #FFFFFF;
-        border: 2px solid #264653;
-        border-top: 3px solid #E76F51;
-        border-radius: 16px;
-        padding: 14px 16px;
-        pointer-events: auto;
-        animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-        box-shadow: 0 12px 32px rgba(0,0,0,0.35);
-        z-index: 1000;
-        margin: 0 auto 12px auto;
-        flex-direction: column;
-        gap: 8px;
-      ">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #EEE; padding-bottom: 4px;">
-          <div>
-            <div id="poi-card-title" style="font-size: 14px; font-weight: 900; color: #264653;">University of Lübeck</div>
-            <div id="poi-card-tag" style="font-size: 10px; font-weight: 800; color: #E76F51; text-transform: uppercase;">Campus Center</div>
-          </div>
-          <button id="btn-close-poi" style="background: none; border: none; font-size: 14px; cursor: pointer; color: #888; font-weight: 900;">✕</button>
-        </div>
-        <div id="poi-card-desc" style="font-size: 11.5px; line-height: 1.35; color: #555;">
-          Administrative headquarters. Finalize enrollment certificates and pay tuition.
-        </div>
-        <button id="btn-poi-action" style="
-          width: 100%;
-          padding: 10px 14px;
-          border: none;
-          border-radius: 8px;
-          background: #E76F51;
-          color: #FFFFFF;
-          font-weight: 900;
-          font-size: 13px;
-          cursor: pointer;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          box-shadow: 0 3px 0 #D65A3C;
-          transition: transform 0.05s ease, background-color 0.1s ease;
-          pointer-events: auto;
-        ">Enter Location</button>
-      </div>
     `;
 
     this.container.appendChild(explorerDiv);
-
 
     // Wire Profile / Pause Menu Badge button
     const profileBadge = document.getElementById('archetype-badge');
@@ -1271,11 +1237,6 @@ Object.assign(window.FFH.UI.prototype, {
       });
     }
 
-    // Wire close POI card
-    document.getElementById('btn-close-poi').addEventListener('click', () => {
-      document.getElementById('city-poi-card').style.display = 'none';
-    });
-
     // Wire settings menu button
     const btnSettings = document.getElementById('btn-settings-menu');
     if (btnSettings) {
@@ -1290,8 +1251,6 @@ Object.assign(window.FFH.UI.prototype, {
 
   showPOICard(poiData) {
     // Disabled (no POI location card popups ever appear)
-    const card = document.getElementById('city-poi-card');
-    if (card) card.style.display = 'none';
   },
 
   updateQuestTracker() {

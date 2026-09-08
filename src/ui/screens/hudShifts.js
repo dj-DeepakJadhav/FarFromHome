@@ -514,10 +514,47 @@ Object.assign(window.FFH.UI.prototype, {
   }
 ,
 
-  showShiftSummaryUI() {
+  showShiftSummaryUI(options = {}) {
     this.clear();
-    const payout = this.game.lastPayout;
     const state = this.game.state;
+    const isDayEnd = !!options.isDayEnd;
+    const dayNum = options.day || state.day || 1;
+
+    let payout = this.game.lastPayout;
+    const letterRound = state.lastLetterRound;
+
+    // Build synthetic payout structure if this is a general day-end or post round
+    if (!payout) {
+      if (letterRound) {
+        payout = {
+          shift: { quota: 0 },
+          grossBaseWage: letterRound.pay || 0,
+          packedCount: letterRound.delivered || 0,
+          accuracyBonus: 0,
+          streakBonus: 0,
+          streakMult: 1,
+          etiquetteTip: 0,
+          damageDeductions: 0,
+          netPayout: letterRound.pay || 0,
+          metQuota: true,
+          isLetterRound: true
+        };
+      } else {
+        payout = {
+          shift: { quota: 0 },
+          grossBaseWage: 0,
+          packedCount: 0,
+          accuracyBonus: 0,
+          streakBonus: 0,
+          streakMult: 1,
+          etiquetteTip: 0,
+          damageDeductions: 0,
+          netPayout: 0,
+          metQuota: true,
+          isExplorationDay: true
+        };
+      }
+    }
 
     const hud = document.createElement('div');
     hud.style.cssText = `
@@ -540,45 +577,75 @@ Object.assign(window.FFH.UI.prototype, {
       </div>
     `;
 
-    const quotaBanner = payout.metQuota
-      ? `<div style="background:#eef7ee; border:2px solid #2e7d32; color:#2e7d32; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">QUOTA MET (${payout.shift.quota}\u20AC)</div>`
-      : `<div style="background:#fdecea; border:2px solid #c62828; color:#c62828; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">BELOW QUOTA (${payout.shift.quota}\u20AC) \u2014 STRIKE</div>`;
-    // The day the shift rolls into. finishShift charges these once the receipt
-    // is dismissed, so showing them here is the only place the player sees why
-    // the wallet moves less than the payout line suggests.
-    const dailyCosts = window.FFH.dailyCostsFor(state, (state.day || 1) + 1);
-    const dailyTotal = dailyCosts.reduce((sum, c) => sum + c.amount, 0);
-    const takeHome = window.FFH.round2(payout.netPayout - dailyTotal);
+    let quotaBanner = '';
+    if (payout.isLetterRound) {
+      quotaBanner = `<div style="background:#eef7ee; border:2px solid #2e7d32; color:#2e7d32; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">POST ROUND COMPLETE • ${payout.packedCount} LETTERS DELIVERED</div>`;
+    } else if (payout.isExplorationDay) {
+      quotaBanner = `<div style="background:#f0f4f8; border:2px solid #4a6fa5; color:#2b4c7e; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">CITY ARRIVAL & ORIENTATION • DAY #${dayNum}</div>`;
+    } else {
+      quotaBanner = payout.metQuota
+        ? `<div style="background:#eef7ee; border:2px solid #2e7d32; color:#2e7d32; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">QUOTA MET (${(payout.shift && payout.shift.quota) || 20}\u20AC)</div>`
+        : `<div style="background:#fdecea; border:2px solid #c62828; color:#c62828; border-radius:4px; padding:6px; font-size:12px; font-weight:bold; text-align:center; margin-bottom:14px; font-family: sans-serif;">BELOW QUOTA (${(payout.shift && payout.shift.quota) || 20}\u20AC) \u2014 STRIKE</div>`;
+    }
 
+    const ledger = window.FFH.buildReceiptLedger(state, payout, {
+      day: dayNum,
+      settled: !!options.settled
+    });
+    const { dailyCosts, explorationIncome, income: receiptIncome, netChange: takeHome } = ledger;
+
+    const headerSub = isDayEnd
+      ? `TAGESABRECHNUNG • DAY #${dayNum} • EXPENSES & EARNINGS`
+      : `LOHNABRECHNUNG • SHIFT #${state.currentShift || 1} • §16b AUFENTHG`;
+
+    const title = isDayEnd ? 'END OF DAY FINANCIAL SUMMARY' : 'COURIER PAYSLIP';
+
+    let earningsSection = '';
+    if (payout.isLetterRound) {
+      earningsSection = `
+        ${line('Post Delivery Earnings', '+' + payout.grossBaseWage.toFixed(2) + '\u20AC', '#2A9D8F')}
+        ${line(`Letters Delivered (${payout.packedCount})`, 'Standard Rate', '#555')}
+      `;
+    } else if (payout.isExplorationDay) {
+      earningsSection = `
+        ${line('Courier / Post Income', '0.00\u20AC', '#777')}
+        ${line('Pfand Returns & City Finds', '+' + explorationIncome.toFixed(2) + '\u20AC', explorationIncome > 0 ? '#2A9D8F' : '#777')}
+        ${line('Activity', 'Arrival, City Walk & Registration', '#555')}
+      `;
+    } else {
+      earningsSection = `
+        ${line('Gross Base Wage', (payout.grossBaseWage || 0).toFixed(2) + '\u20AC', '#222')}
+        ${line(`Picking Accuracy (${payout.packedCount || 0} items)`, '+' + (payout.accuracyBonus || 0).toFixed(2) + '\u20AC', '#2A9D8F')}
+        ${payout.streakBonus > 0 ? line(`Cobblestone Flow (x${(payout.streakMult || 1).toFixed(2)})`, '+' + payout.streakBonus.toFixed(2) + '\u20AC', '#FF6600') : ''}
+        ${line('Doorstep Etiquette & Freshness Tip', '+' + (payout.etiquetteTip || 0).toFixed(2) + '\u20AC', '#3A86FF')}
+        ${payout.damageDeductions > 0 ? line('Transit Damage (Lesson Learned)', '-' + payout.damageDeductions.toFixed(2) + '\u20AC', '#E63946') : ''}
+      `;
+    }
 
     hud.innerHTML = `
       <div style="text-align: center; border-bottom: 2px dashed #222; padding-bottom: 12px; margin-bottom: 15px;">
         <div style="font-size: 11px; font-weight: 900; letter-spacing: 1px; color: #E76F51; text-transform: uppercase;">KRUMA LOGISTICS GMBH • LÜBECK</div>
-        <h2 style="margin: 3px 0 1px 0; font-size: 20px; font-weight: 900; color: #264653;">COURIER PAYSLIP</h2>
-        <div style="font-size: 10px; color: #777; font-family: monospace;">LOHNABRECHNUNG • SHIFT #${state.currentShift || 1} • §16b AUFENTHG</div>
+        <h2 style="margin: 3px 0 1px 0; font-size: 19px; font-weight: 900; color: #264653;">${title}</h2>
+        <div style="font-size: 10px; color: #777; font-family: monospace;">${headerSub}</div>
         <div style="font-size: 11px; font-style: italic; color: #2A9D8F; margin-top: 4px; font-weight: bold;">
-          "Every shift teaches; every victory prepares."
+          "Your time. Itemised."
         </div>
       </div>
 
       ${quotaBanner}
 
       <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 18px; font-family: monospace; font-size: 12.5px;">
-        ${line('Gross Base Wage', payout.grossBaseWage.toFixed(2) + '\u20AC', '#222')}
-        ${line(`Picking Accuracy (${payout.packedCount} items)`, '+' + payout.accuracyBonus.toFixed(2) + '\u20AC', '#2A9D8F')}
-        ${payout.streakBonus > 0 ? line(`Cobblestone Flow (x${payout.streakMult.toFixed(2)})`, '+' + payout.streakBonus.toFixed(2) + '\u20AC', '#FF6600') : ''}
-        ${line('Doorstep Etiquette & Freshness Tip', '+' + payout.etiquetteTip.toFixed(2) + '\u20AC', '#3A86FF')}
-        ${payout.damageDeductions > 0 ? line('Transit Damage (Lesson Learned)', '-' + payout.damageDeductions.toFixed(2) + '\u20AC', '#E63946') : ''}
+        ${earningsSection}
         
         <div style="border-top: 2px solid #222; padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 900; font-family: sans-serif;">
-          <span>SHIFT EARNINGS</span>
-          <span style="color: #FF006E;">+${payout.netPayout.toFixed(2)}€</span>
+          <span>${isDayEnd ? "TODAY'S EARNINGS" : "SHIFT EARNINGS"}</span>
+          <span style="color: #FF006E;">+${receiptIncome.toFixed(2)}€</span>
         </div>
 
-        ${dailyCosts.map(c => line('  ' + c.label, '-' + c.amount.toFixed(2) + '\u20AC', '#E63946')).join('')}
+        ${dailyCosts.length ? dailyCosts.map(c => line('  ' + c.label, '-' + c.amount.toFixed(2) + '\u20AC', '#E63946')).join('') : line('  Daily Living Costs', '0.00€', '#555')}
 
         <div style="border-top: 2px solid #222; padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; font-family: sans-serif;">
-          <span>TAKE HOME</span>
+          <span>NET CHANGE</span>
           <span id="receipt-take-home" style="color: ${takeHome >= 0 ? '#2A9D8F' : '#E63946'};">${takeHome >= 0 ? '+' : ''}${takeHome.toFixed(2)}€</span>
         </div>
       </div>
@@ -607,7 +674,7 @@ Object.assign(window.FFH.UI.prototype, {
         box-shadow: 0 4px 0 #264653;
         font-family: sans-serif;
         letter-spacing: 0.5px;
-      ">RETURN TO DORM & PLAN NEXT SHIFT ➔</button>
+      ">${options.settled ? 'PAY RECEIVED. CONTINUE' : (isDayEnd ? 'CONTINUE TO SLEEP' : 'RETURN TO DORM & PLAN NEXT SHIFT')}</button>
     `;
 
     this.container.appendChild(hud);
@@ -616,15 +683,19 @@ Object.assign(window.FFH.UI.prototype, {
 
     // Animate tuition bar and play SFX
     setTimeout(() => {
-      // Show where the wallet actually lands: payout minus the day's costs.
-      const newWallet = window.FFH.round2(this.game.state.wallet + takeHome);
+      if (!hud.isConnected) return;
+      // This includes only money that has not reached the wallet yet (Kruma),
+      // and subtracts the next day's costs exactly as the sleep tunnel does.
+      const newWallet = ledger.projectedWallet;
       const goal = window.FFH.ECONOMY.TUITION_GOAL;
-      document.getElementById('tuition-bar').style.width = Math.min(100, (newWallet / goal) * 100) + '%';
+      const bar = document.getElementById('tuition-bar');
+      if (bar) bar.style.width = Math.min(100, (newWallet / goal) * 100) + '%';
 
       const tText = document.getElementById('tuition-text');
       const from = this.game.state.wallet;
       const startAt = performance.now();
       const tick = (now) => {
+        if (!hud.isConnected || !tText) return;
         const t = Math.min(1, (now - startAt) / 1100);
         const eased = 1 - Math.pow(1 - t, 3);
         const val = from + (newWallet - from) * eased;
