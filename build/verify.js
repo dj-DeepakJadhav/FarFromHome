@@ -629,6 +629,29 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
         'currently ' + mapping['NPC_NICO']);
 }
 
+// ---------- 17. the HUD reacts when its values change ----------
+// updatePersistentHUD rebuilds its innerHTML on every call, so the doc boxes'
+// CSS transition could never fire: the element being animated was always a
+// brand new node with no previous state. Feedback therefore has to compare
+// against values stored on the UI object and animate after the rebuild.
+{
+  const hudSrc = fs.readFileSync(path.join(ROOT, 'src/ui/hud.js'), 'utf8');
+
+  check('the HUD compares against previously rendered values',
+        /_hudPrev/.test(hudSrc),
+        'without this a rebuild cannot tell what changed');
+  check('the HUD flashes changes after rebuilding',
+        /this\.flashHudChanges\(/.test(hudSrc) && /flashHudChanges\(s, wallet, docs\)\s*\{/.test(hudSrc));
+  check('the wallet counts toward its new value',
+        /countUp\(walletEl/.test(hudSrc),
+        'countUp existed but was never called, so the wallet snapped');
+  check('delta chips live outside the rebuilt HUD node',
+        /ffh-hud-feedback/.test(hudSrc),
+        'a chip inside #ffh-persistent-hud is wiped by the next wallet change');
+  check('the day badge and doc boxes are addressable',
+        /id="ffh-hud-day"/.test(hudSrc) && /id="ffh-doc-\$\{i\}"/.test(hudSrc));
+}
+
 // ---------- report ----------
 console.log('');
 notes.forEach(n => console.log('  · ' + n));

@@ -20060,8 +20060,8 @@ Object.assign(window.FFH.UI.prototype, {
       { on: !!(s.hasAnmeldung || s.has_anmeldung), label: 'Anmeldung' },
       { on: !!(s.isSperrkontoUnlocked || s.has_konto), label: 'Bank' }
     ];
-    const docBoxes = docs.map(d => `
-      <span title="${d.label}" style="
+    const docBoxes = docs.map((d, i) => `
+      <span id="ffh-doc-${i}" title="${d.label}" style="
         width: 13px; height: 13px; border-radius: 3px;
         border: 2px solid ${d.on ? '#2A9D8F' : '#9AA5B1'};
         background: ${d.on ? '#2A9D8F' : '#FFFFFF'};
@@ -20091,7 +20091,7 @@ Object.assign(window.FFH.UI.prototype, {
         gap: 6px;
       ">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-          <span style="font-size: 11px; font-weight: 900; color: #14213D; letter-spacing: 0.6px;">
+          <span id="ffh-hud-day" style="font-size: 11px; font-weight: 900; color: #14213D; letter-spacing: 0.6px;">
             DAY ${s.day || 1}/${days}
           </span>
           <span style="display: flex; align-items: center; gap: 8px;">
@@ -20160,6 +20160,114 @@ Object.assign(window.FFH.UI.prototype, {
       </div>
 
     `;
+
+    // Feedback for values that just changed. This must run AFTER the rebuild
+    // above: innerHTML replaces every node, so the doc boxes' CSS transition
+    // could never fire, because the element animating was always brand new
+    // with no previous state. Previous values are kept on the UI object rather
+    // than read back out of the DOM.
+    this.flashHudChanges(s, wallet, docs);
+  },
+
+  // Pulse the HUD where a number moved, and float a delta chip beside it.
+  // Chips live in their own overlay, a sibling of #ffh-persistent-hud, so the
+  // next wallet change cannot wipe them mid-animation.
+  flashHudChanges(s, wallet, docs) {
+    const docMask = docs.map(d => (d.on ? 1 : 0)).join('');
+    const prev = this._hudPrev;
+    this._hudPrev = { wallet, day: s.day || 1, docMask };
+    if (!prev) return;                      // first render: nothing to compare
+
+    const pulse = (el, color) => {
+      if (!el || !el.animate) return;
+      el.animate([
+        { transform: 'scale(1)',    filter: 'brightness(1)' },
+        { transform: 'scale(1.28)', filter: 'brightness(1.5)' },
+        { transform: 'scale(1)',    filter: 'brightness(1)' }
+      ], { duration: 520, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+      if (color) {
+        const before = el.style.color;
+        el.style.color = color;
+        setTimeout(() => { el.style.color = before; }, 520);
+      }
+    };
+
+    // Wallet: count the number toward its new value and float the delta.
+    if (Math.abs(wallet - prev.wallet) >= 0.01) {
+      const delta = window.FFH.round2(wallet - prev.wallet);
+      const up = delta > 0;
+      const walletEl = document.getElementById('ffh-hud-wallet');
+      if (walletEl) {
+        this.countUp(walletEl, prev.wallet, wallet, 850, '\u20AC');
+        pulse(walletEl, up ? '#2A9D8F' : '#E63946');
+      }
+      this.spawnHudChip((up ? '+' : '') + delta.toFixed(2) + '\u20AC',
+                        up ? '#2A9D8F' : '#E63946');
+    }
+
+    // Day rollover.
+    if ((s.day || 1) !== prev.day) {
+      pulse(document.getElementById('ffh-hud-day'), '#F6BD60');
+      this.spawnHudChip('DAY ' + (s.day || 1), '#F6BD60');
+    }
+
+    // A document box turning green is the point of the whole run, so it gets
+    // the loudest cue in the HUD.
+    if (docMask !== prev.docMask) {
+      docs.forEach((d, i) => {
+        if (d.on && prev.docMask[i] === '0') {
+          const box = document.getElementById('ffh-doc-' + i);
+          if (box && box.animate) {
+            box.animate([
+              { transform: 'scale(1)',   boxShadow: '0 0 0 0 rgba(42,157,143,0.9)' },
+              { transform: 'scale(1.9)', boxShadow: '0 0 0 9px rgba(42,157,143,0)' },
+              { transform: 'scale(1)',   boxShadow: '0 0 0 0 rgba(42,157,143,0)' }
+            ], { duration: 900, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+          }
+          this.spawnHudChip(d.label.toUpperCase() + ' SECURED', '#2A9D8F');
+          if (this.game && this.game.sfx && this.game.sfx.playSfx) {
+            this.game.sfx.playSfx('success');
+          }
+        }
+      });
+    }
+  },
+
+  // A short-lived chip that rises and fades just under the HUD card.
+  spawnHudChip(text, color) {
+    const parent = document.getElementById('game-container') || document.body;
+    let layer = document.getElementById('ffh-hud-feedback');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.id = 'ffh-hud-feedback';
+      layer.style.cssText = `
+        position: absolute; top: 84px; left: 0; right: 0;
+        z-index: 9001; pointer-events: none;
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+      `;
+      parent.appendChild(layer);
+    }
+    const chip = document.createElement('div');
+    chip.textContent = text;
+    chip.style.cssText = `
+      background: #FFFFFF; color: ${color};
+      border: 2.5px solid ${color}; border-radius: 999px;
+      padding: 3px 11px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px; font-weight: 900; letter-spacing: 0.4px;
+    `;
+    layer.appendChild(chip);
+    if (chip.animate) {
+      const anim = chip.animate([
+        { opacity: 0, transform: 'translateY(8px) scale(0.9)' },
+        { opacity: 1, transform: 'translateY(0) scale(1)', offset: 0.18 },
+        { opacity: 1, transform: 'translateY(0) scale(1)', offset: 0.7 },
+        { opacity: 0, transform: 'translateY(-14px) scale(0.96)' }
+      ], { duration: 1500, easing: 'ease-out' });
+      anim.onfinish = () => chip.remove();
+    } else {
+      setTimeout(() => chip.remove(), 1500);
+    }
   },
 
   showTutorialBanner(text, color = '#E76F51', duration = null) {
