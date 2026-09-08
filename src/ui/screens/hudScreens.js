@@ -412,8 +412,9 @@ Object.assign(window.FFH.UI.prototype, {
             // Smooth easeInOutCubic easing for ultra-smooth camera flight
             const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
-            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
+            const entryZoom = window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5;
+            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, entryZoom, easeT);
+            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, entryZoom, easeT);
             cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
             cityPhase.updateCamera(true);
 
@@ -481,8 +482,9 @@ Object.assign(window.FFH.UI.prototype, {
               const t = Math.min(1.0, elapsed / duration);
               const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
-              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
+              const entryZoom = window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5;
+              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, entryZoom, easeT);
+              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, entryZoom, easeT);
               cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
               cityPhase.updateCamera(true);
 
@@ -510,22 +512,27 @@ Object.assign(window.FFH.UI.prototype, {
     
     if (btnSound) {
       // Inline SVG rather than an emoji, so it inherits colour and stays crisp.
+      let soundEnabled = false;
       const updateBtnSoundText = () => {
-        const isMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted && window.FFH.CONFIG?.audio?.sfxMuted);
+        const isMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted || window.FFH.CONFIG?.audio?.sfxMuted);
+        const musicPlaying = !!(this.game?.sfx?.isMusicPlaying && this.game.sfx.isMusicPlaying());
+        if (isMuted) soundEnabled = false;
+        if (!isMuted && musicPlaying) soundEnabled = true;
         const speaker = '<path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor"/>';
         const waves = '<path d="M16 8.5a4 4 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
         const slash = '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
         btnSound.innerHTML =
           '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">'
-          + speaker + (isMuted ? slash : waves) + '</svg>';
-        btnSound.style.opacity = isMuted ? '0.55' : '1';
-        btnSound.setAttribute('aria-label', isMuted ? 'Sound off' : 'Sound on');
+          + speaker + (soundEnabled ? waves : slash) + '</svg>';
+        btnSound.style.opacity = soundEnabled ? '1' : '0.55';
+        btnSound.setAttribute('aria-label', soundEnabled ? 'Sound on' : 'Tap to enable sound');
+        btnSound.title = soundEnabled ? 'Sound on' : 'Tap to enable sound';
       };
       updateBtnSoundText();
       btnSound.addEventListener('click', () => {
-        ensureMusicStarted();
-        const currentlyMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted && window.FFH.CONFIG?.audio?.sfxMuted);
-        const nextMuted = !currentlyMuted;
+        // Browsers require a direct gesture before they allow music. The first
+        // press therefore enables sound; only later presses toggle it off.
+        const nextMuted = soundEnabled;
         if (this.game) {
           if (this.game.sfx) {
             if (typeof this.game.sfx.setMusicMuted === 'function') {
@@ -539,6 +546,8 @@ Object.assign(window.FFH.UI.prototype, {
             this.game.speech.muted = nextMuted;
           }
         }
+        soundEnabled = !nextMuted;
+        if (!nextMuted) ensureMusicStarted();
         updateBtnSoundText();
       });
     }

@@ -65,8 +65,9 @@ window.FFH.CONFIG = {
   camera: {
     // Default zoom level on scene entry (OrthographicCamera zoom multiplier).
     // Higher = larger/closer character on screen.
-    // Range: [minZoom .. maxZoom]  |  Tested sweet-spot: 2.4 ,  3.2
-    defaultZoom:  2.88,
+    // Range: [minZoom .. maxZoom]. Start halfway out so the next destination
+    // and the courier are both readable on a phone.
+    defaultZoom:  1.5,
 
     // Minimum zoom (pinch-out / scroll-out limit) (wide overview)
     minZoom:      1.0,
@@ -118,8 +119,8 @@ window.FFH.CONFIG = {
   //  TOUCH / DRAG INPUT (virtual joystick)& messenger steering
   // ----------------------------------------------------------
   touch: {
-    // True: "Messenger" style (No visible joystick UI). Mouse/Touch drag anywhere steers the character. Camera orbit is disabled.
-    // False: Original style (Visible touch joystick on mobile). Mouse drag orbits the camera on desktop.
+    // Desktop left-drag steers the courier directly. On touch, CityInput
+    // supplies the same movement with a visible joystick anchor.
     messengerStyleInput: true,
 
     // Dead zone in pixels: thumb must move this far before movement registers.

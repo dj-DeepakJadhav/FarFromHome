@@ -8,10 +8,10 @@ window.FFH.CityCamera = class {
 
     const CAM = (window.FFH.CONFIG && window.FFH.CONFIG.camera) || {};
 
-    this.camZoom = CAM.defaultZoom !== undefined ? CAM.defaultZoom : 2.88;
-    this.targetCamZoom = this.camZoom;
     this.minCamZoom = CAM.minZoom !== undefined ? CAM.minZoom : 1.0;
-    this.maxCamZoom = CAM.maxZoom !== undefined ? CAM.maxZoom : 3.84;
+    this.maxCamZoom = CAM.maxZoom !== undefined ? CAM.maxZoom : 2.0;
+    this.camZoom = THREE.MathUtils.clamp(CAM.defaultZoom ?? 1.5, this.minCamZoom, this.maxCamZoom);
+    this.targetCamZoom = this.camZoom;
     this.initialCamZoom = this.camZoom;
 
     this.camCurrentAngle = undefined;
@@ -69,7 +69,10 @@ window.FFH.CityCamera = class {
 
     const dt = Math.min(delta || 0.016, 0.1);
 
-    if (!this.camZoom) this.camZoom = (window.FFH.CONFIG?.camera?.defaultZoom ?? 2.88);
+    if (!this.camZoom) {
+      const defaultZoom = window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5;
+      this.camZoom = THREE.MathUtils.clamp(defaultZoom, this.minCamZoom, this.maxCamZoom);
+    }
     if (!this.targetCamZoom) this.targetCamZoom = this.camZoom;
 
     // Smoothly interpolate zoom on OrthographicCamera using exponential damping
@@ -251,18 +254,18 @@ window.FFH.CityCamera = class {
     const rayDir = new THREE.Vector3().subVectors(camPos, charPos).normalize();
     const rayDist = camPos.distanceTo(charPos);
 
-    // Create a "fat ray" using 5 rays (center, left, right, up, down) relative to the camera's orientation
+    // Test the courier's complete silhouette, not only chest height. This
+    // catches a wall before it covers the sprite from the player's viewpoint.
     const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion).normalize();
-    const camUp = new THREE.Vector3(0, 1, 0).applyQuaternion(cam.quaternion).normalize();
-    const spread = 0.8; // How wide the fat ray is
-
-    const offsets = [
-      new THREE.Vector3(0, 0, 0),
-      camRight.clone().multiplyScalar(-spread),
-      camRight.clone().multiplyScalar(spread),
-      camUp.clone().multiplyScalar(spread),
-      camUp.clone().multiplyScalar(-spread)
-    ];
+    const samplePoints = [];
+    [-0.32, 0, 0.32].forEach(side => {
+      [0.25, 0.8, 1.35].forEach(height => {
+        samplePoints.push(
+          new THREE.Vector3(this.phase.playerPos.x, this.phase.playerPos.y + height, this.phase.playerPos.z)
+            .addScaledVector(camRight, side)
+        );
+      });
+    });
 
     const currentlyHitMeshes = new Set();
 
@@ -270,11 +273,10 @@ window.FFH.CityCamera = class {
       ? this.phase.buildingMeshes
       : this.phase.interactiveMeshes;
 
-    offsets.forEach(offset => {
-      const rayStart = charPos.clone().add(offset);
+    samplePoints.forEach(rayStart => {
       this.occlusionRaycaster.set(rayStart, rayDir);
       this.occlusionRaycaster.near = 0.1;
-      this.occlusionRaycaster.far = rayDist;
+      this.occlusionRaycaster.far = rayStart.distanceTo(camPos) + 0.05;
 
       const hits = this.occlusionRaycaster.intersectObjects(targets, true);
       hits.forEach(hit => {
@@ -297,6 +299,9 @@ window.FFH.CityCamera = class {
           mats.forEach(m => {
             // Make the blocking building almost completely invisible (0.05) instead of ghosting
             m.opacity = THREE.MathUtils.lerp(m.opacity, targetOpacity, 0.2);
+            // A transparent wall must not still write to the depth buffer,
+            // otherwise it remains visually in front of the courier.
+            m.depthWrite = false;
           });
         }
       });
@@ -310,8 +315,12 @@ window.FFH.CityCamera = class {
             const mats = Array.isArray(child.material) ? child.material : [child.material];
             mats.forEach(m => {
               m.opacity = THREE.MathUtils.lerp(m.opacity, 1.0, 0.2);
-              if (m.opacity < 0.98) allRestored = false;
-              else m.opacity = 1.0;
+              if (m.opacity < 0.98) {
+                allRestored = false;
+              } else {
+                m.opacity = 1.0;
+                m.depthWrite = true;
+              }
             });
           }
         });

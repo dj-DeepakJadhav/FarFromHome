@@ -5983,8 +5983,9 @@ window.FFH.CONFIG = {
   camera: {
     // Default zoom level on scene entry (OrthographicCamera zoom multiplier).
     // Higher = larger/closer character on screen.
-    // Range: [minZoom .. maxZoom]  |  Tested sweet-spot: 2.4 ,  3.2
-    defaultZoom:  2.88,
+    // Range: [minZoom .. maxZoom]. Start halfway out so the next destination
+    // and the courier are both readable on a phone.
+    defaultZoom:  1.5,
 
     // Minimum zoom (pinch-out / scroll-out limit) (wide overview)
     minZoom:      1.0,
@@ -6036,8 +6037,8 @@ window.FFH.CONFIG = {
   //  TOUCH / DRAG INPUT (virtual joystick)& messenger steering
   // ----------------------------------------------------------
   touch: {
-    // True: "Messenger" style (No visible joystick UI). Mouse/Touch drag anywhere steers the character. Camera orbit is disabled.
-    // False: Original style (Visible touch joystick on mobile). Mouse drag orbits the camera on desktop.
+    // Desktop left-drag steers the courier directly. On touch, CityInput
+    // supplies the same movement with a visible joystick anchor.
     messengerStyleInput: true,
 
     // Dead zone in pixels: thumb must move this far before movement registers.
@@ -21326,8 +21327,9 @@ Object.assign(window.FFH.UI.prototype, {
             // Smooth easeInOutCubic easing for ultra-smooth camera flight
             const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
-            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
+            const entryZoom = window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5;
+            cityPhase.camZoom = THREE.MathUtils.lerp(0.52, entryZoom, easeT);
+            cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, entryZoom, easeT);
             cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
             cityPhase.updateCamera(true);
 
@@ -21395,8 +21397,9 @@ Object.assign(window.FFH.UI.prototype, {
               const t = Math.min(1.0, elapsed / duration);
               const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
-              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, 2.88, easeT);
+              const entryZoom = window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5;
+              cityPhase.camZoom = THREE.MathUtils.lerp(0.52, entryZoom, easeT);
+              cityPhase.targetCamZoom = THREE.MathUtils.lerp(0.52, entryZoom, easeT);
               cityPhase.camCurrentAngle = THREE.MathUtils.lerp(startAngle, targetAngle, easeT);
               cityPhase.updateCamera(true);
 
@@ -21424,22 +21427,27 @@ Object.assign(window.FFH.UI.prototype, {
     
     if (btnSound) {
       // Inline SVG rather than an emoji, so it inherits colour and stays crisp.
+      let soundEnabled = false;
       const updateBtnSoundText = () => {
-        const isMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted && window.FFH.CONFIG?.audio?.sfxMuted);
+        const isMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted || window.FFH.CONFIG?.audio?.sfxMuted);
+        const musicPlaying = !!(this.game?.sfx?.isMusicPlaying && this.game.sfx.isMusicPlaying());
+        if (isMuted) soundEnabled = false;
+        if (!isMuted && musicPlaying) soundEnabled = true;
         const speaker = '<path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor"/>';
         const waves = '<path d="M16 8.5a4 4 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
         const slash = '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
         btnSound.innerHTML =
           '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">'
-          + speaker + (isMuted ? slash : waves) + '</svg>';
-        btnSound.style.opacity = isMuted ? '0.55' : '1';
-        btnSound.setAttribute('aria-label', isMuted ? 'Sound off' : 'Sound on');
+          + speaker + (soundEnabled ? waves : slash) + '</svg>';
+        btnSound.style.opacity = soundEnabled ? '1' : '0.55';
+        btnSound.setAttribute('aria-label', soundEnabled ? 'Sound on' : 'Tap to enable sound');
+        btnSound.title = soundEnabled ? 'Sound on' : 'Tap to enable sound';
       };
       updateBtnSoundText();
       btnSound.addEventListener('click', () => {
-        ensureMusicStarted();
-        const currentlyMuted = !!(window.FFH.CONFIG?.audio?.bgMusicMuted && window.FFH.CONFIG?.audio?.sfxMuted);
-        const nextMuted = !currentlyMuted;
+        // Browsers require a direct gesture before they allow music. The first
+        // press therefore enables sound; only later presses toggle it off.
+        const nextMuted = soundEnabled;
         if (this.game) {
           if (this.game.sfx) {
             if (typeof this.game.sfx.setMusicMuted === 'function') {
@@ -21453,6 +21461,8 @@ Object.assign(window.FFH.UI.prototype, {
             this.game.speech.muted = nextMuted;
           }
         }
+        soundEnabled = !nextMuted;
+        if (!nextMuted) ensureMusicStarted();
         updateBtnSoundText();
       });
     }
@@ -24110,10 +24120,10 @@ window.FFH.CityCamera = class {
 
     const CAM = (window.FFH.CONFIG && window.FFH.CONFIG.camera) || {};
 
-    this.camZoom = CAM.defaultZoom !== undefined ? CAM.defaultZoom : 2.88;
-    this.targetCamZoom = this.camZoom;
     this.minCamZoom = CAM.minZoom !== undefined ? CAM.minZoom : 1.0;
-    this.maxCamZoom = CAM.maxZoom !== undefined ? CAM.maxZoom : 3.84;
+    this.maxCamZoom = CAM.maxZoom !== undefined ? CAM.maxZoom : 2.0;
+    this.camZoom = THREE.MathUtils.clamp(CAM.defaultZoom ?? 1.5, this.minCamZoom, this.maxCamZoom);
+    this.targetCamZoom = this.camZoom;
     this.initialCamZoom = this.camZoom;
 
     this.camCurrentAngle = undefined;
@@ -24171,7 +24181,10 @@ window.FFH.CityCamera = class {
 
     const dt = Math.min(delta || 0.016, 0.1);
 
-    if (!this.camZoom) this.camZoom = (window.FFH.CONFIG?.camera?.defaultZoom ?? 2.88);
+    if (!this.camZoom) {
+      const defaultZoom = window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5;
+      this.camZoom = THREE.MathUtils.clamp(defaultZoom, this.minCamZoom, this.maxCamZoom);
+    }
     if (!this.targetCamZoom) this.targetCamZoom = this.camZoom;
 
     // Smoothly interpolate zoom on OrthographicCamera using exponential damping
@@ -24456,6 +24469,7 @@ window.FFH.CityInput = class {
     this.touchStartTime = 0;
     this.touchJoystickEl = null;
     this.touchKnobEl = null;
+    this.isTouchGesture = false;
     this.initialPinchDist = null;
 
     // Pointer state
@@ -24550,6 +24564,7 @@ window.FFH.CityInput = class {
     }
 
     if (e.touches.length === 1) {
+      this.isTouchGesture = true;
       if (this.phase.isAnyModalOrDialogueOpen && this.phase.isAnyModalOrDialogueOpen()) {
         return;
       }
@@ -24582,7 +24597,7 @@ window.FFH.CityInput = class {
     const TOUCH = (window.FFH.CONFIG && window.FFH.CONFIG.touch) || {};
     const smoothRate = TOUCH.smoothRate !== undefined ? TOUCH.smoothRate : 0.28;
 
-    if (TOUCH.messengerStyleInput) {
+    if (TOUCH.messengerStyleInput && !this.isTouchGesture) {
       // True Messenger Style: Continuous follow cursor (Raycast to ground)
       const rect = this.game.renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
@@ -24726,7 +24741,7 @@ window.FFH.CityInput = class {
   }
 
   showTouchJoystick(x, y) {
-    if (window.FFH.CONFIG?.touch?.messengerStyleInput) return; // Hide UI
+    if (!this.isTouchGesture) return;
     if (!this.touchJoystickEl) {
       this.touchJoystickEl = document.createElement('div');
       this.touchJoystickEl.id = 'ffh-touch-joystick';
@@ -24767,7 +24782,7 @@ window.FFH.CityInput = class {
   }
 
   updateTouchJoystickKnob(dx, dy, maxRadius) {
-    if (window.FFH.CONFIG?.touch?.messengerStyleInput) return; // Hide UI
+    if (!this.isTouchGesture) return;
     if (!this.touchKnobEl) return;
     const dist = Math.hypot(dx, dy);
     let knobX = dx;
@@ -24787,6 +24802,7 @@ window.FFH.CityInput = class {
 
   onPointerDown(e) {
     if (e.pointerType === 'touch') return;
+    this.isTouchGesture = false;
     if (this.phase.isAnyModalOrDialogueOpen && this.phase.isAnyModalOrDialogueOpen()) return;
     if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || 
         e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;
@@ -26488,24 +26504,30 @@ window.FFH.CityExplorationPhase = class {
       }
     }
 
-    // Collect all building and landmark meshes for reliable occlusion fading
+    // Register complete building tiles as occluders. The old mesh-by-mesh
+    // height heuristic missed architecture whose vertices were elevated inside
+    // a group while the mesh itself stayed at y=0, leaving the courier hidden
+    // behind whole buildings. Tile metadata is the authoritative map signal.
     this.buildingMeshes = [];
     if (this.worldGroup) {
-      this.worldGroup.traverse(child => {
-        if (child.isMesh && child.material && !child.userData.isOuterScenery && !child.userData.isPfand) {
-          // Check if mesh belongs to a building, landmark, or tree above ground level
-          if (child.position.y > 0.2 || (child.parent && child.parent.position.y > 0.2) || child.geometry?.boundingBox?.max?.y > 0.5) {
-            this.buildingMeshes.push(child);
-            if (Array.isArray(child.material)) {
-              child.material = child.material.map(m => m.clone());
-              child.material.forEach(m => { m.transparent = true; m.opacity = 1.0; });
-            } else {
-              child.material = child.material.clone();
-              child.material.transparent = true;
-              child.material.opacity = 1.0;
-            }
+      this.worldGroup.children.forEach(tileGroup => {
+        const type = tileGroup.userData && tileGroup.userData.type;
+        const isOccluder = typeof type === 'string' &&
+          (type.startsWith('A') || type.startsWith('B_') || type === 'T');
+        if (!isOccluder) return;
+
+        this.buildingMeshes.push(tileGroup);
+        tileGroup.traverse(child => {
+          if (!child.isMesh || !child.material) return;
+          if (Array.isArray(child.material)) {
+            child.material = child.material.map(material => material.clone());
+            child.material.forEach(material => { material.transparent = true; material.opacity = 1.0; });
+          } else {
+            child.material = child.material.clone();
+            child.material.transparent = true;
+            child.material.opacity = 1.0;
           }
-        }
+        });
       });
     }
   }
@@ -26991,7 +27013,9 @@ window.FFH.CityExplorationPhase = class {
     }
 
     this.manualCameraAngle = undefined; // Return camera to normal follow
-    this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom) ? this.cameraController.initialCamZoom : 2.88;
+    this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom)
+      ? this.cameraController.initialCamZoom
+      : (window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5);
     this.updateCamera(false);
   }
 
@@ -27052,7 +27076,9 @@ window.FFH.CityExplorationPhase = class {
             }
          }
          this.manualCameraAngle = undefined; // Return camera to normal isometric follow
-         this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom) ? this.cameraController.initialCamZoom : 2.88;
+         this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom)
+           ? this.cameraController.initialCamZoom
+           : (window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5);
        }
       this.updateCamera(false, delta);
       return;

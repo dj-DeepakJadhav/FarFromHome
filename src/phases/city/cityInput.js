@@ -19,6 +19,7 @@ window.FFH.CityInput = class {
     this.touchStartTime = 0;
     this.touchJoystickEl = null;
     this.touchKnobEl = null;
+    this.isTouchGesture = false;
     this.initialPinchDist = null;
 
     // Pointer state
@@ -113,6 +114,7 @@ window.FFH.CityInput = class {
     }
 
     if (e.touches.length === 1) {
+      this.isTouchGesture = true;
       if (this.phase.isAnyModalOrDialogueOpen && this.phase.isAnyModalOrDialogueOpen()) {
         return;
       }
@@ -145,7 +147,7 @@ window.FFH.CityInput = class {
     const TOUCH = (window.FFH.CONFIG && window.FFH.CONFIG.touch) || {};
     const smoothRate = TOUCH.smoothRate !== undefined ? TOUCH.smoothRate : 0.28;
 
-    if (TOUCH.messengerStyleInput) {
+    if (TOUCH.messengerStyleInput && !this.isTouchGesture) {
       // True Messenger Style: Continuous follow cursor (Raycast to ground)
       const rect = this.game.renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
@@ -289,7 +291,7 @@ window.FFH.CityInput = class {
   }
 
   showTouchJoystick(x, y) {
-    if (window.FFH.CONFIG?.touch?.messengerStyleInput) return; // Hide UI
+    if (!this.isTouchGesture) return;
     if (!this.touchJoystickEl) {
       this.touchJoystickEl = document.createElement('div');
       this.touchJoystickEl.id = 'ffh-touch-joystick';
@@ -330,7 +332,7 @@ window.FFH.CityInput = class {
   }
 
   updateTouchJoystickKnob(dx, dy, maxRadius) {
-    if (window.FFH.CONFIG?.touch?.messengerStyleInput) return; // Hide UI
+    if (!this.isTouchGesture) return;
     if (!this.touchKnobEl) return;
     const dist = Math.hypot(dx, dy);
     let knobX = dx;
@@ -350,6 +352,7 @@ window.FFH.CityInput = class {
 
   onPointerDown(e) {
     if (e.pointerType === 'touch') return;
+    this.isTouchGesture = false;
     if (this.phase.isAnyModalOrDialogueOpen && this.phase.isAnyModalOrDialogueOpen()) return;
     if (e.target.closest('#title-bar') || e.target.closest('#city-poi-card') || 
         e.target.closest('#tab-home') || e.target.closest('#tab-work') || e.target.closest('#tab-shop')) return;

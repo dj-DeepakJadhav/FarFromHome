@@ -464,24 +464,30 @@ window.FFH.CityExplorationPhase = class {
       }
     }
 
-    // Collect all building and landmark meshes for reliable occlusion fading
+    // Register complete building tiles as occluders. The old mesh-by-mesh
+    // height heuristic missed architecture whose vertices were elevated inside
+    // a group while the mesh itself stayed at y=0, leaving the courier hidden
+    // behind whole buildings. Tile metadata is the authoritative map signal.
     this.buildingMeshes = [];
     if (this.worldGroup) {
-      this.worldGroup.traverse(child => {
-        if (child.isMesh && child.material && !child.userData.isOuterScenery && !child.userData.isPfand) {
-          // Check if mesh belongs to a building, landmark, or tree above ground level
-          if (child.position.y > 0.2 || (child.parent && child.parent.position.y > 0.2) || child.geometry?.boundingBox?.max?.y > 0.5) {
-            this.buildingMeshes.push(child);
-            if (Array.isArray(child.material)) {
-              child.material = child.material.map(m => m.clone());
-              child.material.forEach(m => { m.transparent = true; m.opacity = 1.0; });
-            } else {
-              child.material = child.material.clone();
-              child.material.transparent = true;
-              child.material.opacity = 1.0;
-            }
+      this.worldGroup.children.forEach(tileGroup => {
+        const type = tileGroup.userData && tileGroup.userData.type;
+        const isOccluder = typeof type === 'string' &&
+          (type.startsWith('A') || type.startsWith('B_') || type === 'T');
+        if (!isOccluder) return;
+
+        this.buildingMeshes.push(tileGroup);
+        tileGroup.traverse(child => {
+          if (!child.isMesh || !child.material) return;
+          if (Array.isArray(child.material)) {
+            child.material = child.material.map(material => material.clone());
+            child.material.forEach(material => { material.transparent = true; material.opacity = 1.0; });
+          } else {
+            child.material = child.material.clone();
+            child.material.transparent = true;
+            child.material.opacity = 1.0;
           }
-        }
+        });
       });
     }
   }
@@ -967,7 +973,9 @@ window.FFH.CityExplorationPhase = class {
     }
 
     this.manualCameraAngle = undefined; // Return camera to normal follow
-    this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom) ? this.cameraController.initialCamZoom : 2.88;
+    this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom)
+      ? this.cameraController.initialCamZoom
+      : (window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5);
     this.updateCamera(false);
   }
 
@@ -1028,7 +1036,9 @@ window.FFH.CityExplorationPhase = class {
             }
          }
          this.manualCameraAngle = undefined; // Return camera to normal isometric follow
-         this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom) ? this.cameraController.initialCamZoom : 2.88;
+         this.targetCamZoom = (this.cameraController && this.cameraController.initialCamZoom)
+           ? this.cameraController.initialCamZoom
+           : (window.FFH.CONFIG?.camera?.defaultZoom ?? 1.5);
        }
       this.updateCamera(false, delta);
       return;
