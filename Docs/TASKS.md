@@ -11,6 +11,213 @@
 > Do not tick a box from intent. Tick it from a check you actually ran, and say
 > how you checked.
 
+## ACTIVE ROADMAP — 6.5 → 9.0 BUILD / 9.5 SUBMISSION
+
+> **This is the active queue.** It supersedes duplicate blockers and historical
+> sprint notes below, which remain only as context. Complete tasks with the
+> specified evidence, not intent.
+
+### Honest target and design guardrails
+
+- Target a **9.0–9.25 playable build** and a **9.5 judge-facing submission**.
+  The extra score comes from stable systems, DJ’s camera/art pass and a truthful
+  180-second video, not from adding Acts III–V.
+- Ship Days 1–3 / Acts I–II only. Do not add new loops, document chains, shop
+  items, language-learning framing, voice-acting claims or unverified features.
+- Preserve the shape: calm Lübeck arrival and choices → Kruma colour/symbol
+  shelf → courier delivery → exact receipt → visible upgrade → DOCS/Kaution
+  progress. The post route is a slower recovery job, not a second core game.
+- The normal Day 1 opening stays cozy and purposeful. The 90-second target
+  applies only to `?quickstart=1`, which must promptly reach the rail-pulse Aha
+  and Shift 3 for a judge.
+- Retain fixed portrait, offline operation, root `index.html`, and the ≤35 MB limit.
+
+### Agent 1 and Agent 2 execution plan
+
+DJ has completed the 3D asset replacement and cleanup. Both agents may now make
+targeted 3D fixes, including models, materials, textures, lighting and placement,
+when a concrete player-facing defect is observed. Every art change needs a
+before/after portrait capture and must preserve the 35 MB/offline limits.
+
+| Agent | Owns | Must not edit while the other agent works |
+| :--- | :--- | :--- |
+| **Agent 1 — reliability lead** | P0.1, P0.2, P0.3 and P2.1. `src/core/economy.js`, `src/core/storyRunner.js`, receipt-only `src/ui/screens/hudShifts.js`, `src/ui/screens/hudModals.js`, test/build scripts, `Docs/submission/`. | Pick feedback, upgrade presentation, HUD feel, and showcase-art files. |
+| **Agent 2 — experience lead** | P0.4, P1.1–P1.4, P2.2 and P2.3. `src/phases/pick/**`, pick UI, upgrade-only `src/ui/screens/hudShifts.js`, `src/ui/hud.js`, scene-time presentation and targeted 3D/camera fixes. | Economy, story payout settlement, receipt-only UI, test/build scripts and submission prose. |
+
+**Coordination rule:** Agent 1 owns the receipt section of `hudShifts.js`; Agent 2
+owns its upgrade/shop section. Work in separate worktrees or integrate Agent 1's
+receipt changes before Agent 2 edits the shared file. Agent 2 must wait for the
+P0.1/P0.3 completion signal before starting P1.2, and Agent 1 must wait for the
+P1 evidence signal before finalizing P2.1.
+
+Every completed task requires `node build/verify.js`, `node build/check-story.js`,
+`node build/assemble.js`, `node build/check-size.js`, then a live 390×844 check.
+Re-index the code graph after each integrated commit.
+
+---
+
+## P0 — Trust before polish
+
+### P0.1 Receipt/day-boundary contract
+
+Create deterministic scenarios for Day 1 orientation with Pfand, Day 2 Kruma
+pass, Day 2 failed-trial night, Day 3 Kruma and Day 3 post. Prove receipt income,
+costs, net change, tuition projection and wallet after sleep agree. Kruma pending
+pay is counted once; Pfand/post income already in the wallet is never counted
+twice. `dailyCostsFor()` is the only rent/food source.
+
+**Done when:** scenario assertions pass; every route has a 390×844 capture of
+receipt → room → sleep → next-day wallet; repeat dismissal cannot duplicate pay.
+
+### P0.2 One receipt surface
+
+Audit every recap/receipt entry point. Remove, redirect or retire obsolete
+hard-coded recap UI so all Day 1–3 endings use one ledger-backed receipt. Clearly
+distinguish current balance, earnings, next-day costs and projected after-sleep
+balance without clipping.
+
+**Done when:** a route map names every receipt entry point and one UI destination;
+Day 1, Kruma and post screenshots have no contradictory totals.
+
+**Depends on:** P0.1.
+
+### P0.3 Phone and laptop route gate
+
+Complete Days 1–3 through both Kruma pass and post recovery routes. Test laptop
+pointer/keyboard plus a real phone on the local network. Check touch targets,
+portrait layout, save/reload, phase changes, console and offline Network activity.
+
+**Done when:** a route matrix records device, route, receipt total and outcome;
+there are no softlocks, uncaught errors, clipped controls or unexplained wallet changes.
+
+**Depends on:** P0.1–P0.2.
+
+### P0.4 Showcase pacing without rushing the cozy opening
+
+Keep the normal city opening atmospheric; remove only dead time. Time
+`?quickstart=1` separately: Shift 3 within 90 seconds, visual rail pulse before
+icon reveal, readable early-pick/mispick outcomes, and no pick timer during a
+briefing that blocks input.
+
+**Done when:** two recordings exist: normal opening for mood, quickstart for the
+shelf Aha; muted playback and stopwatch evidence pass.
+
+---
+
+## P1 — Make the core loop memorable
+
+### P1.1 Pick feedback
+
+Make normal, early and wrong picks visually distinct when muted. Early picks get
+concise multiplier feedback and richer particle/colour response. Wrong picks get
+bounded shake/flash and precise consequence without covering the next rail or
+touch target. Preserve the rail-material pulse as the visual anticipation cue.
+
+**Done when:** a muted 390×844 recording lets an uninformed observer distinguish
+all three outcomes; feedback never blocks play.
+
+**Depends on:** P0.4.
+
+### P1.2 Upgrade payoff and progression proof
+
+Show before → after values on every existing upgrade card. Each purchase needs an
+immediate confirmation moment and a later visible, functional effect. Prove all
+five: E-Bike, Thermal Bag, Shelf Labels, Pocket Notepad and Shift Rota Cards.
+Feature Shelf Labels in the main showcase because it changes the signature shelf.
+
+**Done when:** clean-save or seeded capture shows purchase, reveal and later
+effect for each upgrade; one continuous run proves earn → Shelf Labels → stamped
+next shift → exact receipt.
+
+**Depends on:** P0.1 and P0.3.
+
+### P1.3 Time/place continuity and targeted 3D correction
+
+Use existing stage time data to distinguish morning, golden hour, evening and late
+night. Fix only observed 3D/camera defects that hurt title, city, character or
+warehouse readability. Eliminate city → room → receipt → sleep → morning HUD,
+camera or backdrop flashes.
+
+**Done when:** comparable captures at 07:00, 16:45, 19:00 and 22:05 are clearly
+different; one uninterrupted day boundary has no visual jump.
+
+### P1.4 Art/camera gate
+
+Prioritize title frame, key cast readability, T-poses/mis-rotation, character
+clipping, stray shelf geometry, food scale and ZOB-wide density only where judges
+will see them. Agents may edit the relevant 3D assets now that DJ's replacement
+and cleanup pass is complete; do not begin speculative art work.
+
+**Done when:** before/after portrait evidence exists and a cold run has no
+distracting defect in title, first city scene or warehouse shelf.
+
+---
+
+## P2 — Make the submission deserve 9.5
+
+### P2.1 Judge-facing truth pass
+
+Re-check every `Docs/submission/` claim against the final build. Remove claims of
+a complete 28-day campaign, full residency ending, voice acting, no audio assets,
+morphology/NPC-memory systems or any unshippable feature. Correct measured
+size/audio wording from final commands, update stale screenshots, and keep Design
+Intent at ≤500 words.
+
+**Done when:** every claim maps to a reproducible build moment and the checklist
+contains only current measurements and blockers.
+
+**Depends on:** P0/P1 facts locked.
+
+### P2.2 180-second proof film
+
+The video may honestly cut between routes. Evidence order:
+
+1. City/DOCS goal and €250 pressure.
+2. Kruma Shift 1 shelf rule.
+3. Exact receipt and investment choice.
+4. Shelf Labels purchase and stamped next shift.
+5. Shift 2 rail-first early pick plus doorstep handoff.
+6. Brief post route as slower recovery alternative.
+7. Kaution payment and first DOCS box turning green.
+8. Portrait/offline end card.
+
+**Done when:** the 2–3 minute film and screenshots come from the final build,
+are legible muted, contain no dev UI/errors and make no unverified claim.
+
+### P2.3 Release gate
+
+**Done when:** verification commands pass; release has root `index.html`, only
+required runtime files, no external requests, 390×844 layout, size below 35 MB,
+and phone/laptop smoke tests against the exact release artifact.
+
+---
+
+## Work order and stop rules
+
+```text
+Parallel start:
+  Agent 1: P0.1 → P0.2 → P0.3
+  Agent 2: P0.4 → P1.1 / P1.3 / P1.4
+
+Integration sequence:
+  Agent 1 P0.1 + P0.3 evidence → Agent 2 P1.2
+  All P1 evidence → Agent 1 P2.1
+  Agent 1 P2.1 truth pass → Agent 2 P2.2 → P2.3
+```
+
+Stop and fix a regression before moving on if a receipt lies, a payout is counted
+twice, a day boundary softlocks, mobile controls clip, an upgrade has no visible
+effect, or the video would need to claim something the build cannot show. Do not
+trade reliability for more content.
+
+---
+
+## Historical task material
+
+Everything below is retained for design context and evidence, not as an active
+queue. If it conflicts with the active roadmap above, the active roadmap wins.
+
+
 ---
 
 ## 🤝 HANDOFF — read this first if you are picking up cold
