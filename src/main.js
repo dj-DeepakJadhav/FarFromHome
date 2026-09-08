@@ -129,9 +129,42 @@ class GameEngine {
       this.titleWaterMat = waterMat;
       this.scene.add(this.titleDiorama);
 
-      // Add atmospheric lighting for the title screen
-      const titleAmbient = new THREE.AmbientLight(0xC8E6FF, 0.9);
-      const titleSun = new THREE.DirectionalLight(0xFFD080, 1.4);
+      // Light the title from the SAME palette the game uses, at a chosen hour.
+      //
+      // This frame is the first thing a judge sees and it used to bypass the
+      // atmosphere system entirely: a flat 0x87CEEB sky set in showBootScreen
+      // as a "fallback", a cool 0xC8E6FF ambient at 0.9 and no fog. Pale, low
+      // contrast, and nothing like the city the player then walks into. That
+      // is the washed-out light-blue title screen.
+      //
+      // TITLE_TIME_OF_DAY is the one number to change for taste: 0.50 is
+      // midday, 0.70 golden hour, 0.79 dusk, 0.86 blue hour.
+      const TITLE_TIME_OF_DAY = 0.70;
+      const stops = (window.FFH.CityEnvironment && window.FFH.CityEnvironment.TIME_STOPS)
+        ? window.FFH.CityEnvironment.TIME_STOPS[
+            (this.state && this.state.semester === 'WINTER') ? 'winter' : 'summer']
+        : null;
+      let ambColor = 0xC8E6FF, ambInt = 0.9, sunColor = 0xFFD080, sunInt = 1.4;
+      if (stops) {
+        let a = stops[0], b = stops[stops.length - 1];
+        for (let i = 0; i < stops.length - 1; i++) {
+          if (TITLE_TIME_OF_DAY >= stops[i].t && TITLE_TIME_OF_DAY <= stops[i + 1].t) {
+            a = stops[i]; b = stops[i + 1]; break;
+          }
+        }
+        const span = b.t - a.t;
+        const k = span > 0 ? (TITLE_TIME_OF_DAY - a.t) / span : 0;
+        const sky = new THREE.Color(a.sky).lerp(new THREE.Color(b.sky), k);
+        const fog = new THREE.Color(a.fog).lerp(new THREE.Color(b.fog), k);
+        sunColor = new THREE.Color(a.light).lerp(new THREE.Color(b.light), k);
+        sunInt = THREE.MathUtils.lerp(a.li, b.li, k) * 1.5;   // diorama reads brighter
+        ambInt = THREE.MathUtils.lerp(a.amb, b.amb, k);
+        ambColor = sky.clone().lerp(new THREE.Color(0xFFFFFF), 0.35);
+        this.scene.background = sky;
+        this.scene.fog = new THREE.FogExp2(fog, 0.008);   // gentler than in-game
+      }
+      const titleAmbient = new THREE.AmbientLight(ambColor, ambInt);
+      const titleSun = new THREE.DirectionalLight(sunColor, sunInt);
       titleSun.position.set(30, 50, 20);
       titleSun.castShadow = false; // no shadows needed on boot screen
       this.titleDiorama.add(titleAmbient, titleSun);

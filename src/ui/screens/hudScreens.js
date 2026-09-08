@@ -133,8 +133,11 @@ Object.assign(window.FFH.UI.prototype, {
     this.clear();
 
     // Let the 3D scene render in the background (do NOT set a solid color)// The city will be visible behind the menu panel
-    if (this.game && this.game.scene) {
-      this.game.scene.background = new THREE.Color(0x87CEEB); // soft sky fallback if no renderer yet
+    // Only a genuine fallback now. setupTitleDiorama paints the sky from the
+    // game's own palette; overwriting it here is what pinned the title screen
+    // to a flat skyblue and made it look unrelated to the city behind it.
+    if (this.game && this.game.scene && !this.game.scene.background) {
+      this.game.scene.background = new THREE.Color(0x87CEEB); // no diorama built
     }
 
     const bootDiv = document.createElement('div');
