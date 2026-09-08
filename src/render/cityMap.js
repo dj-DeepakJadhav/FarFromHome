@@ -910,13 +910,32 @@ window.FFH.CityAssetRegistry = {
 
   createCloud() {
     const cloud = new THREE.Group();
-    const cloudMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.85 });
+    // Clouds must read as SKY, never as foreground. Altitude alone does not
+    // achieve that here: the city camera is orthographic, so there is no
+    // vanishing point pulling distant geometry away, and its near plane is
+    // negative (-100), meaning objects behind the camera still render. A cloud
+    // at y=16 therefore projected straight onto the cobbles and appeared as an
+    // opaque grey blob covering buildings and the canal, worst at night.
+    //
+    // depthWrite:false plus renderOrder:-1 draws every cloud first and lets
+    // the ground, canal and architecture paint over it, so a cloud is only
+    // ever visible where sky is actually visible. Lübeck stays overcast; the
+    // clouds just stop standing in the street.
+    const cloudMat = new THREE.MeshLambertMaterial({
+      color: 0xFFFFFF,
+      transparent: true,
+      opacity: 0.62,
+      depthWrite: false
+    });
     const count = 3 + Math.floor(Math.random() * 3);
     for (let i = 0; i < count; i++) {
       const puff = new THREE.Mesh(new THREE.SphereGeometry(1.1 + Math.random() * 0.6, 8, 8), cloudMat);
       puff.position.set((i - count / 2) * 1.0, (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.4);
+      puff.renderOrder = -1;
       cloud.add(puff);
     }
+    cloud.renderOrder = -1;
+    cloud.userData.isCloud = true;
     return cloud;
   },
 
@@ -1952,7 +1971,9 @@ window.FFH.buildLubeckCityWorld = function() {
   // Floating Sky Clouds
   for (let c = 0; c < 30; c++) {
     const cloud = registry.createCloud();
-    cloud.position.set(-10 + Math.random() * 100, 14 + Math.random() * 4, -10 + Math.random() * 100);
+    // 26 to 34, well clear of the tallest spire (B_MARIEN at 13.6) so clouds
+    // sit above the skyline rather than level with the rooftops.
+    cloud.position.set(-10 + Math.random() * 100, 26 + Math.random() * 8, -10 + Math.random() * 100);
     cloud.userData = { speed: 0.5 + Math.random() * 0.6 };
     clouds.push(cloud);
     worldGroup.add(cloud);

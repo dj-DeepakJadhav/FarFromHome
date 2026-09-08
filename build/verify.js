@@ -264,8 +264,8 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
         /this\.state\.currentShift\s*=\s*1\s*;/.test(mainSrc));
 
   check('quickstart lands on the teach stage, not the test stage',
-        /startFirstShift\('shift_1_teach'\)/.test(mainSrc) &&
-        !/startFirstShift\('shift_3_test'\)/.test(mainSrc),
+        /startFirstShift\('shift_1_teach'/.test(mainSrc) &&
+        !/startFirstShift\('shift_3_test'/.test(mainSrc),
         'the Shift 3 Aha depends on stages 1 and 2 having been played');
 
   // The real difficulty source must stay distinct per stage, or the ramp that
@@ -506,19 +506,46 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
   check('keyframes span a full day',
         /t:\s*0\.00/.test(envSrc) && /t:\s*1\.00/.test(envSrc));
 
-  // The palette must not be random. It used to be a coin flip between the
-  // cold winter and warm summer keyframes, so two runs of the same build
-  // looked like different games and a recording could not be reproduced.
-  const econSrc = fs.readFileSync(path.join(ROOT, 'src/core/economy.js'), 'utf8');
-  check('the seasonal palette is deterministic',
-        !/semester:\s*Math\.random/.test(econSrc),
-        'a coin flip chose the whole colour scheme at run start');
-  const st1 = F.createRunState(), st2 = F.createRunState();
-  check('two fresh runs share the same palette', st1.semester === st2.semester,
-        st1.semester + ' vs ' + st2.semester);
-  check('the palette agrees with the semester label',
-        (st1.semester === 'WINTER') === /Wintersemester/.test(st1.semesterName || ''),
-        st1.semester + ' but label is "' + st1.semesterName + '"');
+  // Seasonal variety is a FEATURE: each run is WiSe or SoSe and the palette
+  // follows. What must hold is that the label agrees with the roll, the roll
+  // is recorded so a run can be reproduced, and the judge path can pin it.
+  check('both seasons are defined with a label and an emoji',
+        ['WINTER', 'SUMMER'].every(k => F.SEASONS && F.SEASONS[k]
+          && F.SEASONS[k].name && F.SEASONS[k].emoji),
+        JSON.stringify(F.SEASONS));
+
+  ['WINTER', 'SUMMER'].forEach(season => {
+    const st = F.createRunState(season);
+    check('a forced ' + season + ' run uses the ' + season + ' palette',
+          st.semester === season, 'got ' + st.semester);
+    check('the ' + season + ' label matches the roll',
+          st.semesterName === F.SEASONS[season].name
+          && st.semesterEmoji === F.SEASONS[season].emoji,
+          st.semesterName + ' / ' + st.semesterEmoji);
+    check('a ' + season + ' run records its seed',
+          typeof st.seasonSeed === 'number', String(st.seasonSeed));
+  });
+
+  // Over many unforced runs both seasons must actually appear, or the variety
+  // is not there; and every run must still be self-consistent.
+  const rolled = {};
+  let mismatched = 0;
+  for (let i = 0; i < 200; i++) {
+    const st = F.createRunState();
+    rolled[st.semester] = (rolled[st.semester] || 0) + 1;
+    if (st.semesterName !== (F.SEASONS[st.semester] || {}).name) mismatched++;
+  }
+  check('unforced runs vary between the two seasons',
+        rolled.WINTER > 0 && rolled.SUMMER > 0, JSON.stringify(rolled));
+  check('every rolled run agrees with its own label', mismatched === 0,
+        mismatched + ' of 200 runs had a label from the other season');
+
+  // The judge path must not gamble on the palette.
+  const mainSrcSeason = fs.readFileSync(path.join(ROOT, 'src/main.js'), 'utf8');
+  check('the quickstart path pins the showcase palette',
+        /startFirstShift\('shift_1_teach',\s*window\.FFH\.SHOWCASE_SEASON\)/.test(mainSrcSeason));
+  check('a showcase season is declared',
+        !!(F.SEASONS && F.SEASONS[F.SHOWCASE_SEASON]), String(F.SHOWCASE_SEASON));
 
   // Chronology per authored route. A day must read as one continuous day.
   const toMinutes = (id) => {

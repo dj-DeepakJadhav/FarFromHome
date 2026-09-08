@@ -255,9 +255,50 @@ window.FFH.ACT1_STAGES = {
   DONE: 'DONE'
 };
 
+// German academic intake. Each run is either Wintersemester or Sommersemester,
+// and the choice drives the whole colour palette: winter is cold blue-grey,
+// summer warm. Two players get a visibly different Lübeck, which is the point.
+//
+// Three rules keep the variety without the risks it used to carry:
+//   1. The label follows the roll. semesterName and semesterEmoji used to be
+//      hardcoded to Wintersemester, so a SUMMER run showed a winter label over
+//      a summer world.
+//   2. The roll is recorded on the run as `seasonSeed`, so a run can be
+//      reproduced and a save reloads the season it was created with.
+//   3. It can be forced, by `?season=summer|winter` for testing and capture,
+//      and by SHOWCASE_SEASON for the judge path. A judge plays once, and a
+//      coin flip on the palette is a coin flip on the first impression.
+window.FFH.SEASONS = {
+  WINTER: { name: 'Wintersemester (WiSe)', emoji: '\u2744\uFE0F' },
+  SUMMER: { name: 'Sommersemester (SoSe)', emoji: '\u2600\uFE0F' }
+};
+
+// The palette the submission link and the capture run use. DJ's warm
+// cobblestone pass reads best here.
+window.FFH.SHOWCASE_SEASON = 'SUMMER';
+
+// Resolve the season for a new run: explicit argument, then URL override,
+// otherwise a recorded coin flip.
+window.FFH.resolveSeason = function (forced) {
+  const valid = (v) => (v && window.FFH.SEASONS[String(v).toUpperCase()])
+    ? String(v).toUpperCase()
+    : null;
+
+  let chosen = valid(forced);
+  if (!chosen && typeof window !== 'undefined' && window.location && window.location.search) {
+    try {
+      chosen = valid(new URLSearchParams(window.location.search).get('season'));
+    } catch (e) { /* no URLSearchParams: fall through to the roll */ }
+  }
+  const seed = Math.random();
+  if (!chosen) chosen = seed < 0.5 ? 'WINTER' : 'SUMMER';
+  return { semester: chosen, seasonSeed: seed };
+};
+
 // A fresh run. Called on boot and on restart (nothing may persist between runs),
 // which is why this returns a new object rather than mutating one in place.
-window.FFH.createRunState = function () {
+window.FFH.createRunState = function (forcedSeason) {
+  const season = window.FFH.resolveSeason(forcedSeason);
   return {
     act1Stage: window.FFH.ACT1_STAGES.ARRIVAL_ZOB,
     wallet: window.FFH.ECONOMY.STARTING_WALLET,
@@ -339,18 +380,13 @@ window.FFH.createRunState = function () {
       diplomat: 0
     },
 
-    // German Academic Semester Intake (Randomized WiSe vs SoSe)
-    // Deterministic. This was `Math.random() < 0.5 ? 'WINTER' : 'SUMMER'`,
-    // which chose the game's entire colour palette on a coin flip at run
-    // start: winter is cold blue-grey, summer is warm pink/teal/orange. Half
-    // of all runs looked like a different game, a recorded video was not
-    // reproducible, and a SUMMER roll contradicted the semesterName and emoji
-    // below, which are hardcoded to Wintersemester. WINTER matches the
-    // authored label. To switch the whole game to the warm palette, change
-    // this one value to 'SUMMER' and update semesterName/semesterEmoji.
-    semester: 'WINTER',
-    semesterName: 'Wintersemester (WiSe)',
-    semesterEmoji: '❄️',
+    // German Academic Semester Intake (WiSe vs SoSe). See window.FFH.SEASONS
+    // and resolveSeason above: the roll is recorded, the label always follows
+    // the roll, and ?season= or SHOWCASE_SEASON can force it.
+    semester: season.semester,
+    seasonSeed: season.seasonSeed,
+    semesterName: window.FFH.SEASONS[season.semester].name,
+    semesterEmoji: window.FFH.SEASONS[season.semester].emoji,
 
     // German Legal Employment & 20-Hour Rule (§16b AufenthG)
     weeklyHoursWorked: 4,
