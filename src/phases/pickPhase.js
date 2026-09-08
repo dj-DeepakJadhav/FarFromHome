@@ -83,7 +83,7 @@ window.FFH.PickPhase = class {
       const sceneId = this.currentStoryParams.storyScene.id;
       if (sceneId === 'shift_1_teach') {
         setTimeout(() => {
-          this.game.ui.showTutorialBanner("Tap the groceries on your list. Blue bottom. Pink middle. Purple top.", '#2EC4B6', 9000);
+          this.game.ui.showTutorialBanner("SHELF MAP  •  BLUE ▲ bottom  •  PINK ● middle  •  PURPLE ■ top", '#2EC4B6', 6000);
         }, 300);
       } else if (sceneId === 'shift_2_anticipate') {
         setTimeout(() => {
@@ -389,6 +389,9 @@ window.FFH.PickPhase = class {
       : `+${itemDef.nameEn}${streakLabel}`;
     const labelColor = isEarly ? '#FFD700' : '#2A9D8F';
     this.game.ui.spawnFloatingText(labelText, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, labelColor);
+    if (this.game.ui.showPickOutcome) {
+      this.game.ui.showPickOutcome(isEarly ? 'early' : 'correct', itemDef.nameEn);
+    }
 
     this.animateBagDrop(mesh);
     this.game.ui.showWarehouseManifest();
@@ -451,6 +454,9 @@ window.FFH.PickPhase = class {
     this.game.sfx.playSfx('error');
     this.game.particles.spawnErrorSparks(mesh.position.x, mesh.position.y, mesh.position.z);
     this.game.ui.spawnFloatingText(`Wrong shelf  (-${window.FFH.ECONOMY.MISPICK_INTEGRITY_COST}%)`, eClientX || window.innerWidth / 2, eClientY || window.innerHeight / 2, '#E63946');
+    if (this.game.ui.showPickOutcome) {
+      this.game.ui.showPickOutcome('wrong', `Bag integrity −${window.FFH.ECONOMY.MISPICK_INTEGRITY_COST}%`);
+    }
     this.shakeItem(mesh);
     this.game.ui.showWarehouseManifest();
   }

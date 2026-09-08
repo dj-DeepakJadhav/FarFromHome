@@ -44,11 +44,22 @@ window.FFH.CityCamera = class {
     this.setZoom(this.targetCamZoom + zoomDelta);
   }
 
-  resetIdle() {
+  resetIdle(keepManualAngle = false) {
     this.idleTimer = 0;
     this.idleDriftAngle = 0;
-    this.manualCameraAngle = undefined;
+    if (!keepManualAngle) this.manualCameraAngle = undefined;
     this.cameraHoldTimer = 0;
+  }
+
+  rotateStep(direction = 1) {
+    const CAM = (window.FFH.CONFIG && window.FFH.CONFIG.camera) || {};
+    const restAngle = (CAM.startAngleDeg !== undefined ? CAM.startAngleDeg : 135) * Math.PI / 180;
+    const currentAngle = this.manualCameraAngle !== undefined
+      ? this.manualCameraAngle
+      : (this.camCurrentAngle !== undefined ? this.camCurrentAngle : restAngle);
+    this.manualCameraAngle = currentAngle + (direction >= 0 ? Math.PI / 2 : -Math.PI / 2);
+    this.idleTimer = 0;
+    this.idleDriftAngle = 0;
   }
 
   update(delta, timeSec, isMoving) {
@@ -94,15 +105,15 @@ window.FFH.CityCamera = class {
     const restAngle = restDeg * Math.PI / 180;
     const isMiniature = CAM.fixedMiniature !== false;
     
-    let targetAngle = restAngle;
-
-    if (!isMiniature && this.manualCameraAngle !== undefined) {
-      targetAngle = this.manualCameraAngle;
-    }
+    let targetAngle = (!isMiniature && this.manualCameraAngle !== undefined)
+      ? this.manualCameraAngle
+      : restAngle;
 
     if (isMoving) {
-      this.resetIdle();
-    } else if (!isMiniature) {
+      // Moving should stop scenic drift, but it must not discard the view the
+      // player deliberately selected with the rotate control.
+      this.resetIdle(true);
+    } else if (!isMiniature && this.manualCameraAngle === undefined) {
       this.idleTimer += dt;
       const idleDelay = CAM.idleDriftDelay !== undefined ? CAM.idleDriftDelay : 5.0;
       if (this.idleTimer > idleDelay) {

@@ -30,6 +30,45 @@ Object.assign(window.FFH.UI.prototype, {
     animation.onfinish = () => label.remove();
   },
 
+  showPickOutcome(kind, detail = '') {
+    const parent = document.getElementById('game-container') || document.body;
+    const previous = document.getElementById('ffh-pick-outcome');
+    if (previous) previous.remove();
+
+    const outcomes = {
+      early: { label: 'EARLY PICK  ×2.0', color: '#FFB703', border: '#8A5B00' },
+      correct: { label: 'CORRECT PICK', color: '#2A9D8F', border: '#145A55' },
+      wrong: { label: 'WRONG SHELF', color: '#E63946', border: '#8D1D2A' }
+    };
+    const outcome = outcomes[kind] || outcomes.correct;
+    const el = document.createElement('div');
+    el.id = 'ffh-pick-outcome';
+    el.setAttribute('role', 'status');
+    el.innerHTML = `<strong>${outcome.label}</strong>${detail ? `<span>${detail}</span>` : ''}`;
+    el.style.cssText = `
+      position:absolute; left:50%; bottom:128px; transform:translate(-50%, 10px) scale(.94);
+      z-index:10002; pointer-events:none; min-width:150px; box-sizing:border-box;
+      padding:8px 12px; border:3px solid ${outcome.border}; border-radius:10px;
+      background:#FFFFFF; color:${outcome.border}; text-align:center;
+      box-shadow:0 4px 0 ${outcome.border}, 0 9px 16px rgba(0,0,0,.2);
+      opacity:0; transition:opacity .16s ease-out, transform .16s ease-out;
+      font-family:var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      font-size:12px; letter-spacing:.35px;
+    `;
+    const detailEl = el.querySelector('span');
+    if (detailEl) detailEl.style.cssText = 'display:block;margin-top:2px;color:#264653;font-size:10px;font-weight:800;letter-spacing:0;';
+    parent.appendChild(el);
+    requestAnimationFrame(() => {
+      el.style.opacity = '1';
+      el.style.transform = 'translate(-50%, 0) scale(1)';
+    });
+    setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transform = 'translate(-50%, -8px) scale(.98)';
+      setTimeout(() => el.remove(), 180);
+    }, 1100);
+  },
+
   clear() {
     if (this.container) this.container.innerHTML = '';
   },
@@ -1212,6 +1251,13 @@ Object.assign(window.FFH.UI.prototype, {
         </div>
       </div>
 
+      <button id="ffh-city-view-button" type="button" aria-label="Rotate city view" title="Rotate city view" style="
+        position:absolute; right:12px; bottom:92px; width:48px; height:48px;
+        border:3px solid #14213D; border-radius:50%; background:#FFFFFF;
+        color:#264653; box-shadow:0 4px 0 #14213D, 0 8px 14px rgba(0,0,0,.2);
+        font:900 18px/1 sans-serif; pointer-events:auto; cursor:pointer; z-index:101;
+      ">↻</button>
+
     `;
 
     this.container.appendChild(explorerDiv);
@@ -1245,6 +1291,19 @@ Object.assign(window.FFH.UI.prototype, {
           window.FFH.saveGame(this.game);
         }
         this.game.transitionTo('BOOT');
+      });
+    }
+
+    const cityViewButton = document.getElementById('ffh-city-view-button');
+    if (cityViewButton) {
+      cityViewButton.addEventListener('pointerdown', (event) => event.stopPropagation());
+      cityViewButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const city = this.game && this.game.phases && this.game.phases.CITY_EXPLORATION;
+        if (city && city.cameraController && city.cameraController.rotateStep) {
+          city.cameraController.rotateStep();
+          if (this.game.sfx) this.game.sfx.playSfx('click');
+        }
       });
     }
   },

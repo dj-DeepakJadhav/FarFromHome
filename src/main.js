@@ -119,6 +119,7 @@ class GameEngine {
 
   setupTitleDiorama() {
     this.clearTitleDiorama();
+    this.titleIdleStartedAt = this.clock ? this.clock.getElapsedTime() : 0;
 
     // Build the full city world as a background for the main menu
     // This way the player sees the actual game world behind the frosted glass panel
@@ -268,8 +269,10 @@ class GameEngine {
     if (persistent) persistent.style.display = hidden ? 'none' : 'flex';
   }
 
-  // The prologue's Skip intro action and ?quickstart=1 share one clean entry.
-  startFirstShift() {
+  // The prologue's Skip intro action and the judge-only fast-start share one
+  // clean entry. The fast-start preserves the normal opening and only changes
+  // the scene a reviewer lands in.
+  startFirstShift(startSceneId = 'shift_1_teach') {
     if (this.storyRunner) {
       this.storyRunner.cancelProseQueue();
       this.storyRunner.pendingStoryTarget = null;
@@ -277,7 +280,7 @@ class GameEngine {
     }
     this.state = window.FFH.createRunState();
     window.FFH.state = this.state;
-    this.state.currentShift = 1;
+    this.state.currentShift = startSceneId === 'shift_3_test' ? 3 : 1;
     this.state.day = 1;
     if (window.FFH.resetShiftState) {
       window.FFH.resetShiftState(this.state);
@@ -287,10 +290,10 @@ class GameEngine {
     }
     this.clearTitleDiorama();
 
-    // shift_1_teach is mode:gameplay, so StoryRunner transitions to PICK and
-    // supplies the ramp delay. Falling back to a bare PICK loses that.
+    // Gameplay scenes route through StoryRunner so the rail ramp is preserved.
+    // Falling back to a bare PICK loses the authored cue delay.
     if (this.storyRunner) {
-      this.storyRunner.startScene('shift_1_teach');
+      this.storyRunner.startScene(startSceneId);
     } else {
       this.transitionTo('PICK');
     }
@@ -344,17 +347,21 @@ class GameEngine {
       this.titleRoom.userData.updateIdle(this.clock.getElapsedTime());
     }
 
-    // Render loop - gently pan the title camera around the city on the boot screen
-    if (this.titleDiorama && !this.currentPhase) {
+    // Let the title frame settle first, then begin a slow aerial glide. The
+    // interactive city camera is deliberately separate from this non-blocking
+    // title presentation.
+    if (this.titleDiorama && this.currentPhaseName === 'BOOT' && !this.currentPhase) {
       const t = this.clock.getElapsedTime();
+      const titleStart = this.titleIdleStartedAt !== undefined ? this.titleIdleStartedAt : t;
+      const idleElapsed = Math.max(0, t - titleStart - 4);
       const radius = 12; // Adjusted for 0.52 zoom
       const cam = this.cameras.mainCamera;
       if (cam) {
         cam.zoom = 0.52;
         cam.updateProjectionMatrix();
-        cam.position.x = 10.4 + Math.sin(t * 0.04) * radius;
-        cam.position.z = 5.2 + Math.cos(t * 0.04) * radius;
-        cam.position.y = 14 + Math.sin(t * 0.025) * 1.5;
+        cam.position.x = 10.4 + Math.sin(idleElapsed * 0.08) * radius;
+        cam.position.z = 5.2 + Math.cos(idleElapsed * 0.08) * radius;
+        cam.position.y = 14 + Math.sin(idleElapsed * 0.05) * 1.5;
         cam.lookAt(10.4, 0.05, 5.2);
       }
       // Animate water on title screen too
@@ -402,14 +409,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.game = game;
   game.init();
 
-  // ?quickstart=1 opens directly on Shift 1. This exists so the submission
-  // link can land a reviewer in the core loop without putting a bypass button
-  // on the main menu, where it would confuse a first-time player.
+  // ?quickstart=1 opens directly on the Shift 3 rail-pulse Aha. This gives a
+  // reviewer a 90-second proof path without putting a bypass button on the
+  // main menu or rushing the normal, cozy Day 1 opening.
   try {
     if (new URLSearchParams(window.location.search).get('quickstart') === '1') {
       setTimeout(() => {
         game.unlockAudio();
-        game.startFirstShift();
+        game.startFirstShift('shift_3_test');
       }, 300);
     }
   } catch (e) { /* no URLSearchParams support: fall through to the title screen */ }

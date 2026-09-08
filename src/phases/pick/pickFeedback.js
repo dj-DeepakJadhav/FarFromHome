@@ -57,13 +57,6 @@ window.FFH.pulseRailForGender = function(gender, tagRails, currentShift, ui) {
   const row = gender === 'der' ? 0 : gender === 'die' ? 1 : 2;
   const rail = tagRails[row];
 
-  // Day 1 FTUE: First-Shift Tutorial
-  if (currentShift === 1 && ui && ui.showTutorialBanner) {
-    if (gender === 'der') ui.showTutorialBanner('Der (Masculine) ➔ Look for Blue', 4000);
-    if (gender === 'die') ui.showTutorialBanner('Die (Feminine) ➔ Look for Pink', 4000);
-    if (gender === 'das') ui.showTutorialBanner('Das (Neuter) ➔ Look for Purple', 4000);
-  }
-
   if (rail) {
     const originalScale = rail.scale.clone();
     const colorSource = rail.material.color || (rail.material.uniforms && rail.material.uniforms.uColor ? rail.material.uniforms.uColor.value : null);
