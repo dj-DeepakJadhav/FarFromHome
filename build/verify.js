@@ -552,6 +552,52 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
   });
 }
 
+// ---------- 16. every speaking character resolves to a real model ----------
+// createNPCMesh does `mapping[npcKey] || npcKey`, so an unmapped cast key
+// looks for a GLB named e.g. "NPC_KLAUS", finds nothing and returns an EMPTY
+// GROUP: the character is invisible and nothing throws. Six speaking
+// characters were in that state, NPC_KLAUS among them, and he is cast in the
+// three warehouse scenes including the one ?quickstart=1 lands a judge on.
+{
+  const glbSrc = fs.readFileSync(path.join(ROOT, 'src/data/characterGLB.js'), 'utf8');
+  const mapMatch = glbSrc.match(/NPC_GLB_MAPPING\s*=\s*(\{[\s\S]*?\})\s*;/);
+  let mapping = {};
+  try { mapping = JSON.parse(mapMatch[1]); } catch (e) { bad('parse NPC_GLB_MAPPING', e.message); }
+
+  // Authoritative list of models: the files actually on disk.
+  const glbRoot = path.join(ROOT, 'assets/Characters/glb');
+  const available = new Set();
+  ['Mini', 'Blocky'].forEach(dir => {
+    const full = path.join(glbRoot, dir);
+    if (!fs.existsSync(full)) return;
+    fs.readdirSync(full).filter(f => f.endsWith('.glb'))
+      .forEach(f => available.add(f.replace(/\.glb$/, '')));
+  });
+  check('character models are present on disk', available.size > 0, glbRoot);
+
+  const castKeys = new Set();
+  scenes.forEach(sc => (sc.cast || []).forEach(c => castKeys.add(c)));
+
+  const unresolved = [...castKeys].filter(k => !available.has(mapping[k] || k));
+  check('every cast NPC resolves to a model file', unresolved.length === 0,
+        'invisible: ' + unresolved.join(', '));
+
+  // Same check restricted to what actually ships, so an Acts III-V regression
+  // cannot mask a defect on the critical path.
+  const shipCast = new Set();
+  scenes.filter(sc => sc.act === 'I' || sc.act === 'II')
+        .forEach(sc => (sc.cast || []).forEach(c => shipCast.add(c)));
+  const shipUnresolved = [...shipCast].filter(k => !available.has(mapping[k] || k));
+  check('every Act I-II NPC resolves to a model file', shipUnresolved.length === 0,
+        'invisible on the shipping path: ' + shipUnresolved.join(', '));
+
+  // Nico is a student. character-male-c is a blue police uniform with cap and
+  // badge, which gave the wrong impression entirely.
+  check('Nico does not wear the police model',
+        mapping['NPC_NICO'] !== 'character-male-c',
+        'currently ' + mapping['NPC_NICO']);
+}
+
 // ---------- report ----------
 console.log('');
 notes.forEach(n => console.log('  · ' + n));
