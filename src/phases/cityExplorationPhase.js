@@ -1479,13 +1479,19 @@ window.FFH.CityExplorationPhase = class {
     // 7. Update Distance Indicator and Freshness Decay
     const isDelivery = !!this.game.state.activeDelivery;
     const hasStoryTarget = !!(sr && sr.pendingStoryTarget);
-    // A post round is a navigation objective too. Without it here, the else
-    // branch below set the range readout inactive every frame, and because
-    // this block runs AFTER letterRound.update() it overwrote the distance and
-    // bearing the round had just published. The player got an address with no
-    // indication of how far away it was or which way to walk.
     const inLetterRound = !!(this.letterRound && this.letterRound.active && this.letterRound.current);
-    if ((isDelivery || hasStoryTarget || inLetterRound) && targetMesh) {
+
+    // Show the range for EVERY navigation objective, not a chosen few.
+    //
+    // targetMesh is resolved above for all of them: the story's pending
+    // target, each act1Stage destination (the WG, the university, the
+    // pizzeria, the bakery), the tuition goal, an active delivery and the
+    // current post-round address. The readout used to require isDelivery or
+    // hasStoryTarget, so the act1Stage objectives (which are most of Day 1,
+    // including "Go home. It's late.") named a place with no distance and no
+    // arrow, and the else branch actively blanked it every frame. If we know
+    // where the player is meant to walk, we say how far it is.
+    if (targetMesh) {
       const dx = targetMesh.position.x - this.playerPos.x;
       const dz = targetMesh.position.z - this.playerPos.z;
       const dist = Math.sqrt(dx*dx + dz*dz);

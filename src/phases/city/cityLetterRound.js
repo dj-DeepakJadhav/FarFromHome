@@ -116,7 +116,10 @@ window.FFH.CityLetterRound = class {
       const d = m.position.distanceTo(pos);
       if (d > 0.5 && d < bestD) { bestD = d; best = meta[t].name; }
     });
-    if (!best || bestD > 18) return null;
+    // 32 units is a little over a third of the map, which is close enough for
+    // a landmark to be a useful bearing. At 18 many residential blocks in the
+    // quieter quarters fell through and were left as a bare "Altbau 44".
+    if (!best || bestD > 32) return null;
     // Trim a parenthetical, so "St. Mary's (Church)" reads as "St. Mary's".
     return best.replace(/\s*\([^)]*\)\s*$/, '').trim();
   }

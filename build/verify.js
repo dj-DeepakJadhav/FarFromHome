@@ -667,9 +667,11 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
         /getDoorPosition\(m\.userData\.type, m\.position\)/.test(lrSrc),
         'otherwise the ring the player walks to is not the point that counts');
 
-  check('the range readout survives a post round',
-        /inLetterRound/.test(citySrc) && /isDelivery \|\| hasStoryTarget \|\| inLetterRound/.test(citySrc),
-        'the else branch set it inactive after letterRound.update published it');
+  check('the range readout shows for every navigation objective',
+        /Show the range for EVERY navigation objective/.test(citySrc)
+        && !/if \(\(isDelivery \|\| hasStoryTarget[^)]*\) && targetMesh\)/.test(citySrc),
+        'gating on isDelivery/hasStoryTarget left the act1Stage objectives, '
+        + 'which are most of Day 1, with a place name and no distance');
 
   check('the beacon aims at the round address',
         /targetMesh = curLetter\.mesh/.test(citySrc));
