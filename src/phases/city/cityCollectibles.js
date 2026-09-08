@@ -105,7 +105,13 @@ window.FFH.CityCollectibles = class {
         item.collected = true;
         this.game.state.collectedPfandIds.push(item.id);
         
-        this.game.state.wallet = window.FFH.round2((this.game.state.wallet || 20) + 0.25);
+        const deposit = window.FFH.ECONOMY.PFAND_DEPOSIT;
+        this.game.state.wallet = window.FFH.round2(
+          (this.game.state.wallet || window.FFH.ECONOMY.STARTING_WALLET) + deposit);
+        // Counted separately so the day-end receipt can itemise Pfand without
+        // inferring it from the wallet balance.
+        this.game.state.pfandCollected = window.FFH.round2(
+          (this.game.state.pfandCollected || 0) + deposit);
         if (this.game.ui && this.game.ui.refreshStats) {
           this.game.ui.refreshStats(this.game.state);
         }
@@ -118,7 +124,7 @@ window.FFH.CityCollectibles = class {
         }
 
         if (this.game.ui && this.game.ui.spawnFloatingText) {
-          this.game.ui.spawnFloatingText('+0.25€ Pfand Deposit! 🍾', window.innerWidth / 2, window.innerHeight * 0.45, '#4CAF50');
+          this.game.ui.spawnFloatingText('+' + deposit.toFixed(2) + '€ Pfand Deposit! 🍾', window.innerWidth / 2, window.innerHeight * 0.45, '#4CAF50');
         }
 
         const pfandThoughts = [

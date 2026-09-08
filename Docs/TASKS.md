@@ -218,6 +218,24 @@ meant to read. Everything else is either untracked or deleted.
   `scratch/`, `tools/`, `tests/screenshot_*.png`. None are needed to build,
   play or judge the game.
 
+**Audio is NOT being stripped. Read this before touching anything audio.**
+The game keeps two audio layers and both are required:
+
+- `assets/Music/bgMusic.mp3` (939 KB) — background music, inlined as a data URI
+  by `assemble.js`, wired in `gameConfig.js` at volume 0.35 on loop with a mute
+  toggle in `hudModals.js`. **Do not remove.**
+- `src/audio/sfx.js` and `src/audio/speech.js` — every feedback sound (pick
+  chime, mispick buzz, doorbell, cash) is synthesised at runtime from 17
+  oscillator calls. No audio files needed. **Do not remove.**
+
+What was removed is only the abandoned **language-learning pronunciation** takes
+(`milch.wav`, `ruhezeit.wav`, per-NPC voice lines) plus
+`build/generate_voice_sprites.py`, the orphaned generator that fed them into the
+deleted `src/data/voiceSprites.js`. Verified: zero `.wav` references exist in
+`src/` or `index.dev.html`, and `assemble.js` still inlines the music after
+removal. The correct public claim is **background music + procedural SFX, no
+voice acting**.
+
 **Rules going forward:**
 
 - The release kit contains **`index.html` + `vendor/` only**. No `Docs/`, no
@@ -395,7 +413,7 @@ work ends somewhere in the city
   -> the player walks home themselves (~20-30s, real navigation)
   -> in the room: the PAYSLIP opens, HUD suppressed behind it
   -> dismiss -> the room scene plays (Nico, the day's last thought)
-  -> [Sleep.] -> night_tick: day +1, rent -8.00, body restored
+  -> [Sleep.] -> night_tick: day +1, dailyCostsFor(day+1) charged, body restored
   -> next day opens somewhere else
 ```
 
@@ -404,7 +422,15 @@ Tagged `unlocks.mechanic: 'day_end'` on `night_one_end` (day 1),
 
 **Verified:** objective reads "Go home. It's late.", beacon targets B_WG,
 payslip opens in the room with the HUD hidden, dismissal resumes the scene, and
-Sleep moves day 1 -> 2 with wallet 20.00 -> 12.00.
+Sleep moves day 1 -> 2.
+
+**Corrected 2026-09-08.** This section claimed the day 1 night charged 8.00 rent
+and took the wallet 20.00 -> 12.00. It does not, and has not since
+`dailyCostsFor()` became the single source. The real schedule is: waking into
+day 1 costs nothing, day 2 charges Food 5.00 only, and day 3 onward charges
+Hostel bed 8.00 + Food 5.00 = 13.00. So the day 1 night is **20.00 -> 15.00
+(-5.00)**. The hostel bed does not start until day 3. Asserted in
+`build/verify.js` section 12; do not restate the old numbers.
 
 ### Why this mattered more than it looked
 `DEBRIEF_RECEIPT` had exactly **one** caller, buried in `dialogueResidents.js`.

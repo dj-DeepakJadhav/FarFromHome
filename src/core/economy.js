@@ -5,6 +5,7 @@ window.FFH.ECONOMY = {
     TUITION_GOAL: 250,
     KAUTION_DEPOSIT: 30,
     HOSTEL_DAILY_RENT: 8,
+    PFAND_DEPOSIT: 0.25,          // per bottle returned; 5 bottles spawn per day
     DAILY_FOOD_COST: 5,           // charged every day from day 2, lease or no lease
 
     // Letter round (the post job, fail branch). Flat per-letter rate with no
@@ -64,8 +65,14 @@ window.FFH.buildReceiptLedger = function (state, payout, options = {}) {
     ? []
     : window.FFH.dailyCostsFor(state, dayNum + 1);
   const dailyTotal = dailyCosts.reduce((sum, cost) => sum + cost.amount, 0);
+  // Pfand and other city-walk income for the day being closed. Prefer the
+  // explicit counter; fall back to inferring it from the wallet only for saves
+  // written before the counter existed. The inference is wrong as soon as the
+  // player spends anything, which is why it is no longer the primary source.
   const explorationIncome = payout.isExplorationDay
-    ? Math.max(0, window.FFH.round2(state.wallet - window.FFH.ECONOMY.STARTING_WALLET))
+    ? (typeof state.pfandCollected === 'number'
+        ? window.FFH.round2(state.pfandCollected)
+        : Math.max(0, window.FFH.round2(state.wallet - window.FFH.ECONOMY.STARTING_WALLET)))
     : 0;
   const income = window.FFH.round2((payout.netPayout || 0) + explorationIncome);
   const incomeAlreadyInWallet = !!(payout.isExplorationDay || payout.isLetterRound);
@@ -161,7 +168,24 @@ window.FFH.recordShiftPerformance = function (state) {
 
 window.FFH.finishShift = function(game) {
   const state = game.state;
+
+  // Settle-once guard. This function credits the wallet, advances the day and
+  // charges daily costs, so running it twice for one shift pays the player
+  // twice and double-charges rent. The story routes guard themselves (see
+  // storyRunner `_dayEndShownFor` and the `_resumeAfterReceipt = null` first
+  // line of each closure), but the standalone receipt button had no guard at
+  // all, and a double-tap on a phone is the easiest input in the game.
+  //
+  // The flag lives on the PAYOUT, not on state. A day+shift token does not
+  // work here: finishShift advances both, so a repeat call would compute a
+  // fresh token and settle a second time. One payout object is one shift's
+  // pay, which is exactly the thing that must be banked once. The object is
+  // written back to game.lastPayout so a caller that passed nothing still
+  // reuses the same one instead of minting an unguarded copy.
   const payout = game.lastPayout || window.FFH.calculatePayout(state);
+  if (payout._settled) return;
+  payout._settled = true;
+  game.lastPayout = payout;
 
   state.wallet = window.FFH.round2(state.wallet + payout.netPayout);
   state.shiftEarnings = payout.netPayout;
@@ -239,6 +263,11 @@ window.FFH.createRunState = function () {
     wallet: window.FFH.ECONOMY.STARTING_WALLET,
     currentShift: 1,
     day: 1,
+    // Pfand banked TODAY. The Day 1 receipt used to infer this as
+    // `wallet - STARTING_WALLET`, which silently reported 0.00 the moment the
+    // player bought anything, hiding earnings they had actually made. Counted
+    // explicitly and reset at every day rollover.
+    pfandCollected: 0,
     body: 100,
     heart: 50,
     knots: 4,

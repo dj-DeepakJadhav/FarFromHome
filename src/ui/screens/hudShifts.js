@@ -716,7 +716,16 @@ Object.assign(window.FFH.UI.prototype, {
       btn.style.transform = 'none';
       btn.style.boxShadow = '0 4px 0 #222';
     });
+    // One dismissal per receipt. finishShift also refuses to settle the same
+    // day+shift twice, but that is the backstop; this stops the second tap from
+    // firing the sound and the transition at all. Without it a double-tap ran
+    // the whole dismissal path twice.
+    let dismissed = false;
     btn.addEventListener('click', () => {
+      if (dismissed) return;
+      dismissed = true;
+      btn.style.pointerEvents = 'none';
+
       // Tactile cash register sound logic
       this.game.sfx.playSfx('success'); // or 'kaching' if we add one
       if (this.setHudHidden) this.setHudHidden(false);

@@ -288,6 +288,195 @@ check('vendor source is not embedded by assembler', !assembler.includes('vendorC
         'baseWage ' + s1.baseWage + ', quota ' + s1.quota);
 }
 
+// ---------- 13. P0.1 receipt / day-boundary contract ----------
+// Five deterministic day-end scenarios. Each asserts that what the receipt
+// SHOWS and what the wallet actually DOES agree, that income already sitting in
+// the wallet is never counted a second time, and that a pending Kruma payout is
+// counted exactly once.
+{
+  const E = F.ECONOMY;
+  const baseState = (over) => Object.assign({
+    day: 1, currentShift: 1, wallet: E.STARTING_WALLET, strikes: 0,
+    bagIntegrity: 100, stats: { shiftsWorked: 0 }, upgrades: {},
+    activeOrder: [], storyFlags: {}
+  }, over || {});
+
+  // dailyCostsFor is the ONLY rent/food source, and the day it is asked about
+  // must be the day the player wakes into.
+  check('day 1 charges nothing (arrival night is free)',
+        F.dailyCostsFor(baseState(), 1).length === 0);
+  check('day 2 charges food only',
+        F.dailyCostsFor(baseState(), 2).map(c => c.label).join(',') === 'Food');
+  check('day 3 charges hostel bed and food',
+        F.dailyCostsFor(baseState(), 3).map(c => c.label).sort().join(',') === 'Food,Hostel bed');
+  check('a signed lease stops the hostel charge',
+        !F.dailyCostsFor(baseState({ has_lease: true }), 3)
+           .some(c => c.label === 'Hostel bed'),
+        'kaution_pay sets has_lease, not hasApartment');
+
+  // --- Scenario 1: Day 1 orientation with Pfand. Income is ALREADY in the
+  // wallet (bottles were collected during the walk), so the receipt must show
+  // it as earnings but must NOT add it again to the projected balance.
+  {
+    const allFive = F.round2(E.PFAND_DEPOSIT * 5);     // 5 bottles spawn per day
+    const st = baseState({ day: 1, wallet: F.round2(20 + allFive), pfandCollected: allFive });
+    const l = F.buildReceiptLedger(st, { netPayout: 0, isExplorationDay: true }, { day: 1 });
+    check('day 1 receipt itemises Pfand as income', l.explorationIncome === allFive);
+    check('day 1 receipt shows next-day food cost', l.dailyTotal === E.DAILY_FOOD_COST);
+    check('day 1 Pfand is not added to the wallet twice',
+          l.projectedWallet === F.round2(20 + allFive - E.DAILY_FOOD_COST),
+          'projected ' + l.projectedWallet);
+    check('day 1 net change is income minus costs',
+          l.netChange === F.round2(allFive - E.DAILY_FOOD_COST));
+
+    // The regression this counter exists for. The old ledger inferred Pfand as
+    // `wallet - STARTING_WALLET`, so spending anything during the walk made the
+    // receipt under-report income that the player had genuinely earned. Here
+    // the player banks all five bottles and then spends 2.00 on coffee.
+    const spent = baseState({ day: 1, wallet: F.round2(20 + allFive - 2.00),
+                              pfandCollected: allFive });
+    const ls = F.buildReceiptLedger(spent, { netPayout: 0, isExplorationDay: true }, { day: 1 });
+    check('spending during day 1 does not hide Pfand earnings',
+          ls.explorationIncome === allFive,
+          'reported ' + ls.explorationIncome + ' instead of ' + allFive);
+    check('day 1 projection reflects money actually spent',
+          ls.projectedWallet === F.round2(20 + allFive - 2.00 - E.DAILY_FOOD_COST),
+          'projected ' + ls.projectedWallet);
+
+    // A run with no bottles collected must report zero, not a negative number.
+    const none = baseState({ day: 1, wallet: 18.00, pfandCollected: 0 });
+    const ln = F.buildReceiptLedger(none, { netPayout: 0, isExplorationDay: true }, { day: 1 });
+    check('collecting no Pfand reports zero income', ln.explorationIncome === 0,
+          'reported ' + ln.explorationIncome);
+
+    check('a fresh run starts with an empty Pfand ledger',
+          F.createRunState().pfandCollected === 0);
+    check('Pfand deposit is a canonical tunable, not a literal',
+          typeof E.PFAND_DEPOSIT === 'number' && E.PFAND_DEPOSIT > 0);
+  }
+
+  // --- Scenario 2: Day 2 Kruma trial passed. The payout is PENDING (the story
+  // scene applies it), so it must be added exactly once.
+  {
+    const st = baseState({ day: 2, wallet: 12.00, trialPassed: true });
+    const l = F.buildReceiptLedger(st, { netPayout: 37.85 }, { day: 2 });
+    check('day 2 Kruma receipt counts the pending payout once', l.income === 37.85);
+    check('day 2 Kruma projects wallet + pay - tomorrow costs',
+          l.projectedWallet === F.round2(12.00 + 37.85 - 13.00),
+          'projected ' + l.projectedWallet);
+  }
+
+  // --- Scenario 3: Day 2 failed trial. No pay, but the night still costs.
+  {
+    const st = baseState({ day: 2, wallet: 12.00, trialPassed: false });
+    const l = F.buildReceiptLedger(st, { netPayout: 0, isExplorationDay: true }, { day: 2 });
+    check('failed trial night earns nothing', l.income === 0,
+          'income ' + l.income);
+    check('failed trial night still charges the day', l.dailyTotal === 13.00);
+    check('failed trial night reduces the wallet',
+          l.projectedWallet === F.round2(12.00 - 13.00));
+  }
+
+  // --- Scenario 4: Day 3 Kruma, settled. `settled` means the story already
+  // charged the night, so the receipt must not charge it a second time.
+  {
+    const st = baseState({ day: 3, currentShift: 2, wallet: 36.75 });
+    const l = F.buildReceiptLedger(st, { netPayout: 41.90 }, { day: 3, settled: true });
+    check('a settled receipt charges no costs', l.dailyTotal === 0);
+    check('a settled receipt still reports earnings', l.income === 41.90);
+  }
+
+  // --- Scenario 5: Day 3 post round. Letter pay is already banked by the
+  // round itself, so it must not be added again.
+  {
+    const full = E.LETTER_RATE * E.LETTER_ROUND_SIZE;
+    const st = baseState({ day: 3, wallet: F.round2(12.00 + full) });
+    const l = F.buildReceiptLedger(st, { netPayout: full, isLetterRound: true }, { day: 3 });
+    check('post round reports the full round', l.income === full);
+    check('post round pay is not banked twice',
+          l.projectedWallet === F.round2(12.00 + full - 13.00),
+          'projected ' + l.projectedWallet);
+    check('a post round pays less than a Kruma shift', full < 37.85,
+          'Kruma must stay the better job');
+  }
+
+  // --- Repeat dismissal must not duplicate pay. This is the guard that was
+  // missing: the receipt button called finishShift with no protection, so a
+  // double-tap credited the wallet twice and charged the night twice.
+  {
+    const st = baseState({ day: 2, currentShift: 1, wallet: 12.00 });
+    const game = {
+      state: st,
+      lastPayout: { netPayout: 37.85, metQuota: true },
+      transitionTo: () => {},
+      ui: {}
+    };
+    F.finishShift(game);
+    const afterFirst = st.wallet;
+    const dayAfterFirst = st.day;
+    F.finishShift(game);
+    F.finishShift(game);
+    check('repeat dismissal cannot duplicate pay', st.wallet === afterFirst,
+          'wallet drifted from ' + afterFirst + ' to ' + st.wallet);
+    check('repeat dismissal cannot advance the day again', st.day === dayAfterFirst,
+          'day drifted from ' + dayAfterFirst + ' to ' + st.day);
+    check('the shown cost is the charged cost',
+          st.wallet === F.round2(12.00 + 37.85 - 13.00),
+          'wallet ' + st.wallet);
+  }
+}
+
+// ---------- 14. the receipt projection IS the next morning's wallet ----------
+// The contract that matters to a player: the number the receipt promises after
+// sleep is the number they wake up with. Simulates night_tick exactly as
+// storyRunner does (charge dailyCostsFor(day+1), advance the day) and compares.
+{
+  const E = F.ECONOMY;
+  const sleep = (st) => {                       // mirrors storyRunner night_tick
+    const costs = F.dailyCostsFor(st, (st.day || 1) + 1);
+    const daily = costs.reduce((sum, c) => sum + c.amount, 0);
+    st.day = (st.day || 1) + 1;
+    st.wallet = F.round2(st.wallet - daily);
+    st.pfandCollected = 0;
+    return st.wallet;
+  };
+
+  // Day 1 orientation: five bottles banked, 2.00 spent on the walk.
+  {
+    const st = F.createRunState();
+    for (let i = 0; i < 5; i++) {
+      st.wallet = F.round2(st.wallet + E.PFAND_DEPOSIT);
+      st.pfandCollected = F.round2(st.pfandCollected + E.PFAND_DEPOSIT);
+    }
+    st.wallet = F.round2(st.wallet - 2.00);
+    const projected = F.buildReceiptLedger(
+      st, { netPayout: 0, isExplorationDay: true }, { day: 1 }).projectedWallet;
+    check('day 1 projection is the day 2 opening wallet', sleep(st) === projected,
+          'projected ' + projected + ', woke with ' + st.wallet);
+  }
+
+  // Day 2 Kruma pass: payout is pending, so sleep must apply it once.
+  {
+    const st = Object.assign(F.createRunState(), { day: 2, wallet: 15.00 });
+    const pay = 37.85;
+    const projected = F.buildReceiptLedger(st, { netPayout: pay }, { day: 2 }).projectedWallet;
+    st.wallet = F.round2(st.wallet + pay);      // the story scene banks the pay
+    check('day 2 Kruma projection is the day 3 opening wallet', sleep(st) === projected,
+          'projected ' + projected + ', woke with ' + st.wallet);
+  }
+
+  // Day 3 post round: pay is already banked, so sleep must not add it again.
+  {
+    const round = F.round2(E.LETTER_RATE * E.LETTER_ROUND_SIZE);
+    const st = Object.assign(F.createRunState(), { day: 3, wallet: F.round2(15.00 + round) });
+    const projected = F.buildReceiptLedger(
+      st, { netPayout: round, isLetterRound: true }, { day: 3 }).projectedWallet;
+    check('day 3 post projection is the day 4 opening wallet', sleep(st) === projected,
+          'projected ' + projected + ', woke with ' + st.wallet);
+  }
+
+}
+
 // ---------- report ----------
 console.log('');
 notes.forEach(n => console.log('  · ' + n));

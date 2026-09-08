@@ -848,6 +848,10 @@ window.FFH.StoryRunner = class {
             const state = this.game.state;
             state.lastDailyCosts = window.FFH.dailyCostsFor(state, (state.day || 1) + 1);
             state.daily_cost = state.lastDailyCosts.reduce((sum, cost) => sum + cost.amount, 0);
+            // The day being closed has already shown its receipt, so the Pfand
+            // ledger and the bottle spawns both reset for the new day.
+            state.pfandCollected = 0;
+            state.collectedPfandIds = [];
           }
           this.applyEffects(tunnelScene.effects);
         } else if (!tunnelScene) {

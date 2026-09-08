@@ -336,6 +336,7 @@ window.FFH.ShopPhase = class {
         state.freshness = 100;
         state.body = 100; // Restore stamina every full sleep
         state.collectedPfandIds = []; // Respawn Pfand bottles daily across Lübeck
+        state.pfandCollected = 0;     // New day, new Pfand ledger for the receipt
 
         this.game.sfx.playSfx('success');
         this.game.ui.spawnFloatingText(`☀️ Tag ${state.day}: Guten Morgen! Stamina & Pfand Bottles Restored.`, window.innerWidth / 2, window.innerHeight / 2, '#FFB703');
