@@ -246,13 +246,33 @@ window.FFH.CityCamera = class {
   updateBuildingOcclusionFade() {
     const cam = this.game.currentCamera;
     if (!cam) return;
-    if (this.camZoom < 0.6) return;
+    // A `camZoom < 0.6` bail used to sit here. CONFIG.camera clamps zoom to
+    // [minZoom 1.0 .. maxZoom 2.0], so it could never fire; it was a leftover
+    // from an older zoom scale and only made this function look conditional.
 
     // Cast FROM player TO camera so we hit the front faces of buildings reliably
     const charPos = new THREE.Vector3(this.phase.playerPos.x, this.phase.playerPos.y + 0.8, this.phase.playerPos.z);
     const camPos = cam.position.clone();
-    const rayDir = new THREE.Vector3().subVectors(camPos, charPos).normalize();
-    const rayDist = camPos.distanceTo(charPos);
+
+    // This camera is ORTHOGRAPHIC, built in sceneSetup as
+    // OrthographicCamera(..., near = -100, far = 1000). An ortho view volume
+    // runs from `near` to `far` along the view axis, so with a negative near
+    // the volume starts 100 units BEHIND the camera position: geometry way
+    // behind the camera still renders and can still cover the courier.
+    //
+    // The ray direction therefore has to be the camera's own view axis, not
+    // `camPos - charPos`, and `far` has to reach the back of the view volume
+    // rather than stopping at the camera. It used to stop at camPos + 0.05,
+    // and at this zoom the camera sits only about 2 units from the player
+    // (baseDistanceFar 1.75, baseHeightFar 1.15), so the ray tested roughly
+    // two units of world and missed every building that was not already
+    // touching the courier. That is the whole "fade only works when he is
+    // right up against the wall" bug.
+    const viewDir = new THREE.Vector3();
+    cam.getWorldDirection(viewDir);                    // camera looks this way
+    const rayDir = viewDir.clone().negate().normalize(); // player -> camera, and past it
+    const backPlaneDepth = Math.abs(cam.near !== undefined ? cam.near : 0);
+    const rayFar = charPos.distanceTo(camPos) + Math.max(backPlaneDepth, 40);
 
     // Test the courier's complete silhouette, not only chest height. This
     // catches a wall before it covers the sprite from the player's viewpoint.
@@ -276,7 +296,7 @@ window.FFH.CityCamera = class {
     samplePoints.forEach(rayStart => {
       this.occlusionRaycaster.set(rayStart, rayDir);
       this.occlusionRaycaster.near = 0.1;
-      this.occlusionRaycaster.far = rayStart.distanceTo(camPos) + 0.05;
+      this.occlusionRaycaster.far = rayFar;
 
       const hits = this.occlusionRaycaster.intersectObjects(targets, true);
       hits.forEach(hit => {
