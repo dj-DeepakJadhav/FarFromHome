@@ -1,6 +1,6 @@
 # Claude Code Configuration. Meta Horizon Creator Competition (MHCP)
 
-See **`AGENTS.md`**, **`Docs/README_HACKATHON.md`**, and **`Docs/submission/`** for full master authority.
+See **`AGENTS.md`**, **`README_HACKATHON.md`**, and **`Docs/submission/`** for full master authority.
 
 ## Strict Rules
 1. **Packaging**: Single `index.html` at root, unminified, 100% offline, ≤ 35MB.

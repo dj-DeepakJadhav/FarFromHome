@@ -7,7 +7,7 @@ This is the story of the project: where the idea came from, why it had to change
 real German rules turned into game mechanics, what broke, and what we did about it.
 
 It is not the place to look up design details or numbers. The design is in
-[README_HACKATHON.md](README_HACKATHON.md), the numbers are in
+[README_HACKATHON.md](../README_HACKATHON.md), the numbers are in
 [CANONICAL_NUMBERS.md](CANONICAL_NUMBERS.md), and the session by session record is in
 [submission/BUILD_LOG.md](submission/BUILD_LOG.md). Where this document and the code
 disagree, the code is right.
@@ -445,7 +445,7 @@ All of these are in this repository:
 | What | Where |
 | :--- | :--- |
 | The German law and culture research | [GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md](GERMAN_EXPATS_LIVING_RULES_AND_LAWS.md) |
-| The design | [README_HACKATHON.md](README_HACKATHON.md) |
+| The design | [README_HACKATHON.md](../README_HACKATHON.md) |
 | Every number | [CANONICAL_NUMBERS.md](CANONICAL_NUMBERS.md) |
 | The design on one page | [ONE_PAGE_DESIGN_DOCUMENT.md](ONE_PAGE_DESIGN_DOCUMENT.md) |
 | How the code fits together | [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) |

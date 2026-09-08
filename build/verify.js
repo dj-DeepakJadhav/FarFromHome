@@ -227,7 +227,7 @@ check('every shop upgrade is sold at some POI',
     const { aha_cumulative_s: aha, budget_s: budget } = story.pacing;
     if (typeof aha === 'number' && typeof budget === 'number' && aha > budget) {
       const docFiles = ['Docs/generated/GAMEPLAY_MANIFEST.md', 'Docs/CANONICAL_NUMBERS.md',
-                        'Docs/STORY_FORMAT.md', 'Docs/submission/SUBMISSION_CHECKLIST.md'];
+                        'Docs/STORY_FORMAT.md'];
       const liars = docFiles.filter((rel) => {
         const f = path.join(ROOT, rel);
         if (!fs.existsSync(f)) return false;
@@ -239,7 +239,7 @@ check('every shop upgrade is sold at some POI',
   }
 
   const hasMusic = fs.existsSync(path.join(ROOT, 'assets/Music/bgMusic.mp3'));
-  const readme = fs.readFileSync(path.join(ROOT, 'Docs/README_HACKATHON.md'), 'utf8');
+  const readme = fs.readFileSync(path.join(ROOT, 'README_HACKATHON.md'), 'utf8');
   check('docs do not claim zero audio while shipping music',
         !(hasMusic && /ships no audio files|zero recorded assets/i.test(readme)),
         'README_HACKATHON claims no audio but bgMusic.mp3 exists');

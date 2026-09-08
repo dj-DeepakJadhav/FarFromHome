@@ -50,6 +50,10 @@ refactor.py
 track-costs.js
 tunnel_url.txt
 
+# Local agent and submission coordination files
+AGENTS.md
+Docs/submission/SUBMISSION_CHECKLIST.md
+
 # Reference images dropped loose into Docs/
 #
 # This only matches files directly inside Docs/, not subfolders, so the real

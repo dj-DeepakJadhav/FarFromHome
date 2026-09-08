@@ -23,7 +23,7 @@ teaching.
 | Subject | Document |
 | :--- | :--- |
 | Competition rules and how agents must work | [AGENTS.md](../AGENTS.md) |
-| The game design | [README_HACKATHON.md](README_HACKATHON.md) |
+| The game design | [README_HACKATHON.md](../README_HACKATHON.md) |
 | Every number: sizes, prices, timers | [CANONICAL_NUMBERS.md](CANONICAL_NUMBERS.md) |
 | The design on one page | [ONE_PAGE_DESIGN_DOCUMENT.md](ONE_PAGE_DESIGN_DOCUMENT.md) |
 | How the code is built | [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) |

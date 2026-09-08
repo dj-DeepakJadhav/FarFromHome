@@ -17,7 +17,7 @@
 > from oscillators. See §5.
 > **Code-Data Architecture**: `assets/narrative/story.json` is the authoritative narrative asset and is automatically inlined into `window.FFH.storyData` during release assembly for 100% offline compliance.
 > **Canonical Numbers**: All economic tunables, build sizes, and prices are strictly governed by [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
-> **Open items**: [`submission/SUBMISSION_CHECKLIST.md`](submission/SUBMISSION_CHECKLIST.md) §4. Submission deliverables live in [`submission/`](submission/). How the project got here: [`THE_MAKING_OF.md`](THE_MAKING_OF.md).
+> **Open items**: [`Docs/submission/SUBMISSION_CHECKLIST.md`](Docs/submission/SUBMISSION_CHECKLIST.md) §4. Submission deliverables live in [`Docs/submission/`](Docs/submission/). How the project got here: [`Docs/THE_MAKING_OF.md`](Docs/THE_MAKING_OF.md).
 
 ---
 
@@ -302,4 +302,3 @@ The narrative design is structured around **Jamie Antonisse's GDC Narrative Prot
   verified in the DevTools Network tab: the document loads and nothing else.
 - **Audio assets**: none. All sound is procedurally synthesised (§5.2).
 - **Bundle Footprint**: see [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
-
