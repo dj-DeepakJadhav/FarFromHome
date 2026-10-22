@@ -22,15 +22,15 @@ teaching.
 
 | Subject | Document |
 | :--- | :--- |
-| Competition rules and how agents must work | [AGENTS.md](../AGENTS.md) |
+| Competition rules and how agents must work | `AGENTS.md` in the sibling `FarFromHome-Submission` project |
 | The game design | [README_HACKATHON.md](../README_HACKATHON.md) |
 | Every number: sizes, prices, timers | [CANONICAL_NUMBERS.md](CANONICAL_NUMBERS.md) |
 | The design on one page | [ONE_PAGE_DESIGN_DOCUMENT.md](ONE_PAGE_DESIGN_DOCUMENT.md) |
 | How the code is built | [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) |
 | How to read and edit the story file | [STORY_FORMAT.md](STORY_FORMAT.md) |
 | How the project came to be, and why it changed | [THE_MAKING_OF.md](THE_MAKING_OF.md) |
-| What is still open | [submission/SUBMISSION_CHECKLIST.md](submission/SUBMISSION_CHECKLIST.md) |
-| Things we must hand in | [submission/](submission/) |
+| What is still open | `Docs/SUBMISSION_CHECKLIST.md` in the sibling `FarFromHome-Submission` project |
+| Things we must hand in | `Docs/` in the sibling `FarFromHome-Submission` project |
 
 Nothing here may call itself a master document. If you want to add one, add to an
 owner above instead. This repo once had seven documents each claiming to be the
@@ -82,7 +82,7 @@ What moved, and why:
 
 | Moved | Reason |
 | :--- | :--- |
-| The task list and the development log | Replaced by [submission/BUILD_LOG.md](submission/BUILD_LOG.md), which we have to hand in anyway and covers the same ground. Open items now live in the checklist. |
+| The task list and the development log | Replaced by `BUILD_LOG.md` in the sibling `FarFromHome-Submission` project, which we have to hand in anyway and covers the same ground. Open items now live in the checklist. |
 | The old `archive/` folder | Early Act One drafts, the story bible, the mind map, and the 28 day text story. |
 | The programming guide | Its useful half is now in TECHNICAL_REFERENCE.md. |
 | The video script and voice over transcript | The video is being made a different way. |

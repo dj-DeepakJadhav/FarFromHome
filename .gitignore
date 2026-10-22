@@ -1,8 +1,9 @@
 # What this file is for
 #
-# The repo should contain the game source, the assets it needs, the documents we
-# hand in, and nothing else. Everything below is either machine specific, easy to
-# regenerate, or was moved out of the project on 8 September 2026.
+# The repo should contain the game source, the assets it needs, and the game's own
+# design documents, and nothing else. Submission material (Devpost, videos, narration,
+# thumbnails, the hackathon agent rules) lives in the sibling FarFromHome-Submission
+# project. Everything below is either machine specific or easy to regenerate.
 #
 # Every rule here was checked with `git check-ignore -v` rather than assumed.
 
@@ -49,10 +50,6 @@ tests/screenshot_*.png
 refactor.py
 track-costs.js
 tunnel_url.txt
-
-# Local agent and submission coordination files
-AGENTS.md
-Docs/submission/SUBMISSION_CHECKLIST.md
 
 # Reference images dropped loose into Docs/
 #

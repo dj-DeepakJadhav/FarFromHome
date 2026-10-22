@@ -20,7 +20,7 @@ const warnings = [];
 const err = (id, m) => errors.push(`${id}: ${m}`);
 const warn = (id, m) => warnings.push(`${id}: ${m}`);
 
-// Claims permanently removed from the build. See AGENTS.md 3.1.
+// Claims permanently removed from the build. See AGENTS.md 3.1 in the FarFromHome-Submission project.
 const BANNED_PROSE = [
   /\bby ear\b/i,
   /\bthe (audio )?voice (calls|called|comes)\b/i,

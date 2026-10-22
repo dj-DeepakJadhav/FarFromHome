@@ -149,14 +149,6 @@ with `modelMap` in `src/render/geometryFactory.js`. See `assets/README.md`.
 
 | Fact | Value |
 | :--- | :--- |
-| `Docs/submission/DESIGN_INTENT_DOC.docx` | **497 words** incl. heading (limit 500), the required format is `.docx` |
-| `Docs/submission/DESIGN_INTENT_DOC.md` | 496 words in the body (source for the `.docx`) |
-| `Docs/submission/BUILD_LOG.md` | Required, not scored |
+| Submission deliverables | Moved to the sibling `FarFromHome-Submission` project (`Docs/`). The design intent word count and the build log are tracked there. |
 | `build/verify.js` assertions | **109**, all passing |
 | Deadline | 8 September 2026, 1:00 PM PDT |
-
-Recount words with:
-
-```bash
-sed '1,3d' Docs/submission/DESIGN_INTENT_DOC.md | wc -w
-```

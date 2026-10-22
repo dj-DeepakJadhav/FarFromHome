@@ -17,7 +17,7 @@
 > from oscillators. See §5.
 > **Code-Data Architecture**: `assets/narrative/story.json` is the authoritative narrative asset and is automatically inlined into `window.FFH.storyData` during release assembly for 100% offline compliance.
 > **Canonical Numbers**: All economic tunables, build sizes, and prices are strictly governed by [`CANONICAL_NUMBERS.md`](CANONICAL_NUMBERS.md).
-> **Open items**: [`Docs/submission/SUBMISSION_CHECKLIST.md`](Docs/submission/SUBMISSION_CHECKLIST.md) §4. Submission deliverables live in [`Docs/submission/`](Docs/submission/). How the project got here: [`Docs/THE_MAKING_OF.md`](Docs/THE_MAKING_OF.md).
+> **Open items and submission deliverables**: kept in the sibling `FarFromHome-Submission` project (`Docs/SUBMISSION_CHECKLIST.md` §4). How the project got here: [`Docs/THE_MAKING_OF.md`](Docs/THE_MAKING_OF.md).
 
 ---
 

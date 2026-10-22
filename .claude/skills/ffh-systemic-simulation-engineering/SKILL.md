@@ -10,7 +10,7 @@ This skill enforces systemic simulation engineering and economic loop architectu
 *Far From Home: Kruma Express* is a **narrative courier-management sim**. Single thesis:
 **British deadpan comedy colliding with German municipal precision.** The systems below exist
 to make that joke playable. Nothing here is a teaching instrument, and no mechanic may be
-justified on pedagogical grounds — see `AGENTS.md` §3.1.
+justified on pedagogical grounds — see `AGENTS.md` §3.1 in the sibling `FarFromHome-Submission` project.
 
 ---
 

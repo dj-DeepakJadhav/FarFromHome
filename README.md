@@ -4,7 +4,7 @@
 
 **High concept:** A narrative courier-management sim about an international student arriving in Lübeck with €20, a 28-day visa clock, and a bureaucracy that refuses to become emotionally available. British deadpan comedy meets German municipal precision.
 
-![Far From Home: Kruma Express, approved one-page game design document](Docs/submission/ONE_PAGE_GDD_README_FINAL.png)
+![Far From Home: Kruma Express, the Lübeck city diorama](Docs/screenshots/01_city_lubeck.jpg)
 
 **Player promise:** Explore a compact 3D Lübeck diorama, meet people, take courier shifts, make deliveries, survive paperwork and gradually turn precarious work into a permanent home. The game is English-first and is not a language-learning game. German is comedy texture, signage and bureaucratic flavour.
 
@@ -38,6 +38,5 @@ open index.html
 - [Master game design authority](README_HACKATHON.md)
 - [Canonical numbers and economy](Docs/CANONICAL_NUMBERS.md)
 - [One-page written design document](Docs/ONE_PAGE_DESIGN_DOCUMENT.md)
-- [Design intent document](Docs/submission/DESIGN_INTENT_DOC.md)
-- [Devpost submission answers](Docs/submission/DEVPOST_SUBMISSION_FORM.md)
-- [Presentation and narration script](Docs/submission/PRESENTATION_SCRIPT.md)
+
+Submission deliverables (Devpost forms, design intent document, build log, videos, narration and thumbnails) live in the separate `FarFromHome-Submission` project, not in this repository.

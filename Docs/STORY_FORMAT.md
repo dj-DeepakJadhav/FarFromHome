@@ -25,7 +25,7 @@ we removed from the build on 2026-09-06.
 3. **Never hardcode money.** Write `{wallet}€`, not `31.50€`. Four separate money
    figures had already drifted out of sync with the economy before this rule existed.
 
-See `AGENTS.md` §3.1 for the full banned-claims list.
+See `AGENTS.md` §3.1 (in the sibling `FarFromHome-Submission` project) for the full banned-claims list.
 
 ---
 

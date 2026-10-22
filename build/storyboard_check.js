@@ -13,7 +13,6 @@
 //   node build/storyboard_check.js            validate + write manifests
 //   node build/storyboard_check.js --check    validate only, non-zero on error
 //
-// Supersedes build/narrative_manifest.js, which read the now-stale story.ink.
 
 const fs = require('fs');
 const path = require('path');

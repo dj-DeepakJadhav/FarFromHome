@@ -9,7 +9,7 @@ real German rules turned into game mechanics, what broke, and what we did about 
 It is not the place to look up design details or numbers. The design is in
 [README_HACKATHON.md](../README_HACKATHON.md), the numbers are in
 [CANONICAL_NUMBERS.md](CANONICAL_NUMBERS.md), and the session by session record is in
-[submission/BUILD_LOG.md](submission/BUILD_LOG.md). Where this document and the code
+`BUILD_LOG.md` in the sibling `FarFromHome-Submission` project. Where this document and the code
 disagree, the code is right.
 
 ## 1. Where it started
@@ -280,7 +280,7 @@ The shape of 110 commits:
 | 8 Sep | Receipt correctness, more tests, art and camera polish, packaging. |
 
 Session by session detail, including which work was the agent's and which was by hand,
-is in [submission/BUILD_LOG.md](submission/BUILD_LOG.md).
+is in `BUILD_LOG.md` in the sibling `FarFromHome-Submission` project.
 
 ## 8. What broke
 
@@ -450,7 +450,7 @@ All of these are in this repository:
 | The design on one page | [ONE_PAGE_DESIGN_DOCUMENT.md](ONE_PAGE_DESIGN_DOCUMENT.md) |
 | How the code fits together | [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) |
 | The story file format | [STORY_FORMAT.md](STORY_FORMAT.md) |
-| Session by session record | [submission/BUILD_LOG.md](submission/BUILD_LOG.md) |
+| Session by session record | `BUILD_LOG.md` in the sibling `FarFromHome-Submission` project |
 | Why each design decision was made | [MASTER_RESOURCES_AND_DECISION_ARCHIVE.md](MASTER_RESOURCES_AND_DECISION_ARCHIVE.md) |
 
 The original *Kruma* documents, and this project's retired drafts and video pipeline,
