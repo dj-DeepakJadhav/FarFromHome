@@ -1,10 +1,16 @@
 # Far From Home: Kruma Express
 
+[Play Live in Browser](https://dj-deepakjadhav.github.io/FarFromHome/)
+
+[![Pitch & Gameplay](https://img.youtube.com/vi/3QrTLmPPLh4/mqdefault.jpg)](https://www.youtube.com/watch?v=3QrTLmPPLh4)
+[![Developer Walkthrough](https://img.youtube.com/vi/yBAZ0ld73cs/mqdefault.jpg)](https://www.youtube.com/watch?v=yBAZ0ld73cs)
+[![Playthrough Demo](https://img.youtube.com/vi/NZ8KbBdNHkA/mqdefault.jpg)](https://www.youtube.com/watch?v=NZ8KbBdNHkA)
+
 ## One-page game design document
 
 **High concept:** A narrative courier-management sim about an international student arriving in Lübeck with €20, a 28-day visa clock, and a bureaucracy that refuses to become emotionally available. British deadpan comedy meets German municipal precision.
 
-![Far From Home: Kruma Express, the Lübeck city diorama](Docs/screenshots/01_city_lubeck.jpg)
+![Far From Home: Kruma Express, approved one-page game design document](Docs/submission/ONE_PAGE_GDD_README_FINAL.png)
 
 **Player promise:** Explore a compact 3D Lübeck diorama, meet people, take courier shifts, make deliveries, survive paperwork and gradually turn precarious work into a permanent home. The game is English-first and is not a language-learning game. German is comedy texture, signage and bureaucratic flavour.
 
